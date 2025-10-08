@@ -54,17 +54,6 @@ export const routes: Routes = [
     loadComponent: () => import('./server-error/server-error.component').then(m => m.ServerErrorComponent),
     data: { animation: 'InternalErrorPage', order: 10 }
   },
-  {
-    path: 'tokyo-2025-wc',
-    loadComponent: () => import('./tokyo-2025-wc/tokyo-2025-wc.component').then(m => m.Tokyo2025WcComponent),
-    children: [
-      { path: 'athletes', loadComponent: () => import('./tokyo-2025-wc/tokyo-2025-wc-athletes/tokyo-2025-wc-athletes.component').then(m => m.Tokyo2025WcAthletesComponent), data: { order: 1 } },
-      { path: 'schedule', loadComponent: () => import('./tokyo-2025-wc/tokyo-2025-wc-schedule/tokyo-2025-wc-schedule.component').then(m => m.Tokyo2025WcScheduleComponent), data: { transitionType: 'bottom-to-top', order: 2 } },
-      { path: 'event-details/:eventId', loadComponent: () => import('./tokyo-2025-wc/event-details/event-details.component').then(m => m.EventDetailsComponent), data: { order: 3} },
-      { path: '', redirectTo: 'schedule', pathMatch: 'full' }
-    ],
-    data: { animation: 'Tokyo2025WcPage', order: 10, transitionType: 'bottom-to-top' }
-  },
   { path: '', redirectTo: '/home?edition=2028', pathMatch: 'full' },
   {
     path: '**',
