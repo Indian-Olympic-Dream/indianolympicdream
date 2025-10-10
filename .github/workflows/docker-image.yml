@@ -2,7 +2,7 @@ name: Frontend Docker Image CI
 
 on:
   push:
-    branches: [ "refactor/decouple-frontend" ] # Trigger on our working branch
+    branches: [ "master" ] # Trigger on our working branch
 
 jobs:
   build:
