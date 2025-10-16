@@ -1,0 +1,86 @@
+<div class="infographic-feed">
+  <!-- Card 1: Header & Core Objective -->
+  <mat-card class="feed-card">
+    <mat-card-content>
+      <header class="feed-header">
+        <h1 class="header-title">{{ criteria().header.title }}</h1>
+        <p class="header-subtitle">{{ criteria().header.subtitle }}</p>
+      </header>
+      <blockquote class="core-objective">
+        {{ criteria().coreObjective }}
+      </blockquote>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Card 2: Summary Points -->
+  <mat-card class="feed-card">
+    <mat-card-content>
+      <section class="summary-section">
+        <h2 class="section-title">In a Nutshell: The Key Points</h2>
+        <mat-list class="summary-list">
+          @for (point of criteria().summaryPoints; track point.title) {
+          <mat-list-item class="summary-item">
+            <mat-icon matListItemIcon class="summary-icon">{{ point.icon }}</mat-icon>
+            <div matListItemTitle class="summary-title">{{ point.title }}</div>
+            <p matListItemLine class="summary-details">{{ point.details }}</p>
+          </mat-list-item>
+          }
+        </mat-list>
+      </section>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Card 3: Main Criteria (now with Expansion Panels) -->
+  <mat-card class="feed-card">
+    <mat-card-content>
+      <section class="main-criteria-section">
+        <h2 class="section-title">The Core Benchmarks</h2>
+        <mat-accordion class="benchmark-accordion">
+          @for (item of criteria().mainCriteria; track item.id) {
+          <mat-expansion-panel class="benchmark-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="benchmark-title-header">
+                <mat-icon class="benchmark-icon">{{ item.icon }}</mat-icon>
+                {{ item.title }}
+              </mat-panel-title>
+              <!-- <mat-panel-description class="benchmark-subtitle-header">
+                {{ item.subtitle }}
+              </mat-panel-description> -->
+            </mat-expansion-panel-header>
+            <p class="benchmark-details">{{ item.details }}</p>
+          </mat-expansion-panel>
+          }
+        </mat-accordion>
+      </section>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Card 4: Low Participation Table -->
+  <mat-card class="feed-card">
+    <mat-card-content>
+      <section class="cutoff-section">
+        <h2 class="section-title">{{ criteria().lowParticipationCutoffs.title }}</h2>
+        <p class="section-description">{{ criteria().lowParticipationCutoffs.description }}</p>
+        <div class="table-container">
+          <table class="cutoff-table">
+            <tbody>
+              @for (row of criteria().lowParticipationCutoffs.table; track row) {
+              <tr>
+                <td>{{ row.participatingCountries }}</td>
+                <td class="required-position">{{ row.positionRequired }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- External Link Button -->
+  <section class="feed-actions">
+    <a mat-flat-button color="primary" [href]="criteria().externalLink.url" target="_blank" rel="noopener noreferrer">
+      {{ criteria().externalLink.text }}
+    </a>
+  </section>
+</div>

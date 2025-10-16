@@ -1,0 +1,246 @@
+@use '@angular/material' as mat;
+
+// ===================================================================
+//  FINAL, SIMPLIFIED "INFOGRAPHIC FEED" STYLES - CARD BASED
+// ===================================================================
+
+:host {
+  display: block;
+}
+
+.infographic-feed {
+  max-width: 720px; // Optimal reading width for a single column
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: 'Geist Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; // Apply global font
+}
+
+.feed-card {
+  margin-bottom: 1.5rem; // Spacing between cards
+  border-radius: 12px; // M3 style rounded corners
+  overflow: hidden; // Ensure content respects border-radius
+  background-color: var(--mat-toolbar-container-background-color);
+  @include mat.elevation(2);
+  &:hover {
+    @include mat.elevation(8);
+  }
+}
+
+// --- Header ---
+.feed-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--mat-divider-color);
+}
+.header-icon {
+  transform: scale(2);
+  height: 48px;
+  width: 48px;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+.header-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--mat-toolbar-container-text-color);
+}
+.header-subtitle {
+  font-size: 1rem;
+  margin-top: 0.75rem;
+  color: var(--mat-toolbar-container-text-color-secondary);
+}
+
+// --- Core Objective ---
+.core-objective {
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.6;
+  padding: 1.5rem;
+  margin: 0; // Remove margin as it's inside card-content
+  border-left: 5px solid var(--primary-color);
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--primary-color) 5%, transparent);
+  color: var(--mat-toolbar-container-text-color);
+}
+
+// --- Section Title ---
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--mat-toolbar-container-text-color);
+}
+.section-description {
+  font-size: 1rem;
+  margin: -0.5rem 0 1rem 0;
+  text-align: center;
+  color: var(--mat-toolbar-container-text-color-secondary);
+}
+
+// --- Summary List ---
+.summary-list {
+  .summary-item {
+    height: auto !important;
+    padding: 0.75rem 0;
+  }
+  .summary-icon {
+    margin-right: 1rem;
+    color: var(--color-accent);
+  }
+  .summary-title {
+    font-weight: 600;
+    color: var(--mat-toolbar-container-text-color);
+  }
+  .summary-details {
+    white-space: normal;
+    font-size: 0.9rem;
+    color: var(--mat-toolbar-container-text-color-secondary);
+  }
+}
+
+// --- Main Benchmarks (Expansion Panels) ---
+.benchmark-accordion {
+  .mat-expansion-panel {
+    background-color: var(--mat-toolbar-container-background-color);
+    box-shadow: none !important; // Remove default shadow
+    border: 1px solid var(--mat-divider-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .mat-expansion-panel-header {
+    padding: 0 16px;
+  }
+  .benchmark-title-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--mat-toolbar-container-text-color);
+  }
+  .benchmark-icon {
+    transform: scale(1.2);
+    color: var(--primary-color);
+  }
+  .benchmark-subtitle-header {
+    font-size: 0.9rem;
+    color: var(--mat-toolbar-container-text-color-secondary);
+  }
+  .mat-expansion-panel-content {
+    .mat-expansion-panel-body {
+      padding: 0 24px 16px;
+    }
+  }
+  .benchmark-details {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--mat-toolbar-container-text-color);
+  }
+}
+
+// --- Cutoff Table ---
+.table-container {
+  padding: 1rem;
+  border-radius: 12px;
+  background-color: color-mix(in srgb, var(--color-warn) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warn) 20%, transparent);
+}
+.cutoff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  tr {
+    border-bottom: 1px solid var(--mat-divider-color);
+  }
+  tr:last-child {
+    border-bottom: none;
+  }
+  td {
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: var(--mat-toolbar-container-text-color);
+  }
+  .required-position {
+    font-weight: 700;
+    text-align: right;
+    color: var(--color-warn);
+  }
+}
+
+// --- Actions ---
+.feed-actions {
+  text-align: center;
+  margin-top: 2rem;
+  a {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.75rem 0;
+    font-size: 1rem;
+  }
+}
+
+// ===================================================================
+//  THEME-AWARE STYLES
+// ===================================================================
+
+@mixin ag2026-card-feed-theme($theme) {
+  $primary: map-get($theme, primary);
+  $accent: map-get($theme, accent);
+  $warn: map-get($theme, warn);
+  $background: map-get($theme, background);
+  $foreground: map-get($theme, foreground);
+
+  .infographic-feed {
+    background-color: mat.get-color-from-palette($background, background);
+  }
+
+  // No specific theme for feed-card background here, it uses var(--mat-toolbar-container-background-color)
+  // defined globally, but elevation is theme-aware
+
+  .feed-header {
+    border-bottom-color: mat.get-color-from-palette($foreground, divider);
+  }
+  .header-icon { color: mat.get-color-from-palette($primary); }
+  .header-title { color: mat.get-color-from-palette($foreground, text); }
+  .header-subtitle { color: mat.get-color-from-palette($foreground, secondary-text); }
+
+  .core-objective {
+    border-left-color: mat.get-color-from-palette($primary);
+    background-color: mat.get-color-from-palette($primary, 0.05);
+    color: mat.get-color-from-palette($foreground, text);
+  }
+
+  .section-title { color: mat.get-color-from-palette($foreground, text); }
+  .section-description { color: mat.get-color-from-palette($foreground, secondary-text); }
+
+  .summary-icon { color: mat.get-color-from-palette($accent); }
+  .summary-title { color: mat.get-color-from-palette($foreground, text); }
+  .summary-details { color: mat.get-color-from-palette($foreground, secondary-text); }
+
+  .benchmark-accordion {
+    .mat-expansion-panel {
+      background-color: mat.get-color-from-palette($background, card);
+      border-color: mat.get-color-from-palette($foreground, divider);
+      @include mat.elevation(1);
+      &:hover {
+        @include mat.elevation(4);
+      }
+    }
+  }
+  .benchmark-title-header { color: mat.get-color-from-palette($foreground, text); }
+  .benchmark-icon { color: mat.get-color-from-palette($primary); }
+  .benchmark-subtitle-header { color: mat.get-color-from-palette($foreground, secondary-text); }
+  .benchmark-details { color: mat.get-color-from-palette($foreground, text); }
+
+  .table-container {
+    background-color: mat.get-color-from-palette($warn, 0.05);
+    border-color: mat.get-color-from-palette($warn, 0.2);
+  }
+  .cutoff-table td { color: mat.get-color-from-palette($foreground, text); }
+  .cutoff-table tr { border-bottom-color: mat.get-color-from-palette($foreground, divider); }
+  .cutoff-table .required-position { color: mat.get-color-from-palette($warn, default); }
+}

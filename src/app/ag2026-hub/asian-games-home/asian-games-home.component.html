@@ -1,0 +1,8 @@
+<mat-toolbar class="secondary-toolbar" *ngIf="isChildRoute">
+  <button mat-mini-fab color="accent" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <mat-icon>chevron_right</mat-icon>
+  <span>{{ pageTitle }}</span>
+</mat-toolbar>
+<router-outlet></router-outlet>

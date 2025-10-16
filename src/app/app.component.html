@@ -30,6 +30,11 @@
   </mat-menu>
 
   <nav class="nav-links">
+    <button class="nav-button" [routerLink]="['/ag2026']" [queryParams]="{ edition: selectedOlympics }" mat-button
+      routerLinkActive="active-link">
+      <!-- <mat-icon>directions_run</mat-icon> -->
+      Asian Games'26
+    </button>
     <button class="nav-button" [routerLink]="['/athletes']" [queryParams]="{ edition: selectedOlympics }" mat-button
       routerLinkActive="active-link">
       <!-- <mat-icon>directions_run</mat-icon> -->
@@ -45,11 +50,10 @@
       <!-- <mat-icon>date_range</mat-icon> -->
       Schedule
     </button>
-    <button class="nav-button" [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }" mat-button
+    <!-- <button class="nav-button" [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }" mat-button
       routerLinkActive="active-link">
-      <!-- <mat-icon>movie</mat-icon> -->
       Shows I love
-    </button>
+    </button> -->
     <button class="nav-button" [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }" mat-button
       routerLinkActive="active-link">
       <!-- <mat-icon>description</mat-icon> -->
@@ -73,6 +77,11 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #drawer class="sidenav" mode="over">
     <mat-nav-list (click)="drawer.close()">
+      <a mat-list-item [routerLink]="['/ag2026']" [queryParams]="{ edition: selectedOlympics }"
+        routerLinkActive="mat-list-active">
+        <mat-icon>festival</mat-icon>
+        <span class="sidenav-menu">Asian Games'26</span>
+      </a>
       <a mat-list-item [routerLink]="['/athletes']" [queryParams]="{ edition: selectedOlympics }"
         routerLinkActive="mat-list-active">
         <mat-icon>directions_run</mat-icon>
@@ -88,11 +97,11 @@
         <mat-icon>date_range</mat-icon>
         <span class="sidenav-menu">Schedule</span>
       </a>
-      <a mat-list-item [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }"
+      <!-- <a mat-list-item [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }"
         routerLinkActive="mat-list-active">
         <mat-icon>movie</mat-icon>
         <span class="sidenav-menu">Shows I love</span>
-      </a>
+      </a> -->
       <a mat-list-item [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }"
         routerLinkActive="mat-list-active">
         <mat-icon>description</mat-icon>

@@ -44,6 +44,15 @@ export const routes: Routes = [
     loadComponent: () => import('./about/about.component').then(m => m.AboutComponent),
     data: { animation: 'AboutPage', order: 8, transitionType: 'bottom-to-top' }
   },
+  {
+    path: 'ag2026',
+    loadComponent: () => import('./ag2026-hub/asian-games-home/asian-games-home.component').then(m => m.AsianGamesHomeComponent),
+    data: { animation: 'Ag2026HubPage', order: 9 },
+    children: [
+      { path: '', loadComponent: () => import('./ag2026-hub/ag2026-hub.component').then(m => m.Ag2026HubComponent) },
+      { path: 'selection-policy', loadComponent: () => import('./ag2026-hub/selection-policy/selection-policy.component').then(m => m.SelectionPolicyComponent), data: { title: 'Selection Policy' } },
+    ]
+  },
   // {
   //   path: 'feedback',
   //   loadComponent: () => import('./feedback/feedback.component').then(m => m.FeedbackComponent),
@@ -54,7 +63,7 @@ export const routes: Routes = [
     loadComponent: () => import('./server-error/server-error.component').then(m => m.ServerErrorComponent),
     data: { animation: 'InternalErrorPage', order: 10 }
   },
-  { path: '', redirectTo: '/home?edition=2028', pathMatch: 'full' },
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
   {
     path: '**',
     loadComponent: () => import('./pagenotfound/pagenotfound.component').then(m => m.PagenotfoundComponent),
