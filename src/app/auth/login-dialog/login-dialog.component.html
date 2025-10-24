@@ -1,0 +1,53 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <div></div>
+    <h1 class="dialog-title">Login to Create Your Dream Tracker</h1>
+    <button mat-mini-fab color="primary" (click)="onCancel()">
+      <mat-icon>clear</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <form class="loginForm" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" placeholder="Enter your email">
+        <button color="primary" mat-icon-button matSuffix type="button">
+          <mat-icon>email</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password"
+          placeholder="Enter your password">
+        <button color="primary" mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="login-button" type="submit">
+        Login
+      </button>
+    </form>
+
+    <a class="forgot-password">Forgot Password?</a>
+
+    <div class="signup-prompt">
+      <span>Don't have an account?</span>
+      <span class="create-text">Continue with</span>
+    </div>
+
+    <div class="social-buttons">
+      <button mat-mini-fab class="google-button" (click)="loginWithGoogle()">
+        <img height="24px" width="24px" src="assets/images/oauth/google.svg" alt="Google">
+      </button>
+      <button mat-mini-fab class="twitter-button" (click)="loginWithTwitter()">
+        <img height="24px" width="24px" src="assets/images/oauth/x.svg" alt="X (Twitter)">
+      </button>
+      <button mat-mini-fab class="reddit-button" (click)="loginWithReddit()">
+        <img height="24px" width="24px" src="assets/images/oauth/reddit.svg" alt="Reddit">
+      </button>
+    </div>
+  </div>
+</div>

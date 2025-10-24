@@ -94,7 +94,6 @@ body {
   padding-right: 0px;
   padding-bottom: 0px;
   padding-left: 0px;
-  
   box-sizing: border-box;
   overflow: auto;
   outline: 0;
@@ -104,7 +103,8 @@ body {
     border-radius: 8px;
   }
   border-radius: 10px;
-  box-shadow: var(--primary-color) 0px 0.5px 4px 0.5px;
+  border: 1px solid var(--mdc-outlined-button-outline-color);
+  // box-shadow: var(--primary-color) 0px 0.5px 4px 0.5px;
 }
 
 .logo-button {

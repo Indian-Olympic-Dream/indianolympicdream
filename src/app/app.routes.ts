@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -8,6 +9,17 @@ export const routes: Routes = [
     // resolve: {
     //   allsportsdata: AllSportsResolverService // This resolver would also need to be provided differently if used with standalone components, typically in the route's providers array or globally.
     // }
+  },
+  {
+    path: 'sub-home',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./admin-home/home/home.component').then(m => m.HomeComponent),
+        // data: { animation: 'AdminHomePage', order: 3 }
+      }
+    ]
   },
   {
     path: 'sports/:sportname',

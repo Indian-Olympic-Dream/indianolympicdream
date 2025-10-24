@@ -12,7 +12,10 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog'; // Import MatDialog
 import { LoaderService } from './shared/components/loader/loader.service';
+import { LoginDialogComponent } from './auth/login-dialog/login-dialog.component'; // Import LoginDialogComponent
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -34,7 +37,8 @@ import { LoaderService } from './shared/components/loader/loader.service';
     MatSlideToggleModule,
     MatSidenavModule,
     MatListModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    LoginDialogComponent
   ]
 })
 export class AppComponent implements OnInit {
@@ -58,7 +62,9 @@ export class AppComponent implements OnInit {
     private route: ActivatedRoute,
     private swupdateservice: SwupdateService,
     public overlayContainer: OverlayContainer,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    public authService: AuthService,
+    private dialog: MatDialog // Inject MatDialog
   ) {
     this.loaderService.loaderState.subscribe(state => {
       this.loading = state.show;
@@ -159,5 +165,23 @@ export class AppComponent implements OnInit {
 
   openAboutMe() {
     window.open('https://github.com/agrawalankush', '_blank');
+  }
+
+  openLoginDialog(): void {
+    const dialogRef = this.dialog.open(LoginDialogComponent, {
+
+      width: '400px',
+      hasBackdrop: true,
+      panelClass: 'custom-dialog' // Apply custom dialog styling
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The login dialog was closed', result);
+      // Handle actions after dialog closes, e.g., refresh user state
+    });
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }

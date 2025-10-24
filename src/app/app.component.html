@@ -61,13 +61,16 @@
     </button>
   </nav>
   <span class="fill-remaining-space"></span>
-  <div class="theme-switch">
+  <button mat-icon-button *ngIf="!authService.isAuthenticated()"
+    (click)="openLoginDialog()"><mat-icon>login</mat-icon></button>
+  <button mat-icon-button *ngIf="authService.isAuthenticated()" (click)="logout()"><mat-icon>logout</mat-icon></button>
+  <!-- <div class="theme-switch">
     <div><mat-icon>{{currentTheme === 'dark-theme' ? 'dark_mode' : 'light_mode'}}</mat-icon></div>
     <div><mat-slide-toggle class="theme-toggle" color="primary" [checked]="currentTheme === 'dark-theme'"
         (change)="onSetTheme()" [disableRipple]="true">
       </mat-slide-toggle>
     </div>
-  </div>
+  </div> -->
 </mat-toolbar>
 
 <mat-sidenav-container class="sidenav-container">

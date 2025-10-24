@@ -1,0 +1,152 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  // background: var(--mat-card-background-color);
+}
+
+.dialog-container {
+  position: relative;
+  max-width: 440px;
+  padding: 24px;
+  background-color: var(--mat-toolbar-container-background-color);
+}
+
+.dialog-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+ margin-bottom: 24px;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.dialog-title {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+ 
+  color: var(--mat-card-foreground-color);
+}
+
+.form-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.login-button {
+  width: 100%;
+  height: 48px;
+  margin: 24px 0;
+  border-radius: 24px; // Match form field radius
+  background-color: var(--primary-color);
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  max-width: 320px; // Add max-width for better proportions
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Replace ::ng-deep with proper MDC selectors
+:host {
+  .mat-form-field {
+    @include mat.elevation(4);
+    box-shadow: gray 0px 0.1px 4px 2px;
+  }
+  .mdc-text-field--outlined {
+    --mdc-outlined-text-field-container-shape: 12px;
+    --mdc-outlined-text-field-container-color: color-mix(in srgb, var(--primary-color) 8%, transparent);
+    --mdc-outlined-text-field-outline-color: color-mix(in srgb, var(--primary-color) 16%, transparent);
+    --mdc-outlined-text-field-focus-outline-color: var(--primary-color);
+    --mdc-outlined-text-field-label-text-color: var(--mat-card-foreground-color);
+    --mdc-outlined-text-field-input-text-color: var(--mat-card-foreground-color);
+    --mdc-outlined-text-field-focus-label-text-color: var(--primary-color);
+    --mdc-outlined-text-field-focus-input-text-color: var(--mat-card-foreground-color);
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    background-color: transparent;
+  }
+
+  .mat-mdc-icon-button {
+    --mat-mdc-button-persistent-ripple-color: transparent;
+    --mat-mdc-button-ripple-color: transparent;
+    color: var(--primary-color);
+  }
+}
+
+.forgot-password {
+  color: var(--mat-card-foreground-color);
+  opacity: 0.7;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 16px 0;
+  display: block;
+  text-align: center;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.signup-prompt {
+  text-align: center;
+  margin: 16px 0;
+
+  span {
+    color: var(--mat-card-foreground-color);
+    opacity: 0.7;
+    font-size: 14px;
+  }
+
+  .create-text {
+    color: var(--primary-color);
+    opacity: 1;
+    font-weight: 500;
+    margin-left: 4px;
+  }
+}
+
+.social-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  justify-content: center;
+
+  .mat-mdc-mini-fab {
+    width: 56px;
+    height: 56px;
+
+    &.google-button {
+      background-color: white;
+    }
+
+    &.twitter-button {
+      background-color: white;
+    }
+
+    &.reddit-button {
+      background-color: white;
+    }
+  }
+}
+
+form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

@@ -1,6 +1,14 @@
 {
+  "/api/auth/*": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api/auth": ""
+    }
+  },
   "/api": {
-    "target": "https://api.iod-community.com",
+    "target": "http://localhost:3000",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
