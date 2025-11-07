@@ -1,6 +1,24 @@
 <div class="container">
-    <div class="coming-soon">
+    <!-- <div class="coming-soon">
         <h2>Coming Soon</h2>
         <p class="handwriting">थोड़े मेरे किस्से और बहुत सारी inspiring कहानियाँ Olympic Sports के गलियारे से।</p>
-    </div>
+    </div> -->
+    <ng-container *ngIf="stories$ | async as stories; else noStories">
+        <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
+            <!-- Loop over the stories -->
+            <div class="story-card" *ngFor="let story of stories" [routerLink]="['/stories', 
+      story.id]">
+                <img *ngIf="story.heroImage" [src]="story.heroImage.url" [alt]="story.title">
+                <div class="card-content">
+                    <h2>{{ story.title }}</h2>
+                    <!-- You might need a small function or pipe to extract text from the subtitle 
+      block -->
+                    <p>{{ story.publishedDate | date: 'longDate' }}</p>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-template #noStories>
+        <p>No stories available at the moment.</p>
+    </ng-template>
 </div>
