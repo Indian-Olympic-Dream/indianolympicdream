@@ -1,24 +1,28 @@
-<div class="container">
-    <!-- <div class="coming-soon">
+<!-- <div class="container">
+    <div class="coming-soon">
         <h2>Coming Soon</h2>
         <p class="handwriting">थोड़े मेरे किस्से और बहुत सारी inspiring कहानियाँ Olympic Sports के गलियारे से।</p>
-    </div> -->
-    <ng-container *ngIf="stories$ | async as stories; else noStories">
-        <div class="stories-grid" *ngIf="stories.length > 0; else noStories">
-            <!-- Loop over the stories -->
-            <div class="story-card" *ngFor="let story of stories" [routerLink]="['/stories', 
-      story.id]">
-                <img *ngIf="story.heroImage" [src]="story.heroImage.url" [alt]="story.title">
-                <div class="card-content">
-                    <h2>{{ story.title }}</h2>
-                    <!-- You might need a small function or pipe to extract text from the subtitle 
-      block -->
-                    <p>{{ story.publishedDate | date: 'longDate' }}</p>
-                </div>
+    </div>
+</div> -->
+<div class="stories-container">
+  <div *ngIf="loading">Loading stories...</div>
+  <div *ngIf="error">Error loading stories: {{ error.message }}</div>
+
+  <div *ngIf="stories$ | async as response" class="stories-grid">
+    <div *ngFor="let story of response" class="story-card">
+      <a [routerLink]="['/story', story.slug]">
+        <img [src]="story.heroImage.sizes.card.url | payloadMedia" [alt]="story.heroImage.alt" class="story-image">
+        <div class="story-content">
+          <h3 class="story-title">{{ story.title }}</h3>
+          <div class="story-meta">
+            <div class="author-info" *ngIf="story.authors && story.authors.length > 0">
+              <img [src]="story.authors[0].avatar.sizes.square.url | payloadMedia" [alt]="story.authors[0].avatar.alt" class="author-avatar">
+              <span>{{ story.authors[0].firstName }} {{ story.authors[0].lastName }}</span>
             </div>
+            <span class="reading-time">{{ story.readingTime }} min read</span>
+          </div>
         </div>
-    </ng-container>
-    <ng-template #noStories>
-        <p>No stories available at the moment.</p>
-    </ng-template>
+      </a>
+    </div>
+  </div>
 </div>

@@ -1,57 +1,80 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Injectable } from "@angular/core";
+import { Apollo, gql } from "apollo-angular";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
-// A single Story document from Payload
 export interface Story {
-    id: string;
-    title: string;
-    subtitle: {
-        [key: string]: any;
-    }[];
-    heroImage: any;
-    chapters: any[];
-    publishedDate: string;
+  id: string;
+  slug: string;
+  title: string;
+  readingTime: number;
+  authors: {
+    firstName: string;
+    lastName: string;
+    avatar: {
+      alt: string;
+      sizes: {
+        square: {
+          url: string;
+        };
+      };
+    };
+  }[];
+  heroImage: {
+    alt: string;
+    sizes: {
+      card: {
+        url: string;
+      };
+    };
+  };
 }
-export interface PayloadResponse<T> {
-    docs: T[];
-    totalDocs: number;
-    limit: number;
-    totalPages: number;
-    page: number;
-    pagingCounter: number;
-    hasPrevPage: boolean;
-    hasNextPage: boolean;
-    prevPage: number | null;
-    nextPage: number | null;
-}
+
+const GET_STORIES_LIST = gql`
+  query StoriesListHome {
+    Stories(where: { status: { equals: published } }) {
+      docs {
+        id
+        slug
+        title
+        readingTime
+        authors {
+          firstName
+          lastName
+          avatar {
+            alt
+            sizes {
+              square {
+                url
+              }
+            }
+          }
+        }
+        heroImage {
+          alt
+          sizes {
+            card {
+              url
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: "root",
 })
-export class StoryService {
-    private apiUrl = `${environment.apiUrl}/content`;
+export class StoriesService {
+  constructor(private apollo: Apollo) {}
 
-    constructor(private http: HttpClient) { }
-
-    getStories(): Observable<Story[]> {
-        // Fetch only published stories
-        return this.http.get<PayloadResponse<Story>>(`${this.apiUrl}/stories?where[status][equals]=published&sort=-publishedDate&limit=10`)
-            .pipe(
-                map(response => response.docs)
-            );
-    }
-
-    getStoryBySlug(slug: string): Observable<Story> {
-        // Fetch a single story by slug
-        return this.http.get<PayloadResponse<Story>>(`${this.apiUrl}/stories?where[slug][equals]=${slug}&depth=2`)
-            .pipe(
-                map(response => response.docs[0])
-            );
-    }
+  getStories(): Observable<Story[]> {
+    return this.apollo
+      .watchQuery<{ Stories: { docs: Story[] } }>({
+        query: GET_STORIES_LIST,
+        fetchPolicy: "no-cache",
+      })
+      .valueChanges.pipe(map((result) => result.data.Stories.docs));
+  }
 }
-
-
-
