@@ -1,106 +1,219 @@
+// Main container for the component
 .story-details-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-family: sans-serif;
-  line-height: 1.6;
+  padding: 1rem;
+  font-family: "Geist Sans", sans-serif;
+}
+
+// The sticky toolbar at the top
+.story-toolbar {
+  background-color: var(--mat-card-background-color);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-width: 65ch;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+
+  .breadcrumb-separator {
+    color: #999;
+  }
+  .breadcrumb-thumbnail {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .breadcrumb-title {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// The main story card
+.story-card {
+  max-width: 85ch; // Set the max-width on the card itself
+  margin: 0 auto; // Center the card
+  background: var(--mat-card-background-color);
+
+  // Remove default mat-card padding to have more control
+  padding: 0;
+
+  .hero-image {
+    border-radius: 4; // Image should be flush with card edges if at top
+  }
+
+  mat-card-header {
+    padding: 2rem 2rem 1rem 2rem;
+    display: block; // Allow content to be centered
+  }
 
   .story-title {
     font-size: 3rem;
-    margin-bottom: 1rem;
-    font-weight: bold;
-  }
-
-  .hero-image-container {
-    margin-bottom: 2rem;
-    .hero-image {
-      width: 100%;
-      height: auto;
-      border-radius: 0px;
-    }
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
   }
 
   .story-meta {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 2rem;
     color: #666;
+    margin-top: 1rem;
 
     .author-info {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-
-      .author-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-      }
+    }
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
     }
   }
 
-  .story-subtitle {
-    margin-bottom: 2rem;
-    font-size: 1.2rem;
-    color: var(--primary-color);
+  // The main content area of the card
+  mat-card-content {
+    padding: 0 2rem 2rem 2rem;
+    // Apply readability styles directly to the content host
+    max-width: 65ch;
+    margin: 0 auto;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    font-weight: 400;
 
-    blockquote {
-      border-left: 4px solid #ccc;
-      padding-left: 1rem;
-      margin-left: 0;
-      font-style: italic;
-    }
-  }
-
-  .story-content {
-    margin-bottom: 2rem;
-
-    pre {
-      background-color: #f4f4f4;
-      padding: 1rem;
-      border-radius: 4px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-  }
-
-  .story-chapters {
-    h2 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-
-    .chapter-card {
+    .story-tags {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      overflow: hidden;
-      transition: box-shadow 0.3s ease;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tag-chip {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 50px;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      transition: all 0.2s ease;
+      cursor: pointer;
 
       &:hover {
+        background-color: var(--primary-color);
+        color: var(--mat-card-background-color);
+      }
+    }
+
+    .story-subtitle {
+      font-size: 1.5rem;
+      line-height: 1.4;
+      text-align: center;
+      color: var(--mat-card-foreground-color);
+      opacity: 0.8;
+      margin-bottom: 2rem;
+
+      blockquote {
+        border-left: 4px solid #ccc;
+        padding-left: 1rem;
+        margin: 0;
+        font-style: italic;
+        text-align: left;
+      }
+    }
+
+    .story-content {
+      p {
+        margin-bottom: 1.5rem;
+      }
+      pre {
+        display: none; // Hide placeholder
+      }
+    }
+
+    .story-chapters {
+      margin: 4rem 0 0 0;
+      border-top: 1px solid #eee;
+      padding-top: 2rem;
+
+      h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      .chapter-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .chapter-card {
+        padding: 0;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
+        transition: all 0.3s ease;
 
-      a {
-        display: flex;
-        text-decoration: none;
-        color: inherit;
-        width: 100%;
-      }
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
 
-      .chapter-image {
-        width: 150px;
-        height: 100px;
-        object-fit: cover;
-      }
+        a {
+          display: block;
+          width: 100%;
+          height: 100%;
+          text-decoration: none;
+        }
 
-      .chapter-content {
-        padding: 1rem;
+        .chapter-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        &:hover .chapter-image {
+          transform: scale(1.05);
+        }
+
+        .chapter-overlay {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 1.5rem 1rem 1rem 1rem;
+          background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.85) 0%,
+            rgba(0, 0, 0, 0) 100%
+          );
+          color: white;
+        }
+
         .chapter-title {
           font-size: 1.2rem;
+          font-weight: 600;
+          line-height: 1.3;
           margin: 0;
         }
       }

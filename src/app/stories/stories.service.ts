@@ -126,6 +126,9 @@ const GET_STORY_BY_SLUG = gql`
             full {
               url
             }
+            thumbnail {
+              url
+            }
           }
         }
         subtitle {
@@ -158,6 +161,7 @@ const GET_STORY_BY_SLUG = gql`
           id
           slug
           title
+          readingTime
           heroImage {
             alt
             sizes {
