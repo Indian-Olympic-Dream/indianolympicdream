@@ -4,10 +4,10 @@
   </button>
   <div class="logo-container" [routerLink]="['/home']" [queryParams]="{ edition: selectedOlympics }"
     [class.active-logo]="isActivePath()">
-    <span>Indian</span>
+    <span>{{ logoTextTop }}</span>
     <img src="assets/images/generic/logo.png" class="olympic-logo" alt="olympic rings logo" loading="eager"
       decoding="async" fetchpriority="high" width="60" height="24">
-    <span>Dream</span>
+    <span>{{ logoTextBottom }}</span>
   </div>
   <div class="logo-container" [matMenuTriggerFor]="olympicsMenu" (menuOpened)="isOlympicsMenuOpen = true"
     (menuClosed)="isOlympicsMenuOpen = false">
