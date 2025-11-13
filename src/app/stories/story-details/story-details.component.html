@@ -1,0 +1,49 @@
+<div *ngIf="story$ | async as story" class="story-details-container">
+  <h1 class="story-title">{{ story.title }}</h1>
+
+  <div *ngIf="story.heroImage" class="hero-image-container">
+    <img [src]="story.heroImage.sizes.full.url | payloadMedia" [alt]="story.heroImage.alt" class="hero-image">
+  </div>
+
+  <div class="story-meta">
+    <div *ngIf="story.authors && story.authors.length > 0" class="author-info">
+      <img [src]="story.authors[0].avatar.sizes.square.url | payloadMedia" [alt]="story.authors[0].avatar.alt" class="author-avatar">
+      <span>{{ story.authors[0].firstName }} {{ story.authors[0].lastName }}</span>
+    </div>
+    <span *ngIf="story.publishedDate" class="published-date">{{ story.publishedDate | date }}</span>
+    <span *ngIf="story.readingTime" class="reading-time">{{ story.readingTime }} min read</span>
+  </div>
+
+  <div *ngIf="story.subtitle" class="story-subtitle">
+    <div *ngFor="let block of story.subtitle">
+      <ng-container [ngSwitch]="block.__typename">
+        <p *ngSwitchCase="'Text'">{{ block.text }}</p>
+        <blockquote *ngSwitchCase="'Blockquote'">
+          <p>{{ block.quote }}</p>
+          <cite>{{ block.citation }}</cite>
+        </blockquote>
+      </ng-container>
+    </div>
+  </div>
+
+  <div *ngIf="story.content" class="story-content">
+    <!-- Here you would render the rich text content.
+         This might require a custom component or a library
+         to parse the JSON structure from Payload CMS.
+         For now, I will just display the raw JSON. -->
+    <pre>{{ story.content | json }}</pre>
+  </div>
+
+  <div *ngIf="story.chapters && story.chapters.length > 0" class="story-chapters">
+    <h2>Chapters</h2>
+    <div *ngFor="let chapter of story.chapters" class="chapter-card">
+      <a [routerLink]="['/story', chapter.slug]">
+        <img [src]="chapter.heroImage.sizes.card.url | payloadMedia" [alt]="chapter.heroImage.alt" class="chapter-image">
+        <div class="chapter-content">
+          <h3 class="chapter-title">{{ chapter.title }}</h3>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>

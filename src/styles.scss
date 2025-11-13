@@ -1,47 +1,52 @@
 /* You can add global styles to this file, and also import other style files */
-@use './styles/theme-manager';
-@use '@angular/material' as mat;
+@use "./styles/theme-manager";
+@use "@angular/material" as mat;
 
 /* Geist Font Face Declarations */
 /* Only include essential font weights to reduce bundle size */
 // Font loading strategy
 @font-face {
-  font-family: 'Geist Sans';
-  src: local('Geist Sans'),
-       url('/assets/fonts/GeistSans-Regular.woff2') format('woff2');
+  font-family: "Geist Sans";
+  src:
+    local("Geist Sans"),
+    url("/assets/fonts/GeistSans-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
-  font-display: swap;         // Use swap for primary text font
-  font-feature-settings: 'kern' 1;  // Enable kerning
-  unicode-range: U+000-5FF;  // Latin only
+  font-display: swap; // Use swap for primary text font
+  font-feature-settings: "kern" 1; // Enable kerning
+  unicode-range: U+000-5FF; // Latin only
 }
 
 @font-face {
-  font-family: 'Geist Sans';
-  src: local('Geist Sans Medium'),
-       url('/assets/fonts/GeistSans-Medium.woff2') format('woff2');
+  font-family: "Geist Sans";
+  src:
+    local("Geist Sans Medium"),
+    url("/assets/fonts/GeistSans-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;    // Shows fallback immediately, swaps when loaded
-  font-feature-settings: 'kern' 1;
+  font-display: swap; // Shows fallback immediately, swaps when loaded
+  font-feature-settings: "kern" 1;
   unicode-range: U+000-5FF;
 }
 
 // Load mono font lazily since it's not critical
 @font-face {
-  font-family: 'Geist Mono';
-  src: local('Geist Mono'),
-       url('/assets/fonts/GeistMono-Regular.woff2') format('woff2');
+  font-family: "Geist Mono";
+  src:
+    local("Geist Mono"),
+    url("/assets/fonts/GeistMono-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
-  font-display: optional;    // Only uses custom font if cached
+  font-display: optional; // Only uses custom font if cached
   unicode-range: U+000-5FF;
 }
 
 /* Tangerine Font Face */
 @font-face {
-  font-family: 'Tangerine';
-  src: local('Tangerine'), url('/assets/fonts/Tangerine-Regular.woff2') format('woff2');
+  font-family: "Tangerine";
+  src:
+    local("Tangerine"),
+    url("/assets/fonts/Tangerine-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -50,20 +55,27 @@
 
 /* Material Icons Font Face */
 @font-face {
-  font-family: 'Material Icons';
-  src: url('/assets/fonts/material-icons.woff2') format('woff2');  // Verify this path
+  font-family: "Material Icons";
+  src: url("/assets/fonts/material-icons.woff2") format("woff2"); // Verify this path
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-html, body { 
-  height: 100%; 
+html,
+body {
+  height: 100%;
 }
 
-body { 
-  margin: 0; 
-  font-family: 'Geist Mono', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+body {
+  margin: 0;
+  font-family:
+    "Geist Mono",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   font-display: optional;
 }
@@ -94,7 +106,7 @@ body {
   padding-right: 0px;
   padding-bottom: 0px;
   padding-left: 0px;
-  
+
   box-sizing: border-box;
   overflow: auto;
   outline: 0;
@@ -123,43 +135,61 @@ body {
 }
 
 // Typography styles
-h1, h2, h3, h4, h5, h6,
-.mat-headline, 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.mat-headline,
 .mat-title,
 .mat-card-title,
 .mat-toolbar {
-  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Geist Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-.mat-button, 
+.mat-button,
 .mat-raised-button,
 .mat-flat-button {
-  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Geist Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 
-code, pre, 
+code,
+pre,
 .mat-mono {
-  font-family: 'Geist Mono', monospace;
+  font-family: "Geist Mono", monospace;
   font-weight: 400;
 }
 
-.mat-body, 
+.mat-body,
 .mat-body-1,
 p {
-  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Geist Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   font-weight: 400;
   line-height: 1.6;
 }
 
 .material-icons {
-  font-family: 'Material Icons';  // Make sure font-family is exactly this
+  font-family: "Material Icons"; // Make sure font-family is exactly this
   font-weight: normal;
   font-style: normal;
-  font-size: 24px;  // Default size
+  font-size: 24px; // Default size
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -167,7 +197,7 @@ p {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -webkit-font-feature-settings: 'liga';
+  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
 }
 
@@ -175,11 +205,11 @@ p {
   .mdc-snackbar__surface {
     background-color: var(--mat-toolbar-container-background-color) !important;
   }
-  
+
   .mdc-snackbar__label {
     color: #4caf50 !important;
   }
-  
+
   .mat-mdc-button {
     color: #4caf50 !important;
   }
@@ -189,11 +219,11 @@ p {
   .mdc-snackbar__surface {
     background-color: var(--mat-toolbar-container-background-color) !important;
   }
-  
+
   .mdc-snackbar__label {
     color: #f44336 !important;
   }
-  
+
   .mat-mdc-button {
     color: #f44336 !important;
   }
@@ -214,7 +244,7 @@ mat-mdc-card {
     padding: 16px;
   }
   mat-card-content {
-    font-family: 'Montserrat', sans-serif;
+    font-family: "Montserrat", sans-serif;
     font-size: 14px;
     letter-spacing: 1px;
     line-height: 20px;
@@ -245,13 +275,16 @@ mat-mdc-card {
 a {
   color: var(--primary-color);
   text-decoration: none;
-  transition: color 0.2s ease, text-decoration 0.2s ease;
-  
-  &:hover, &:focus {
+  transition:
+    color 0.2s ease,
+    text-decoration 0.2s ease;
+
+  &:hover,
+  &:focus {
     text-decoration: underline;
     color: var(--primary-color);
   }
-  
+
   &:visited {
     color: var(--primary-color);
   }
@@ -281,11 +314,12 @@ a {
     padding: 0 !important;
   }
 }
-.mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .mdc-evolution-chip__action--trailing {
+.mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action
+  .mdc-evolution-chip__action--trailing {
   padding: 0 !important;
 }
 
-.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled)  {
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) {
   background-color: transparent !important;
 }
 
@@ -295,7 +329,7 @@ a {
   align-items: center;
   justify-self: center;
   min-height: 100px;
-  font-family: 'Geist Sans', sans-serif;
+  font-family: "Geist Sans", sans-serif;
   color: var(--color-text);
   text-align: center;
   padding: 20px;

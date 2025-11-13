@@ -1,0 +1,109 @@
+.story-details-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: sans-serif;
+  line-height: 1.6;
+
+  .story-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+
+  .hero-image-container {
+    margin-bottom: 2rem;
+    .hero-image {
+      width: 100%;
+      height: auto;
+      border-radius: 0px;
+    }
+  }
+
+  .story-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    color: #666;
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  .story-subtitle {
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+
+    blockquote {
+      border-left: 4px solid #ccc;
+      padding-left: 1rem;
+      margin-left: 0;
+      font-style: italic;
+    }
+  }
+
+  .story-content {
+    margin-bottom: 2rem;
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 1rem;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  }
+
+  .story-chapters {
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .chapter-card {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      a {
+        display: flex;
+        text-decoration: none;
+        color: inherit;
+        width: 100%;
+      }
+
+      .chapter-image {
+        width: 150px;
+        height: 100px;
+        object-fit: cover;
+      }
+
+      .chapter-content {
+        padding: 1rem;
+        .chapter-title {
+          font-size: 1.2rem;
+          margin: 0;
+        }
+      }
+    }
+  }
+}

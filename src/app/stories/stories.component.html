@@ -10,7 +10,7 @@
 
   <div *ngIf="stories$ | async as response" class="stories-grid">
     <div *ngFor="let story of response" class="story-card">
-      <a [routerLink]="['/story', story.slug]">
+      <a [routerLink]="['/stories', story.slug]">
         <img [src]="story.heroImage.sizes.card.url | payloadMedia" [alt]="story.heroImage.alt" class="story-image">
         <div class="story-content">
           <h3 class="story-title">{{ story.title }}</h3>
