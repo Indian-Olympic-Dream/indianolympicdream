@@ -8,6 +8,7 @@ import { RouterModule } from "@angular/router";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatCardModule } from "@angular/material/card";
+import { BlockRendererComponent } from "../../story-blocks/block-renderer/block-renderer.component";
 import { MatButtonModule } from "@angular/material/button";
 
 @Component({
@@ -23,6 +24,7 @@ import { MatButtonModule } from "@angular/material/button";
     MatButtonModule,
     MatTooltipModule,
     MatCardModule,
+    BlockRendererComponent,
   ],
   templateUrl: "./story-details.component.html",
   styleUrls: ["./story-details.component.scss"],

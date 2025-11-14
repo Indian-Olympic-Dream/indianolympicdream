@@ -5,7 +5,7 @@
     </div>
 </div> -->
 <div class="stories-container">
-  <div *ngIf="loading">Loading stories...</div>
+  <!-- <div *ngIf="loading">Loading stories...</div> -->
   <div *ngIf="error">Error loading stories: {{ error.message }}</div>
 
   <div *ngIf="stories$ | async as response" class="stories-grid">

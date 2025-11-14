@@ -138,6 +138,7 @@ const GET_STORY_BY_SLUG = gql`
           ... on Blockquote {
             quote
             citation
+            blockType
           }
         }
         publishedDate
@@ -157,6 +158,83 @@ const GET_STORY_BY_SLUG = gql`
             }
           }
         }
+        content {
+          ... on RichText {
+            blockType
+            content
+          }
+          ... on Image {
+            blockType
+            image {
+              alt
+              sizes {
+                full {
+                  url
+                }
+              }
+            }
+            caption
+            imageLayout: layout
+          }
+          ... on PullQuote {
+            blockType
+            quote
+          }
+          ... on Blockquote {
+            blockType
+            quote
+            citation
+          }
+          ... on Embed {
+            blockType
+            url
+            platform
+          }
+          ... on MapBlock {
+            blockType
+            center
+            zoom
+            caption
+            location {
+              id
+              name
+              position
+            }
+          }
+          ... on MediaTextLayout {
+            blockType
+            media {
+              alt
+              sizes {
+                card {
+                  url
+                }
+              }
+            }
+            text
+            mediaTextLayout: layout
+          }
+          ... on ImageGallery {
+            blockType
+            galleryCaption
+            images {
+              alt
+              sizes {
+                card {
+                  url
+                }
+              }
+            }
+          }
+          ... on EssayBlock {
+            blockType
+            essay {
+              id
+              title
+            }
+          }
+        }
+
         chapters {
           id
           slug

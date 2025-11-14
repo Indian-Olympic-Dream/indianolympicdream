@@ -38,19 +38,11 @@
         <span *ngFor="let tag of story.tags" class="tag-chip">{{ tag.name }}</span>
       </div>
       <div *ngIf="story.subtitle" class="story-subtitle">
-        <div *ngFor="let block of story.subtitle">
-          <ng-container [ngSwitch]="block.__typename">
-            <p *ngSwitchCase="'Text'">{{ block.text }}</p>
-            <blockquote *ngSwitchCase="'Blockquote'">
-              <p>{{ block.quote }}</p>
-              <cite>{{ block.citation }}</cite>
-            </blockquote>
-          </ng-container>
-        </div>
+        <app-block-renderer *ngFor="let block of story.subtitle" [block]="block"></app-block-renderer>
       </div>
 
       <div *ngIf="story.content" class="story-content">
-        <pre>{{ story.content | json }}</pre>
+        <app-block-renderer *ngFor="let block of story.content" [block]="block"></app-block-renderer>
       </div>
 
       <div *ngIf="story.chapters && story.chapters.length > 0" class="story-chapters">
