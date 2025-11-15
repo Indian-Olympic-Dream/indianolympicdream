@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { CommonModule, JsonPipe, DatePipe } from "@angular/common";
+import { CommonModule, DatePipe } from "@angular/common";
 import { StoriesService, Story } from "../stories.service";
 import { Observable } from "rxjs";
 import { PayloadMediaPipe } from "../../shared/payload-media.pipe";
@@ -18,7 +18,6 @@ import { MatButtonModule } from "@angular/material/button";
     CommonModule,
     RouterModule,
     PayloadMediaPipe,
-    JsonPipe,
     DatePipe,
     MatIconModule,
     MatButtonModule,

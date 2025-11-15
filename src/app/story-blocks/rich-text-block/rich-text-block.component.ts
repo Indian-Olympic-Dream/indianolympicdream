@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { SafePipe } from "../../safepipe";
 
+// Define basic interfaces for type safety
 interface TextNode {
   type: "text";
   text: string;
@@ -9,9 +10,9 @@ interface TextNode {
 }
 
 interface ElementNode {
-  type: "paragraph" | "root" | "heading" | string;
+  type: "paragraph" | "root" | "heading" | "link" | string; // Allow other string types
   children: EditorNode[];
-  [key: string]: any;
+  [key: string]: any; // Allow other properties like tag, url
 }
 
 type EditorNode = TextNode | ElementNode;
@@ -28,13 +29,12 @@ export class RichTextBlockComponent implements OnChanges {
 
   serializedContent: string = "";
 
-  // Renderer Registry
+  // The "Renderer Registry" maps node types to rendering functions.
   private readonly nodeRenderers: { [key: string]: (node: any) => string } = {
     root: (node) => this.serializeChildren(node),
     paragraph: (node) => `<p>${this.serializeChildren(node)}</p>`,
     text: (node) => this.renderTextNode(node),
-    heading: (node) =>
-      `<h${node.tag.substring(1)}>${this.serializeChildren(node)}</h${node.tag.substring(1)}>`,
+    link: (node) => this.renderLinkNode(node),
   };
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -48,8 +48,6 @@ export class RichTextBlockComponent implements OnChanges {
     if (renderer) {
       return renderer(node);
     }
-
-    // Fallback for unknown element nodes: just render their children.
     return node.type !== "text"
       ? this.serializeChildren(node as ElementNode)
       : "";
@@ -63,7 +61,6 @@ export class RichTextBlockComponent implements OnChanges {
 
   private renderTextNode(node: TextNode): string {
     let text = this.escapeHtml(node.text);
-    // Lexical format bitmask: 1=bold, 2=italic, 8=underline
     if ((node.format & 1) !== 0) {
       text = `<strong>${text}</strong>`;
     }
@@ -74,6 +71,21 @@ export class RichTextBlockComponent implements OnChanges {
       text = `<u>${text}</u>`;
     }
     return text;
+  }
+
+  private renderLinkNode(node: ElementNode): string {
+    const url = node.fields?.url;
+    const newTab = node.fields?.newTab;
+    const text = this.serializeChildren(node);
+
+    if (!url) {
+      return text;
+    }
+
+    const linkClass = newTab ? 'class="external-link"' : "";
+    const targetRel = newTab ? 'target="_blank" rel="noopener noreferrer"' : "";
+
+    return `<a href="${this.escapeHtml(url)}" ${targetRel} ${linkClass}>${text}</a>`;
   }
 
   private escapeHtml(text: string): string {

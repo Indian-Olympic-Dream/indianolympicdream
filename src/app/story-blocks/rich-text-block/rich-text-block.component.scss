@@ -9,21 +9,5 @@
   // Constrain the width for optimal reading
   max-width: 65ch;
   margin: 0 auto;
-  padding: 0 1rem; // Add some horizontal padding
-
-  p {
-    margin-bottom: 1.5rem;
-  }
-
-  a {
-    color: var(--primary-color);
-    text-decoration: underline;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-
-  // Add more styles for h1, h2, ul, ol, etc. as needed in the future
+  padding: 0 1rem;
 }

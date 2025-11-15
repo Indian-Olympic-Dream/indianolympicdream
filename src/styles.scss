@@ -350,3 +350,34 @@ a {
   box-shadow: none !important;
   border: 1px solid var(--mdc-outlined-button-outline-color) !important;
 }
+
+// Styles for content generated from Rich Text Editor
+.rich-text-content {
+  p {
+    margin-bottom: 1.5rem;
+  }
+
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+
+  a.external-link::after {
+    content: "outbound";
+    font-family: "Material Icons";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1em;
+    line-height: 1;
+    position: relative;
+    top: 0.15em;
+    margin-left: 0.15rem;
+    text-decoration: none;
+    display: inline-block;
+  }
+}
