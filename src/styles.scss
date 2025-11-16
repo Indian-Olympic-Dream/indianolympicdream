@@ -355,6 +355,8 @@ a {
 .rich-text-content {
   p {
     margin-bottom: 1.5rem;
+    text-align: justify;
+    hyphens: auto;
   }
 
   a {
