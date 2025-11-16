@@ -10,9 +10,9 @@ interface TextNode {
 }
 
 interface ElementNode {
-  type: "paragraph" | "root" | "heading" | "link" | string; // Allow other string types
+  type: "paragraph" | "root" | "heading" | "link" | string;
   children: EditorNode[];
-  [key: string]: any; // Allow other properties like tag, url
+  [key: string]: any;
 }
 
 type EditorNode = TextNode | ElementNode;
@@ -29,7 +29,6 @@ export class RichTextBlockComponent implements OnChanges {
 
   serializedContent: string = "";
 
-  // The "Renderer Registry" maps node types to rendering functions.
   private readonly nodeRenderers: { [key: string]: (node: any) => string } = {
     root: (node) => this.serializeChildren(node),
     paragraph: (node) => `<p>${this.serializeChildren(node)}</p>`,
