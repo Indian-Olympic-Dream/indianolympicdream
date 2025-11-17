@@ -129,6 +129,9 @@ const GET_STORY_BY_SLUG = gql`
             thumbnail {
               url
             }
+            card {
+              url
+            }
           }
         }
         subtitle {
