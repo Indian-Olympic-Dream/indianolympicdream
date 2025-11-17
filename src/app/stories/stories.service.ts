@@ -222,6 +222,8 @@ const GET_STORY_BY_SLUG = gql`
             galleryCaption
             images {
               alt
+              description
+              credits
               sizes {
                 card {
                   url
