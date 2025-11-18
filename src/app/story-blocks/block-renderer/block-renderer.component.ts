@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { ImageBlockComponent } from "../image-block/image-block.component";
 import { ImageGalleryBlockComponent } from "../image-gallery-block/image-gallery-block.component";
 import { TextBlockComponent } from "../text-block/text-block.component";
 import { BlockquoteBlockComponent } from "../blockquote-block/blockquote-block.component";
@@ -18,6 +19,7 @@ import { RichTextBlockComponent } from "../rich-text-block/rich-text-block.compo
     BlockquoteBlockComponent,
     TextBlockComponent,
     ImageGalleryBlockComponent,
+    ImageBlockComponent,
     // Other block components
   ],
   templateUrl: "./block-renderer.component.html",

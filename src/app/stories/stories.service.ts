@@ -174,6 +174,9 @@ const GET_STORY_BY_SLUG = gql`
                 full {
                   url
                 }
+                card {
+                  url
+                }
               }
             }
             caption
