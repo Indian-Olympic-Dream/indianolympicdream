@@ -115,7 +115,7 @@
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-    <div [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
+    <div #scrollContainer (scroll)="onContentScroll($event)" [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
     <!-- <mat-toolbar  class="botton-toolbar"></mat-toolbar> -->

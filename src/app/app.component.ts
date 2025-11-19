@@ -14,7 +14,7 @@ import {
   RouterLinkActive,
 } from "@angular/router";
 import { slideInAnimation } from "./animations";
-import { CommonModule, NgClass, NgIf } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
@@ -26,6 +26,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LoaderService } from "./shared/components/loader/loader.service";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
+import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
 
 @Component({
   selector: "app-root",
@@ -78,6 +79,7 @@ export class AppComponent implements OnInit {
     public overlayContainer: OverlayContainer,
     private loaderService: LoaderService,
     private breakpointObserver: BreakpointObserver,
+    private scrollTrackingService: ScrollTrackingService,
   ) {
     this.loaderService.loaderState.subscribe((state) => {
       this.loading = state.show;
@@ -107,6 +109,22 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {}
+
+  onContentScroll(event: Event): void {
+    const element = event.target as HTMLElement;
+    const scrollTop = element.scrollTop;
+    const scrollHeight = element.scrollHeight;
+    const clientHeight = element.clientHeight;
+
+    // If there's no scrollable distance, progress is 0
+    if (scrollHeight <= clientHeight) {
+      this.scrollTrackingService.updateProgress(0);
+      return;
+    }
+
+    const scrollPercent = (scrollTop / (scrollHeight - clientHeight)) * 100;
+    this.scrollTrackingService.updateProgress(scrollPercent);
+  }
 
   navigationInterceptor(event: RouterEvent): void {
     if (event instanceof NavigationStart) {

@@ -11,10 +11,11 @@
          [alt]="story.heroImage.alt"
          class="breadcrumb-thumbnail">
     <span class="breadcrumb-title" [matTooltip]="story.title">{{ story.title }}</span>
+    <div class="progress-bar" #progressBar></div>
   </div>
 
   <!-- Story Content Card -->
-  <mat-card class="story-card">
+  <mat-card class="story-card" #storyCard>
     <img mat-card-image *ngIf="story.heroImage" [src]="story.heroImage.sizes.full.url | payloadMedia" [alt]="story.heroImage.alt" class="hero-image">
 
     <mat-card-header>
