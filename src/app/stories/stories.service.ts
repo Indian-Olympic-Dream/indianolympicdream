@@ -170,6 +170,7 @@ const GET_STORY_BY_SLUG = gql`
             blockType
             image {
               alt
+              credits
               sizes {
                 full {
                   url

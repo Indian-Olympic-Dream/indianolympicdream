@@ -4,6 +4,6 @@
   <img [src]="imageUrl | payloadMedia" [alt]="block.image.alt">
   <figcaption>
     <span *ngIf="block.caption">{{ block.caption }}</span>
-    <span class="credits-text">Image Credits: {{ block.credits || 'Unknown' }}</span>
+    <span class="credits-text">Image Credits: {{ block.image.credits || 'Unknown' }}</span>
   </figcaption>
 </figure>
