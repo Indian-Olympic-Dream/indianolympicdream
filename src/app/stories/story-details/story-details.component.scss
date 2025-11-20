@@ -9,7 +9,7 @@
   background-color: var(--mat-card-background-color);
   padding: 0.5rem 0.5rem 0.5rem 1rem;
   border-radius: 50px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   max-width: 65ch;
   margin: 0 auto 2rem auto;
   display: flex;
@@ -20,12 +20,17 @@
   z-index: 100;
   overflow: hidden; // To contain the progress bar within the rounded corners
 
+  .accent-fab {
+    background-color: var(--accent-color);
+    color: var(--mat-card-background-color);
+  }
+
   .progress-bar {
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 2.5px;
-    background-color: var(--primary-color);
+    height: 3px;
+    background-color: var(--accent-color);
     width: 0%; // Updated by component logic
     transition: width 0.1s linear;
   }
