@@ -115,8 +115,16 @@ const GET_STORIES_LIST = gql`
 `;
 
 const GET_STORY_BY_SLUG = gql`
-  query StoriesDetail($slug: String!) {
-    Stories(where: { slug: { equals: $slug } }) {
+  query StoriesDetail(
+    $slug: String!
+    $locale: LocaleInputType
+    $fallbackLocale: FallbackLocaleInputType
+  ) {
+    Stories(
+      where: { slug: { equals: $slug } }
+      locale: $locale
+      fallbackLocale: $fallbackLocale
+    ) {
       docs {
         id
         title
@@ -293,12 +301,14 @@ export class StoriesService {
       .valueChanges.pipe(map((result) => result.data.Stories.docs));
   }
 
-  getStoryBySlug(slug: string): Observable<Story> {
+  getStoryBySlug(slug: string, locale: string): Observable<Story> {
     return this.apollo
       .watchQuery<{ Stories: { docs: Story[] } }>({
         query: GET_STORY_BY_SLUG,
         variables: {
           slug: slug,
+          locale: locale,
+          fallbackLocale: "en",
         },
         fetchPolicy: "no-cache",
       })

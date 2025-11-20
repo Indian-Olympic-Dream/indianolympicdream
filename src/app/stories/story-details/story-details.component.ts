@@ -6,10 +6,11 @@ import {
   ElementRef,
   Renderer2,
 } from "@angular/core";
-import { ActivatedRoute, RouterModule } from "@angular/router";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { CommonModule, DatePipe } from "@angular/common";
 import { StoriesService, Story } from "../stories.service";
 import { Observable, Subscription } from "rxjs";
+import { switchMap } from "rxjs/operators";
 import { PayloadMediaPipe } from "../../shared/payload-media.pipe";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
@@ -37,6 +38,7 @@ import { ScrollTrackingService } from "../../shared/services/scroll-tracking.ser
 })
 export class StoryDetailsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private storiesService = inject(StoriesService);
   private renderer = inject(Renderer2);
   private el = inject(ElementRef);
@@ -44,14 +46,21 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
 
   story$: Observable<Story>;
   private progressSubscription: Subscription;
+  currentLocale: string = "en";
 
   ngOnInit() {
-    const slug = this.route.snapshot.paramMap.get("slug");
-    if (slug) {
-      this.story$ = this.storiesService.getStoryBySlug(slug);
-    }
+    this.story$ = this.route.params.pipe(
+      switchMap((params) => {
+        const slug = params["slug"];
+        return this.route.queryParams.pipe(
+          switchMap((queryParams) => {
+            this.currentLocale = queryParams["locale"] || "en";
+            return this.storiesService.getStoryBySlug(slug, this.currentLocale);
+          }),
+        );
+      }),
+    );
 
-    // Subscribe to the scroll progress updates from the shared service
     this.progressSubscription =
       this.scrollTrackingService.scrollProgress$.subscribe((progress) => {
         const progressBarEl =
@@ -62,8 +71,15 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
+  setLocale(newLocale: string): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { locale: newLocale },
+      queryParamsHandling: "merge",
+    });
+  }
+
   ngOnDestroy() {
-    // Unsubscribe to prevent memory leaks
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
     }

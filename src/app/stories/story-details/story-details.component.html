@@ -1,21 +1,25 @@
 <div *ngIf="story$ | async as story" class="story-details-container">
 
-  <!-- Sticky Toolbar -->
-  <div class="story-toolbar">
-    <a mat-mini-fab routerLink="/stories" aria-label="Back to stories list" class="accent-fab">
-      <mat-icon>arrow_back</mat-icon>
-    </a>
-    <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
-    <img *ngIf="story.heroImage?.sizes?.thumbnail?.url"
-         [src]="story.heroImage.sizes.thumbnail.url | payloadMedia"
-         [alt]="story.heroImage.alt"
-         class="breadcrumb-thumbnail">
-    <span class="breadcrumb-title" [matTooltip]="story.title">{{ story.title }}</span>
-    <div class="progress-bar" #progressBar></div>
+  <!-- Sticky Toolbar Container -->
+  <div class="toolbar-container">
+    <div class="story-toolbar">
+      <div class="toolbar-start">
+        <a mat-mini-fab routerLink="/stories" aria-label="Back to stories list" class="accent-fab">
+          <mat-icon>arrow_back</mat-icon>
+        </a>
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+        <img *ngIf="story.heroImage?.sizes?.thumbnail?.url"
+             [src]="story.heroImage.sizes.thumbnail.url | payloadMedia"
+             [alt]="story.heroImage.alt"
+             class="breadcrumb-thumbnail">
+        <span class="breadcrumb-title" [matTooltip]="story.title">{{ story.title }}</span>
+      </div>
+      <div class="progress-bar" #progressBar></div>
+    </div>
   </div>
 
   <!-- Story Content Card -->
-  <mat-card class="story-card" #storyCard>
+  <mat-card class="story-card" #storyCard [class.hindi-font]="currentLocale === 'hi'">
     <img mat-card-image *ngIf="story.heroImage" [src]="story.heroImage.sizes.full.url | payloadMedia" [alt]="story.heroImage.alt" class="hero-image">
 
     <mat-card-header>
@@ -35,9 +39,17 @@
     </mat-card-header>
 
     <mat-card-content>
-      <div *ngIf="story.tags && story.tags.length > 0" class="story-tags">
-        <span *ngFor="let tag of story.tags" class="tag-chip">{{ tag.name }}</span>
+      <!-- New wrapper for tags and locale -->
+      <div class="tags-and-locale-wrapper">
+        <div *ngIf="story.tags && story.tags.length > 0" class="story-tags">
+          <span *ngFor="let tag of story.tags" class="tag-chip">{{ tag.name }}</span>
+        </div>
+        <div class="custom-locale-toggle">
+          <button mat-button class="toggle-option" [class.active]="currentLocale === 'en'" (click)="setLocale('en')">Eng</button>
+          <button mat-button class="toggle-option" [class.active]="currentLocale === 'hi'" (click)="setLocale('hi')">हिन्दी</button>
+        </div>
       </div>
+
       <div *ngIf="story.subtitle" class="story-subtitle">
         <app-block-renderer *ngFor="let block of story.subtitle" [block]="block"></app-block-renderer>
       </div>

@@ -1,9 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
 @use "./styles/theme-manager";
 @use "@angular/material" as mat;
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap");
 /* Geist Font Face Declarations */
 /* Only include essential font weights to reduce bundle size */
-// Font loading strategy
+
 @font-face {
   font-family: "Geist Sans";
   src:
@@ -354,6 +356,7 @@ a {
 // Styles for content generated from Rich Text Editor
 .rich-text-content {
   p {
+    font-family: "Source Serif Pro", serif;
     margin-bottom: 1.5rem;
     text-align: justify;
     hyphens: auto;
@@ -446,4 +449,17 @@ a {
 }
 .text-right {
   text-align: right;
+}
+
+// Apply Hindi font when the locale is 'hi'
+.hindi-font {
+  // Target all relevant text elements within the story card
+  .story-title,
+  .story-meta,
+  .tag-chip,
+  .story-subtitle,
+  .rich-text-content,
+  .story-chapters {
+    font-family: "Noto Sans Devanagari", sans-serif;
+  }
 }
