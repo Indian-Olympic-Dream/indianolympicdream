@@ -23,6 +23,20 @@ export interface Story {
   subtitle?: SubtitleBlock[];
   publishedDate?: string;
   readingTime: number;
+  metaTitle?: string;
+  metaDescription?: string;
+  socialImage: {
+    alt: string;
+    id: string;
+    sizes: {
+      thumbnail: {
+        url: string;
+      };
+      card: {
+        url: string;
+      };
+    };
+  };
   tags?: {
     name: string;
   }[];
@@ -154,6 +168,20 @@ const GET_STORY_BY_SLUG = gql`
         }
         publishedDate
         readingTime
+        metaTitle
+        metaDescription
+        socialImage {
+          id
+          alt
+          sizes {
+            thumbnail {
+              url
+            }
+            card {
+              url
+            }
+          }
+        }
         tags {
           name
         }

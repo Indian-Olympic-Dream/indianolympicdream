@@ -28,12 +28,17 @@
       </mat-card-title>
       <mat-card-subtitle>
         <div class="story-meta">
-          <div *ngIf="story.authors && story.authors.length > 0" class="author-info">
-            <img [src]="story.authors[0].avatar.sizes.square.url | payloadMedia" [alt]="story.authors[0].avatar.alt" class="author-avatar">
-            <span>{{ story.authors[0].firstName }} {{ story.authors[0].lastName }}</span>
+          <div class="meta-info">
+            <div *ngIf="story.authors && story.authors.length > 0" class="author-info">
+              <img [src]="story.authors[0].avatar.sizes.square.url | payloadMedia" [alt]="story.authors[0].avatar.alt" class="author-avatar">
+              <span>{{ story.authors[0].firstName }} {{ story.authors[0].lastName }}</span>
+            </div>
+            <span *ngIf="story.publishedDate" class="published-date">{{ story.publishedDate | date }}</span>
+            <span *ngIf="story.readingTime" class="reading-time">{{ story.readingTime }} min read</span>
           </div>
-          <span *ngIf="story.publishedDate" class="published-date">{{ story.publishedDate | date }}</span>
-          <span *ngIf="story.readingTime" class="reading-time">{{ story.readingTime }} min read</span>
+          <button mat-icon-button aria-label="Share story" (click)="shareStory()">
+            <mat-icon>share</mat-icon>
+          </button>
         </div>
       </mat-card-subtitle>
     </mat-card-header>

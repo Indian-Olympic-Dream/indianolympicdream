@@ -102,6 +102,12 @@
     color: #666;
     margin-top: 1rem;
 
+    .meta-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
     .author-info {
       display: flex;
       align-items: center;
