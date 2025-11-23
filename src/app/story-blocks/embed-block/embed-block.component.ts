@@ -1,35 +1,63 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { MatCardModule } from "@angular/material/card";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { SafeResourceUrlPipe } from "../../shared/pipes/safe-resource-url.pipe";
+import { MatCardModule } from "@angular/material/card";
+import { MatIconModule } from "@angular/material/icon";
+
+// State for each video card
+interface VideoState {
+  isPlaying: boolean;
+  isLoading: boolean;
+  thumbnailUrl: string;
+}
 
 @Component({
   selector: "app-embed-block",
   standalone: true,
-  imports: [CommonModule, MatCardModule, SafeResourceUrlPipe],
+  imports: [
+    CommonModule,
+    SafeResourceUrlPipe,
+    MatProgressSpinnerModule,
+    MatCardModule,
+    MatIconModule,
+  ],
   templateUrl: "./embed-block.component.html",
   styleUrls: ["./embed-block.component.scss"],
 })
-export class EmbedBlockComponent {
+export class EmbedBlockComponent implements OnInit {
   @Input() block: any;
 
-  get embedUrl(): string {
-    if (!this.block?.url) {
-      return "";
+  public videoState: VideoState;
+  public embedUrl: string = "";
+  private videoId: string = "";
+
+  ngOnInit(): void {
+    // Currently, this only supports YouTube. We can add more platform logic here later.
+    if (this.block.platform === "youtube") {
+      this.videoId = this.getYouTubeId(this.block.url);
+      if (this.videoId) {
+        this.embedUrl = `https://www.youtube.com/embed/${this.videoId}?autoplay=1&mute=0&enablejsapi=1&rel=0`;
+        this.videoState = {
+          isPlaying: false,
+          isLoading: false,
+          // Use a high-quality thumbnail
+          thumbnailUrl: `https://img.youtube.com/vi/${this.videoId}/hqdefault.jpg`,
+        };
+      }
     }
+  }
 
-    const url = this.block.url;
-    const platform = this.block.platform;
+  playVideo(): void {
+    if (this.videoState && !this.videoState.isLoading) {
+      this.videoState.isLoading = true;
+      this.videoState.isPlaying = true;
+    }
+  }
 
-    switch (platform) {
-      case "youtube":
-        const youtubeId = this.getYouTubeId(url);
-        return youtubeId ? `https://www.youtube.com/embed/${youtubeId}` : "";
-      case "vimeo":
-        const vimeoId = this.getVimeoId(url);
-        return vimeoId ? `https://player.vimeo.com/video/${vimeoId}` : "";
-      default:
-        return url;
+  onVideoLoad(): void {
+    if (this.videoState) {
+      this.videoState.isLoading = false;
     }
   }
 
@@ -39,13 +67,5 @@ export class EmbedBlockComponent {
       /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
-  }
-
-  private getVimeoId(url: string): string | null {
-    if (!url) return null;
-    const regExp =
-      /https?:\/\/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/;
-    const match = url.match(regExp);
-    return match ? match[3] : null;
   }
 }
