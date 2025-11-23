@@ -5,6 +5,7 @@ import {
   inject,
   ElementRef,
   Renderer2,
+  ViewChild,
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { CommonModule, DatePipe } from "@angular/common";
@@ -20,7 +21,7 @@ import { BlockRendererComponent } from "../../story-blocks/block-renderer/block-
 import { MatButtonModule } from "@angular/material/button";
 import { ScrollTrackingService } from "../../shared/services/scroll-tracking.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
 
 @Component({
   selector: "app-story-details",
@@ -36,7 +37,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
     MatCardModule,
     BlockRendererComponent,
     MatSnackBarModule,
-    MatSlideToggleModule,
+    MatButtonToggleModule,
   ],
   templateUrl: "./story-details.component.html",
   styleUrls: ["./story-details.component.scss"],
@@ -56,6 +57,8 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
   private currentStory: Story;
   private subscriptions = new Subscription();
   currentLocale: string = "en";
+
+  @ViewChild("exploreContent") exploreContent: ElementRef;
 
   ngOnInit() {
     this.story$ = this.route.params.pipe(
@@ -131,14 +134,11 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
       url: window.location.href,
     };
 
-    // 1. Try modern Web Share API
     if (navigator.share) {
       navigator
         .share(shareData)
         .catch((error) => console.error("Error sharing:", error));
-    }
-    // 2. If that fails, try modern Clipboard API
-    else if (navigator.clipboard) {
+    } else if (navigator.clipboard) {
       navigator.clipboard
         .writeText(window.location.href)
         .then(() => {
@@ -147,11 +147,9 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
           });
         })
         .catch(() => {
-          this.legacyCopyLink(); // Fallback for clipboard failure
+          this.legacyCopyLink();
         });
-    }
-    // 3. If both fail, use legacy execCommand
-    else {
+    } else {
       this.legacyCopyLink();
     }
   }
@@ -166,6 +164,12 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
     this.snackBar.open("Link copied to clipboard!", "Close", {
       duration: 3000,
     });
+  }
+
+  scrollExplore(direction: number): void {
+    const container = this.exploreContent.nativeElement;
+    const scrollAmount = container.offsetWidth * 0.8; // Scroll by 80% of the container width
+    container.scrollBy({ left: scrollAmount * direction, behavior: "smooth" });
   }
 
   ngOnDestroy() {

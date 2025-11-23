@@ -18,8 +18,8 @@
 
 // The pill-shaped toolbar
 .story-toolbar {
-  flex: 1; // Allow it to grow and shrink
-  min-width: 0; // Prevent it from overflowing
+  flex: 1;
+  min-width: 0;
   background-color: var(--mat-card-background-color);
   padding: 0.5rem;
   border-radius: 50px;
@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  position: relative; // For the progress bar
+  position: relative;
 
   .toolbar-start {
     display: flex;
@@ -36,12 +36,10 @@
     min-width: 0;
     padding-left: 0.5rem;
   }
-
   .accent-fab {
     background-color: var(--accent-color);
     color: var(--mat-card-background-color);
   }
-
   .progress-bar {
     position: absolute;
     bottom: 0;
@@ -51,7 +49,6 @@
     width: 0%;
     transition: width 0.1s linear;
   }
-
   .breadcrumb-separator {
     color: #999;
   }
@@ -81,19 +78,16 @@
   .hero-image {
     border-radius: 4px;
   }
-
   mat-card-header {
     padding: 2rem 2rem 1rem 2rem;
     display: block;
   }
-
   .story-title {
     font-size: 3rem;
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
   }
-
   .story-meta {
     display: flex;
     justify-content: center;
@@ -101,13 +95,11 @@
     gap: 1rem;
     color: #666;
     margin-top: 1rem;
-
     .meta-info {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-
     .author-info {
       display: flex;
       align-items: center;
@@ -119,7 +111,6 @@
       border-radius: 50%;
     }
   }
-
   mat-card-content {
     padding: 0 2rem 2rem 2rem;
     font-size: 1.125rem;
@@ -134,19 +125,16 @@
       max-width: 65ch;
       margin: 0 auto 2rem auto;
     }
-
     .story-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
     }
-
     .custom-locale-toggle {
       display: inline-flex;
       border: 1px solid var(--primary-color);
       border-radius: 50px;
       overflow: hidden;
-
       .toggle-option {
         font-size: 12px;
         line-height: 30px;
@@ -154,14 +142,12 @@
         background-color: transparent;
         border-radius: 50px;
         border: none;
-
         &.active {
           background-color: var(--primary-color);
           color: var(--mat-card-background-color);
         }
       }
     }
-
     .tag-chip {
       display: inline-block;
       padding: 0.35rem 0.75rem;
@@ -172,20 +158,17 @@
       color: var(--primary-color);
       transition: all 0.2s ease;
       cursor: pointer;
-
       &:hover {
         background-color: var(--primary-color);
         color: var(--mat-card-background-color);
       }
     }
-
     .story-subtitle,
     .story-content {
       max-width: 65ch;
       margin-left: auto;
       margin-right: auto;
     }
-
     .story-subtitle {
       font-size: 1.5rem;
       line-height: 1.4;
@@ -193,7 +176,6 @@
       color: var(--mat-card-foreground-color);
       opacity: 0.8;
       margin-bottom: 2rem;
-
       blockquote {
         border-left: 4px solid #ccc;
         padding-left: 1rem;
@@ -202,7 +184,6 @@
         text-align: left;
       }
     }
-
     .story-content {
       p {
         margin-bottom: 1.5rem;
@@ -211,24 +192,75 @@
         display: none;
       }
     }
-
     .story-chapters {
       margin: 4rem 0 0 0;
       border-top: 1px solid #eee;
       padding-top: 2rem;
-
       h2 {
         font-size: 2rem;
         font-weight: 600;
         margin-bottom: 1.5rem;
         text-align: center;
       }
-
       .chapter-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1.5rem;
       }
+    }
+  }
+}
+
+// "Explore More" Section
+.explore-more-section {
+  max-width: 85ch;
+  margin: 3rem auto;
+
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .explore-carousel-wrapper {
+    position: relative;
+  }
+
+  .explore-more-content {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory; // Enable snapping
+    scroll-padding: 1rem;
+    // Hide scrollbar
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+
+    > app-block-renderer {
+      flex: 1 1 300px;
+      max-width: 400px;
+      display: flex;
+    }
+  }
+
+  .carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    z-index: 1;
+
+    &.prev {
+      left: -1rem;
+    }
+    &.next {
+      right: -1rem;
     }
   }
 }

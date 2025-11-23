@@ -93,6 +93,7 @@ export interface Story {
     };
   };
   content?: any;
+  exploreMore?: any[];
 }
 
 const GET_STORIES_LIST = gql`
@@ -307,6 +308,18 @@ const GET_STORY_BY_SLUG = gql`
           }
           tags {
             name
+          }
+        }
+        exploreMore {
+          ... on Embed {
+            blockType
+            url
+            platform
+            embedTitle
+            embedDescription
+            tags {
+              name
+            }
           }
         }
       }
