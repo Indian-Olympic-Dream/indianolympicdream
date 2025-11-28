@@ -1,7 +1,17 @@
 const PROXY_CONFIG = {
+  "/api/graphql": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
+  "/api/media": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
   "/api": {
-    target: "https://api.iod-community.com",
-    secure: true,
+    target: "http://localhost:3001",
+    secure: false,
     changeOrigin: true,
     logLevel: "debug",
   },

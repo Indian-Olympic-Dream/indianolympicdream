@@ -83,6 +83,8 @@ export interface Story {
   heroImage: {
     alt: string;
     url?: string;
+    description?: string;
+    credits?: string;
     sizes: {
       card: {
         url: string;
@@ -145,6 +147,8 @@ const GET_STORY_BY_SLUG = gql`
         title
         heroImage {
           alt
+          description
+          credits
           sizes {
             full {
               url

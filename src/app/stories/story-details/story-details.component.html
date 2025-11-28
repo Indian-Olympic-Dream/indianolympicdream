@@ -20,7 +20,10 @@
 
   <!-- Story Content Card -->
   <mat-card class="story-card" #storyCard [class.hindi-font]="currentLocale === 'hi'">
-    <img mat-card-image *ngIf="story.heroImage" [src]="story.heroImage.sizes.full.url | payloadMedia" [alt]="story.heroImage.alt" class="hero-image">
+    <figure class="hero-image-figure">
+      <img mat-card-image *ngIf="story.heroImage" [src]="story.heroImage.sizes.full.url | payloadMedia" [alt]="story.heroImage.alt" class="hero-image">
+      <figcaption *ngIf="story.heroImage.description">{{ story.heroImage.description }}</figcaption>
+    </figure>
 
     <mat-card-header>
       <mat-card-title class="story-title">

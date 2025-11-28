@@ -75,8 +75,32 @@
   background: var(--mat-card-background-color);
   padding: 0;
 
-  .hero-image {
-    border-radius: 4px;
+  .hero-image-figure {
+    margin: 0;
+    position: relative;
+
+    img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    figcaption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0) 100%
+      );
+      color: white;
+      padding: 2rem 1rem 1rem 1rem;
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: right;
+    }
   }
   mat-card-header {
     padding: 2rem 2rem 1rem 2rem;
