@@ -233,11 +233,6 @@ const GET_STORY_BY_SLUG = gql`
             quote
             citation
           }
-          ... on Embed {
-            blockType
-            url
-            platform
-          }
           ... on MapBlock {
             blockType
             center
