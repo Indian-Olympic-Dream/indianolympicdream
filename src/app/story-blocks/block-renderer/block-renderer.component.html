@@ -6,5 +6,7 @@
   <app-text-block *ngSwitchCase="'text'" [block]="block"></app-text-block>
   <app-image-gallery-block *ngSwitchCase="'imageGallery'" [block]="block"></app-image-gallery-block>
   <app-image-block *ngSwitchCase="'image'" [block]="block"></app-image-block>
-  <app-embed-block *ngSwitchCase="'embed'" [block]="block"></app-embed-block>
+  <ng-container *ngSwitchCase="'embedBlock'">
+    <app-embed-block *ngFor="let embedItem of block.embed" [block]="embedItem"></app-embed-block>
+  </ng-container>
 </div>

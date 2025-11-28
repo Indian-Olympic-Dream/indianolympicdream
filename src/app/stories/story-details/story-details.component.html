@@ -88,7 +88,7 @@
         <mat-icon>arrow_back_ios</mat-icon>
       </button>
       <div class="explore-more-content" #exploreContent>
-        <app-block-renderer *ngFor="let block of story.exploreMore" [block]="block"></app-block-renderer>
+        <app-embed-block *ngFor="let block of story.exploreMore" [block]="block"></app-embed-block>
       </div>
       <button mat-icon-button class="carousel-control next" (click)="scrollExplore(1)" aria-label="Next">
         <mat-icon>arrow_forward_ios</mat-icon>

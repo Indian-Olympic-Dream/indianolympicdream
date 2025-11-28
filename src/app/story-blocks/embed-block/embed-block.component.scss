@@ -2,7 +2,8 @@
   // The host should simply fill the container it is given by the parent flexbox layout.
   display: block;
   height: 100%;
-  width: 340px;
+  min-width: 340px;
+  height: auto;
   max-width: 400px;
 }
 

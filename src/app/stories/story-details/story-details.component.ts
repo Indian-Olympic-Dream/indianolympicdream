@@ -38,6 +38,7 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
     BlockRendererComponent,
     MatSnackBarModule,
     MatButtonToggleModule,
+    EmbedBlockComponent,
   ],
   templateUrl: "./story-details.component.html",
   styleUrls: ["./story-details.component.scss"],

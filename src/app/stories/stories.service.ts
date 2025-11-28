@@ -276,6 +276,18 @@ const GET_STORY_BY_SLUG = gql`
               }
             }
           }
+          ... on EmbedBlock {
+            blockType
+            embed {
+              embedTitle
+              embedDescription
+              url
+              platform
+              tags {
+                name
+              }
+            }
+          }
           ... on EssayBlock {
             blockType
             essay {
@@ -315,15 +327,12 @@ const GET_STORY_BY_SLUG = gql`
           }
         }
         exploreMore {
-          ... on Embed {
-            blockType
-            url
-            platform
-            embedTitle
-            embedDescription
-            tags {
-              name
-            }
+          embedTitle
+          embedDescription
+          url
+          platform
+          tags {
+            name
           }
         }
       }
