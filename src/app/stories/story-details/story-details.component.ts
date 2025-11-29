@@ -22,7 +22,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { ScrollTrackingService } from "../../shared/services/scroll-tracking.service";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
-
+import { EmbedBlockComponent } from "src/app/story-blocks/embed-block/embed-block.component";
 @Component({
   selector: "app-story-details",
   standalone: true,
