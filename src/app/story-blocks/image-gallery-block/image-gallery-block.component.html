@@ -1,0 +1,40 @@
+<div class="gallery-container" *ngIf="block.images && block.images.length > 0">
+
+  <div class="gallery-wrapper">
+    <!-- Image Slides -->
+    <div *ngFor="let image of block.images; let i = index"
+         class="slide"
+         [class.active]="i === currentIndex">
+      <img *ngIf="image.sizes?.card?.url" [src]="image.sizes.card.url | payloadMedia" [alt]="image.alt">
+      <div class="credits-overlay" *ngIf="image.credits">
+        <mat-icon>copyright</mat-icon>
+        <span>{{ image.credits }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carousel Controls: Next/Prev Arrows -->
+  <button mat-icon-button class="carousel-control prev" (click)="previousImage()" aria-label="Previous image">
+    <mat-icon>arrow_back_ios</mat-icon>
+  </button>
+  <button mat-icon-button class="carousel-control next" (click)="nextImage()" aria-label="Next image">
+    <mat-icon>arrow_forward_ios</mat-icon>
+  </button>
+
+  <!-- Meta Area: Dots and Gallery Caption -->
+  <div class="image-meta">
+    <!-- Dot Indicators -->
+    <div class="dots-container" *ngIf="block.images.length > 1">
+      <span *ngFor="let image of block.images; let i = index"
+            class="dot"
+            [class.active]="i === currentIndex"
+            (click)="goToImage(i)">
+      </span>
+    </div>
+    <!-- Overall Gallery Caption -->
+    <div *ngIf="block.galleryCaption" class="gallery-caption">
+      {{ block.galleryCaption }}
+    </div>
+  </div>
+
+</div>

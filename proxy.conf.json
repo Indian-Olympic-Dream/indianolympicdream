@@ -1,8 +1,0 @@
-{
-  "/api": {
-    "target": "https://api.iod-community.com",
-    "secure": true,
-    "changeOrigin": true,
-    "logLevel": "debug"
-  }
-}

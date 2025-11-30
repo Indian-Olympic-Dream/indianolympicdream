@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  margin: 2rem auto;
+}
+
+blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 1rem;
+  margin: 0;
+  font-style: italic;
+  text-align: left;
+
+  p {
+    margin: 0;
+  }
+
+  cite {
+    display: block;
+    margin-top: 1rem;
+    font-style: normal;
+    text-align: right;
+  }
+}
