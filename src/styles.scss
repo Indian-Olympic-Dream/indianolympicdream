@@ -1,53 +1,47 @@
 /* You can add global styles to this file, and also import other style files */
-@use "./styles/theme-manager";
-@use "@angular/material" as mat;
-@import url("https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap");
+@use './styles/theme-manager';
+@use '@angular/material' as mat;
+
 /* Geist Font Face Declarations */
 /* Only include essential font weights to reduce bundle size */
-
+// Font loading strategy
 @font-face {
-  font-family: "Geist Sans";
-  src:
-    local("Geist Sans"),
-    url("/assets/fonts/GeistSans-Regular.woff2") format("woff2");
+  font-family: 'Geist Sans';
+  src: local('Geist Sans'),
+       url('/assets/fonts/GeistSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
-  font-display: swap; // Use swap for primary text font
-  font-feature-settings: "kern" 1; // Enable kerning
-  unicode-range: U+000-5FF; // Latin only
+  font-display: swap;         // Use swap for primary text font
+  font-feature-settings: 'kern' 1;  // Enable kerning
+  unicode-range: U+000-5FF;  // Latin only
 }
 
 @font-face {
-  font-family: "Geist Sans";
-  src:
-    local("Geist Sans Medium"),
-    url("/assets/fonts/GeistSans-Medium.woff2") format("woff2");
+  font-family: 'Geist Sans';
+  src: local('Geist Sans Medium'),
+       url('/assets/fonts/GeistSans-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
-  font-display: swap; // Shows fallback immediately, swaps when loaded
-  font-feature-settings: "kern" 1;
+  font-display: swap;    // Shows fallback immediately, swaps when loaded
+  font-feature-settings: 'kern' 1;
   unicode-range: U+000-5FF;
 }
 
 // Load mono font lazily since it's not critical
 @font-face {
-  font-family: "Geist Mono";
-  src:
-    local("Geist Mono"),
-    url("/assets/fonts/GeistMono-Regular.woff2") format("woff2");
+  font-family: 'Geist Mono';
+  src: local('Geist Mono'),
+       url('/assets/fonts/GeistMono-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
-  font-display: optional; // Only uses custom font if cached
+  font-display: optional;    // Only uses custom font if cached
   unicode-range: U+000-5FF;
 }
 
 /* Tangerine Font Face */
 @font-face {
-  font-family: "Tangerine";
-  src:
-    local("Tangerine"),
-    url("/assets/fonts/Tangerine-Regular.woff2") format("woff2");
+  font-family: 'Tangerine';
+  src: local('Tangerine'), url('/assets/fonts/Tangerine-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -56,27 +50,20 @@
 
 /* Material Icons Font Face */
 @font-face {
-  font-family: "Material Icons";
-  src: url("/assets/fonts/material-icons.woff2") format("woff2"); // Verify this path
+  font-family: 'Material Icons';
+  src: url('/assets/fonts/material-icons.woff2') format('woff2');  // Verify this path
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-html,
-body {
-  height: 100%;
+html, body { 
+  height: 100%; 
 }
 
-body {
-  margin: 0;
-  font-family:
-    "Geist Mono",
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+body { 
+  margin: 0; 
+  font-family: 'Geist Mono', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   font-display: optional;
 }
@@ -107,7 +94,7 @@ body {
   padding-right: 0px;
   padding-bottom: 0px;
   padding-left: 0px;
-
+  
   box-sizing: border-box;
   overflow: auto;
   outline: 0;
@@ -136,61 +123,43 @@ body {
 }
 
 // Typography styles
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-.mat-headline,
+h1, h2, h3, h4, h5, h6,
+.mat-headline, 
 .mat-title,
 .mat-card-title,
 .mat-toolbar {
-  font-family:
-    "Geist Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-.mat-button,
+.mat-button, 
 .mat-raised-button,
 .mat-flat-button {
-  font-family:
-    "Geist Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 
-code,
-pre,
+code, pre, 
 .mat-mono {
-  font-family: "Geist Mono", monospace;
+  font-family: 'Geist Mono', monospace;
   font-weight: 400;
 }
 
-.mat-body,
+.mat-body, 
 .mat-body-1,
 p {
-  font-family:
-    "Geist Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 400;
   line-height: 1.6;
 }
 
 .material-icons {
-  font-family: "Material Icons"; // Make sure font-family is exactly this
+  font-family: 'Material Icons';  // Make sure font-family is exactly this
   font-weight: normal;
   font-style: normal;
-  font-size: 24px; // Default size
+  font-size: 24px;  // Default size
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -198,7 +167,7 @@ p {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -webkit-font-feature-settings: "liga";
+  -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
 
@@ -206,11 +175,11 @@ p {
   .mdc-snackbar__surface {
     background-color: var(--mat-toolbar-container-background-color) !important;
   }
-
+  
   .mdc-snackbar__label {
     color: #4caf50 !important;
   }
-
+  
   .mat-mdc-button {
     color: #4caf50 !important;
   }
@@ -220,11 +189,11 @@ p {
   .mdc-snackbar__surface {
     background-color: var(--mat-toolbar-container-background-color) !important;
   }
-
+  
   .mdc-snackbar__label {
     color: #f44336 !important;
   }
-
+  
   .mat-mdc-button {
     color: #f44336 !important;
   }
@@ -245,7 +214,7 @@ mat-mdc-card {
     padding: 16px;
   }
   mat-card-content {
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: 14px;
     letter-spacing: 1px;
     line-height: 20px;
@@ -276,16 +245,13 @@ mat-mdc-card {
 a {
   color: var(--primary-color);
   text-decoration: none;
-  transition:
-    color 0.2s ease,
-    text-decoration 0.2s ease;
-
-  &:hover,
-  &:focus {
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+  
+  &:hover, &:focus {
     text-decoration: underline;
     color: var(--primary-color);
   }
-
+  
   &:visited {
     color: var(--primary-color);
   }
@@ -315,12 +281,11 @@ a {
     padding: 0 !important;
   }
 }
-.mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action
-  .mdc-evolution-chip__action--trailing {
+.mat-mdc-standard-chip.mdc-evolution-chip--with-trailing-action .mdc-evolution-chip__action--trailing {
   padding: 0 !important;
 }
 
-.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled) {
+.mat-mdc-standard-chip:not(.mdc-evolution-chip--disabled)  {
   background-color: transparent !important;
 }
 
@@ -330,7 +295,7 @@ a {
   align-items: center;
   justify-self: center;
   min-height: 100px;
-  font-family: "Geist Sans", sans-serif;
+  font-family: 'Geist Sans', sans-serif;
   color: var(--color-text);
   text-align: center;
   padding: 20px;
@@ -351,115 +316,4 @@ a {
 .custom-day-menu.mat-mdc-menu-panel {
   box-shadow: none !important;
   border: 1px solid var(--mdc-outlined-button-outline-color) !important;
-}
-
-// Styles for content generated from Rich Text Editor
-.rich-text-content {
-  p {
-    font-family: "Source Serif Pro", serif;
-    margin-bottom: 1.5rem;
-    text-align: justify;
-    hyphens: auto;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Geist Sans", sans-serif;
-    font-weight: 600;
-    margin: 2.5rem 0 1rem 0;
-    line-height: 1.3;
-    color: var(--primary-color);
-  }
-  h1 {
-    font-size: 2.5rem;
-  }
-  h2 {
-    font-size: 2rem;
-  }
-  h3 {
-    font-size: 1.75rem;
-  }
-  h4 {
-    font-size: 1.5rem;
-  }
-
-  a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: var(--accent-color);
-    }
-  }
-
-  a.external-link::after {
-    content: "outbound";
-    font-family: "Material Icons";
-    font-weight: normal;
-    font-style: normal;
-    font-size: 1em;
-    line-height: 1;
-    position: relative;
-    top: 0.15em;
-    margin-left: 0.15rem;
-    text-decoration: none;
-    display: inline-block;
-  }
-
-  ul,
-  ol {
-    padding-left: 2rem;
-    margin-bottom: 1.5rem;
-  }
-
-  li {
-    margin-bottom: 0.5rem;
-    padding-left: 0.5rem;
-  }
-
-  // Styles for check lists
-  ul.check-list {
-    list-style-type: none;
-    padding-left: 0;
-  }
-
-  li.checklist-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    list-style-type: none;
-    padding-left: 0;
-  }
-
-  hr {
-    border: 0;
-    height: 2px;
-    width: 180px;
-    background-color: var(--primary-color);
-  }
-}
-// Text alignment helpers
-.text-center {
-  text-align: center;
-}
-.text-right {
-  text-align: right;
-}
-
-// Apply Hindi font when the locale is 'hi'
-.hindi-font {
-  // Target all relevant text elements within the story card
-  .story-title,
-  .story-meta,
-  .tag-chip,
-  .story-subtitle,
-  .rich-text-content,
-  .story-chapters {
-    font-family: "Noto Sans Devanagari", sans-serif;
-  }
 }

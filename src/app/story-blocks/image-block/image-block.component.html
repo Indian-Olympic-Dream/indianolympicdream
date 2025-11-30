@@ -1,9 +1,0 @@
-<figure *ngIf="imageUrl"
-        class="image-figure"
-        [class]="'layout-' + (block.imageLayout || 'normal')">
-  <img [src]="imageUrl | payloadMedia" [alt]="block.image.alt">
-  <figcaption>
-    <span *ngIf="block.caption">{{ block.caption }}</span>
-    <span class="credits-text">Image Credits: {{ block.image.credits || 'Unknown' }}</span>
-  </figcaption>
-</figure>
