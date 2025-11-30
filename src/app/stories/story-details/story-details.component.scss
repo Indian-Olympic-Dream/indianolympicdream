@@ -1,0 +1,290 @@
+// Main container for the component
+.story-details-container {
+  padding: 1rem;
+  font-family: "Geist Sans", sans-serif;
+}
+
+// The new main container for the sticky header
+.toolbar-container {
+  max-width: 75ch;
+  margin: 0 auto 2rem auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+}
+
+// The pill-shaped toolbar
+.story-toolbar {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--mat-card-background-color);
+  padding: 0.5rem;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+
+  .toolbar-start {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    padding-left: 0.5rem;
+  }
+  .accent-fab {
+    background-color: var(--accent-color);
+    color: var(--mat-card-background-color);
+  }
+  .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--accent-color);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+  .breadcrumb-separator {
+    color: #999;
+  }
+  .breadcrumb-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: var(--primary-color) 0px 0.5px 11px 0.5px;
+  }
+  .breadcrumb-title {
+    font-size: 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// The main story card
+.story-card {
+  max-width: 85ch;
+  margin: 0 auto;
+  background: var(--mat-card-background-color);
+  padding: 0;
+
+  .hero-image-figure {
+    margin: 0;
+    position: relative;
+
+    img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    figcaption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0) 100%
+      );
+      color: white;
+      padding: 2rem 1rem 1rem 1rem;
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: right;
+    }
+  }
+  mat-card-header {
+    padding: 2rem 2rem 1rem 2rem;
+    display: block;
+  }
+  .story-title {
+    font-size: 3rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .story-meta {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    color: #666;
+    margin-top: 1rem;
+    .meta-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+  }
+  mat-card-content {
+    padding: 0 2rem 2rem 2rem;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    font-weight: 400;
+
+    .tags-and-locale-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      max-width: 65ch;
+      margin: 0 auto 2rem auto;
+    }
+    .story-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .custom-locale-toggle {
+      display: inline-flex;
+      border: 1px solid var(--primary-color);
+      border-radius: 50px;
+      overflow: hidden;
+      .toggle-option {
+        font-size: 12px;
+        line-height: 30px;
+        color: var(--primary-color);
+        background-color: transparent;
+        border-radius: 50px;
+        border: none;
+        &.active {
+          background-color: var(--primary-color);
+          color: var(--mat-card-background-color);
+        }
+      }
+    }
+    .tag-chip {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 50px;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      &:hover {
+        background-color: var(--primary-color);
+        color: var(--mat-card-background-color);
+      }
+    }
+    .story-subtitle,
+    .story-content {
+      max-width: 65ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .story-subtitle {
+      font-size: 1.5rem;
+      line-height: 1.4;
+      text-align: center;
+      color: var(--mat-card-foreground-color);
+      opacity: 0.8;
+      margin-bottom: 2rem;
+      blockquote {
+        border-left: 4px solid #ccc;
+        padding-left: 1rem;
+        margin: 0;
+        font-style: italic;
+        text-align: left;
+      }
+    }
+    .story-content {
+      p {
+        margin-bottom: 1.5rem;
+      }
+      pre {
+        display: none;
+      }
+    }
+    .story-chapters {
+      margin: 4rem 0 0 0;
+      border-top: 1px solid #eee;
+      padding-top: 2rem;
+      h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+      .chapter-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+    }
+  }
+}
+
+// "Explore More" Section
+.explore-more-section {
+  max-width: 85ch;
+  margin: 3rem auto;
+
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .explore-carousel-wrapper {
+    position: relative;
+  }
+
+  .explore-more-content {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory; // Enable snapping
+    scroll-padding: 1rem;
+    // Hide scrollbar
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+
+    > app-embed-block {
+      flex: 1 1 300px;
+      max-width: 400px;
+      display: flex;
+    }
+  }
+
+  .carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    z-index: 1;
+
+    &.prev {
+      left: -1rem;
+    }
+    &.next {
+      right: -1rem;
+    }
+  }
+}

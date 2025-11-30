@@ -1,0 +1,54 @@
+:host {
+  display: block;
+  // The margin is applied by the layout classes below
+}
+
+.image-figure {
+  margin: 0;
+  padding: 0;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block; // Remove bottom space
+    border-radius: 8px;
+  }
+
+  figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    font-style: italic;
+
+    .credits-text {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Layout Styles
+.layout-normal {
+  max-width: 65ch;
+  margin: 2rem auto;
+}
+
+.layout-wide {
+  max-width: 85ch;
+  margin: 3rem auto;
+}
+
+.layout-full {
+  width: 100vw;
+  max-width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 3rem 0;
+
+  img {
+    border-radius: 0;
+  }
+}

@@ -1,14 +1,14 @@
-@use '@angular/material' as mat;
+@use "@angular/material" as mat;
 .child-toolbar {
   text-align: center;
   width: 100%;
   position: sticky;
   top: 0;
   height: 84px;
-  z-index: 1000;  // Increased to be above top-toolbar
+  z-index: 1000; // Increased to be above top-toolbar
   background-color: var(--mat-toolbar-container-background-color);
-  @include mat.elevation(8);  // Increased elevation for better visual hierarchy
-  padding: 0;  // Remove default padding
+  @include mat.elevation(8); // Increased elevation for better visual hierarchy
+  padding: 0; // Remove default padding
   overflow-x: visible; // Allow overflow for slider
   overflow-y: visible;
 }
@@ -52,7 +52,8 @@
   }
 
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--primary-color) 60%, transparent 40%) transparent;
+  scrollbar-color: color-mix(in srgb, var(--primary-color) 60%, transparent 40%)
+    transparent;
 
   button {
     min-width: 48px;
@@ -67,8 +68,9 @@
     position: relative;
     transform-origin: center bottom;
     transform: translateY(0);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s ease;
+    transition:
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.3s ease;
     border-radius: 50%;
     pointer-events: auto;
 
@@ -85,20 +87,23 @@
       font-size: 12px;
       white-space: nowrap;
       opacity: 0;
-      transition: opacity 0.3s ease,
-                  bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition:
+        opacity 0.3s ease,
+        bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
       @include mat.elevation(2);
     }
 
-    &:hover {
-      transform: translateY(-16px);
-      @include mat.elevation(4);
-      box-shadow: gray 0px 0.1px 4px 2px;
+    @media (hover: hover) {
+      &:hover {
+        transform: translateY(-16px);
+        @include mat.elevation(4);
+        box-shadow: gray 0px 0.1px 4px 2px;
 
-      &::after {
-        opacity: 1;
-        bottom: -32px;
+        &::after {
+          opacity: 1;
+          bottom: -32px;
+        }
       }
     }
   }
@@ -126,8 +131,8 @@
 /* Media query for small screens */
 @media screen and (max-width: 600px) {
   .pictogram-slider {
-    padding: 4px 32px;  // Adjusted padding
-    width: calc(100% - 64px);  // Adjusted width
+    padding: 4px 32px; // Adjusted padding
+    width: calc(100% - 64px); // Adjusted width
 
     &::before,
     &::after {
@@ -154,7 +159,7 @@
   margin: 24px;
   display: flex;
   flex-direction: column;
-  
+
   @media (min-width: 960px) {
     margin: 24px auto;
     max-width: 850px;
@@ -181,7 +186,7 @@
     border-radius: 10px 10px 0 0;
     max-height: 300px;
     width: 100%;
-    
+
     @media (min-width: 960px) {
       border-radius: 10px 0 0 0;
       max-width: 500px;
@@ -194,13 +199,13 @@
 
 .sport-details-card-header {
   padding: 16px;
-  
+
   &-text {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    
+
     h1 {
       margin: 0;
       font-weight: 400;
@@ -223,9 +228,12 @@
     .category-buttons {
       display: flex;
       gap: 16px;
-      flex-wrap: wrap;justify-content: center;
+      flex-wrap: wrap;
+      justify-content: center;
       .mat-mdc-fab {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
 
         &:hover {
           transform: translateY(-4px);
@@ -238,13 +246,13 @@
 
 p {
   margin: 0px 24px 24px 24px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 14px;
   letter-spacing: 1px;
   line-height: 20px;
   text-align: justify;
   hyphens: auto;
-  
+
   @media (min-width: 960px) {
     clear: none;
   }

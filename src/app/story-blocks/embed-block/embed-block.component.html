@@ -1,0 +1,49 @@
+<!-- Only render if we have a valid video ID and state -->
+<mat-card class="embed-card" *ngIf="videoState">
+
+  <!-- Video Player Container -->
+  <div class="video-container" (click)="playVideo()">
+    <!-- Thumbnail Image -->
+    <img [src]="videoState.thumbnailUrl"
+         [class.fade-out]="videoState.isPlaying"
+         class="video-thumbnail"
+         [alt]="block.embedTitle || 'Video thumbnail'">
+
+    <!-- Custom Play Button -->
+    <div class="play-button" *ngIf="!videoState.isPlaying">
+      <div class="play-icon"></div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" *ngIf="videoState.isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <!-- YouTube Iframe Player -->
+    <iframe *ngIf="videoState.isPlaying"
+            [src]="embedUrl | safeResourceUrl"
+            (load)="onVideoLoad()"
+            frameborder="0"
+            class="video-frame"
+            [class.visible]="!videoState.isLoading"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+    </iframe>
+  </div>
+
+  <!-- Content Below Video -->
+  <mat-card-header>
+    <mat-card-title *ngIf="block.embedTitle">{{ block.embedTitle }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content *ngIf="block.embedDescription">
+    <p>{{ block.embedDescription }}</p>
+  </mat-card-content>
+
+  <mat-card-actions *ngIf="block.tags && block.tags.length > 0">
+    <div class="story-tags">
+      <span *ngFor="let tag of block.tags" class="tag-chip">{{ tag.name }}</span>
+    </div>
+  </mat-card-actions>
+
+</mat-card>
