@@ -3,9 +3,7 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  graphql_uri: "/api/graphql",
-  payload_url: "",
+  production: false
 };
 
 /*

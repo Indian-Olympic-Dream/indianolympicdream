@@ -1,7 +1,7 @@
-@use "@angular/material" as mat;
-.olympic-logo {
-  width: 60px;
-  padding: 0px 2px 0px 0px;
+@use '@angular/material' as mat;
+.olympic-logo{
+    width: 60px;
+    padding: 0px 2px 0px 0px;
 }
 
 .logo-container {
@@ -13,16 +13,15 @@
   align-items: center;
   transform-origin: center bottom;
   transform: translateY(0);
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease;
 
   span {
     display: inline-block;
     vertical-align: middle;
   }
-
+  
   .olympic-logo {
     height: 24px;
     width: auto;
@@ -34,11 +33,11 @@
   @media (max-width: 1024px) {
     padding: 0.2rem 0.4rem;
     margin: 0 0.3rem;
-
+    
     span {
       font-size: 14px;
     }
-
+    
     .olympic-logo {
       height: 20px;
       margin: 0 4px;
@@ -46,10 +45,12 @@
   }
 }
 
+
+
 :host-context(.dark-theme) {
   .logo-container .olympic-logo {
-    filter: drop-shadow(0px 1px 3px rgba(255, 255, 255, 0.3))
-      drop-shadow(0px 0px 10px var(--primary-color));
+    filter: drop-shadow(0px 1px 3px rgba(255, 255, 255, 0.3)) 
+            drop-shadow(0px 0px 10px var(--primary-color));
   }
 }
 
@@ -58,23 +59,23 @@
   height: 50px;
   border-radius: 50%;
   // @include mat.elevation(2);
-  filter: drop-shadow(0px 1px 3px rgba(255, 255, 255, 0.3))
-    drop-shadow(0.5px 0px 1.7px var(--primary-color));
+  filter: drop-shadow(0px 1px 3px rgba(255, 255, 255, 0.3)) 
+            drop-shadow(0.5px 0px 1.7px var(--primary-color));
 }
 
 .theme-switch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  .mat-icon {
-    margin-top: 8px;
-  }
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 4px;
+ .mat-icon {
+  margin-top: 8px;
+ }
 
-  @media (min-width: 600px) and (max-width: 922px) {
+ @media (min-width: 600px) and (max-width: 922px) {
     margin-left: 8px;
     gap: 2px;
-
+    
     .mat-icon {
       font-size: 20px;
       margin-top: 6px;
@@ -82,72 +83,73 @@
   }
 }
 .sidenav-container {
-  height: 100%;
-}
+    height: 100%;
+  }
+  
+  .sidenav {
+    width: 250px;
 
-.sidenav {
-  width: 250px;
+    .mdc-list-item {
+      display: flex;
+      align-items: center;
+      height: 48px;
 
-  .mdc-list-item {
+      .mat-icon {
+        margin-right: 0;
+        vertical-align: middle;
+      }
+    }
+
+    .mat-list-active {
+      background-color: var(--mat-card-background-color);
+      .mat-icon {
+        color: var(--primary-color);
+      }
+      .sidenav-menu {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .sidenav-menu {
+      padding-left: 16px;
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+  }
+  
+  .sidenav .top-toolbar {
+    background: inherit;
+  }
+
+
+  mat-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    @include mat.elevation(8);
+    width: 100%;
+    
+    @media (min-width: 600px) and (max-width: 992px) {
+      padding: 0 8px;
+      height: auto;
+      min-height: 64px;
+    }
+  }
+
+  .toggle-text{
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .botton-toolbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+  }
+  .olympics-select {
     display: flex;
     align-items: center;
-    height: 48px;
-
-    .mat-icon {
-      margin-right: 0;
-      vertical-align: middle;
-    }
   }
-
-  .mat-list-active {
-    background-color: var(--mat-card-background-color);
-    .mat-icon {
-      color: var(--primary-color);
-    }
-    .sidenav-menu {
-      color: var(--primary-color);
-    }
-  }
-}
-
-.sidenav-menu {
-  padding-left: 16px;
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-}
-
-.sidenav .top-toolbar {
-  background: inherit;
-}
-
-mat-toolbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  @include mat.elevation(8);
-  width: 100%;
-
-  @media (min-width: 600px) and (max-width: 992px) {
-    padding: 0 8px;
-    height: auto;
-    min-height: 64px;
-  }
-}
-
-.toggle-text {
-  font-size: 14px;
-  font-weight: 500;
-}
-.botton-toolbar {
-  position: sticky;
-  bottom: 0;
-  z-index: 1000;
-}
-.olympics-select {
-  display: flex;
-  align-items: center;
-}
 
 .nav-links {
   margin: 0px 0px 0px 24px;
@@ -164,10 +166,9 @@ mat-toolbar {
   border-radius: 25px;
   transform-origin: center bottom;
   transform: translateY(0);
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease;
   margin: 0 4px;
 
   &:hover {
@@ -191,10 +192,9 @@ mat-toolbar {
   border-radius: 25px;
   transform-origin: center bottom;
   transform: translateY(0);
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease;
   margin: 0 4px;
 
   &:hover {
@@ -220,11 +220,13 @@ mat-toolbar {
 .mat-menu-item {
   display: flex;
   align-items: center;
-
+  
   .mat-icon {
     margin-right: 8px;
   }
 }
+
+
 
 ::ng-deep .custom-menu {
   .mat-mdc-menu-item {

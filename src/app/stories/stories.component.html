@@ -1,28 +1,6 @@
-<!-- <div class="container">
+<div class="container">
     <div class="coming-soon">
         <h2>Coming Soon</h2>
         <p class="handwriting">थोड़े मेरे किस्से और बहुत सारी inspiring कहानियाँ Olympic Sports के गलियारे से।</p>
     </div>
-</div> -->
-<div class="stories-container">
-  <!-- <div *ngIf="loading">Loading stories...</div> -->
-  <div *ngIf="error">Error loading stories: {{ error.message }}</div>
-
-  <div *ngIf="stories$ | async as response" class="stories-grid">
-    <div *ngFor="let story of response" class="story-card">
-      <a [routerLink]="['/stories', story.slug]" [queryParams]="{ locale: currentLocale }">
-        <img [src]="story.heroImage.sizes.card.url | payloadMedia" [alt]="story.heroImage.alt" class="story-image">
-        <div class="story-content">
-          <h3 class="story-title">{{ story.title }}</h3>
-          <div class="story-meta">
-            <div class="author-info" *ngIf="story.authors && story.authors.length > 0">
-              <img [src]="story.authors[0].avatar.sizes.square.url | payloadMedia" [alt]="story.authors[0].avatar.alt" class="author-avatar">
-              <span>{{ story.authors[0].firstName }} {{ story.authors[0].lastName }}</span>
-            </div>
-            <span class="reading-time">{{ story.readingTime }} min read</span>
-          </div>
-        </div>
-      </a>
-    </div>
-  </div>
 </div>
