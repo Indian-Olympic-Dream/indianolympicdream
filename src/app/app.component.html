@@ -45,15 +45,20 @@
       <!-- <mat-icon>date_range</mat-icon> -->
       Schedule
     </button>
-    <button class="nav-button" [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }" mat-button
+    <button class="nav-button" [routerLink]="['/originals']" [queryParams]="{ edition: selectedOlympics }" mat-button
       routerLinkActive="active-link">
-      <!-- <mat-icon>movie</mat-icon> -->
-      Shows I love
+      <!-- <mat-icon>video_library</mat-icon> -->
+      Originals
     </button>
     <button class="nav-button" [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }" mat-button
       routerLinkActive="active-link">
       <!-- <mat-icon>description</mat-icon> -->
       Stories
+    </button>
+    <button class="nav-button" [routerLink]="['/explore']" [queryParams]="{ edition: selectedOlympics }" mat-button
+      routerLinkActive="active-link">
+      <!-- <mat-icon>explore</mat-icon> -->
+      Explore
     </button>
     <button class="nav-button" [routerLink]="['/about']" [queryParams]="{edition: selectedOlympics}" mat-button
       routerLinkActive="active-link">
@@ -88,29 +93,10 @@
         <mat-icon>date_range</mat-icon>
         <span class="sidenav-menu">Schedule</span>
       </a>
-      <a mat-list-item [routerLink]="['/shows']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
-        <mat-icon>movie</mat-icon>
-        <span class="sidenav-menu">Shows I love</span>
-      </a>
-      <a mat-list-item [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
-        <mat-icon>description</mat-icon>
-        <span class="sidenav-menu">Stories</span>
-      </a>
-      <!-- <a mat-list-item [routerLink]="['/feedback']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
-        <mat-icon>feedback</mat-icon>
-        <span class="sidenav-menu">Feedback</span>
-      </a> -->
       <a mat-list-item [routerLink]="['/about']" [queryParams]="{ edition: selectedOlympics }"
         routerLinkActive="mat-list-active">
         <mat-icon>info</mat-icon>
         <span class="sidenav-menu">About</span>
-      </a>
-      <a mat-list-item (click)="openAboutMe()">
-        <mat-icon>contact_page</mat-icon>
-        <span class="sidenav-menu">About Me</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
@@ -118,6 +104,6 @@
     <div #scrollContainer (scroll)="onContentScroll($event)" [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
-    <!-- <mat-toolbar  class="botton-toolbar"></mat-toolbar> -->
-  </mat-sidenav-content>
-</mat-sidenav-container>
+      </mat-sidenav-content>
+  </mat-sidenav-container>
+  <app-bottom-nav></app-bottom-nav>

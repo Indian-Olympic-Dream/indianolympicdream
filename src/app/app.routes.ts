@@ -49,10 +49,26 @@ export const routes: Routes = [
     },
   },
   {
-    path: "shows",
+    path: "explore",
     loadComponent: () =>
-      import("./shows/shows.component").then((m) => m.ShowsComponent),
-    data: { animation: "ShowsPage", order: 6, transitionType: "bottom-to-top" },
+      import("./explore/explore.component").then((m) => m.ExploreComponent),
+    data: {
+      animation: "ExplorePage",
+      order: 6,
+      transitionType: "bottom-to-top",
+    },
+  },
+  {
+    path: "originals",
+    loadComponent: () =>
+      import("./originals/originals.component").then(
+        (m) => m.OriginalsComponent,
+      ),
+    data: {
+      animation: "OriginalsPage",
+      order: 7,
+      transitionType: "bottom-to-top",
+    },
   },
   {
     path: "stories",
@@ -60,7 +76,7 @@ export const routes: Routes = [
       import("./stories/stories.routes").then((m) => m.STORIES_ROUTES),
     data: {
       animation: "StoriesPage",
-      order: 7,
+      order: 8,
       transitionType: "bottom-to-top",
     },
   },

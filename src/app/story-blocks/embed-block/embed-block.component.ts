@@ -4,6 +4,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { SafeResourceUrlPipe } from "../../shared/pipes/safe-resource-url.pipe";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
+import { FormatDurationPipe } from "../../shared/pipes/format-duration.pipe";
 
 // State for each video card
 interface VideoState {
@@ -21,6 +22,7 @@ interface VideoState {
     MatProgressSpinnerModule,
     MatCardModule,
     MatIconModule,
+    FormatDurationPipe,
   ],
   templateUrl: "./embed-block.component.html",
   styleUrls: ["./embed-block.component.scss"],

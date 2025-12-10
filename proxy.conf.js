@@ -1,11 +1,11 @@
 const PROXY_CONFIG = {
   "/api/graphql": {
-    target: "http://localhost:3000",
+    target: "http://admin.iodsports.com",
     secure: false,
     changeOrigin: true,
   },
   "/api/media": {
-    target: "http://localhost:3000",
+    target: "http://admin.iodsports.com",
     secure: false,
     changeOrigin: true,
   },

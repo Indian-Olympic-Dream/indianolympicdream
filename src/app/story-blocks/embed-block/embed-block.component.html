@@ -9,6 +9,10 @@
          class="video-thumbnail"
          [alt]="block.embedTitle || 'Video thumbnail'">
 
+    <div *ngIf="block.duration" class="duration-overlay">
+      <span>{{ block.duration | formatDuration }}</span>
+    </div>
+
     <!-- Custom Play Button -->
     <div class="play-button" *ngIf="!videoState.isPlaying">
       <div class="play-icon"></div>
@@ -37,7 +41,7 @@
   </mat-card-header>
 
   <mat-card-content *ngIf="block.embedDescription">
-    <p>{{ block.embedDescription }}</p>
+    <div class="mat-body">{{ block.embedDescription }}</div>
   </mat-card-content>
 
   <mat-card-actions *ngIf="block.tags && block.tags.length > 0">

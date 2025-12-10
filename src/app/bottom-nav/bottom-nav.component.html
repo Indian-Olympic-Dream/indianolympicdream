@@ -1,0 +1,32 @@
+<mat-toolbar class="bottom-nav">
+  <div class="nav-item-container">
+    <a mat-icon-button routerLink="/home" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" [disableRipple]="true">
+      <mat-icon>home</mat-icon>
+      <span class="nav-label">Home</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a mat-icon-button routerLink="/originals" routerLinkActive="active-link" [disableRipple]="true">
+      <mat-icon>video_library</mat-icon>
+      <span class="nav-label">Originals</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a mat-icon-button routerLink="/stories" routerLinkActive="active-link" [disableRipple]="true">
+      <mat-icon>article</mat-icon>
+      <span class="nav-label">Stories</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a mat-icon-button routerLink="/explore" routerLinkActive="active-link" [disableRipple]="true">
+      <mat-icon>explore</mat-icon>
+      <span class="nav-label">Explore</span>
+    </a>
+  </div>
+  <!-- <div class="nav-item-container">
+    <a mat-icon-button routerLink="/settings" routerLinkActive="active-link" [disableRipple]="true">
+      <mat-icon>settings</mat-icon>
+      <span class="nav-label">Settings</span>
+    </a>
+  </div> -->
+</mat-toolbar>
