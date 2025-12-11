@@ -155,6 +155,10 @@ export class AppComponent implements OnInit {
     return this.router.url.startsWith("/schedule");
   }
 
+  isStoriesActive(): boolean {
+    return this.router.url.startsWith("/stories");
+  }
+
   loadThemePreference() {
     const savedTheme = localStorage.getItem("selectedTheme");
     this.currentTheme = savedTheme || "dark-theme";

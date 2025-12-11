@@ -1,1 +1,24 @@
-<p>explore works!</p>
+<div class="explore-container">
+  <mat-toolbar class="child-toolbar">
+    <div class="pictogram-slider">
+      <button mat-icon-button class="toolbar-pictogram-button" [ngClass]="{'active-sport-button': 'All' === selectedSport}" (click)="filterBySport('All')"
+        attr.data-sport="All">
+        <mat-icon color="primary">public</mat-icon>
+      </button>
+      <button class="toolbar-pictogram-button" [ngClass]="{'active-sport-button': sport === selectedSport}" mat-icon-button *ngFor="let sport of sports.slice(1)"
+        (click)="filterBySport(sport)" [attr.data-sport]="sport | titlecase">
+        <img class="pictogram-button-image" src="assets/images/pictograms/icons/{{sport}}.png" alt="{{sport}} pictogram" />
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <div class="embeds-grid">
+    <div *ngFor="let embed of filteredEmbeds" class="embed-wrapper">
+      <app-embed-block [block]="embed"></app-embed-block>
+    </div>
+  </div>
+
+  <div *ngIf="filteredEmbeds.length === 0" class="no-results">
+    <p>No videos found for the selected sport.</p>
+  </div>
+</div>

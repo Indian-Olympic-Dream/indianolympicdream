@@ -63,3 +63,14 @@ export interface Podcast {
     alt: string;
   };
 }
+
+export interface Embed {
+  id: string;
+  embedTitle: string;
+  embedDescription: string;
+  url: string;
+  platform: string;
+  tags: {
+    name: string;
+  }[];
+}

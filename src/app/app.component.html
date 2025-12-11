@@ -51,7 +51,7 @@
       Originals
     </button>
     <button class="nav-button" [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      routerLinkActive="active-link">
+      [ngClass]="{'active-link': isStoriesActive()}">
       <!-- <mat-icon>description</mat-icon> -->
       Stories
     </button>
