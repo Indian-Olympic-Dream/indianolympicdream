@@ -103,10 +103,6 @@
   }
 }
 
-mat-card-header {
-  padding: 1rem 1rem 0.5rem 1rem;
-}
-
 mat-card-title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -138,4 +134,21 @@ mat-card-actions {
   border-radius: 50px;
   border: 1px solid var(--primary-color);
   color: var(--primary-color);
+}
+
+.duration-overlay {
+  position: absolute;
+  bottom: 8px;
+  right: 0px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Geist Mono", monospace;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }

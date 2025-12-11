@@ -248,6 +248,12 @@ mat-sidenav-content {
   overflow: auto;
 }
 
+@media (max-width: 768px) {
+  .router-outlet-container {
+    padding-bottom: 72px;
+  }
+}
+
 .loader-icon-container {
   position: relative;
   width: 24px;

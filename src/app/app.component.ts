@@ -27,6 +27,7 @@ import { LoaderService } from "./shared/components/loader/loader.service";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
+import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
 
 @Component({
   selector: "app-root",
@@ -48,6 +49,7 @@ import { ScrollTrackingService } from "./shared/services/scroll-tracking.service
     MatListModule,
     MatProgressSpinnerModule,
     LayoutModule,
+    BottomNavComponent,
   ],
 })
 export class AppComponent implements OnInit {
@@ -153,6 +155,10 @@ export class AppComponent implements OnInit {
     return this.router.url.startsWith("/schedule");
   }
 
+  isStoriesActive(): boolean {
+    return this.router.url.startsWith("/stories");
+  }
+
   loadThemePreference() {
     const savedTheme = localStorage.getItem("selectedTheme");
     this.currentTheme = savedTheme || "dark-theme";
@@ -218,9 +224,5 @@ export class AppComponent implements OnInit {
   }
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
-  }
-
-  openAboutMe() {
-    window.open("https://github.com/agrawalankush", "_blank");
   }
 }

@@ -463,3 +463,7 @@ a {
     font-family: "Noto Sans Devanagari", sans-serif;
   }
 }
+
+.bottom-nav .mat-mdc-icon-button .mat-mdc-button-persistent-ripple {
+  border-radius: 0 !important;
+}
