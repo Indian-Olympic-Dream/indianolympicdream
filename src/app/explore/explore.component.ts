@@ -22,6 +22,7 @@ import { EmbedBlockComponent } from "../story-blocks/embed-block/embed-block.com
 export class ExploreComponent implements OnInit {
   allEmbeds: Embed[] = [];
   filteredEmbeds: Embed[] = [];
+  loading = true;
 
   sports = [
     "All",
@@ -38,9 +39,15 @@ export class ExploreComponent implements OnInit {
   constructor(private exploreService: ExploreService) {}
 
   ngOnInit(): void {
-    this.exploreService.getEmbeds().subscribe((embeds) => {
-      this.allEmbeds = embeds;
-      this.filteredEmbeds = embeds;
+    this.exploreService.getEmbeds().subscribe({
+      next: (embeds) => {
+        this.allEmbeds = embeds;
+        this.filteredEmbeds = embeds;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
     });
   }
 

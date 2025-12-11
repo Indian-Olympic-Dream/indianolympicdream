@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <div *ngIf="filteredEmbeds.length === 0" class="no-results">
+  <div *ngIf="filteredEmbeds.length === 0 && !loading" class="no-results">
     <p>No videos found for the selected sport.</p>
   </div>
 </div>
