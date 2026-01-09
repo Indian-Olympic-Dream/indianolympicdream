@@ -18,8 +18,9 @@ The `indianolympicdream` application is a comprehensive platform dedicated to tr
 This project is built using the following key technologies:
 
 *   **Frontend:**
-    *   [Angular](https://angular.io/) (v10.0.0) - A powerful framework for building single-page applications.
+    *   [Angular](https://angular.io/) (v19) - A powerful framework for building single-page applications.
     *   [Angular Material](https://material.angular.io/) - UI component library implementing Material Design.
+    *   [Apollo Angular](https://apollo-angular.com/) - GraphQL client for Angular.
     *   [TypeScript](https://www.typescriptlang.org/) - Superset of JavaScript for type-safe development.
     *   [SCSS](https://sass-lang.com/) - CSS preprocessor for enhanced styling capabilities.
     *   [Angular Service Worker](https://angular.io/guide/service-worker-intro) - For progressive web app (PWA) features and offline capabilities.
@@ -36,23 +37,22 @@ Follow these instructions to set up the project locally for development.
 
 Ensure you have the following installed on your system:
 
-*   [Node.js](https://nodejs.org/en/) (LTS version recommended)
+*   [Node.js](https://nodejs.org/en/) (v18.13.0 or later recommended)
 *   [npm](https://www.npmjs.com/) (comes with Node.js)
-*   [Angular CLI](https://angular.io/cli) (v10.0.0 or compatible)
+*   [Angular CLI](https://angular.io/cli) (v19.0.0 or compatible)
     ```bash
-    npm install -g @angular/cli@10.0.0
+    npm install -g @angular/cli
     ```
-*   [Docker](https://docs.docker.com/get-docker/) (for production build and deployment)
-*   [Docker Compose](https://docs.docker.com/compose/install/) (for production build and deployment)
+*   **Backend Services:** This application relies on backend services running locally:
+    *   **Content Service:** Expected on port `3000` (handles generic API requests).
 
 ### Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/indianolympicdream.git
+    git clone https://github.com/Indian-Olympic-Dream/indianolympicdream.git
     cd indianolympicdream
     ```
-    *(Note: Replace `https://github.com/your-username/indianolympicdream.git` with the actual repository URL if different.)*
 
 2.  **Install dependencies:**
     ```bash
@@ -61,11 +61,13 @@ Ensure you have the following installed on your system:
 
 ### Development Server
 
-Run `ng serve` for a development server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Run `npm start` for a development server. This command runs `ng serve` with the proxy configuration enabled (`proxy.conf.js`), which routes API requests to your local backend services.
 
 ```bash
-ng serve
+npm start
 ```
+
+Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
 ### Code Scaffolding
 
@@ -81,10 +83,10 @@ ng generate directive|pipe|service|class|guard|interface|enum|module
 
 ### Angular Production Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--configuration=production` flag for a production-optimized build.
+Run `npm run build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
 ```bash
-ng build --configuration=production
+npm run build
 ```
 
 ### Docker Production Build and Run
@@ -95,7 +97,6 @@ This project includes Docker configurations for building and running the applica
     ```bash
     docker build -t indianolympicdream .
     ```
-    *(Note: The `-t indianolympicdream` tags the image with a name.)*
 
 2.  **Run with Docker Compose:**
     The `docker-compose.yml` file is set up to build the Angular application, create a Docker image, and serve it using Nginx.
@@ -103,10 +104,6 @@ This project includes Docker configurations for building and running the applica
     ```bash
     docker-compose up --build -d
     ```
-    This command will:
-    *   Build the Angular application inside a Docker container.
-    *   Build the Nginx Docker image.
-    *   Start the Nginx container in detached mode (`-d`).
 
     The application will typically be accessible at `http://localhost` (or the port configured in `nginx/default.conf.template`).
 

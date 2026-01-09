@@ -10,8 +10,8 @@ const PROXY_CONFIG = {
     changeOrigin: true,
   },
   "/api": {
-    target: "http://localhost:3001",
-    secure: false,
+    target: "https://iodsports.com",
+    secure: true,
     changeOrigin: true,
     logLevel: "debug",
   },
