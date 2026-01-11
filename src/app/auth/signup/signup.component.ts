@@ -23,11 +23,13 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
   template: `
     <div class="step-container" *ngIf="!emailSent; else sentState">
       <h1 class="title">Create Account</h1>
-      <p class="subtitle">Join the premium community today.</p>
+      <p class="subtitle">
+        Get access to live scores, schedules, news and much more.
+      </p>
 
       <div class="user-chip">
         <span class="email-text">{{ email }}</span>
-        <button mat-icon-button class="edit-btn" (click)="goBack()">
+        <button matIconButton class="edit-btn" (click)="goBack()">
           <mat-icon>edit</mat-icon>
         </button>
       </div>

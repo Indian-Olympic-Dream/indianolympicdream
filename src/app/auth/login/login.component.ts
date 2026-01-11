@@ -27,7 +27,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
       <div class="user-chip">
         <span class="email-text">{{ email }}</span>
-        <button mat-icon-button class="edit-btn" (click)="goBack()">
+        <button matIconButton class="edit-btn" (click)="goBack()">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
