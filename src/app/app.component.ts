@@ -28,6 +28,7 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
+import { AuthService } from "./core/services/auth.service";
 
 @Component({
   selector: "app-root",
@@ -82,6 +83,7 @@ export class AppComponent implements OnInit {
     private loaderService: LoaderService,
     private breakpointObserver: BreakpointObserver,
     private scrollTrackingService: ScrollTrackingService,
+    public authService: AuthService,
   ) {
     this.loaderService.loaderState.subscribe((state) => {
       this.loading = state.show;
@@ -224,5 +226,9 @@ export class AppComponent implements OnInit {
   }
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }

@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.js",
+    "start": "ng serve --proxy-config proxy.conf.js --host 0.0.0.0",
     "dev": "ng serve --proxy-config proxy.conf.js",
     "build": "ng build --configuration production",
     "build:clean": "ng build --configuration production --verbose=false",

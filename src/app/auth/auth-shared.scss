@@ -1,0 +1,307 @@
+// src/app/auth/auth-shared.scss
+
+// Colors
+$auth-bg-color: #000000;
+$auth-card-bg: rgba(20, 20, 20, 0.6); // Glassmorphism base
+$auth-text-color: #ffffff;
+$auth-accent-color: #FCD535; // Gold
+$auth-input-bg: rgba(255, 255, 255, 0.08);
+$auth-input-focus-bg: rgba(255, 255, 255, 0.12);
+$auth-border-color: rgba(255, 255, 255, 0.1);
+
+// Typography
+$font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+// Mixins
+@mixin glass-panel {
+  background: $auth-card-bg;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid $auth-border-color;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+// Global Auth Styles
+.auth-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $auth-bg-color;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(252, 213, 53, 0.15) 0%, rgba(0, 0, 0, 0) 50%),
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%);
+  background-size: cover;
+  font-family: $font-family;
+  color: $auth-text-color;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  border-radius: 24px;
+
+  // Desktop Glassmorphism
+  @media (min-width: 768px) {
+    @include glass-panel;
+  }
+
+  // Mobile: Cleaner look, less borders
+  @media (max-width: 767px) {
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    backdrop-filter: none;
+  }
+}
+
+.auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+
+  .brand {
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .back-button {
+    color: rgba(255,255,255,0.7);
+    transition: color 0.2s;
+    margin-left: -12px; // Align optically
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.step-container {
+  display: flex;
+  flex-direction: column;
+  animation: fadeSlideUp 0.4s ease-out;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.6);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 40px 0;
+  text-align: center;
+}
+
+// Form Elements
+.custom-input-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 16px;
+
+  .custom-input {
+    width: 100%;
+    height: 56px;
+    background: $auth-input-bg;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    padding: 0 16px;
+    color: #fff;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+
+    &::placeholder {
+      color: rgba(255,255,255,0.4);
+    }
+
+    &:focus {
+      background: $auth-input-focus-bg;
+      border-color: rgba(252, 213, 53, 0.5); // Gold tint
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(252, 213, 53, 0.1);
+    }
+  }
+
+  .visibility-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.submit-btn {
+  width: 100% !important;
+  height: 56px !important;
+  border-radius: 28px !important; // Full pill
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin-top: 24px;
+  background-color: $auth-accent-color !important;
+  color: #000 !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(252, 213, 53, 0.2) !important;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    background-color: rgba(255,255,255,0.2) !important;
+    color: rgba(255,255,255,0.5) !important;
+  }
+}
+
+// Social Buttons
+.social-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 32px 0;
+
+  .social-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: none !important;
+
+    &:hover {
+      background: rgba(255,255,255,0.15) !important;
+      transform: scale(1.05);
+    }
+
+    img {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 32px 0;
+
+  .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+
+  .text {
+    padding: 0 16px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// Links
+.footer-login, .legal-text {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+
+  a {
+    color: $auth-accent-color;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.legal-text {
+  font-size: 12px;
+  margin-top: 40px;
+
+  a {
+    color: rgba(255,255,255,0.8);
+  }
+}
+
+// User Chip
+.user-chip {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 6px 6px 16px;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 auto 32px auto; // Center it
+  max-width: 100%;
+
+  .email-text {
+    color: #fff;
+    font-size: 14px;
+    margin-right: 12px;
+    font-weight: 500;
+  }
+
+  .edit-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

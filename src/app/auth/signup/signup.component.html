@@ -1,0 +1,77 @@
+<div class="signup-page">
+  <div class="header">
+    <button mat-icon-button class="back-button" routerLink="/home">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="brand">IOD SPORTS</span>
+    <div style="width: 40px;"></div> <!-- Spacer -->
+  </div>
+
+  <div class="content-container">
+    <h1 class="title">Create Account</h1>
+    <p class="subtitle">Join the premium community today.</p>
+
+    <div class="social-buttons">
+      <button mat-fab class="social-btn" (click)="signupWithGoogle()">
+        <img src="assets/images/oauth/google.svg" alt="Google">
+      </button>
+      <button mat-fab class="social-btn" (click)="signupWithTwitter()">
+        <img src="assets/images/oauth/x.svg" alt="X">
+      </button>
+      <button mat-fab class="social-btn" (click)="signupWithReddit()">
+        <img src="assets/images/oauth/reddit.svg" alt="Reddit">
+      </button>
+    </div>
+
+    <div class="divider">
+      <span class="line"></span>
+      <span class="text">or enter your details below</span>
+      <span class="line"></span>
+    </div>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
+      <div class="custom-input-group">
+        <input
+          type="text"
+          formControlName="fullName"
+          placeholder="Full Name"
+          class="custom-input"
+        >
+      </div>
+
+      <div class="custom-input-group">
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="Email Address"
+          class="custom-input"
+        >
+      </div>
+
+      <div class="custom-input-group">
+        <input
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Password"
+          class="custom-input"
+        >
+        <button type="button" class="visibility-toggle" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+      </div>
+
+      <button mat-flat-button class="submit-btn" type="submit">
+        Sign Up <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    </form>
+
+    <div class="footer-login">
+      <span>Already have an account?</span>
+      <a (click)="openLogin()" class="login-link">Log in</a>
+    </div>
+
+    <div class="legal-text">
+      By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+    </div>
+  </div>
+</div>

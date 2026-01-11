@@ -1,10 +1,7 @@
 import { enableProdMode, importProvidersFrom } from "@angular/core";
 import { environment } from "./environments/environment";
 import { httpInterceptorProviders } from "./app/http-interceptors/index";
-import {
-  provideHttpClient,
-  withInterceptorsFromDi,
-} from "@angular/common/http";
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { BrowserModule, bootstrapApplication } from "@angular/platform-browser";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { routes } from "./app/app.routes"; // Updated import path for routes
@@ -13,6 +10,7 @@ import { provideAnimations } from "@angular/platform-browser/animations";
 import { ServiceWorkerModule } from "@angular/service-worker";
 import { AppComponent } from "./app/app.component";
 import { graphqlProvider } from "./app/graphql.provider";
+import { jwtInterceptor as JwtInterceptor } from "./app/core/interceptors/jwt.interceptor";
 
 if (environment.production) {
   enableProdMode();
@@ -30,7 +28,7 @@ bootstrapApplication(AppComponent, {
     ),
     provideRouter(routes),
     httpInterceptorProviders,
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptors([JwtInterceptor])),
     provideAnimations(),
     graphqlProvider,
   ],

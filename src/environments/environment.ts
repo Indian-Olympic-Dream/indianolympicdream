@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   graphql_uri: "/api/graphql",
-  payload_url: "",
+  payload_url: "http://localhost:3000",
 };
 
 /*
