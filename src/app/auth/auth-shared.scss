@@ -4,13 +4,21 @@
 $auth-bg-color: #000000;
 $auth-card-bg: rgba(20, 20, 20, 0.6); // Glassmorphism base
 $auth-text-color: #ffffff;
-$auth-accent-color: #FCD535; // Gold
+$auth-accent-color: #fcd535; // Gold
 $auth-input-bg: rgba(255, 255, 255, 0.08);
 $auth-input-focus-bg: rgba(255, 255, 255, 0.12);
 $auth-border-color: rgba(255, 255, 255, 0.1);
 
 // Typography
-$font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+$font-family:
+  "Geist Sans",
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
+  Helvetica,
+  Arial,
+  sans-serif;
 
 // Mixins
 @mixin glass-panel {
@@ -30,8 +38,12 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
   align-items: center;
   background-color: $auth-bg-color;
   background-image:
-    radial-gradient(circle at 50% 0%, rgba(252, 213, 53, 0.15) 0%, rgba(0, 0, 0, 0) 50%),
-    linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%);
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(252, 213, 53, 0.15) 0%,
+      rgba(0, 0, 0, 0) 50%
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
   background-size: cover;
   font-family: $font-family;
   color: $auth-text-color;
@@ -64,20 +76,35 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
 
-  .brand {
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, #fff, #ccc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    .card-logo {
+      width: 64px; // Adjust size
+      height: auto;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 2px;
+      font-size: 16px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #fff, #ccc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   }
 
   .back-button {
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.7);
     transition: color 0.2s;
     margin-left: -12px; // Align optically
 
@@ -94,8 +121,14 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .title {
@@ -107,7 +140,7 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
 }
 
 .subtitle {
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 15px;
   line-height: 1.5;
   margin: 0 0 40px 0;
@@ -134,7 +167,7 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
     box-sizing: border-box;
 
     &::placeholder {
-      color: rgba(255,255,255,0.4);
+      color: rgba(255, 255, 255, 0.4);
     }
 
     &:focus {
@@ -152,7 +185,7 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     padding: 8px;
     display: flex;
@@ -173,7 +206,9 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
   margin-top: 24px;
   background-color: $auth-accent-color !important;
   color: #000 !important;
-  transition: transform 0.2s, box-shadow 0.2s !important;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s !important;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
@@ -182,8 +217,8 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
 
   &:disabled {
     opacity: 0.7;
-    background-color: rgba(255,255,255,0.2) !important;
-    color: rgba(255,255,255,0.5) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
   }
 }
 
@@ -198,8 +233,8 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.08) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -208,7 +243,7 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
     box-shadow: none !important;
 
     &:hover {
-      background: rgba(255,255,255,0.15) !important;
+      background: rgba(255, 255, 255, 0.15) !important;
       transform: scale(1.05);
     }
 
@@ -227,12 +262,17 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
   .line {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
   }
 
   .text {
     padding: 0 16px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -240,10 +280,11 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
 }
 
 // Links
-.footer-login, .legal-text {
+.footer-login,
+.legal-text {
   text-align: center;
   font-size: 14px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
 
   a {
     color: $auth-accent-color;
@@ -262,7 +303,7 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
   margin-top: 40px;
 
   a {
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 
@@ -288,14 +329,14 @@ $font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Robot
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
 
     &:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     mat-icon {

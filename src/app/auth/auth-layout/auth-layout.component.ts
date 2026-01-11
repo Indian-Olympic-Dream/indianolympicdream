@@ -15,7 +15,14 @@ import { MatButtonModule } from "@angular/material/button";
           <button mat-icon-button class="back-button" routerLink="/home">
             <mat-icon>arrow_back</mat-icon>
           </button>
-          <span class="brand">IOD SPORTS</span>
+          <div class="card-header">
+            <img
+              src="assets/images/logo.png"
+              alt="IOD Logo"
+              class="card-logo"
+            />
+            <span class="brand">IOD SPORTS</span>
+          </div>
           <div style="width: 40px;"></div>
           <!-- Spacer -->
         </div>
