@@ -44,6 +44,18 @@ export const routes: Routes = [
     },
   },
   {
+    path: "history",
+    loadComponent: () =>
+      import("./history/history.component").then((m) => m.HistoryComponent),
+    data: { animation: "HistoryPage", order: 5 },
+  },
+  {
+    path: "history/:slug",
+    loadComponent: () =>
+      import("./history/edition-detail.component").then((m) => m.EditionDetailComponent),
+    data: { animation: "EditionDetailPage", order: 6 },
+  },
+  {
     path: "calendar",
     loadComponent: () =>
       import("./calendar/calendar.component").then((m) => m.CalendarComponent),

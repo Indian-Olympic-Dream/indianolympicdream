@@ -10,6 +10,8 @@ export class PayloadMediaPipe implements PipeTransform {
     if (!value) {
       return '';
     }
+    // In dev, proxy.conf routes /api/media to production
+    // In prod, relative URLs work directly
     return `${environment.payload_url}${value}`;
   }
 }

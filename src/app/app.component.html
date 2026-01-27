@@ -2,66 +2,41 @@
   <button mat-icon-button (click)="drawer.toggle()">
     <mat-icon>menu</mat-icon>
   </button>
-  <div class="logo-container" [routerLink]="['/home']" [queryParams]="{ edition: selectedOlympics }"
-    [class.active-logo]="isActivePath()">
+  <div class="logo-container" [routerLink]="['/home']" [class.active-logo]="isActivePath()">
     <span>{{ logoTextTop }}</span>
     <img src="assets/images/generic/logo.png" class="olympic-logo" alt="olympic rings logo" loading="eager"
       decoding="async" fetchpriority="high" width="60" height="24">
     <span>{{ logoTextBottom }}</span>
   </div>
-  <div class="logo-container" [matMenuTriggerFor]="olympicsMenu" (menuOpened)="isOlympicsMenuOpen = true"
-    (menuClosed)="isOlympicsMenuOpen = false">
-    <img [src]="selectedOlympicsLogo" class="olympics-option-logo" [alt]="selectedOlympics + ' logo'" loading="lazy"
-      decoding="async" fetchpriority="low" width="50" height="50">
-    <div class="loader-icon-container">
-      <mat-spinner *ngIf="loading" diameter="24" color="primary"></mat-spinner>
-      <mat-icon *ngIf="!loading" class="arrow-icon" [color]="isOlympicsMenuOpen ? '' : 'primary'">{{ isOlympicsMenuOpen
-        ? 'arrow_drop_up' :
-        'arrow_drop_down' }}</mat-icon>
-    </div>
+  <!-- LA 2028 Logo (static, no dropdown) -->
+  <div class="logo-container">
+    <img [src]="selectedOlympicsLogo" class="olympics-option-logo" alt="LA 2028 logo" loading="lazy" decoding="async"
+      fetchpriority="low" width="50" height="50">
   </div>
 
-  <mat-menu #olympicsMenu="matMenu" class="custom-menu">
-    <button mat-menu-item *ngFor="let option of olympicOptions" (click)="onOlympicsChange(option.id)">
-      <img [src]="option.logo" class="olympics-option-logo" [alt]="option.name + ' logo'" loading="lazy"
-        decoding="async" fetchpriority="low" width="24" height="24">
-      <!-- <span>{{option.name}}</span> -->
-    </button>
-  </mat-menu>
-
   <nav class="nav-links">
-    <button class="nav-button" [routerLink]="['/athletes']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      routerLinkActive="active-link">
-      <!-- <mat-icon>directions_run</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/athletes']" mat-button routerLinkActive="active-link">
       Quotas Earned
     </button>
-    <button class="nav-button" [routerLink]="['/calendar']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      routerLinkActive="active-link">
-      <!-- <mat-icon>calendar_month</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/calendar']" mat-button routerLinkActive="active-link">
       Calendar
     </button>
-    <button class="nav-button" [routerLink]="['/schedule']" [queryParams]="{sport: '', edition: selectedOlympics}"
-      [ngClass]="{'active-link': isScheduleActive()}" mat-button>
-      <!-- <mat-icon>date_range</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/schedule']" [ngClass]="{'active-link': isScheduleActive()}" mat-button>
       Schedule
     </button>
-    <button class="nav-button" [routerLink]="['/originals']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      routerLinkActive="active-link">
-      <!-- <mat-icon>video_library</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/originals']" mat-button routerLinkActive="active-link">
       Originals
     </button>
-    <button class="nav-button" [routerLink]="['/stories']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      [ngClass]="{'active-link': isStoriesActive()}">
-      <!-- <mat-icon>description</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/stories']" mat-button [ngClass]="{'active-link': isStoriesActive()}">
       Stories
     </button>
-    <button class="nav-button" [routerLink]="['/explore']" [queryParams]="{ edition: selectedOlympics }" mat-button
-      routerLinkActive="active-link">
-      <!-- <mat-icon>explore</mat-icon> -->
+    <button class="nav-button" [routerLink]="['/explore']" mat-button routerLinkActive="active-link">
       Explore
     </button>
-    <button class="nav-button" [routerLink]="['/about']" [queryParams]="{edition: selectedOlympics}" mat-button
-      routerLinkActive="active-link">
+    <button class="nav-button" [routerLink]="['/history']" mat-button routerLinkActive="active-link">
+      History
+    </button>
+    <button class="nav-button" [routerLink]="['/about']" mat-button routerLinkActive="active-link">
       About
     </button>
   </nav>
@@ -81,32 +56,33 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #drawer class="sidenav" mode="over">
     <mat-nav-list (click)="drawer.close()">
-      <a mat-list-item [routerLink]="['/athletes']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
+      <a mat-list-item [routerLink]="['/athletes']" routerLinkActive="mat-list-active">
         <mat-icon>directions_run</mat-icon>
         <span class="sidenav-menu">Quotas Earned</span>
       </a>
-      <a mat-list-item [routerLink]="['/calendar']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
+      <a mat-list-item [routerLink]="['/calendar']" routerLinkActive="mat-list-active">
         <mat-icon>calendar_month</mat-icon>
         <span class="sidenav-menu">Calendar</span>
       </a>
-      <a mat-list-item [routerLink]="['/schedule']" [queryParams]="{sport: '', edition: selectedOlympics}"
-        [ngClass]="{'mat-list-active': isScheduleActive()}">
+      <a mat-list-item [routerLink]="['/schedule']" [ngClass]="{'mat-list-active': isScheduleActive()}">
         <mat-icon>date_range</mat-icon>
         <span class="sidenav-menu">Schedule</span>
       </a>
-      <a mat-list-item [routerLink]="['/about']" [queryParams]="{ edition: selectedOlympics }"
-        routerLinkActive="mat-list-active">
+      <a mat-list-item [routerLink]="['/history']" routerLinkActive="mat-list-active">
+        <mat-icon>history</mat-icon>
+        <span class="sidenav-menu">History</span>
+      </a>
+      <a mat-list-item [routerLink]="['/about']" routerLinkActive="mat-list-active">
         <mat-icon>info</mat-icon>
         <span class="sidenav-menu">About</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-    <div #scrollContainer (scroll)="onContentScroll($event)" [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
+    <div #scrollContainer (scroll)="onContentScroll($event)" [@routeAnimations]="prepareRoute(outlet)"
+      class="router-outlet-container">
       <router-outlet #outlet="outlet"></router-outlet>
     </div>
-      </mat-sidenav-content>
-  </mat-sidenav-container>
-  <app-bottom-nav></app-bottom-nav>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+<app-bottom-nav></app-bottom-nav>

@@ -40,9 +40,8 @@
       <mat-card-subtitle>{{ athlete.event }}</mat-card-subtitle>
     </mat-card-header>
     <picture>
-      <source *ngIf="athlete.webpimage" type="image/webp" srcset="assets/images/{{athlete.webpimage}}">
-      <img mat-card-image class="athlete-image" src="assets/images/{{athlete.image}}"
-        [attr.alt]="athlete.name + ' photo'" onerror="this.onerror=null; this.src='assets/images/placeholder.png';">
+      <img mat-card-image class="athlete-image" [src]="athlete.photo" [attr.alt]="athlete.name + ' photo'"
+        onerror="this.onerror=null; this.src='assets/images/placeholder.svg';">
     </picture>
     <mat-card-content>
       <!-- <p *ngIf="athlete.imagesrc">({{athlete.imagesrc}})</p> -->

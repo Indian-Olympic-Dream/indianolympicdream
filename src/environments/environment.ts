@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  graphql_uri: "/api/graphql",
-  payload_url: "http://localhost:3000",
+  graphql_uri: "/api/graphql", // Use relative URL - proxy handles routing
+  payload_url: "", // Empty in dev - proxy handles all /api routes
 };
 
 /*
