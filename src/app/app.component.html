@@ -2,7 +2,7 @@
   <button mat-icon-button (click)="drawer.toggle()">
     <mat-icon>menu</mat-icon>
   </button>
-  <div class="logo-container" [routerLink]="['/home']" [class.active-logo]="isActivePath()">
+  <div class="logo-container" [routerLink]="['/']" [class.active-logo]="isActivePath()">
     <span>{{ logoTextTop }}</span>
     <img src="assets/images/generic/logo.png" class="olympic-logo" alt="olympic rings logo" loading="eager"
       decoding="async" fetchpriority="high" width="60" height="24">
@@ -33,12 +33,8 @@
     <button class="nav-button" [routerLink]="['/explore']" mat-button routerLinkActive="active-link">
       Explore
     </button>
-    <button class="nav-button" [routerLink]="['/history']" mat-button routerLinkActive="active-link">
-      History
-    </button>
-    <button class="nav-button" [routerLink]="['/about']" mat-button routerLinkActive="active-link">
-      About
-    </button>
+
+
   </nav>
   <span class="fill-remaining-space"></span>
   <button mat-icon-button *ngIf="!authService.isAuthenticated()"
@@ -68,14 +64,8 @@
         <mat-icon>date_range</mat-icon>
         <span class="sidenav-menu">Schedule</span>
       </a>
-      <a mat-list-item [routerLink]="['/history']" routerLinkActive="mat-list-active">
-        <mat-icon>history</mat-icon>
-        <span class="sidenav-menu">History</span>
-      </a>
-      <a mat-list-item [routerLink]="['/about']" routerLinkActive="mat-list-active">
-        <mat-icon>info</mat-icon>
-        <span class="sidenav-menu">About</span>
-      </a>
+
+
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>

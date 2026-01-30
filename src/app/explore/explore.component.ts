@@ -36,7 +36,7 @@ export class ExploreComponent implements OnInit {
   ];
   selectedSport = "All";
 
-  constructor(private exploreService: ExploreService) {}
+  constructor(private exploreService: ExploreService) { }
 
   ngOnInit(): void {
     this.exploreService.getEmbeds().subscribe({
@@ -60,5 +60,47 @@ export class ExploreComponent implements OnInit {
         embed.tags.some((t) => t.name === sport),
       );
     }
+  }
+
+  getPictogramUrl(sport: string): string {
+    const aliases: Record<string, string> = {
+      'Artistic Gymnastics': 'gymnastics-artistic',
+      'Gymnastics': 'gymnastics-artistic',
+      'Rhythmic Gymnastics': 'gymnastics-artistic',
+      'Trampoline Gymnastics': 'gymnastics-artistic',
+      'Canoe Sprint': 'canoeing-(flatwater)',
+      'Canoe Slalom': 'canoeing-(flatwater)',
+      'Cycling Track': 'cycling-road',
+      'Cycling Road': 'cycling-road',
+      'Cycling BMX Racing': 'cycling-road',
+      'Cycling Mountain Bike': 'cycling-road',
+      'Cycling': 'cycling-road',
+      'Marathon Swimming': 'swimming',
+      'Artistic Swimming': 'swimming',
+      'Water Polo': 'water-polo',
+      'Diving': 'diving',
+      'Hockey': 'field-hockey',
+      'Field Hockey': 'field-hockey',
+      'Equestrian': 'equestrian-eventing',
+      'Equestrianism': 'equestrian-eventing',
+      'Table Tennis': 'table-tennis',
+      'Weightlifting': 'weightlifting',
+      'Volleyball': 'volleyball-(indoor)',
+      'Beach Volleyball': 'volleyball-(indoor)',
+      'Handball': 'handball',
+      'Sport Climbing': 'climbing',
+      'Skateboarding': 'skateboarding',
+      'Surfing': 'surfing',
+      'Triathlon': 'triathlon',
+      'Taekwondo': 'taekwondo',
+      'Rugby Sevens': 'rugby-sevens',
+      'Breaking': 'breakdancing',
+      'Karate': 'karate',
+      'Chess': 'chess'
+    };
+
+    const mappedSport = aliases[sport] || sport;
+    const formattedSport = mappedSport.replace(/ /g, '').toLowerCase();
+    return `assets/images/pictograms/icons/${formattedSport}.svg`;
   }
 }

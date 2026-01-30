@@ -1,11 +1,47 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { PayloadService, Edition, OlympicParticipation } from '../services/payload.service';
+import { MatChipsModule } from '@angular/material/chips';
+import { PayloadService, OlympicParticipation, Edition, GoldenMoment } from '../services/payload.service';
+
+interface SportBreakdown {
+  name: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+}
+
+interface Medalist {
+  name: string;
+  sport: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+}
+
+
+
+interface Era {
+  label: string;
+  shortLabel: string;
+  startYear: number;
+  endYear: number;
+}
+
+interface EditionCard {
+  id: string;
+  slug: string;
+  year: number;
+  city: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+  athleteCount: number;
+}
 
 @Component({
   selector: 'app-history',
@@ -13,221 +49,242 @@ import { PayloadService, Edition, OlympicParticipation } from '../services/paylo
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
     MatProgressSpinnerModule,
+    MatChipsModule,
   ],
-  template: `
-    <div class="history-container">
-      <header class="history-header">
-        <h1>Indian Olympic History</h1>
-        <p class="subtitle">India's Olympic Journey from 1900 to Present</p>
-      </header>
-
-      <section class="stats-section">
-        <div class="stat-card">
-          <mat-icon>emoji_events</mat-icon>
-          <div class="stat-value">{{ medalCounts.gold }}</div>
-          <div class="stat-label">Gold Medals</div>
-        </div>
-        <div class="stat-card">
-          <mat-icon>workspace_premium</mat-icon>
-          <div class="stat-value">{{ medalCounts.silver }}</div>
-          <div class="stat-label">Silver Medals</div>
-        </div>
-        <div class="stat-card">
-          <mat-icon>military_tech</mat-icon>
-          <div class="stat-value">{{ medalCounts.bronze }}</div>
-          <div class="stat-label">Bronze Medals</div>
-        </div>
-        <div class="stat-card">
-          <mat-icon>groups</mat-icon>
-          <div class="stat-value">{{ totalAthletes }}</div>
-          <div class="stat-label">Olympians</div>
-        </div>
-      </section>
-
-      <section class="editions-section">
-        <h2>Olympic Editions</h2>
-        <div class="editions-grid" *ngIf="!loading">
-          <mat-card *ngFor="let edition of editions" class="edition-card"
-            [routerLink]="['/history', edition.slug]">
-            <img *ngIf="edition.logo?.url" [src]="getLogoUrl(edition)" 
-                 [alt]="edition.name + ' logo'" class="edition-logo">
-            <div *ngIf="!edition.logo?.url" class="edition-placeholder">
-              {{ edition.year }}
-            </div>
-            <mat-card-content>
-              <h3>{{ edition.name }}</h3>
-              <p>{{ edition.city }}, {{ edition.hostCountry }}</p>
-            </mat-card-content>
-          </mat-card>
-        </div>
-        <mat-spinner *ngIf="loading"></mat-spinner>
-      </section>
-    </div>
-  `,
-  styles: [`
-    .history-container {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .history-header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .history-header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #FF9933, #FFFFFF, #138808);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .subtitle {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 1.1rem;
-    }
-
-    .stats-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
-      margin-bottom: 48px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, rgba(255, 153, 51, 0.1), rgba(19, 136, 8, 0.1));
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .stat-card mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-      color: #FF9933;
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: white;
-    }
-
-    .stat-label {
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .editions-section h2 {
-      margin-bottom: 24px;
-      color: white;
-    }
-
-    .editions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
-    }
-
-    .edition-card {
-      background: rgba(30, 30, 50, 0.8);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      overflow: hidden;
-    }
-
-    .edition-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(255, 153, 51, 0.2);
-    }
-
-    .edition-logo {
-      width: 100%;
-      height: 100px;
-      object-fit: contain;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .edition-placeholder {
-      width: 100%;
-      height: 100px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      color: #FF9933;
-    }
-
-    .edition-card h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: white;
-    }
-
-    .edition-card p {
-      margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    mat-spinner {
-      margin: 48px auto;
-    }
-  `]
+  templateUrl: './history.component.html',
+  styleUrls: ['./history.component.scss']
 })
 export class HistoryComponent implements OnInit {
   private payload = inject(PayloadService);
 
-  editions: Edition[] = [];
-  loading = true;
-  totalAthletes = 0;
-  medalCounts = { gold: 0, silver: 0, bronze: 0 };
+  // Signals for reactive state
+  loading = signal(true);
+  participations = signal<OlympicParticipation[]>([]);
+  participationCounts = signal<{ athleteId: string; editionId: string; year: number }[]>([]); // Lightweight for counting
+  editions = signal<Edition[]>([]);
+  selectedEra = signal<string>('all');
+  totalAthletes = signal(0);
+
+  // Era definitions with year ranges shown
+  eras: Era[] = [
+    { label: 'Pre-Independence', shortLabel: 'Pre-Ind.', startYear: 1900, endYear: 1947 },
+    { label: 'Golden Age', shortLabel: 'Golden Age', startYear: 1948, endYear: 1972 },
+    { label: 'Transition Era', shortLabel: 'Transition', startYear: 1976, endYear: 1992 },
+    { label: 'Modern Era', shortLabel: 'Modern', startYear: 1996, endYear: 2024 },
+  ];
+
+  // Golden Moments - Loaded dynamically
+  goldenMoments = signal<GoldenMoment[]>([]);
+
+  // Computed: filtered participations by era (medal participations only)
+  filteredParticipations = computed(() => {
+    const era = this.selectedEra();
+    if (era === 'all') return this.participations();
+
+    const selectedEra = this.eras.find(e => e.label === era);
+    if (!selectedEra) return this.participations();
+
+    return this.participations().filter(p => {
+      const year = p.edition?.year;
+      return year && year >= selectedEra.startYear && year <= selectedEra.endYear;
+    });
+  });
+
+  // Computed: filtered participation counts by era (for athlete counts)
+  filteredParticipationCounts = computed(() => {
+    const era = this.selectedEra();
+    if (era === 'all') return this.participationCounts();
+
+    const selectedEra = this.eras.find(e => e.label === era);
+    if (!selectedEra) return this.participationCounts();
+
+    return this.participationCounts().filter(p => {
+      return p.year && p.year >= selectedEra.startYear && p.year <= selectedEra.endYear;
+    });
+  });
+
+  // Computed: filtered editions by era
+  filteredEditions = computed(() => {
+    const era = this.selectedEra();
+    const eds = this.editions().filter(e => e.year && e.year < 2028); // Exclude future
+
+    if (era === 'all') return eds;
+
+    const selectedEra = this.eras.find(e => e.label === era);
+    if (!selectedEra) return eds;
+
+    return eds.filter(e => e.year && e.year >= selectedEra.startYear && e.year <= selectedEra.endYear);
+  });
+
+  // Edition cards with medal counts
+  editionCards = computed<EditionCard[]>(() => {
+    const cards: EditionCard[] = [];
+    const allCounts = this.filteredParticipationCounts();
+    const medalParts = this.filteredParticipations();
+
+    this.filteredEditions().forEach(edition => {
+      const editionMedals = medalParts.filter(p => p.edition?.id === edition.id);
+      const editionAthletes = new Set(allCounts
+        .filter(p => p.editionId === edition.id)
+        .map(p => p.athleteId)
+      );
+
+      // Count unique medals (team sports = 1 medal per event)
+      const counted = new Set<string>();
+      let gold = 0, silver = 0, bronze = 0;
+
+      editionMedals.forEach(p => {
+        const key = `${p.event?.name || ''}-${p.result}`;
+        if (!counted.has(key)) {
+          counted.add(key);
+          if (p.result === 'gold') gold++;
+          else if (p.result === 'silver') silver++;
+          else if (p.result === 'bronze') bronze++;
+        }
+      });
+
+      if (editionAthletes.size > 0 || gold + silver + bronze > 0) {
+        cards.push({
+          id: edition.id,
+          slug: edition.slug || edition.year?.toString() || '',
+          year: edition.year || 0,
+          city: edition.city || '',
+          gold, silver, bronze,
+          total: gold + silver + bronze,
+          athleteCount: editionAthletes.size
+        });
+      }
+    });
+
+    return cards.sort((a, b) => b.year - a.year); // Most recent first
+  });
+
+  // Correct medal counts using unique event+result key
+  goldCount = computed(() => this.countUniqueMedals('gold'));
+  silverCount = computed(() => this.countUniqueMedals('silver'));
+  bronzeCount = computed(() => this.countUniqueMedals('bronze'));
+  totalMedals = computed(() => this.goldCount() + this.silverCount() + this.bronzeCount());
+
+  // Overall medals by sport (always shows all-time, not filtered)
+  overallSportsBreakdown = computed<SportBreakdown[]>(() => {
+    const breakdown: Record<string, SportBreakdown> = {};
+    const counted = new Set<string>();
+
+    this.participations().forEach(p => {
+      const sportName = this.getSportName(p);
+      if (!sportName) return;
+
+      if (!breakdown[sportName]) {
+        breakdown[sportName] = { name: sportName, gold: 0, silver: 0, bronze: 0, total: 0 };
+      }
+
+      const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
+      if (!counted.has(key)) {
+        counted.add(key);
+        if (p.result === 'gold') breakdown[sportName].gold++;
+        else if (p.result === 'silver') breakdown[sportName].silver++;
+        else if (p.result === 'bronze') breakdown[sportName].bronze++;
+        breakdown[sportName].total++;
+      }
+    });
+
+    return Object.values(breakdown).sort((a, b) => b.total - a.total);
+  });
+
+  // Filtered sports breakdown (by era)
+  sportsBreakdown = computed<SportBreakdown[]>(() => {
+    const breakdown: Record<string, SportBreakdown> = {};
+    const counted = new Set<string>();
+
+    this.filteredParticipations().forEach(p => {
+      const sportName = this.getSportName(p);
+      if (!sportName) return;
+
+      if (!breakdown[sportName]) {
+        breakdown[sportName] = { name: sportName, gold: 0, silver: 0, bronze: 0, total: 0 };
+      }
+
+      const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
+      if (!counted.has(key)) {
+        counted.add(key);
+        if (p.result === 'gold') breakdown[sportName].gold++;
+        else if (p.result === 'silver') breakdown[sportName].silver++;
+        else if (p.result === 'bronze') breakdown[sportName].bronze++;
+        breakdown[sportName].total++;
+      }
+    });
+
+    return Object.values(breakdown).sort((a, b) => b.total - a.total);
+  });
+
+  // Dynamic athlete count for current era
+  filteredAthleteCount = computed(() => {
+    const athletes = new Set<string>();
+    this.filteredParticipationCounts().forEach(p => {
+      if (p.athleteId) athletes.add(p.athleteId);
+    });
+    return athletes.size;
+  });
 
   ngOnInit() {
     this.loadData();
   }
 
-  async loadData() {
-    // Load editions (all completed ones)
-    this.payload.getEditions({ status: 'completed' }).subscribe(editions => {
-      this.editions = [...editions].sort((a, b) => b.year - a.year);
-      this.loading = false;
+  loadData() {
+    // Load medal participations
+    this.payload.getMedalists().subscribe(participations => {
+      this.participations.set(participations);
+      this.loading.set(false);
     });
 
-    // Load medal counts
-    this.payload.getMedalists().subscribe(participations => {
-      participations.forEach(p => {
-        if (p.result === 'gold') this.medalCounts.gold++;
-        else if (p.result === 'silver') this.medalCounts.silver++;
-        else if (p.result === 'bronze') this.medalCounts.bronze++;
-      });
+    // Load ALL participation counts (lightweight)
+    this.payload.getParticipationCounts().subscribe(counts => {
+      this.participationCounts.set(counts);
+    });
+
+    // Load editions
+    this.payload.getEditions().subscribe(docs => {
+      this.editions.set(docs);
     });
 
     // Load athlete count
     this.payload.getAthletes({ limit: 1 }).subscribe(response => {
-      this.totalAthletes = response.totalDocs;
+    });
+
+    // Load Golden Moments
+    this.payload.getGoldenMoments().subscribe(moments => {
+      this.goldenMoments.set(moments);
     });
   }
 
-  getLogoUrl(edition: Edition): string {
-    if (edition.logo?.url) {
-      return 'http://localhost:3000' + edition.logo.url;
+  onEraFilter(era: string) {
+    this.selectedEra.set(era);
+  }
+
+  getEraYearRange(era: Era): string {
+    return `${era.startYear}–${era.endYear}`;
+  }
+
+  private countUniqueMedals(type: 'gold' | 'silver' | 'bronze'): number {
+    const counted = new Set<string>();
+    let count = 0;
+
+    this.filteredParticipations().forEach(p => {
+      if (p.result !== type) return;
+      const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${type}`;
+      if (!counted.has(key)) {
+        counted.add(key);
+        count++;
+      }
+    });
+
+    return count;
+  }
+
+  private getSportName(p: OlympicParticipation): string {
+    if (typeof p.event === 'object' && p.event?.sport) {
+      return typeof p.event.sport === 'object' ? p.event.sport.name : '';
     }
     return '';
   }

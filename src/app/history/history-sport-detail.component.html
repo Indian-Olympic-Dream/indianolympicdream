@@ -1,0 +1,168 @@
+<div class="sport-history-container">
+    <!-- Premium Hero -->
+    <header class="premium-hero" *ngIf="sport()">
+        <div class="hero-bg-accent"></div>
+
+        <!-- Navigation -->
+        <nav class="hero-nav">
+            <a [routerLink]="focusedEditionSlug() ? '/' + focusedEditionSlug() : '/'" class="back-btn">
+                <mat-icon>arrow_back</mat-icon>
+            </a>
+            <span class="edition-badge" *ngIf="focusedEditionSlug() && !showFullHistory()">{{
+                displayedEditions()[0]?.edition?.name }}</span>
+            <span class="edition-badge" *ngIf="!focusedEditionSlug() || showFullHistory()">All Editions</span>
+        </nav>
+
+        <!-- Identity & Stats Grid -->
+        <div class="hero-grid">
+            <div class="hero-identity">
+                <div class="sport-icon-wrapper">
+                    <img *ngIf="getPictogramUrl()" [src]="getPictogramUrl()" [alt]="sport()?.name"
+                        class="pictogram-img">
+                </div>
+                <div class="hero-text-content">
+                    <h1>{{ sport()?.name }}</h1>
+                    <p class="hero-tagline">India's Olympic Journey</p>
+                </div>
+            </div>
+
+            <div class="hero-stats-card" *ngIf="!loading()">
+                <div class="stats-header">Performance Summary</div>
+                <div class="medals-tally-row">
+                    <div class="medal-stat gold">
+                        <span class="count">{{ totalMedals().gold }}</span>
+                        <span class="label">Gold</span>
+                    </div>
+                    <div class="medal-stat silver">
+                        <span class="count">{{ totalMedals().silver }}</span>
+                        <span class="label">Silver</span>
+                    </div>
+                    <div class="medal-stat bronze">
+                        <span class="count">{{ totalMedals().bronze }}</span>
+                        <span class="label">Bronze</span>
+                    </div>
+                    <div class="medal-stat editions">
+                        <span class="count">{{ displayedEditions().length }}</span>
+                        <span class="label">Editions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toggle Full History Button -->
+    <div class="history-toggle" *ngIf="focusedEditionSlug() && !loading() && editionGroups().length > 1">
+        <button mat-stroked-button (click)="toggleFullHistory()">
+            <mat-icon>{{ showFullHistory() ? 'filter_list' : 'history' }}</mat-icon>
+            {{ showFullHistory() ? 'Show This Edition Only' : 'View Full Olympic History (' + editionGroups().length + '
+            editions)' }}
+        </button>
+    </div>
+
+    <!-- Timeline of Editions -->
+    <section class="edition-timeline" *ngIf="!loading()">
+        <article class="edition-card" *ngFor="let group of displayedEditions()">
+            <!-- Edition Header -->
+            <header class="edition-header">
+                <div class="edition-info">
+                    <span class="year-badge">{{ group.edition.year }}</span>
+                    <h3>
+                        <a [routerLink]="'/' + group.edition.slug">{{ group.edition.name }}</a>
+                        <span class="city">{{ group.edition.city }}</span>
+                    </h3>
+                </div>
+                <!-- Mini Pill for Medal Count in this edition -->
+                <div class="medal-pills"
+                    *ngIf="group.medalCount.gold || group.medalCount.silver || group.medalCount.bronze">
+                    <div class="pill gold" *ngIf="group.medalCount.gold">
+                        <span>🥇</span> {{ group.medalCount.gold }}
+                    </div>
+                    <div class="pill silver" *ngIf="group.medalCount.silver">
+                        <span>🥈</span> {{ group.medalCount.silver }}
+                    </div>
+                    <div class="pill bronze" *ngIf="group.medalCount.bronze">
+                        <span>🥉</span> {{ group.medalCount.bronze }}
+                    </div>
+                </div>
+            </header>
+
+            <div class="edition-content">
+                <!-- Women's Events -->
+                <div class="gender-section" *ngIf="group.womenAthletes.length > 0">
+                    <div class="gender-header">
+                        <mat-icon>female</mat-icon>
+                        <h4>Women's Events</h4>
+                    </div>
+                    <div class="athletes-grid">
+                        <div class="athlete-row" *ngFor="let athlete of group.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                         'silver': athlete.result === 'silver',
+                                         'bronze': athlete.result === 'bronze'}">
+                            <div class="athlete-info">
+                                <div class="name">{{ athlete.name }}</div>
+                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                            </div>
+                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                {{ getMedalEmoji(athlete.result) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Men's Events -->
+                <div class="gender-section" *ngIf="group.menAthletes.length > 0">
+                    <div class="gender-header">
+                        <mat-icon>male</mat-icon>
+                        <h4>Men's Events</h4>
+                    </div>
+                    <div class="athletes-grid">
+                        <div class="athlete-row" *ngFor="let athlete of group.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                         'silver': athlete.result === 'silver',
+                                         'bronze': athlete.result === 'bronze'}">
+                            <div class="athlete-info">
+                                <div class="name">{{ athlete.name }}</div>
+                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                            </div>
+                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                {{ getMedalEmoji(athlete.result) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixed Events -->
+                <div class="gender-section" *ngIf="group.mixedAthletes.length > 0">
+                    <div class="gender-header">
+                        <mat-icon>group</mat-icon>
+                        <h4>Mixed Events</h4>
+                    </div>
+                    <div class="athletes-grid">
+                        <div class="athlete-row" *ngFor="let athlete of group.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                         'silver': athlete.result === 'silver',
+                                         'bronze': athlete.result === 'bronze'}">
+                            <div class="athlete-info">
+                                <div class="name">{{ athlete.name }}</div>
+                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                            </div>
+                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                {{ getMedalEmoji(athlete.result) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading() && displayedEditions().length === 0">
+        <mat-icon>sports_off</mat-icon>
+        <h2>No Participation Found</h2>
+        <p>India did not participate in this sport during the selected editions.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading()">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Retrieving olympic archives...</p>
+    </div>
+</div>

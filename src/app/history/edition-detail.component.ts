@@ -1,226 +1,311 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
-import { PayloadService, Edition, OlympicParticipation, Athlete } from '../services/payload.service';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { PayloadService, Edition, OlympicParticipation, Athlete, Event } from '../services/payload.service';
+
+interface SportGroup {
+  sport: string;
+  pictogramUrl: string | null;
+  athletes: { name: string; events: string[]; result: string }[];
+  medalCount: number;
+}
+
+interface GroupedMedal {
+  event: string;
+  result: string;
+  athletes: string[];
+  isTeam: boolean;
+  sport: string;
+}
+
+// Sport pictogram mapping
+// Sport pictogram mapping is now dynamic via getPictogramUrl
 
 @Component({
-    selector: 'app-edition-detail',
-    standalone: true,
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatChipsModule,
-    ],
-    template: `
-    <div class="edition-container" *ngIf="edition">
-      <header class="edition-header">
-        <button mat-icon-button [routerLink]="['/history']" class="back-button">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-        <div class="edition-info">
-          <h1>{{ edition.name }}</h1>
-          <p class="subtitle">{{ edition.city }}, {{ edition.hostCountry }}</p>
-        </div>
-        <img *ngIf="edition.logo?.url" [src]="getLogoUrl()" 
-             [alt]="edition.name + ' logo'" class="edition-logo">
-      </header>
-
-      <section class="medals-section" *ngIf="medals.length > 0">
-        <h2>🏅 Indian Medal Winners</h2>
-        <div class="medals-list">
-          <mat-card *ngFor="let medal of medals" class="medal-card"
-            [class.gold]="medal.result === 'gold'"
-            [class.silver]="medal.result === 'silver'"
-            [class.bronze]="medal.result === 'bronze'">
-            <div class="medal-icon">{{ getMedalEmoji(medal.result) }}</div>
-            <mat-card-content>
-              <h3>{{ getAthleteName(medal) }}</h3>
-              <p>{{ getEventName(medal) }}</p>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </section>
-
-      <section class="participants-section">
-        <h2>Indian Participants ({{ participations.length }})</h2>
-        <div class="participants-chips">
-          <mat-chip-set>
-            <mat-chip *ngFor="let p of participations">
-              {{ getAthleteName(p) }} - {{ getEventName(p) }}
-            </mat-chip>
-          </mat-chip-set>
-        </div>
-      </section>
-    </div>
-
-    <mat-spinner *ngIf="loading"></mat-spinner>
-  `,
-    styles: [`
-    .edition-container {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .edition-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    .back-button {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .edition-info {
-      flex: 1;
-    }
-
-    .edition-info h1 {
-      margin: 0;
-      color: white;
-    }
-
-    .subtitle {
-      margin: 4px 0 0;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .edition-logo {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-    }
-
-    h2 {
-      color: white;
-      margin-bottom: 16px;
-    }
-
-    .medals-section {
-      margin-bottom: 32px;
-    }
-
-    .medals-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-    }
-
-    .medal-card {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 16px;
-      background: rgba(30, 30, 50, 0.8);
-      border-radius: 12px;
-    }
-
-    .medal-card.gold { border-left: 4px solid #FFD700; }
-    .medal-card.silver { border-left: 4px solid #C0C0C0; }
-    .medal-card.bronze { border-left: 4px solid #CD7F32; }
-
-    .medal-icon {
-      font-size: 2rem;
-    }
-
-    .medal-card h3 {
-      margin: 0;
-      color: white;
-      font-size: 1rem;
-    }
-
-    .medal-card p {
-      margin: 4px 0 0;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 0.85rem;
-    }
-
-    .participants-section {
-      margin-top: 32px;
-    }
-
-    mat-chip {
-      margin: 4px;
-    }
-
-    mat-spinner {
-      margin: 48px auto;
-    }
-  `]
+  selector: 'app-edition-detail',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatExpansionModule,
+  ],
+  templateUrl: './edition-detail.component.html',
+  styleUrls: ['./edition-detail.component.scss']
 })
 export class EditionDetailComponent implements OnInit {
-    private payload = inject(PayloadService);
-    private route = inject(ActivatedRoute);
+  private payload = inject(PayloadService);
+  private route = inject(ActivatedRoute);
 
-    edition: Edition | null = null;
-    participations: OlympicParticipation[] = [];
-    medals: OlympicParticipation[] = [];
-    loading = true;
+  edition = signal<Edition | null>(null);
+  participations = signal<OlympicParticipation[]>([]);
+  loading = signal(true);
 
-    ngOnInit() {
-        const slug = this.route.snapshot.paramMap.get('slug');
-        if (slug) {
-            this.loadEdition(slug);
-        }
-    }
+  // Get sport slug for routing
+  getSportSlug(sportName: string): string {
+    return sportName.toLowerCase().replace(/ /g, '-');
+  }
 
-    loadEdition(slug: string) {
-        this.payload.getEditionBySlug(slug).subscribe(edition => {
-            this.edition = edition;
-            if (edition) {
-                this.loadParticipations(edition.id);
-            }
-            this.loading = false;
+
+  // Computed: Medals only (raw)
+  medals = computed(() =>
+    this.participations().filter(p => ['gold', 'silver', 'bronze'].includes(p.result))
+  );
+
+  // Grouped medals: Team events show as single entry
+  // Grouped medals: Use event.type validation for reliable team identification
+  groupedMedals = computed(() => {
+    const raw = this.medals();
+    const grouped = new Map<string, GroupedMedal>();
+
+    raw.forEach(p => {
+      const eventName = this.getEventName(p);
+      const result = p.result;
+      const eventType = (p.event as Event)?.type || 'individual';
+
+      const key = `${eventName}-${result}`;
+
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          event: eventName,
+          result: result,
+          athletes: [],
+          isTeam: ['team', 'doubles', 'relay', 'pairs'].includes(eventType.toLowerCase()),
+          sport: this.getSportName(p)
         });
-    }
+      }
 
-    loadParticipations(editionId: string) {
-        this.payload.getParticipations({ editionId }).subscribe(participations => {
-            this.participations = participations;
-            this.medals = participations.filter(p =>
-                ['gold', 'silver', 'bronze'].includes(p.result)
-            );
+      const group = grouped.get(key)!;
+      group.athletes.push(this.getAthleteName(p));
+    });
+
+    return Array.from(grouped.values()).sort((a, b) => {
+      const order = { gold: 0, silver: 1, bronze: 2 };
+      return (order[a.result as keyof typeof order] || 3) - (order[b.result as keyof typeof order] || 3);
+    });
+  });
+
+
+
+  // Medal counts
+  // Medal counts (based on grouped events, so Team Gold = 1 medal)
+  goldCount = computed(() => this.groupedMedals().filter(m => m.result === 'gold').length);
+  silverCount = computed(() => this.groupedMedals().filter(m => m.result === 'silver').length);
+  bronzeCount = computed(() => this.groupedMedals().filter(m => m.result === 'bronze').length);
+
+  // Computed: Group by Sport
+  // Group by Sport with Athlete De-duplication
+  sportGroups = computed<SportGroup[]>(() => {
+    const groups = new Map<string, {
+      sport: string;
+      pictogramUrl: string | null;
+      medalCount: number;
+      // Map athleteName -> aggregated entry
+      athleteMap: Map<string, { name: string; events: Set<string>; results: Set<string> }>;
+    }>();
+
+    this.participations().forEach(p => {
+      const sportName = this.getSportName(p);
+      const athleteName = this.getAthleteName(p);
+      const eventName = this.getEventName(p);
+      const result = p.result;
+
+      if (!groups.has(sportName)) {
+        groups.set(sportName, {
+          sport: sportName,
+          pictogramUrl: this.getPictogramFromParticipation(p),
+          medalCount: 0,
+          athleteMap: new Map()
         });
-    }
+      }
 
-    getLogoUrl(): string {
-        if (this.edition?.logo?.url) {
-            return 'http://localhost:3000' + this.edition.logo.url;
-        }
-        return '';
-    }
+      const group = groups.get(sportName)!;
 
-    getAthleteName(p: OlympicParticipation): string {
-        if (typeof p.athlete === 'object' && p.athlete) {
-            return (p.athlete as Athlete).fullName;
-        }
-        return 'Unknown';
-    }
+      // Update pictogram if missing (in case first entry didn't have it)
+      if (!group.pictogramUrl) {
+        group.pictogramUrl = this.getPictogramFromParticipation(p);
+      }
 
-    getEventName(p: OlympicParticipation): string {
-        if (typeof p.event === 'object' && p.event) {
-            return p.event.name;
-        }
-        return '';
-    }
+      // Handle Athlete De-duplication
+      if (!group.athleteMap.has(athleteName)) {
+        group.athleteMap.set(athleteName, {
+          name: athleteName,
+          events: new Set(),
+          results: new Set()
+        });
+      }
 
-    getMedalEmoji(result: string): string {
-        switch (result) {
-            case 'gold': return '🥇';
-            case 'silver': return '🥈';
-            case 'bronze': return '🥉';
-            default: return '🏅';
-        }
+      const athleteEntry = group.athleteMap.get(athleteName)!;
+      athleteEntry.events.add(eventName);
+      if (result && result !== 'participated') {
+        athleteEntry.results.add(result);
+      }
+
+      // Count actual medals (participations with medal result)
+      if (['gold', 'silver', 'bronze'].includes(result)) {
+        group.medalCount++;
+      }
+    });
+
+    // Convert to array and sort
+    return Array.from(groups.values()).map(g => ({
+      sport: g.sport,
+      pictogramUrl: g.pictogramUrl,
+      medalCount: g.medalCount,
+      athletes: Array.from(g.athleteMap.values()).map(a => ({
+        name: a.name,
+        events: Array.from(a.events), // unique events
+        // Determine best result to display (e.g. if Gold & Silver, show Gold)
+        result: this.getBestResult(Array.from(a.results)) || 'participated'
+      }))
+    })).sort((a, b) => {
+      if (a.medalCount !== b.medalCount) return b.medalCount - a.medalCount;
+      return a.sport.localeCompare(b.sport);
+    });
+  });
+
+  // Helper to determine best result from a set of results
+  private getBestResult(results: string[]): string {
+    if (results.includes('gold')) return 'gold';
+    if (results.includes('silver')) return 'silver';
+    if (results.includes('bronze')) return 'bronze';
+    return '';
+  }
+
+  ngOnInit() {
+    const slug = this.route.snapshot.paramMap.get('slug');
+    if (slug) {
+      this.loadEdition(slug);
     }
+  }
+
+  loadEdition(slug: string) {
+    this.payload.getEditionBySlug(slug).subscribe(edition => {
+      this.edition.set(edition);
+      if (edition) {
+        this.loadParticipations(edition.id);
+      } else {
+        this.loading.set(false);
+      }
+    });
+  }
+
+  loadParticipations(editionId: string) {
+    this.payload.getParticipations({ editionId }).subscribe(participations => {
+      this.participations.set(participations);
+      this.loading.set(false);
+    });
+  }
+
+  getLogoUrl(): string {
+    const logo = this.edition()?.logo;
+    if (logo?.url) {
+      return 'http://localhost:3000' + logo.url;
+    }
+    return '';
+  }
+
+  getAthleteName(p: OlympicParticipation): string {
+    if (typeof p.athlete === 'object' && p.athlete) {
+      return (p.athlete as Athlete).fullName;
+    }
+    return 'Unknown';
+  }
+
+  getEventName(p: OlympicParticipation): string {
+    if (typeof p.event === 'object' && p.event) {
+      return (p.event as Event).name;
+    }
+    return '';
+  }
+
+  getSportName(p: OlympicParticipation): string {
+    if (typeof p.event === 'object' && p.event) {
+      const event = p.event as Event;
+      // Try to get sport from event structure
+      if (typeof event.sport === 'object' && event.sport?.name) {
+        return event.sport.name;
+      }
+      // Fallback: Extract from event name (e.g., "Hockey - Men's Team")
+      const name = event.name || '';
+      if (name.includes(' - ')) return name.split(' - ')[0];
+      if (name.includes(' ')) return name.split(' ')[0];
+      return name || 'Other';
+    }
+    return 'Other';
+  }
+
+  // Helper to extract sport pictogram URL from participation
+  getPictogramFromParticipation(p: OlympicParticipation): string | null {
+    if (typeof p.event === 'object' && p.event?.sport) {
+      const sport = p.event.sport as any; // Cast to access nested fields
+
+      // Try direct icon
+      let url = this.payload.getMediaUrl(sport.pictogram);
+      if (url) return url;
+
+      // Try parent icon
+      if (sport.parentSport?.pictogram) {
+        url = this.payload.getMediaUrl(sport.parentSport.pictogram);
+        if (url) return url;
+      }
+    }
+    return null;
+  }
+
+  getMedalEmoji(result: string): string {
+    switch (result) {
+      case 'gold': return '🥇';
+      case 'silver': return '🥈';
+      case 'bronze': return '🥉';
+      default: return '';
+    }
+  }
+
+  getSportFallbackIcon(sport: string): string {
+    const icons: Record<string, string> = {
+      'Hockey': '🏑',
+      'Athletics': '🏃',
+      'Shooting': '🎯',
+      'Wrestling': '🤼',
+      'Badminton': '🏸',
+      'Boxing': '🥊',
+      'Weightlifting': '🏋️',
+      'Tennis': '🎾',
+      'Swimming': '🏊',
+      'Archery': '🏹',
+      'Gymnastics': '🤸',
+      'Artistic Gymnastics': '🤸',
+      'Rowing': '🚣',
+      'Sailing': '⛵',
+      'Equestrian': '🏇',
+      'Fencing': '🤺',
+      'Football': '⚽',
+      'Golf': '⛳',
+      'Judo': '🥋',
+      'Table Tennis': '🏓',
+      'Taekwondo': '🥋',
+      'Volleyball': '🏐',
+      'Diving': '🏊',
+      'Cycling': '🚴',
+      'Canoe': '🛶',
+      'Triathlon': '🏃',
+    };
+    // Also try partial match
+    const lowerSport = sport.toLowerCase();
+    for (const [key, icon] of Object.entries(icons)) {
+      if (lowerSport.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerSport)) {
+        return icon;
+      }
+    }
+    return icons[sport] || '🏅';
+  }
+
+
 }

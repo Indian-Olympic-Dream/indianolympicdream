@@ -1,0 +1,125 @@
+<div class="history-container">
+    <!-- Header with proper spacing from toolbar -->
+    <header class="history-header">
+        <!-- <div class="flag-accent"></div> -->
+        <h1>India's Olympic Journey</h1>
+        <p class="subtitle">124 Years of Olympic History (1900 - 2024)</p>
+    </header>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+        <mat-spinner diameter="48"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading()">
+        <!-- Era Filter with year ranges -->
+        <section class="era-filter">
+            <button class="era-btn" [class.active]="selectedEra() === 'all'" (click)="onEraFilter('all')">
+                <span class="era-label">All Time</span>
+                <span class="era-years">1900–2024</span>
+            </button>
+            <button *ngFor="let era of eras" class="era-btn" [class.active]="selectedEra() === era.label"
+                (click)="onEraFilter(era.label)">
+                <span class="era-label">{{ era.shortLabel }}</span>
+                <span class="era-years">{{ getEraYearRange(era) }}</span>
+            </button>
+        </section>
+
+        <!-- Total Medals Hero with Integrated Stats -->
+        <section class="medal-hero">
+            <div class="medal-overview">
+                <div class="total-medals">
+                    <span class="total-number">{{ totalMedals() }}</span>
+                    <span class="total-label">Total Medals</span>
+                </div>
+                <!-- Integrated Stats -->
+                <div class="hero-stats">
+                    <div class="stat-pill">
+                        <span class="pill-value">{{ filteredAthleteCount() }}</span>
+                        <span class="pill-label">Olympians</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="pill-value">{{ editionCards().length }}</span>
+                        <span class="pill-label">Editions</span>
+                    </div>
+                    <div class="stat-pill">
+                        <span class="pill-value">{{ sportsBreakdown().length }}</span>
+                        <span class="pill-label">Sports</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="medal-breakdown">
+                <div class="medal-item gold">
+                    <span class="medal-icon">🥇</span>
+                    <span class="medal-count">{{ goldCount() }}</span>
+                    <span class="medal-type">Gold</span>
+                </div>
+                <div class="medal-item silver">
+                    <span class="medal-icon">🥈</span>
+                    <span class="medal-count">{{ silverCount() }}</span>
+                    <span class="medal-type">Silver</span>
+                </div>
+                <div class="medal-item bronze">
+                    <span class="medal-icon">🥉</span>
+                    <span class="medal-count">{{ bronzeCount() }}</span>
+                    <span class="medal-type">Bronze</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Overall Medals by Sport Card -->
+        <section class="overall-sports-card" *ngIf="selectedEra() === 'all'">
+            <h2>Medals by Sport</h2>
+            <div class="sports-grid">
+                <div *ngFor="let sport of overallSportsBreakdown()" class="sport-chip">
+                    <span class="sport-name">{{ sport.name }}</span>
+                    <div class="sport-medals">
+                        <span *ngIf="sport.gold" class="medal-badge gold">{{ sport.gold }}</span>
+                        <span *ngIf="sport.silver" class="medal-badge silver">{{ sport.silver }}</span>
+                        <span *ngIf="sport.bronze" class="medal-badge bronze">{{ sport.bronze }}</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Edition Cards (Olympics by Year) - Moved UP -->
+        <section class="editions-section">
+            <h2>Olympic Editions</h2>
+            <div class="editions-grid">
+                <a *ngFor="let edition of editionCards()" [routerLink]="['/', edition.slug || edition.year]"
+                    class="edition-card" [class.has-medals]="edition.total > 0">
+                    <div class="edition-year">{{ edition.year }}</div>
+                    <div class="edition-city">{{ edition.city }}</div>
+                    <div class="edition-stats">
+                        <span class="athlete-count">{{ edition.athleteCount }} athletes</span>
+                    </div>
+                    <div class="edition-medals" *ngIf="edition.total > 0">
+                        <span *ngIf="edition.gold" class="medal gold">🥇{{ edition.gold }}</span>
+                        <span *ngIf="edition.silver" class="medal silver">🥈{{ edition.silver }}</span>
+                        <span *ngIf="edition.bronze" class="medal bronze">🥉{{ edition.bronze }}</span>
+                    </div>
+                    <div class="edition-no-medals" *ngIf="edition.total === 0">
+                        No medals
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Golden Moments Carousel (only on All Time) - Moved DOWN -->
+        <section class="golden-moments" *ngIf="selectedEra() === 'all'">
+            <h2>🏆 India's Golden Moments</h2>
+            <div class="moments-carousel">
+                <div *ngFor="let moment of goldenMoments()" class="moment-card">
+                    <div class="moment-year">{{ moment.year }}</div>
+                    <div class="moment-location">{{ moment.city }}</div>
+                    <div class="moment-content">
+                        <div class="moment-athlete">{{ moment.athlete }}</div>
+                        <div class="moment-event">{{ moment.event }}</div>
+                        <p class="moment-story">{{ moment.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </ng-container>
+</div>

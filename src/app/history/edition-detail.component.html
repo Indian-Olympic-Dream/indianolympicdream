@@ -1,0 +1,94 @@
+<div class="edition-container" *ngIf="edition()">
+    <!-- Premium Hero Header -->
+    <div class="premium-hero" *ngIf="edition()">
+        <div class="hero-bg-accent"></div>
+
+        <!-- Top Nav -->
+        <div class="hero-nav">
+            <button class="glass-btn back-btn" routerLink="/">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <span class="edition-year-badge">{{ edition()?.year }}</span>
+        </div>
+
+        <div class="hero-grid">
+            <!-- Identity -->
+            <div class="hero-identity">
+                <div class="logo-wrapper">
+                    <img [src]="getLogoUrl()" class="hero-logo" [alt]="edition()?.name">
+                </div>
+                <div class="hero-text-content">
+                    <h1>{{ edition()?.city }}</h1>
+                    <p class="hero-tagline">"{{ edition()?.tagline }}"</p>
+                    <div class="hero-meta">
+                        <span><mat-icon>public</mat-icon> {{ edition()?.globalStats?.totalNations || 'N/A' }}
+                            Nations</span>
+                        <span class="dot">•</span>
+                        <span><mat-icon>groups</mat-icon> {{ edition()?.globalStats?.totalAthletes || 'N/A' }}
+                            Athletes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Integration -->
+            <div class="hero-stats-card">
+                <div class="india-rank-badge">
+                    <span class="label">India Rank</span>
+                    <span class="value">#{{ edition()?.globalStats?.indiaRank || '-' }}</span>
+                </div>
+
+                <div class="medals-tally-row">
+                    <div class="medal-stat gold">
+                        <span class="count">{{ goldCount() }}</span>
+                        <span class="label">Gold</span>
+                    </div>
+                    <div class="medal-stat silver">
+                        <span class="count">{{ silverCount() }}</span>
+                        <span class="label">Silver</span>
+                    </div>
+                    <div class="medal-stat bronze">
+                        <span class="count">{{ bronzeCount() }}</span>
+                        <span class="label">Bronze</span>
+                    </div>
+                    <div class="medal-stat total">
+                        <span class="count">{{ goldCount() + silverCount() + bronzeCount() }}</span>
+                        <span class="label">Total</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sports Grid (Clickable) -->
+    <section class="sports-grid-section">
+        <h2>Sports Contested</h2>
+        <div class="sports-grid">
+            <a *ngFor="let group of sportGroups()" class="sport-card"
+                [routerLink]="['/sport', getSportSlug(group.sport)]" [queryParams]="{ edition: edition()?.slug }"
+                [class.has-medal]="group.medalCount > 0">
+                <div class="sport-card-header">
+                    <div class="sport-icon">
+                        <img *ngIf="group.pictogramUrl" [src]="group.pictogramUrl" [alt]="group.sport"
+                            class="pictogram-img" (error)="group.pictogramUrl = null">
+                        <span *ngIf="!group.pictogramUrl" class="fallback-emoji">{{ getSportFallbackIcon(group.sport)
+                            }}</span>
+                    </div>
+                    <div class="sport-info">
+                        <h3>{{ group.sport }}</h3>
+                        <p>{{ group.athletes.length }} Athletes</p>
+                    </div>
+                    <div class="sport-medal-badge" *ngIf="group.medalCount > 0">
+                        {{ group.medalCount }} 🏅
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+
+</div>
+
+<!-- Loading State -->
+<div class="loading-state" *ngIf="loading()">
+    <mat-spinner diameter="48"></mat-spinner>
+</div>

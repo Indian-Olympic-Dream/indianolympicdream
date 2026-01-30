@@ -1,13 +1,15 @@
 <div class="explore-container">
   <mat-toolbar class="child-toolbar">
     <div class="pictogram-slider">
-      <button mat-icon-button class="toolbar-pictogram-button" [ngClass]="{'active-sport-button': 'All' === selectedSport}" (click)="filterBySport('All')"
+      <button mat-icon-button class="toolbar-pictogram-button"
+        [ngClass]="{'active-sport-button': 'All' === selectedSport}" (click)="filterBySport('All')"
         attr.data-sport="All">
         <mat-icon color="primary">public</mat-icon>
       </button>
-      <button class="toolbar-pictogram-button" [ngClass]="{'active-sport-button': sport === selectedSport}" mat-icon-button *ngFor="let sport of sports.slice(1)"
-        (click)="filterBySport(sport)" [attr.data-sport]="sport | titlecase">
-        <img class="pictogram-button-image" src="assets/images/pictograms/icons/{{sport}}.png" alt="{{sport}} pictogram" />
+      <button class="toolbar-pictogram-button" [ngClass]="{'active-sport-button': sport === selectedSport}"
+        mat-icon-button *ngFor="let sport of sports.slice(1)" (click)="filterBySport(sport)"
+        [attr.data-sport]="sport | titlecase">
+        <img class="pictogram-button-image" [src]="getPictogramUrl(sport)" alt="{{sport}} pictogram" />
       </button>
     </div>
   </mat-toolbar>
