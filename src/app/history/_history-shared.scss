@@ -1,45 +1,18 @@
 // ============================================
 // SHARED HISTORY MODULE STYLES
-// Used by history.component and edition-detail
 // ============================================
+@use '../../styles/variables' as var;
+@use '../../styles/mixins' as util;
 
-// Premium Design Variables
-$gold-gradient: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
-$silver-gradient: linear-gradient(135deg, #E8E8E8 0%, #A8A8A8 100%);
-$bronze-gradient: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+// Re-export specific local needs if any, otherwise map to globals
 
-$dark-bg: #0a0a0f;
-$card-bg: rgba(255, 255, 255, 0.04);
-$card-bg-hover: rgba(255, 255, 255, 0.08);
-$card-border: rgba(255, 255, 255, 0.08);
-$card-border-hover: rgba(255, 255, 255, 0.15);
+// Fonts - DEPRECATED, Use var.$font-primary
+$font-primary: var.$font-primary;
+$font-mono: var.$font-mono;
 
-$text-primary: rgba(255, 255, 255, 0.95);
-$text-secondary: rgba(255, 255, 255, 0.6);
-$text-muted: rgba(255, 255, 255, 0.4);
-
-$gold-color: #FFD700;
-$silver-color: #C0C0C0;
-$bronze-color: #CD7F32;
-$accent-gold: #d4af37;
-
-// Fonts
-$font-primary: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-$font-mono: 'Geist Mono', 'SF Mono', monospace;
-
-// Glassmorphism Card Mixin
+// Glassmorphism Card Mixin (Wrapper for global)
 @mixin glass-card {
-    background: $card-bg;
-    border: 1px solid $card-border;
-    border-radius: 16px;
-    backdrop-filter: blur(20px);
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: $card-bg-hover;
-        border-color: $card-border-hover;
-        transform: translateY(-2px);
-    }
+    @include util.glass-card;
 }
 
 // Medal Badge Mixin
@@ -57,9 +30,9 @@ $font-mono: 'Geist Mono', 'SF Mono', monospace;
 
 // Section Title
 @mixin section-title {
-    font-family: $font-primary;
+    font-family: var.$font-primary;
     font-size: 1.25rem;
     font-weight: 600;
-    color: $text-primary;
+    color: var.$text-primary;
     margin: 0 0 20px;
 }

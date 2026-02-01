@@ -3,11 +3,11 @@ import { CommonModule } from "@angular/common";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { ExploreService } from "./explore.service";
+import { VideosService } from "./videos.service";
 import { Embed } from "../models/app-models";
 import { EmbedBlockComponent } from "../story-blocks/embed-block/embed-block.component";
 @Component({
-  selector: "app-explore",
+  selector: "app-videos",
   standalone: true,
   imports: [
     CommonModule,
@@ -16,10 +16,10 @@ import { EmbedBlockComponent } from "../story-blocks/embed-block/embed-block.com
     MatIconModule,
     EmbedBlockComponent,
   ],
-  templateUrl: "./explore.component.html",
-  styleUrl: "./explore.component.scss",
+  templateUrl: "./videos.component.html",
+  styleUrl: "./videos.component.scss",
 })
-export class ExploreComponent implements OnInit {
+export class VideosComponent implements OnInit {
   allEmbeds: Embed[] = [];
   filteredEmbeds: Embed[] = [];
   loading = true;
@@ -36,10 +36,10 @@ export class ExploreComponent implements OnInit {
   ];
   selectedSport = "All";
 
-  constructor(private exploreService: ExploreService) { }
+  constructor(private videosService: VideosService) { }
 
   ngOnInit(): void {
-    this.exploreService.getEmbeds().subscribe({
+    this.videosService.getEmbeds().subscribe({
       next: (embeds) => {
         this.allEmbeds = embeds;
         this.filteredEmbeds = embeds;

@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 import { PayloadService, OlympicParticipation, Edition, GoldenMoment } from '../services/payload.service';
 
 interface SportBreakdown {
   name: string;
+  slug: string;
+  pictogramUrl?: string | null;
   gold: number;
   silver: number;
   bronze: number;
@@ -51,6 +54,7 @@ interface EditionCard {
     RouterModule,
     MatProgressSpinnerModule,
     MatChipsModule,
+    MatIconModule,
   ],
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.scss']
@@ -176,7 +180,14 @@ export class HistoryComponent implements OnInit {
       if (!sportName) return;
 
       if (!breakdown[sportName]) {
-        breakdown[sportName] = { name: sportName, gold: 0, silver: 0, bronze: 0, total: 0 };
+        breakdown[sportName] = {
+          name: sportName,
+          slug: this.getSportSlug(p) || '',
+          pictogramUrl: this.getPictogramFromParticipation(p),
+          gold: 0, silver: 0, bronze: 0, total: 0
+        };
+      } else if (!breakdown[sportName].pictogramUrl) {
+        breakdown[sportName].pictogramUrl = this.getPictogramFromParticipation(p);
       }
 
       const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
@@ -202,7 +213,14 @@ export class HistoryComponent implements OnInit {
       if (!sportName) return;
 
       if (!breakdown[sportName]) {
-        breakdown[sportName] = { name: sportName, gold: 0, silver: 0, bronze: 0, total: 0 };
+        breakdown[sportName] = {
+          name: sportName,
+          slug: this.getSportSlug(p) || '',
+          pictogramUrl: this.getPictogramFromParticipation(p),
+          gold: 0, silver: 0, bronze: 0, total: 0
+        };
+      } else if (!breakdown[sportName].pictogramUrl) {
+        breakdown[sportName].pictogramUrl = this.getPictogramFromParticipation(p);
       }
 
       const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
@@ -225,6 +243,14 @@ export class HistoryComponent implements OnInit {
       if (p.athleteId) athletes.add(p.athleteId);
     });
     return athletes.size;
+  });
+
+  // LA 2028 Countdown
+  daysToLA2028 = computed(() => {
+    const la2028 = new Date('2028-07-14'); // LA 2028 Opening Ceremony
+    const today = new Date();
+    const diff = la2028.getTime() - today.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   });
 
   ngOnInit() {
@@ -287,5 +313,70 @@ export class HistoryComponent implements OnInit {
       return typeof p.event.sport === 'object' ? p.event.sport.name : '';
     }
     return '';
+  }
+
+  // Helper to extract sport pictogram URL from participation
+  getSportSlug(p: OlympicParticipation): string | null {
+    if (typeof p.event === 'object' && p.event?.sport) {
+      const sport = p.event.sport as any;
+      return sport.slug || null;
+    }
+    return null;
+  }
+
+  getPictogramFromParticipation(p: OlympicParticipation): string | null {
+    if (typeof p.event === 'object' && p.event?.sport) {
+      const sport = p.event.sport as any; // Cast to access nested fields
+
+      // Try direct icon
+      let url = this.payload.getMediaUrl(sport.pictogram);
+      if (url) return url;
+
+      // Try parent icon
+      if (sport.parentSport?.pictogram) {
+        url = this.payload.getMediaUrl(sport.parentSport.pictogram);
+        if (url) return url;
+      }
+    }
+    return null;
+  }
+
+  getSportFallbackIcon(sport: string): string {
+    const icons: Record<string, string> = {
+      'Hockey': '🏑',
+      'Athletics': '🏃',
+      'Shooting': '🎯',
+      'Wrestling': '🤼',
+      'Badminton': '🏸',
+      'Boxing': '🥊',
+      'Weightlifting': '🏋️',
+      'Tennis': '🎾',
+      'Swimming': '🏊',
+      'Archery': '🏹',
+      'Gymnastics': '🤸',
+      'Artistic Gymnastics': '🤸',
+      'Rowing': '🚣',
+      'Sailing': '⛵',
+      'Equestrian': '🏇',
+      'Fencing': '🤺',
+      'Football': '⚽',
+      'Golf': '⛳',
+      'Judo': '🥋',
+      'Table Tennis': '🏓',
+      'Taekwondo': '🥋',
+      'Volleyball': '🏐',
+      'Diving': '🏊',
+      'Cycling': '🚴',
+      'Canoe': '🛶',
+      'Triathlon': '🏃',
+    };
+    // Also try partial match
+    const lowerSport = sport.toLowerCase();
+    for (const [key, icon] of Object.entries(icons)) {
+      if (lowerSport.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerSport)) {
+        return icon;
+      }
+    }
+    return icons[sport] || '🏅';
   }
 }

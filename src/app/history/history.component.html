@@ -1,9 +1,8 @@
 <div class="history-container">
     <!-- Header with proper spacing from toolbar -->
     <header class="history-header">
-        <!-- <div class="flag-accent"></div> -->
-        <h1>India's Olympic Journey</h1>
-        <p class="subtitle">124 Years of Olympic History (1900 - 2024)</p>
+        <h1>Indian Olympic Dream</h1>
+        <p class="subtitle">124 Year journey of grit, grind and glory (1900 - 2024)</p>
     </header>
 
     <!-- Loading State -->
@@ -14,6 +13,12 @@
     <ng-container *ngIf="!loading()">
         <!-- Era Filter with year ranges -->
         <section class="era-filter">
+            <!-- LA 2028 Current Edition -->
+            <a routerLink="/la-2028" class="era-btn la2028-btn">
+                <img src="assets/images/olympics/la2028.png" alt="LA 2028" class="la2028-icon">
+                <span class="era-years">LA 2028</span>
+            </a>
+
             <button class="era-btn" [class.active]="selectedEra() === 'all'" (click)="onEraFilter('all')">
                 <span class="era-label">All Time</span>
                 <span class="era-years">1900–2024</span>
@@ -25,14 +30,36 @@
             </button>
         </section>
 
-        <!-- Total Medals Hero with Integrated Stats -->
+        <!-- Total Medals Hero with Integrated Stats & Sports -->
         <section class="medal-hero">
-            <div class="medal-overview">
-                <div class="total-medals">
-                    <span class="total-number">{{ totalMedals() }}</span>
-                    <span class="total-label">Total Medals</span>
+            <!-- Left Panel: Stats -->
+            <div class="hero-left-panel">
+                <div class="medal-overview">
+                    <div class="total-medals">
+                        <span class="total-number">{{ totalMedals() }}</span>
+                        <span class="total-label">Total Medals</span>
+                    </div>
+
+                    <div class="medal-breakdown">
+                        <div class="medal-item gold">
+                            <span class="medal-icon">🥇</span>
+                            <span class="medal-count">{{ goldCount() }}</span>
+                            <span class="medal-type">Gold</span>
+                        </div>
+                        <div class="medal-item silver">
+                            <span class="medal-icon">🥈</span>
+                            <span class="medal-count">{{ silverCount() }}</span>
+                            <span class="medal-type">Silver</span>
+                        </div>
+                        <div class="medal-item bronze">
+                            <span class="medal-icon">🥉</span>
+                            <span class="medal-count">{{ bronzeCount() }}</span>
+                            <span class="medal-type">Bronze</span>
+                        </div>
+                    </div>
                 </div>
-                <!-- Integrated Stats -->
+
+                <!-- Integrated Stats (Centered Below) -->
                 <div class="hero-stats">
                     <div class="stat-pill">
                         <span class="pill-value">{{ filteredAthleteCount() }}</span>
@@ -49,41 +76,38 @@
                 </div>
             </div>
 
-            <div class="medal-breakdown">
-                <div class="medal-item gold">
-                    <span class="medal-icon">🥇</span>
-                    <span class="medal-count">{{ goldCount() }}</span>
-                    <span class="medal-type">Gold</span>
+            <!-- Right Panel: Sports (Carousel on Mobile, Grid on Desktop) -->
+            <div class="hero-right-panel" *ngIf="sportsBreakdown().length > 0">
+                <div class="panel-header">
+                    <h2>Medals by Sport</h2>
                 </div>
-                <div class="medal-item silver">
-                    <span class="medal-icon">🥈</span>
-                    <span class="medal-count">{{ silverCount() }}</span>
-                    <span class="medal-type">Silver</span>
-                </div>
-                <div class="medal-item bronze">
-                    <span class="medal-icon">🥉</span>
-                    <span class="medal-count">{{ bronzeCount() }}</span>
-                    <span class="medal-type">Bronze</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Overall Medals by Sport Card -->
-        <section class="overall-sports-card" *ngIf="selectedEra() === 'all'">
-            <h2>Medals by Sport</h2>
-            <div class="sports-grid">
-                <div *ngFor="let sport of overallSportsBreakdown()" class="sport-chip">
-                    <span class="sport-name">{{ sport.name }}</span>
-                    <div class="sport-medals">
-                        <span *ngIf="sport.gold" class="medal-badge gold">{{ sport.gold }}</span>
-                        <span *ngIf="sport.silver" class="medal-badge silver">{{ sport.silver }}</span>
-                        <span *ngIf="sport.bronze" class="medal-badge bronze">{{ sport.bronze }}</span>
+                <div class="sports-container">
+                    <div *ngFor="let sport of sportsBreakdown()" class="sport-card" [class.has-medals]="sport.total > 0"
+                        [routerLink]="['/sport', sport.slug]">
+                        <div class="sport-card-header">
+                            <div class="sport-icon">
+                                <img *ngIf="sport.pictogramUrl" [src]="sport.pictogramUrl" [alt]="sport.name"
+                                    class="pictogram-img" (error)="sport.pictogramUrl = null">
+                                <span *ngIf="!sport.pictogramUrl" class="fallback-emoji">{{
+                                    getSportFallbackIcon(sport.name)
+                                    }}</span>
+                            </div>
+                            <div class="sport-info">
+                                <h3>{{ sport.name }}</h3>
+                                <div class="sport-detail-medals">
+                                    <span *ngIf="sport.gold" class="mini-medal gold">{{ sport.gold }}G</span>
+                                    <span *ngIf="sport.silver" class="mini-medal silver">{{ sport.silver }}S</span>
+                                    <span *ngIf="sport.bronze" class="mini-medal bronze">{{ sport.bronze }}B</span>
+                                </div>
+                            </div>
+                            <div class="sport-total-badge">{{ sport.total }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Edition Cards (Olympics by Year) - Moved UP -->
+        <!-- Edition Cards (Olympics by Year) -->
         <section class="editions-section">
             <h2>Olympic Editions</h2>
             <div class="editions-grid">
@@ -106,7 +130,7 @@
             </div>
         </section>
 
-        <!-- Golden Moments Carousel (only on All Time) - Moved DOWN -->
+        <!-- Golden Moments Carousel (only on All Time) -->
         <section class="golden-moments" *ngIf="selectedEra() === 'all'">
             <h2>🏆 India's Golden Moments</h2>
             <div class="moments-carousel">

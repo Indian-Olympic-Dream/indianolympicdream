@@ -1,78 +1,61 @@
-<mat-toolbar>
-  <button mat-icon-button (click)="drawer.toggle()">
-    <mat-icon>menu</mat-icon>
-  </button>
-  <div class="logo-container" [routerLink]="['/']" [class.active-logo]="isActivePath()">
-    <span>{{ logoTextTop }}</span>
-    <img src="assets/images/generic/logo.png" class="olympic-logo" alt="olympic rings logo" loading="eager"
-      decoding="async" fetchpriority="high" width="60" height="24">
-    <span>{{ logoTextBottom }}</span>
-  </div>
-  <!-- LA 2028 Logo (static, no dropdown) -->
-  <div class="logo-container">
-    <img [src]="selectedOlympicsLogo" class="olympics-option-logo" alt="LA 2028 logo" loading="lazy" decoding="async"
-      fetchpriority="low" width="50" height="50">
+<mat-toolbar class="main-toolbar">
+  <!-- Left: Logo & Branding -->
+  <div class="logo-container" [routerLink]="['/']">
+    <img src="assets/images/logo.png" class="olympic-logo" alt="IOD Sports" loading="eager" decoding="async"
+      fetchpriority="high" width="50" height="50">
+    <div class="logo-text">
+      <span class="iod">IOD</span>
+      <span class="sports">SPORTS</span>
+    </div>
   </div>
 
-  <nav class="nav-links">
+  <!-- Center: Desktop Navigation (Absolute Positioned) -->
+  <nav class="nav-links hidden-mobile">
     <button class="nav-button" [routerLink]="['/athletes']" mat-button routerLinkActive="active-link">
-      Quotas Earned
+      <mat-icon>sports_kabaddi</mat-icon>
+      Athletes
     </button>
     <button class="nav-button" [routerLink]="['/calendar']" mat-button routerLinkActive="active-link">
+      <mat-icon>event_note</mat-icon>
       Calendar
     </button>
-    <button class="nav-button" [routerLink]="['/schedule']" [ngClass]="{'active-link': isScheduleActive()}" mat-button>
-      Schedule
+    <button class="nav-button" [routerLink]="['/videos']" mat-button routerLinkActive="active-link">
+      <mat-icon>smart_display</mat-icon>
+      Videos
     </button>
     <button class="nav-button" [routerLink]="['/originals']" mat-button routerLinkActive="active-link">
-      Originals
+      <mat-icon>auto_awesome</mat-icon>
+      IOD Originals
     </button>
-    <button class="nav-button" [routerLink]="['/stories']" mat-button [ngClass]="{'active-link': isStoriesActive()}">
-      Stories
+    <button class="nav-button" [routerLink]="['/store']" mat-button routerLinkActive="active-link">
+      <mat-icon>storefront</mat-icon>
+      Store
     </button>
-    <button class="nav-button" [routerLink]="['/explore']" mat-button routerLinkActive="active-link">
-      Explore
-    </button>
-
-
   </nav>
+
+  <!-- Spacer to push Right section -->
   <span class="fill-remaining-space"></span>
-  <button mat-icon-button *ngIf="!authService.isAuthenticated()"
-    [routerLink]="['/auth']"><mat-icon>login</mat-icon></button>
-  <button mat-icon-button *ngIf="authService.isAuthenticated()" (click)="logout()"><mat-icon>logout</mat-icon></button>
-  <!-- <div class="theme-switch">
-    <div><mat-icon>{{currentTheme === 'dark-theme' ? 'dark_mode' : 'light_mode'}}</mat-icon></div>
-    <div><mat-slide-toggle class="theme-toggle" color="primary" [checked]="currentTheme === 'dark-theme'"
-        (change)="onSetTheme()" [disableRipple]="true">
-      </mat-slide-toggle>
-    </div>
-  </div> -->
+
+  <!-- Right: Auth Actions -->
+  <div class="auth-actions">
+    <button mat-icon-button *ngIf="!authService.isAuthenticated()" [routerLink]="['/auth']" class="auth-btn">
+      <mat-icon>login</mat-icon>
+    </button>
+    <button mat-icon-button *ngIf="authService.isAuthenticated()" (click)="logout()" class="auth-btn">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
 </mat-toolbar>
 
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" mode="over">
-    <mat-nav-list (click)="drawer.close()">
-      <a mat-list-item [routerLink]="['/athletes']" routerLinkActive="mat-list-active">
-        <mat-icon>directions_run</mat-icon>
-        <span class="sidenav-menu">Quotas Earned</span>
-      </a>
-      <a mat-list-item [routerLink]="['/calendar']" routerLinkActive="mat-list-active">
-        <mat-icon>calendar_month</mat-icon>
-        <span class="sidenav-menu">Calendar</span>
-      </a>
-      <a mat-list-item [routerLink]="['/schedule']" [ngClass]="{'mat-list-active': isScheduleActive()}">
-        <mat-icon>date_range</mat-icon>
-        <span class="sidenav-menu">Schedule</span>
-      </a>
+<!-- Main Content (No Sidenav) -->
+<div class="main-content" (scroll)="onContentScroll($event)">
+  <div [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
+    <router-outlet #outlet="outlet"></router-outlet>
+  </div>
 
+  <!-- Global Footer -->
+  <app-footer></app-footer>
+</div>
 
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <div #scrollContainer (scroll)="onContentScroll($event)" [@routeAnimations]="prepareRoute(outlet)"
-      class="router-outlet-container">
-      <router-outlet #outlet="outlet"></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
-<app-bottom-nav></app-bottom-nav>
+<!-- Mobile Bottom Nav -->
+<app-bottom-nav class="visible-mobile"></app-bottom-nav>

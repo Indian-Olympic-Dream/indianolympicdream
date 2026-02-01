@@ -28,6 +28,7 @@ import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
+import { FooterComponent } from "./footer/footer.component";
 import { AuthService } from "./core/services/auth.service";
 
 @Component({
@@ -51,29 +52,17 @@ import { AuthService } from "./core/services/auth.service";
     MatProgressSpinnerModule,
     LayoutModule,
     BottomNavComponent,
+    FooterComponent,
   ],
 })
 export class AppComponent implements OnInit {
   public isOlympicsMenuOpen = false;
   public loading: boolean = false;
-  public isLightTheme = false;
+  isLightTheme = false;
   @HostBinding("class") componentCssClass;
   selectedtheme: string;
   currentTheme = "dark-theme";
   currentSport: string = "";
-  logoTextTop = "Indian";
-  logoTextBottom = "Dream";
-  olympicOptions = [
-    {
-      id: "2020",
-      name: "Tokyo 2020",
-      logo: "assets/images/olympics/tokyo2020_no_bg.png",
-    },
-    { id: "2028", name: "LA 2028", logo: "assets/images/olympics/la2028.png" },
-  ];
-
-  selectedOlympics = this.olympicOptions[1].id;
-  selectedOlympicsLogo: string = this.olympicOptions[1].logo;
 
   constructor(
     public router: Router,
@@ -94,25 +83,9 @@ export class AppComponent implements OnInit {
       this.navigationInterceptor(event);
     });
 
-    this.route.queryParams.subscribe((params) => {
-      this.selectedOlympics = params["edition"] || "2028";
-      this.updateSelectedOlympicsLogo();
-    });
-
-    this.breakpointObserver
-      .observe(["(max-width: 399px)"])
-      .subscribe((result) => {
-        if (result.matches) {
-          this.logoTextTop = "I";
-          this.logoTextBottom = "D";
-        } else {
-          this.logoTextTop = "Indian";
-          this.logoTextBottom = "Dream";
-        }
-      });
   }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   onContentScroll(event: Event): void {
     const element = event.target as HTMLElement;
@@ -150,11 +123,8 @@ export class AppComponent implements OnInit {
 
   isActivePath(): boolean {
     const url = this.router.url;
-    return url.startsWith("/sports/") || url === "/" || url === "/home";
-  }
 
-  isScheduleActive(): boolean {
-    return this.router.url.startsWith("/schedule");
+    return url === "/" || url === "/home";
   }
 
   isStoriesActive(): boolean {
@@ -207,23 +177,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  onOlympicsChange(selection: string) {
-    this.selectedOlympics = selection;
-    this.updateSelectedOlympicsLogo();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { edition: selection },
-      queryParamsHandling: "merge",
-    });
-  }
-  private updateSelectedOlympicsLogo(): void {
-    const selected = this.olympicOptions.find(
-      (option) => option.id === this.selectedOlympics,
-    );
-    this.selectedOlympicsLogo = selected
-      ? selected.logo
-      : this.olympicOptions[0].logo;
-  }
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
   }

@@ -32,8 +32,8 @@ const GET_EMBEDS = gql`
 @Injectable({
   providedIn: "root",
 })
-export class ExploreService {
-  constructor(private apollo: Apollo) {}
+export class VideosService {
+  constructor(private apollo: Apollo) { }
 
   getEmbeds(limit: number = 20, page: number = 1): Observable<Embed[]> {
     return this.apollo

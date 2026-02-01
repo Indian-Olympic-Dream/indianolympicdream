@@ -40,22 +40,22 @@ export const routes: Routes = [
     },
   },
   {
-    path: "schedule",
+    path: "videos",
     loadComponent: () =>
-      import("./schedule/schedule.component").then((m) => m.ScheduleComponent),
+      import("./videos/videos.component").then((m) => m.VideosComponent),
     data: {
-      animation: "SchedulePage",
-      order: 5,
+      animation: "VideosPage",
+      order: 6,
       transitionType: "bottom-to-top",
     },
   },
   {
-    path: "explore",
+    path: "store",
     loadComponent: () =>
-      import("./explore/explore.component").then((m) => m.ExploreComponent),
+      import("./store/store.component").then((m) => m.StoreComponent),
     data: {
-      animation: "ExplorePage",
-      order: 6,
+      animation: "StorePage",
+      order: 9,
       transitionType: "bottom-to-top",
     },
   },
