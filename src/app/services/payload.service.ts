@@ -159,6 +159,25 @@ export interface GoldenMoment {
   };
 }
 
+export interface Product {
+  id: string;
+  title: string;
+  slug: string;
+  basePrice: number;
+  type: 'infographic' | 'merch';
+  images: { image: { url: string } }[];
+  variants: {
+    name: string;
+    type: 'print' | 'frame' | 'adhesive';
+    surcharge: number;
+  }[];
+  associatedTags?: {
+    sport?: Sport;
+    athlete?: Athlete;
+    edition?: Edition;
+  };
+}
+
 const ATHLETES_QUERY = gql`
   query GetAthletes($where: Athlete_where, $limit: Int, $page: Int) {
   Athletes(where: $where, limit: $limit, page: $page) {
@@ -314,6 +333,27 @@ const GOLDEN_MOMENTS_QUERY = gql`
         }
         linkedStory {
           slug
+        }
+      }
+    }
+  }
+`;
+
+const PRODUCTS_QUERY = gql`
+  query GetProducts($limit: Int) {
+    Products(limit: $limit) {
+      docs {
+        id
+        title
+        slug
+        basePrice
+        type
+        images { image { url } }
+        variants { name type surcharge }
+        associatedTags {
+           sport { name slug }
+           athlete { fullName slug }
+           edition { name year }
         }
       }
     }
@@ -519,5 +559,13 @@ export class PayloadService {
     return this.apollo.query<{ GoldenMoments: { docs: GoldenMoment[] } }>({
       query: GOLDEN_MOMENTS_QUERY,
     }).pipe(map(result => result.data.GoldenMoments.docs));
+  }
+
+  getProducts(limit: number = 20): Observable<Product[]> {
+    return this.apollo.watchQuery<any>({
+      query: PRODUCTS_QUERY,
+      variables: { limit },
+      context: { headers: { 'x-apollo-operation-name': 'GetProducts' } }
+    }).valueChanges.pipe(map(result => result.data.Products.docs));
   }
 }
