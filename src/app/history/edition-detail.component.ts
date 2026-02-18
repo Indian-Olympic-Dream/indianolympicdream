@@ -6,12 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { PayloadService, Edition, OlympicParticipation, Athlete, Event } from '../services/payload.service';
+import { environment } from '../../environments/environment';
 
 interface SportGroup {
   sport: string;
   pictogramUrl: string | null;
   athletes: { name: string; events: string[]; result: string }[];
-  medalCount: number;
+  medalCount: { gold: number; silver: number; bronze: number; total: number };
 }
 
 interface GroupedMedal {
@@ -105,7 +106,8 @@ export class EditionDetailComponent implements OnInit {
     const groups = new Map<string, {
       sport: string;
       pictogramUrl: string | null;
-      medalCount: number;
+      medalCount: { gold: number; silver: number; bronze: number; total: number };
+      countedMedals: Set<string>; // "eventName-result" dedup key
       // Map athleteName -> aggregated entry
       athleteMap: Map<string, { name: string; events: Set<string>; results: Set<string> }>;
     }>();
@@ -120,7 +122,8 @@ export class EditionDetailComponent implements OnInit {
         groups.set(sportName, {
           sport: sportName,
           pictogramUrl: this.getPictogramFromParticipation(p),
-          medalCount: 0,
+          medalCount: { gold: 0, silver: 0, bronze: 0, total: 0 },
+          countedMedals: new Set(),
           athleteMap: new Map()
         });
       }
@@ -147,9 +150,16 @@ export class EditionDetailComponent implements OnInit {
         athleteEntry.results.add(result);
       }
 
-      // Count actual medals (participations with medal result)
+      // Count medals — deduplicate by event+result (team sports = 1 medal per event)
       if (['gold', 'silver', 'bronze'].includes(result)) {
-        group.medalCount++;
+        const medalKey = `${eventName}-${result}`;
+        if (!group.countedMedals.has(medalKey)) {
+          group.countedMedals.add(medalKey);
+          if (result === 'gold') group.medalCount.gold++;
+          else if (result === 'silver') group.medalCount.silver++;
+          else if (result === 'bronze') group.medalCount.bronze++;
+          group.medalCount.total++;
+        }
       }
     });
 
@@ -165,7 +175,12 @@ export class EditionDetailComponent implements OnInit {
         result: this.getBestResult(Array.from(a.results)) || 'participated'
       }))
     })).sort((a, b) => {
-      if (a.medalCount !== b.medalCount) return b.medalCount - a.medalCount;
+      // Sort by medal hierarchy: gold > silver > bronze > none
+      const tierA = a.medalCount.gold > 0 ? 0 : a.medalCount.silver > 0 ? 1 : a.medalCount.bronze > 0 ? 2 : 3;
+      const tierB = b.medalCount.gold > 0 ? 0 : b.medalCount.silver > 0 ? 1 : b.medalCount.bronze > 0 ? 2 : 3;
+      if (tierA !== tierB) return tierA - tierB;
+      // Within same tier, sort by total medals desc
+      if (a.medalCount.total !== b.medalCount.total) return b.medalCount.total - a.medalCount.total;
       return a.sport.localeCompare(b.sport);
     });
   });
@@ -206,9 +221,46 @@ export class EditionDetailComponent implements OnInit {
   getLogoUrl(): string {
     const logo = this.edition()?.logo;
     if (logo?.url) {
-      return 'http://localhost:3000' + logo.url;
+      return this.payload.getMediaUrl(logo) || '';
     }
     return '';
+  }
+
+  getHeroImageUrl(): string {
+    const heroImage = this.edition()?.heroImage;
+    if (heroImage?.url) {
+      return this.payload.getMediaUrl(heroImage) || '';
+    }
+    return '';
+  }
+
+  getEditionGradient(): string {
+    const colors = this.edition()?.colors as any;
+    if (colors?.primary && colors?.secondary) {
+      return `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`;
+    }
+    return 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+  }
+
+  formatDateRange(start?: string, end?: string): string {
+    if (!start) return '';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const s = new Date(start);
+    const sMonth = months[s.getMonth()];
+    const sDay = s.getDate();
+    const sYear = s.getFullYear();
+
+    if (!end) return `${sMonth} ${sDay}, ${sYear}`;
+
+    const e = new Date(end);
+    const eMonth = months[e.getMonth()];
+    const eDay = e.getDate();
+    const eYear = e.getFullYear();
+
+    if (sMonth === eMonth && sYear === eYear) {
+      return `${sMonth} ${sDay} – ${eDay}, ${sYear}`;
+    }
+    return `${sMonth} ${sDay} – ${eMonth} ${eDay}, ${eYear}`;
   }
 
   getAthleteName(p: OlympicParticipation): string {

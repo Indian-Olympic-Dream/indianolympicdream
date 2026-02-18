@@ -51,6 +51,7 @@ export class HistorySportDetailComponent implements OnInit {
     // Computed: Group participations by Edition
     editionGroups = computed<EditionGroup[]>(() => {
         const groups = new Map<string, EditionGroup>();
+        const countedMedals = new Map<string, Set<string>>(); // editionId -> Set of "event-result"
 
         this.participations().forEach(p => {
             const edition = p.edition as Edition;
@@ -65,6 +66,7 @@ export class HistorySportDetailComponent implements OnInit {
                     mixedAthletes: [],
                     medalCount: { gold: 0, silver: 0, bronze: 0 }
                 });
+                countedMedals.set(edition.id, new Set());
             }
 
             const group = groups.get(edition.id)!;
@@ -89,10 +91,17 @@ export class HistorySportDetailComponent implements OnInit {
                 athleteEntry.result = this.getBetterResult(athleteEntry.result, result);
             }
 
-            // Count medals
-            if (result === 'gold') group.medalCount.gold++;
-            else if (result === 'silver') group.medalCount.silver++;
-            else if (result === 'bronze') group.medalCount.bronze++;
+            // Count medals — deduplicate by event+result (team sports = 1 medal per event)
+            if (['gold', 'silver', 'bronze'].includes(result)) {
+                const medalKey = `${eventName}-${result}`;
+                const counted = countedMedals.get(edition.id)!;
+                if (!counted.has(medalKey)) {
+                    counted.add(medalKey);
+                    if (result === 'gold') group.medalCount.gold++;
+                    else if (result === 'silver') group.medalCount.silver++;
+                    else if (result === 'bronze') group.medalCount.bronze++;
+                }
+            }
         });
 
         // Sort by year descending
@@ -150,12 +159,21 @@ export class HistorySportDetailComponent implements OnInit {
                 // Fetch all participations and filter client-side by event's sport
                 this.payload.getParticipations({ limit: 2000 }).subscribe(allParticipations => {
                     // Filter participations where event.sport matches the current sport
+                    // OR event.sport.parentSport matches (child sport → parent page)
                     const filtered = allParticipations.filter(p => {
                         const event = p.event as Event;
                         if (!event?.sport) return false;
-                        // event.sport can be an ID string or a Sport object
-                        const sportId = typeof event.sport === 'object' ? (event.sport as Sport).id : event.sport;
-                        return sportId === sport.id;
+                        const eventSport = event.sport as Sport;
+                        const sportId = typeof eventSport === 'string' ? eventSport : eventSport.id;
+                        if (sportId === sport.id) return true;
+                        // Also include child sports
+                        if (typeof eventSport === 'object' && eventSport.parentSport) {
+                            const parentId = typeof eventSport.parentSport === 'object'
+                                ? (eventSport.parentSport as Sport).id
+                                : eventSport.parentSport;
+                            return parentId === sport.id;
+                        }
+                        return false;
                     });
                     this.participations.set(filtered);
                     this.loading.set(false);

@@ -48,10 +48,16 @@ export interface Edition {
   type: 'summer' | 'winter';
   status: 'upcoming' | 'qualification' | 'games' | 'completed';
   logo?: { url: string } | null;
+  heroImage?: { url: string } | null;
   startDate?: string;
   endDate?: string;
   // History context fields
   tagline?: string;
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
 
   globalStats?: {
     totalNations?: number;
@@ -75,7 +81,7 @@ export interface OlympicParticipation {
   athlete: Athlete;
   edition: Edition;
   event: Event;
-  result: 'gold' | 'silver' | 'bronze' | 'participated' | 'dnf' | 'dns' | 'dq';
+  result: 'gold' | 'silver' | 'bronze' | 'participated' | 'dnf' | 'dns' | 'dq' | 'reserve';
   placement?: number;
   performance?: string;
 }
@@ -239,7 +245,8 @@ const EDITIONS_QUERY = gql`
       endDate
         logo { url }
       tagline
-
+      colors
+        heroImage { url }
         globalStats {
         totalNations
         totalAthletes

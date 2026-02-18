@@ -44,6 +44,7 @@ interface EditionCard {
   bronze: number;
   total: number;
   athleteCount: number;
+  colors?: { primary?: string; secondary?: string; accent?: string };
 }
 
 @Component({
@@ -156,7 +157,8 @@ export class HistoryComponent implements OnInit {
           city: edition.city || '',
           gold, silver, bronze,
           total: gold + silver + bronze,
-          athleteCount: editionAthletes.size
+          athleteCount: editionAthletes.size,
+          colors: (edition as any).colors || undefined
         });
       }
     });

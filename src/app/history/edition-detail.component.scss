@@ -46,211 +46,361 @@ $font-mono: 'JetBrains Mono', monospace;
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    padding-top: 16px; // Space below toolbar
     animation: fadeIn 0.6s ease-out;
+
+    @media (max-width: 480px) {
+        padding: 12px;
+        padding-top: 8px;
+    }
 }
 
-// 1. Premium Hero Header
-.premium-hero {
+// Edition transition animation
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 1. Cinematic Hero Header
+.cinematic-hero {
     position: relative;
-    padding: 24px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 0 -20px 48px; // Break out of container padding (no negative top)
+    min-height: 420px;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-color: #1a1a2e; // Fallback
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     overflow: hidden;
-    margin-bottom: 48px;
+    border-radius: 0 0 24px 24px;
 
-    // Accent blob
-    .hero-bg-accent {
+    @media (max-width: 900px) {
+        min-height: 360px;
+        margin: 0 -20px 32px;
+    }
+
+    @media (max-width: 600px) {
+        min-height: 280px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    @media (max-width: 480px) {
+        margin: 0 -12px 24px;
+        min-height: 260px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    // Cinematic gradient overlay (bottom-heavy for text readability)
+    .hero-overlay {
         position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(234, 221, 255, 0.05) 0%, transparent 70%);
-        pointer-events: none;
-        z-index: 0;
+        inset: 0;
+        background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.05) 0%,
+                rgba(0, 0, 0, 0.15) 30%,
+                rgba(0, 0, 0, 0.6) 65%,
+                rgba(10, 10, 10, 0.95) 100%);
+        z-index: 1;
     }
 
-    .hero-nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-        position: relative;
+    // Vignette for cinematic depth
+    .hero-vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center,
+                transparent 50%,
+                rgba(0, 0, 0, 0.4) 100%);
         z-index: 1;
+    }
 
-        .back-btn {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border: none;
-            height: 40px;
-            width: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
+    // Back button
+    .hero-back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
 
-            &:hover {
-                background: rgba(255, 255, 255, 0.15);
+        &:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        mat-icon {
+            font-size: 22px;
+        }
+
+        @media (max-width: 480px) {
+            top: 12px;
+            left: 12px;
+            width: 36px;
+            height: 36px;
+
+            mat-icon {
+                font-size: 18px;
             }
         }
+    }
 
-        .edition-year-badge {
-            font-family: $font-mono;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.2);
+    // Logo emblem (top-right, glass background)
+    .hero-emblem {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 8px;
+
+        img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        @media (max-width: 600px) {
+            padding: 6px;
+
+            img {
+                width: 40px;
+                height: 40px;
+            }
         }
     }
 
-    .hero-grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 32px;
-        align-items: center;
+    // Content pinned to bottom
+    .hero-content {
         position: relative;
-        z-index: 1;
+        z-index: 2;
+        padding: 0 40px 32px;
+
+        @media (max-width: 600px) {
+            padding: 0 20px 20px;
+        }
+
+        @media (max-width: 480px) {
+            padding: 0 16px 16px;
+        }
+    }
+
+    // Year + dates line
+    .hero-date-line {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 4px;
+    }
+
+    .hero-year {
+        font-family: $font-mono;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+    }
+
+    .hero-dates {
+        font-family: $font-mono;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 0.5px;
+    }
+
+    // City name - massive cinematic display
+    .hero-city {
+        font-family: $font-primary;
+        font-size: 5rem;
+        font-weight: 800;
+        color: $gold-color;
+        line-height: 1;
+        margin: 0 0 8px;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        letter-spacing: -1px;
 
         @media (max-width: 900px) {
-            grid-template-columns: 1fr;
-            text-align: center;
+            font-size: 3.5rem;
+        }
+
+        @media (max-width: 600px) {
+            font-size: 2.5rem;
+        }
+
+        @media (max-width: 420px) {
+            font-size: 2rem;
+            letter-spacing: 0;
         }
     }
 
-    .hero-identity {
+    // Tagline - elegant italic
+    .hero-tagline {
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-style: italic;
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0 0 20px;
+        opacity: 0.9;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+
+        @media (max-width: 600px) {
+            font-size: 0.95rem;
+            margin-bottom: 14px;
+        }
+
+        @media (max-width: 420px) {
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+    }
+
+    // Glass stats bar
+    .hero-stats-bar {
         display: flex;
-        gap: 32px;
-        align-items: center;
+        align-items: stretch;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 12px 20px;
+        max-width: fit-content;
 
-        @media (max-width: 900px) {
-            flex-direction: column; // Stack on mobile
-            gap: 16px;
+        @media (max-width: 600px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            max-width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
         }
 
-        .logo-wrapper {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 24px;
-            border-radius: 20px;
-
-            .hero-logo {
-                width: 80px;
-                height: auto;
-                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
-            }
-        }
-
-        .hero-text-content {
-            h1 {
-                font-size: 3.5rem;
-                font-weight: 800;
-                margin: 0;
-                line-height: 1;
-                background: linear-gradient(135deg, white, #ccc);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-
-                @media (max-width: 600px) {
-                    font-size: 2.5rem;
-                }
-            }
-
-            .hero-tagline {
-                font-family: serif; // Fallback if Playfair not loaded
-                font-style: italic;
-                font-size: 1.1rem;
-                color: $primary-accent;
-                margin: 8px 0 16px;
-            }
-
-            .hero-meta {
-                display: flex;
-                gap: 12px;
-                align-items: center;
-                color: $text-secondary;
-                font-size: 0.9rem;
-
-                @media (max-width: 900px) {
-                    justify-content: center;
-                }
-
-                mat-icon {
-                    font-size: 16px;
-                    width: 16px;
-                    height: 16px;
-                }
-
-                .dot {
-                    opacity: 0.3;
-                }
-            }
+        @media (max-width: 420px) {
+            padding: 8px 12px;
+            gap: 6px;
         }
     }
 
-    .hero-stats-card {
-        @include glass-card;
-        padding: 24px;
-        background: rgba(0, 0, 0, 0.2);
+    // Stats section (INDIA / GAMES)
+    .stats-section {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 6px;
+    }
 
-        .india-rank-badge {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 16px;
+    .stats-section-label {
+        font-family: $font-mono;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: rgba(255, 255, 255, 0.35);
+        text-transform: uppercase;
+    }
 
-            .label {
-                font-size: 0.9rem;
-                color: $text-secondary;
-            }
+    .stats-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-            .value {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: $primary-accent;
+    // Medal pills
+    .medal-pill {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.08);
+
+        .emoji {
+            font-size: 1rem;
+        }
+
+        .num {
+            font-family: $font-primary;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+        }
+    }
+
+    .no-medals-label {
+        font-family: $font-mono;
+        font-size: 0.8rem;
+        color: $text-muted;
+        letter-spacing: 0.5px;
+    }
+
+    // Divider
+    .stats-divider {
+        width: 1px;
+        align-self: stretch;
+        background: rgba(255, 255, 255, 0.15);
+
+        @media (max-width: 600px) {
+            width: 100%;
+            height: 1px;
+        }
+    }
+
+    // Stat items
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        &.rank {
+            margin-left: 4px;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .stat-icon {
+            font-size: 0.85rem;
+        }
+
+        .stat-value {
+            font-family: $font-primary;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: white;
+
+            @media (max-width: 420px) {
+                font-size: 0.8rem;
             }
         }
 
-        .medals-tally-row {
-            display: flex;
-            justify-content: space-between;
+        .stat-label {
+            font-family: $font-mono;
+            font-size: 0.7rem;
+            color: $text-muted;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
 
-            .medal-stat {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-
-                .count {
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                }
-
-                .label {
-                    font-size: 0.7rem;
-                    text-transform: uppercase;
-                    color: $text-muted;
-                }
-
-                &.gold .count {
-                    color: $gold-color;
-                }
-
-                &.silver .count {
-                    color: $silver-color;
-                }
-
-                &.bronze .count {
-                    color: $bronze-color;
-                }
-
-                &.total .count {
-                    color: white;
-                }
+            @media (max-width: 420px) {
+                font-size: 0.6rem;
             }
         }
     }
@@ -274,6 +424,11 @@ $font-mono: 'JetBrains Mono', monospace;
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
 }
 
 .sport-card {
@@ -288,9 +443,19 @@ $font-mono: 'JetBrains Mono', monospace;
         transform: translateY(-2px);
     }
 
-    &.has-medal {
-        border-color: rgba(255, 215, 0, 0.3);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    &.has-gold {
+        border-color: rgba(255, 215, 0, 0.4);
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.08);
+    }
+
+    &.has-silver {
+        border-color: rgba(192, 192, 192, 0.4);
+        box-shadow: 0 4px 20px rgba(192, 192, 192, 0.08);
+    }
+
+    &.has-bronze {
+        border-color: rgba(205, 127, 50, 0.4);
+        box-shadow: 0 4px 20px rgba(205, 127, 50, 0.08);
     }
 
     &.expanded {
