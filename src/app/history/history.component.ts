@@ -4,12 +4,14 @@ import { RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import { PayloadService, OlympicParticipation, Edition, GoldenMoment } from '../services/payload.service';
+import { PayloadService, OlympicParticipation, Edition, GoldenMoment, Sport } from '../services/payload.service';
 
 interface SportBreakdown {
   name: string;
   slug: string;
   pictogramUrl?: string | null;
+  participationCount: number;
+  uniqueAthletes: number;
   gold: number;
   silver: number;
   bronze: number;
@@ -68,15 +70,18 @@ export class HistoryComponent implements OnInit {
   participations = signal<OlympicParticipation[]>([]);
   participationCounts = signal<{ athleteId: string; editionId: string; year: number }[]>([]); // Lightweight for counting
   editions = signal<Edition[]>([]);
+  sportsCatalog = signal<Sport[]>([]);
+  private sportsById = computed<Map<string, Sport>>(() => new Map(this.sportsCatalog().map((sport) => [sport.id, sport])));
   selectedEra = signal<string>('all');
   totalAthletes = signal(0);
 
   // Era definitions with year ranges shown
   eras: Era[] = [
-    { label: 'Pre-Independence', shortLabel: 'Pre-Ind.', startYear: 1900, endYear: 1947 },
+    { label: 'Pre-Ind.', shortLabel: 'Pre-Ind.', startYear: 1900, endYear: 1947 },
     { label: 'Golden Age', shortLabel: 'Golden Age', startYear: 1948, endYear: 1972 },
-    { label: 'Transition Era', shortLabel: 'Transition', startYear: 1976, endYear: 1992 },
-    { label: 'Modern Era', shortLabel: 'Modern', startYear: 1996, endYear: 2024 },
+    { label: 'Decline', shortLabel: 'Decline', startYear: 1976, endYear: 1992 },
+    { label: 'Transition', shortLabel: 'Transition', startYear: 1996, endYear: 2004 },
+    { label: 'Modern', shortLabel: 'Modern', startYear: 2008, endYear: 2024 },
   ];
 
   // Golden Moments - Loaded dynamically
@@ -174,68 +179,12 @@ export class HistoryComponent implements OnInit {
 
   // Overall medals by sport (always shows all-time, not filtered)
   overallSportsBreakdown = computed<SportBreakdown[]>(() => {
-    const breakdown: Record<string, SportBreakdown> = {};
-    const counted = new Set<string>();
-
-    this.participations().forEach(p => {
-      const sportName = this.getSportName(p);
-      if (!sportName) return;
-
-      if (!breakdown[sportName]) {
-        breakdown[sportName] = {
-          name: sportName,
-          slug: this.getSportSlug(p) || '',
-          pictogramUrl: this.getPictogramFromParticipation(p),
-          gold: 0, silver: 0, bronze: 0, total: 0
-        };
-      } else if (!breakdown[sportName].pictogramUrl) {
-        breakdown[sportName].pictogramUrl = this.getPictogramFromParticipation(p);
-      }
-
-      const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
-      if (!counted.has(key)) {
-        counted.add(key);
-        if (p.result === 'gold') breakdown[sportName].gold++;
-        else if (p.result === 'silver') breakdown[sportName].silver++;
-        else if (p.result === 'bronze') breakdown[sportName].bronze++;
-        breakdown[sportName].total++;
-      }
-    });
-
-    return Object.values(breakdown).sort((a, b) => b.total - a.total);
+    return this.buildSportsBreakdown(this.participations());
   });
 
   // Filtered sports breakdown (by era)
   sportsBreakdown = computed<SportBreakdown[]>(() => {
-    const breakdown: Record<string, SportBreakdown> = {};
-    const counted = new Set<string>();
-
-    this.filteredParticipations().forEach(p => {
-      const sportName = this.getSportName(p);
-      if (!sportName) return;
-
-      if (!breakdown[sportName]) {
-        breakdown[sportName] = {
-          name: sportName,
-          slug: this.getSportSlug(p) || '',
-          pictogramUrl: this.getPictogramFromParticipation(p),
-          gold: 0, silver: 0, bronze: 0, total: 0
-        };
-      } else if (!breakdown[sportName].pictogramUrl) {
-        breakdown[sportName].pictogramUrl = this.getPictogramFromParticipation(p);
-      }
-
-      const key = `${p.edition?.name || ''}-${p.event?.name || ''}-${p.result}`;
-      if (!counted.has(key)) {
-        counted.add(key);
-        if (p.result === 'gold') breakdown[sportName].gold++;
-        else if (p.result === 'silver') breakdown[sportName].silver++;
-        else if (p.result === 'bronze') breakdown[sportName].bronze++;
-        breakdown[sportName].total++;
-      }
-    });
-
-    return Object.values(breakdown).sort((a, b) => b.total - a.total);
+    return this.buildSportsBreakdown(this.filteredParticipations());
   });
 
   // Dynamic athlete count for current era
@@ -260,8 +209,8 @@ export class HistoryComponent implements OnInit {
   }
 
   loadData() {
-    // Load medal participations
-    this.payload.getMedalists().subscribe(participations => {
+    // Load all participation records (medals + participated results)
+    this.payload.getParticipations({ limit: 5000 }).subscribe(participations => {
       this.participations.set(participations);
       this.loading.set(false);
     });
@@ -276,8 +225,9 @@ export class HistoryComponent implements OnInit {
       this.editions.set(docs);
     });
 
-    // Load athlete count
-    this.payload.getAthletes({ limit: 1 }).subscribe(response => {
+    // Load sports catalog for parent sport canonical mapping
+    this.payload.getSports().subscribe(sports => {
+      this.sportsCatalog.set(sports);
     });
 
     // Load Golden Moments
@@ -292,6 +242,120 @@ export class HistoryComponent implements OnInit {
 
   getEraYearRange(era: Era): string {
     return `${era.startYear}–${era.endYear}`;
+  }
+
+  getSportStatusText(sport: SportBreakdown): string {
+    const athleteLabel = sport.uniqueAthletes === 1 ? 'athlete' : 'athletes';
+    const participationLabel = sport.participationCount === 1 ? 'participation' : 'participations';
+    return `${sport.uniqueAthletes} ${athleteLabel} · ${sport.participationCount} ${participationLabel}`;
+  }
+
+  private buildSportsBreakdown(participations: OlympicParticipation[]): SportBreakdown[] {
+    type SportAccumulator = SportBreakdown & {
+      athleteIds: Set<string>;
+      countedMedals: Set<string>;
+    };
+
+    const sportsById = this.sportsById();
+    const breakdown = new Map<string, SportAccumulator>();
+
+    participations.forEach(participation => {
+      const sportResolution = this.resolveSportsForParticipation(participation, sportsById);
+      if (!sportResolution) return;
+      const canonicalSport = sportResolution.canonical;
+      const sportKey = canonicalSport.id || canonicalSport.slug;
+      if (!sportKey) return;
+
+      if (!breakdown.has(sportKey)) {
+        breakdown.set(sportKey, {
+          name: canonicalSport.name,
+          slug: canonicalSport.slug,
+          pictogramUrl: canonicalSport.pictogramUrl,
+          participationCount: 0,
+          uniqueAthletes: 0,
+          gold: 0,
+          silver: 0,
+          bronze: 0,
+          total: 0,
+          athleteIds: new Set<string>(),
+          countedMedals: new Set<string>(),
+        });
+      }
+
+      const row = breakdown.get(sportKey)!;
+      if (!row.pictogramUrl && canonicalSport.pictogramUrl) {
+        row.pictogramUrl = canonicalSport.pictogramUrl;
+      }
+
+      row.participationCount += 1;
+      const athleteId = typeof participation.athlete === 'object' ? participation.athlete?.id : null;
+      if (athleteId) {
+        row.athleteIds.add(athleteId);
+      }
+
+      if (!(participation.result === 'gold' || participation.result === 'silver' || participation.result === 'bronze')) {
+        return;
+      }
+
+      const medalKey = `${this.getMedalKey(participation)}|${sportKey}`;
+      if (row.countedMedals.has(medalKey)) return;
+      row.countedMedals.add(medalKey);
+
+      if (participation.result === 'gold') row.gold += 1;
+      else if (participation.result === 'silver') row.silver += 1;
+      else if (participation.result === 'bronze') row.bronze += 1;
+      row.total += 1;
+    });
+
+    return Array.from(breakdown.values())
+      .map((sport) => ({
+        name: sport.name,
+        slug: sport.slug,
+        pictogramUrl: sport.pictogramUrl,
+        participationCount: sport.participationCount,
+        uniqueAthletes: sport.athleteIds.size,
+        gold: sport.gold,
+        silver: sport.silver,
+        bronze: sport.bronze,
+        total: sport.total,
+      }))
+      .sort((a, b) => {
+        const tierDiff = this.getSportTier(a) - this.getSportTier(b);
+        if (tierDiff !== 0) return tierDiff;
+        if (b.gold !== a.gold) return b.gold - a.gold;
+        if (b.silver !== a.silver) return b.silver - a.silver;
+        if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+        if (b.total !== a.total) return b.total - a.total;
+        if (b.participationCount !== a.participationCount) return b.participationCount - a.participationCount;
+        return a.name.localeCompare(b.name);
+      });
+  }
+
+  private getSportTier(sport: SportBreakdown): number {
+    if (sport.gold > 0) return 0;
+    if (sport.silver > 0) return 1;
+    if (sport.bronze > 0) return 2;
+    return 3;
+  }
+
+  private getOutcomeEventKey(participation: OlympicParticipation): string {
+    const editionId = participation.edition?.id || participation.edition?.name || '';
+    const eventId = typeof participation.event === 'object'
+      ? (participation.event?.id || participation.event?.name || '')
+      : '';
+    return `${editionId}|${eventId}`;
+  }
+
+  private getMedalKey(participation: OlympicParticipation): string {
+    return `${this.getOutcomeEventKey(participation)}|${participation.result || ''}`;
+  }
+
+  private toSlug(value: string): string {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 
   private countUniqueMedals(type: 'gold' | 'silver' | 'bronze'): number {
@@ -310,35 +374,67 @@ export class HistoryComponent implements OnInit {
     return count;
   }
 
-  private getSportName(p: OlympicParticipation): string {
-    if (typeof p.event === 'object' && p.event?.sport) {
-      return typeof p.event.sport === 'object' ? p.event.sport.name : '';
+  private resolveSportsForParticipation(
+    participation: OlympicParticipation,
+    sportsById: Map<string, Sport>,
+  ): {
+    canonical: { id: string; name: string; slug: string; pictogramUrl: string | null };
+    discipline: { id: string; name: string; slug: string; pictogramUrl: string | null };
+  } | null {
+    if (typeof participation.event !== 'object' || !participation.event?.sport || typeof participation.event.sport !== 'object') {
+      return null;
     }
-    return '';
+
+    const eventSportRaw = participation.event.sport as Sport;
+    if (!eventSportRaw?.id || !eventSportRaw?.name) {
+      return null;
+    }
+
+    const eventSport = sportsById.get(eventSportRaw.id) || eventSportRaw;
+    const parentFromParticipation = typeof eventSportRaw.parentSport === 'object' ? eventSportRaw.parentSport as Sport : null;
+    const parentId = this.getParentSportId(eventSport, sportsById) || parentFromParticipation?.id || null;
+    const canonicalId = parentId || eventSport.id;
+    const canonicalSport = sportsById.get(canonicalId) || parentFromParticipation || null;
+
+    const canonicalName = canonicalSport?.name || eventSport.name;
+    const canonicalSlug = canonicalSport?.slug || eventSport.slug || this.toSlug(canonicalName);
+
+    return {
+      canonical: {
+        id: canonicalId,
+        name: canonicalName,
+        slug: canonicalSlug,
+        pictogramUrl:
+          this.payload.getMediaUrl(canonicalSport?.pictogram) ||
+          this.payload.getMediaUrl(parentFromParticipation?.pictogram) ||
+          this.payload.getMediaUrl(eventSport.pictogram),
+      },
+      discipline: {
+        id: eventSport.id,
+        name: eventSport.name,
+        slug: eventSport.slug || this.toSlug(eventSport.name),
+        pictogramUrl: this.payload.getMediaUrl(eventSport.pictogram),
+      },
+    };
   }
 
-  // Helper to extract sport pictogram URL from participation
-  getSportSlug(p: OlympicParticipation): string | null {
-    if (typeof p.event === 'object' && p.event?.sport) {
-      const sport = p.event.sport as any;
-      return sport.slug || null;
-    }
-    return null;
+  private getParentSportId(sport: Sport | null, sportsById: Map<string, Sport>): string | null {
+    if (!sport) return null;
+
+    const rawParent = (sport as unknown as { parentSport?: unknown }).parentSport;
+    const directParentId = this.extractParentSportId(rawParent);
+    if (directParentId) return directParentId;
+
+    const catalogSport = sport.id ? sportsById.get(sport.id) || null : null;
+    if (!catalogSport) return null;
+    return this.extractParentSportId((catalogSport as unknown as { parentSport?: unknown }).parentSport);
   }
 
-  getPictogramFromParticipation(p: OlympicParticipation): string | null {
-    if (typeof p.event === 'object' && p.event?.sport) {
-      const sport = p.event.sport as any; // Cast to access nested fields
-
-      // Try direct icon
-      let url = this.payload.getMediaUrl(sport.pictogram);
-      if (url) return url;
-
-      // Try parent icon
-      if (sport.parentSport?.pictogram) {
-        url = this.payload.getMediaUrl(sport.parentSport.pictogram);
-        if (url) return url;
-      }
+  private extractParentSportId(rawParent: unknown): string | null {
+    if (typeof rawParent === 'string') return rawParent;
+    if (typeof rawParent === 'object' && rawParent && 'id' in (rawParent as Record<string, unknown>)) {
+      const parentId = (rawParent as Record<string, unknown>).id;
+      return typeof parentId === 'string' ? parentId : null;
     }
     return null;
   }

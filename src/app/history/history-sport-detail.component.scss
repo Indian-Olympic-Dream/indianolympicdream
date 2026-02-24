@@ -227,6 +227,39 @@ $font-mono: 'JetBrains Mono', monospace;
                 }
             }
         }
+
+        .scope-tally-row {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+
+            .scope-stat {
+                @include glass-card;
+                border-radius: 12px;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .count {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: $text-primary;
+            }
+
+            .label {
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: $text-muted;
+            }
+        }
     }
 }
 
@@ -256,6 +289,91 @@ $font-mono: 'JetBrains Mono', monospace;
             width: 18px;
             height: 18px;
         }
+    }
+}
+
+.discipline-overview {
+    margin-bottom: 24px;
+
+    .discipline-overview-title {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: $text-muted;
+        margin-bottom: 10px;
+    }
+
+    .discipline-overview-row {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .discipline-chip {
+        @include glass-card;
+        min-width: 180px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+        text-align: left;
+        cursor: pointer;
+        appearance: none;
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        &.active {
+            border-color: rgba(234, 221, 255, 0.5);
+            background: rgba(234, 221, 255, 0.13);
+        }
+
+        &.unmapped {
+            border-color: rgba(255, 186, 120, 0.35);
+            background: rgba(255, 186, 120, 0.08);
+        }
+    }
+
+    .discipline-chip-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: $text-primary;
+    }
+
+    .discipline-chip-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        filter: invert(1);
+    }
+
+    .discipline-chip-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: $text-muted;
+        font-family: $font-mono;
+    }
+
+    .chip-medal {
+        color: $text-secondary;
     }
 }
 
@@ -347,6 +465,93 @@ $font-mono: 'JetBrains Mono', monospace;
     .edition-content {
         padding: 24px;
 
+        .discipline-section {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.01);
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            &.unmapped {
+                border-color: rgba(255, 186, 120, 0.35);
+                background: rgba(255, 186, 120, 0.06);
+            }
+        }
+
+        .discipline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+        }
+
+        .discipline-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+
+            h4 {
+                margin: 0;
+                font-size: 0.95rem;
+                color: $primary-accent;
+                font-weight: 600;
+            }
+        }
+
+        .discipline-header-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            filter: invert(1);
+            flex-shrink: 0;
+        }
+
+        .discipline-athlete-count {
+            font-family: $font-mono;
+            font-size: 0.72rem;
+            color: $text-muted;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .discipline-medals {
+            display: flex;
+            gap: 6px;
+        }
+
+        .discipline-medal {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 10px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-family: $font-mono;
+            background: rgba(255, 255, 255, 0.05);
+
+            &.gold {
+                color: $gold-color;
+            }
+
+            &.silver {
+                color: $silver-color;
+            }
+
+            &.bronze {
+                color: $bronze-color;
+            }
+        }
+
         .gender-section {
             margin-bottom: 24px;
 
@@ -429,6 +634,91 @@ $font-mono: 'JetBrains Mono', monospace;
                     font-size: 1.2rem;
                 }
             }
+        }
+    }
+}
+
+// Golden Moments Carousel
+.golden-moments {
+    margin-bottom: 32px;
+
+    h2 {
+        @include section-title;
+        margin-bottom: 14px;
+    }
+
+    .moments-carousel {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 8px;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .moment-card {
+        @include glass-card;
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        border-color: rgba(255, 215, 0, 0.18);
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $bg-card 100%);
+    }
+
+    .moment-year {
+        font-size: 2rem;
+        font-weight: 200;
+        line-height: 1;
+        color: $gold-color;
+    }
+
+    .moment-location {
+        font-family: $font-mono;
+        font-size: 10px;
+        color: rgba(255, 215, 0, 0.85);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .moment-content {
+        .moment-athlete {
+            font-size: 14px;
+            font-weight: 600;
+            color: $text-primary;
+            margin-bottom: 2px;
+        }
+
+        .moment-event {
+            font-family: $font-mono;
+            font-size: 10px;
+            color: $text-muted;
+            margin-bottom: 8px;
+        }
+
+        .moment-story {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            color: $text-secondary;
+        }
+    }
+
+    .moment-link {
+        margin-top: 8px;
+        font-size: 11px;
+        color: $gold-color;
+        text-decoration: none;
+
+        &:hover {
+            opacity: 0.85;
         }
     }
 }

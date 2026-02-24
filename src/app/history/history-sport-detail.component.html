@@ -5,9 +5,9 @@
 
         <!-- Navigation -->
         <nav class="hero-nav">
-            <a [routerLink]="focusedEditionSlug() ? '/' + focusedEditionSlug() : '/'" class="back-btn">
+            <button type="button" (click)="goBack()" class="back-btn">
                 <mat-icon>arrow_back</mat-icon>
-            </a>
+            </button>
             <span class="edition-badge" *ngIf="focusedEditionSlug() && !showFullHistory()">{{
                 displayedEditions()[0]?.edition?.name }}</span>
             <span class="edition-badge" *ngIf="!focusedEditionSlug() || showFullHistory()">All Editions</span>
@@ -17,7 +17,7 @@
         <div class="hero-grid">
             <div class="hero-identity">
                 <div class="sport-icon-wrapper">
-                    <img *ngIf="getPictogramUrl()" [src]="getPictogramUrl()" [alt]="sport()?.name"
+                    <img *ngIf="sportPictogramUrl()" [src]="sportPictogramUrl()" [alt]="sport()?.name"
                         class="pictogram-img">
                 </div>
                 <div class="hero-text-content">
@@ -46,6 +46,17 @@
                         <span class="label">Editions</span>
                     </div>
                 </div>
+
+                <div class="scope-tally-row">
+                    <div class="scope-stat">
+                        <span class="count">{{ displayedAthletesCount() }}</span>
+                        <span class="label">Athletes</span>
+                    </div>
+                    <div class="scope-stat">
+                        <span class="count">{{ displayedParticipationsCount() }}</span>
+                        <span class="label">Participations</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -58,6 +69,64 @@
             editions)' }}
         </button>
     </div>
+
+    <section class="discipline-overview"
+        *ngIf="!loading() && hasSubDisciplineView() && displayedDisciplineSummary().length > 0">
+        <div class="discipline-overview-title">Sub-disciplines</div>
+        <div class="discipline-overview-row">
+            <button type="button" class="discipline-chip"
+                [class.active]="activeDisciplineId() === 'all'" (click)="setDisciplineFilter('all')">
+                <div class="discipline-chip-name">
+                    <img *ngIf="sportPictogramUrl()" [src]="sportPictogramUrl()" [alt]="sport()?.name"
+                        class="discipline-chip-icon">
+                    <span>{{ sport()?.name }}</span>
+                </div>
+                <div class="discipline-chip-meta">
+                    <span>{{ sportTotalAthletes() }} athletes</span>
+                    <span>{{ sportTotalParticipations() }} participations</span>
+                </div>
+            </button>
+
+            <button type="button" class="discipline-chip" *ngFor="let discipline of displayedDisciplineSummary()"
+                [class.unmapped]="isUnmappedDisciplineId(discipline.id)"
+                [class.active]="activeDisciplineId() === discipline.id" (click)="setDisciplineFilter(discipline.id)">
+                <div class="discipline-chip-name">
+                    <img *ngIf="discipline.pictogramUrl" [src]="discipline.pictogramUrl" [alt]="discipline.name"
+                        class="discipline-chip-icon">
+                    <span>{{ getDisciplineDisplayName(discipline.name) }}</span>
+                </div>
+                <div class="discipline-chip-meta">
+                    <span>{{ discipline.athleteEntries }} participations</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.gold">🥇{{ discipline.medalCount.gold }}</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.silver">🥈{{ discipline.medalCount.silver }}</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.bronze">🥉{{ discipline.medalCount.bronze }}</span>
+                </div>
+            </button>
+        </div>
+    </section>
+
+    <!-- Golden Moments in This Sport -->
+    <section class="golden-moments" *ngIf="!loading() && goldenMoments().length > 0">
+        <h2>🏆 Golden Moments in {{ sport()?.name }}</h2>
+        <div class="moments-carousel">
+            <article class="moment-card" *ngFor="let moment of goldenMoments()">
+                <div class="moment-year">{{ moment.year }}</div>
+                <div class="moment-location">{{ moment.city }}</div>
+                <div class="moment-content">
+                    <div class="moment-athlete">{{ moment.athlete }}</div>
+                    <div class="moment-event">{{ moment.event }}</div>
+                    <p class="moment-story">{{ moment.description }}</p>
+                </div>
+                <a class="moment-link" *ngIf="moment.linkedStory?.slug" [routerLink]="['/stories', moment.linkedStory?.slug]">
+                    Read story
+                </a>
+                <a class="moment-link" *ngIf="!moment.linkedStory?.slug && moment.externalLink" [href]="moment.externalLink"
+                    target="_blank" rel="noopener">
+                    Read more
+                </a>
+            </article>
+        </div>
+    </section>
 
     <!-- Timeline of Editions -->
     <section class="edition-timeline" *ngIf="!loading()">
@@ -87,68 +156,154 @@
             </header>
 
             <div class="edition-content">
-                <!-- Women's Events -->
-                <div class="gender-section" *ngIf="group.womenAthletes.length > 0">
-                    <div class="gender-header">
-                        <mat-icon>female</mat-icon>
-                        <h4>Women's Events</h4>
-                    </div>
-                    <div class="athletes-grid">
-                        <div class="athlete-row" *ngFor="let athlete of group.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                         'silver': athlete.result === 'silver',
-                                         'bronze': athlete.result === 'bronze'}">
-                            <div class="athlete-info">
-                                <div class="name">{{ athlete.name }}</div>
-                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                <ng-container *ngIf="hasSubDisciplineView(); else standardSportView">
+                    <section class="discipline-section" *ngFor="let discipline of getVisibleDisciplines(group)"
+                        [class.unmapped]="isUnmappedDisciplineId(discipline.id)">
+                        <header class="discipline-header">
+                            <div class="discipline-header-left">
+                                <img *ngIf="discipline.pictogramUrl" [src]="discipline.pictogramUrl" [alt]="discipline.name"
+                                    class="discipline-header-icon">
+                                <h4>{{ getDisciplineDisplayName(discipline.name) }}</h4>
+                                <span class="discipline-athlete-count">{{ discipline.athletes.length }} athletes</span>
                             </div>
-                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                {{ getMedalEmoji(athlete.result) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Men's Events -->
-                <div class="gender-section" *ngIf="group.menAthletes.length > 0">
-                    <div class="gender-header">
-                        <mat-icon>male</mat-icon>
-                        <h4>Men's Events</h4>
-                    </div>
-                    <div class="athletes-grid">
-                        <div class="athlete-row" *ngFor="let athlete of group.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                         'silver': athlete.result === 'silver',
-                                         'bronze': athlete.result === 'bronze'}">
-                            <div class="athlete-info">
-                                <div class="name">{{ athlete.name }}</div>
-                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                            <div class="discipline-medals"
+                                *ngIf="discipline.medalCount.gold || discipline.medalCount.silver || discipline.medalCount.bronze">
+                                <span class="discipline-medal gold" *ngIf="discipline.medalCount.gold">🥇{{ discipline.medalCount.gold }}</span>
+                                <span class="discipline-medal silver" *ngIf="discipline.medalCount.silver">🥈{{ discipline.medalCount.silver }}</span>
+                                <span class="discipline-medal bronze" *ngIf="discipline.medalCount.bronze">🥉{{ discipline.medalCount.bronze }}</span>
                             </div>
-                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                {{ getMedalEmoji(athlete.result) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        </header>
 
-                <!-- Mixed Events -->
-                <div class="gender-section" *ngIf="group.mixedAthletes.length > 0">
-                    <div class="gender-header">
-                        <mat-icon>group</mat-icon>
-                        <h4>Mixed Events</h4>
-                    </div>
-                    <div class="athletes-grid">
-                        <div class="athlete-row" *ngFor="let athlete of group.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                         'silver': athlete.result === 'silver',
-                                         'bronze': athlete.result === 'bronze'}">
-                            <div class="athlete-info">
-                                <div class="name">{{ athlete.name }}</div>
-                                <div class="events">{{ athlete.events.join(', ') }}</div>
+                        <!-- Women's Events -->
+                        <div class="gender-section" *ngIf="discipline.womenAthletes.length > 0">
+                            <div class="gender-header">
+                                <mat-icon>female</mat-icon>
+                                <h4>Women's Events</h4>
                             </div>
-                            <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                {{ getMedalEmoji(athlete.result) }}
+                            <div class="athletes-grid">
+                                <div class="athlete-row" *ngFor="let athlete of discipline.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-info">
+                                        <div class="name">{{ athlete.name }}</div>
+                                        <div class="events">{{ athlete.events.join(', ') }}</div>
+                                    </div>
+                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                        {{ getMedalEmoji(athlete.result) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Men's Events -->
+                        <div class="gender-section" *ngIf="discipline.menAthletes.length > 0">
+                            <div class="gender-header">
+                                <mat-icon>male</mat-icon>
+                                <h4>Men's Events</h4>
+                            </div>
+                            <div class="athletes-grid">
+                                <div class="athlete-row" *ngFor="let athlete of discipline.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-info">
+                                        <div class="name">{{ athlete.name }}</div>
+                                        <div class="events">{{ athlete.events.join(', ') }}</div>
+                                    </div>
+                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                        {{ getMedalEmoji(athlete.result) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mixed Events -->
+                        <div class="gender-section" *ngIf="discipline.mixedAthletes.length > 0">
+                            <div class="gender-header">
+                                <mat-icon>group</mat-icon>
+                                <h4>Mixed Events</h4>
+                            </div>
+                            <div class="athletes-grid">
+                                <div class="athlete-row" *ngFor="let athlete of discipline.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-info">
+                                        <div class="name">{{ athlete.name }}</div>
+                                        <div class="events">{{ athlete.events.join(', ') }}</div>
+                                    </div>
+                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                        {{ getMedalEmoji(athlete.result) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </ng-container>
+
+                <ng-template #standardSportView>
+                    <!-- Women's Events -->
+                    <div class="gender-section" *ngIf="group.womenAthletes.length > 0">
+                        <div class="gender-header">
+                            <mat-icon>female</mat-icon>
+                            <h4>Women's Events</h4>
+                        </div>
+                        <div class="athletes-grid">
+                            <div class="athlete-row" *ngFor="let athlete of group.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-info">
+                                    <div class="name">{{ athlete.name }}</div>
+                                    <div class="events">{{ athlete.events.join(', ') }}</div>
+                                </div>
+                                <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                    {{ getMedalEmoji(athlete.result) }}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Men's Events -->
+                    <div class="gender-section" *ngIf="group.menAthletes.length > 0">
+                        <div class="gender-header">
+                            <mat-icon>male</mat-icon>
+                            <h4>Men's Events</h4>
+                        </div>
+                        <div class="athletes-grid">
+                            <div class="athlete-row" *ngFor="let athlete of group.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-info">
+                                    <div class="name">{{ athlete.name }}</div>
+                                    <div class="events">{{ athlete.events.join(', ') }}</div>
+                                </div>
+                                <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                    {{ getMedalEmoji(athlete.result) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mixed Events -->
+                    <div class="gender-section" *ngIf="group.mixedAthletes.length > 0">
+                        <div class="gender-header">
+                            <mat-icon>group</mat-icon>
+                            <h4>Mixed Events</h4>
+                        </div>
+                        <div class="athletes-grid">
+                            <div class="athlete-row" *ngFor="let athlete of group.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
+                                             'silver': athlete.result === 'silver',
+                                             'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-info">
+                                    <div class="name">{{ athlete.name }}</div>
+                                    <div class="events">{{ athlete.events.join(', ') }}</div>
+                                </div>
+                                <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
+                                    {{ getMedalEmoji(athlete.result) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-template>
             </div>
         </article>
     </section>
