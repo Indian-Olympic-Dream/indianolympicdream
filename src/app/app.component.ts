@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from "@angular/core";
+import { Component, HostBinding } from "@angular/core";
 import { SwupdateService } from "./swupdate.service";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import {
@@ -24,7 +24,6 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LoaderService } from "./shared/components/loader/loader.service";
-import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
@@ -55,7 +54,7 @@ import { AuthService } from "./core/services/auth.service";
     FooterComponent,
   ],
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   public isOlympicsMenuOpen = false;
   public loading: boolean = false;
   isLightTheme = false;
@@ -70,7 +69,6 @@ export class AppComponent implements OnInit {
     private swupdateservice: SwupdateService,
     public overlayContainer: OverlayContainer,
     private loaderService: LoaderService,
-    private breakpointObserver: BreakpointObserver,
     private scrollTrackingService: ScrollTrackingService,
     public authService: AuthService,
   ) {
@@ -84,8 +82,6 @@ export class AppComponent implements OnInit {
     });
 
   }
-
-  ngOnInit() { }
 
   onContentScroll(event: Event): void {
     const element = event.target as HTMLElement;

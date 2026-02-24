@@ -1,33 +1,42 @@
 <mat-toolbar class="bottom-nav">
   <div class="nav-item-container">
-    <a mat-icon-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}"
-      [disableRipple]="true">
-      <mat-icon>home</mat-icon>
+    <a class="nav-link home-link" routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-home-logo" src="assets/images/logo.png" alt="Home">
+      </span>
       <span class="nav-label">Home</span>
     </a>
   </div>
   <div class="nav-item-container">
-    <a mat-icon-button routerLink="/calendar" routerLinkActive="active-link" [disableRipple]="true">
-      <mat-icon>calendar_month</mat-icon>
-      <span class="nav-label">Calendar</span>
+    <a class="nav-link" routerLink="/sports" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-pictogram" src="assets/images/pictograms/icons/wrestling.svg" alt="Sports">
+      </span>
+      <span class="nav-label">Sports</span>
     </a>
   </div>
   <div class="nav-item-container">
-    <a mat-icon-button routerLink="/videos" routerLinkActive="active-link" [disableRipple]="true">
-      <mat-icon>play_circle</mat-icon>
-      <span class="nav-label">Videos</span>
+    <a class="nav-link" routerLink="/athletes" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-pictogram" src="assets/images/pictograms/icons/athletics.svg" alt="Athletes">
+      </span>
+      <span class="nav-label">Athletes</span>
     </a>
   </div>
   <div class="nav-item-container">
-    <a mat-icon-button routerLink="/originals" routerLinkActive="active-link" [disableRipple]="true">
-      <mat-icon>movie</mat-icon>
-      <span class="nav-label">IOD Originals</span>
+    <a class="nav-link" routerLink="/originals" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <mat-icon class="nav-inline-icon" aria-hidden="true">podcasts</mat-icon>
+      </span>
+      <span class="nav-label">Originals</span>
     </a>
   </div>
   <div class="nav-item-container">
-    <a mat-icon-button routerLink="/store" routerLinkActive="active-link" [disableRipple]="true">
-      <mat-icon>shopping_bag</mat-icon>
-      <span class="nav-label">Store</span>
+    <a class="nav-link" routerLink="/store" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <mat-icon class="nav-inline-icon" aria-hidden="true">local_mall</mat-icon>
+      </span>
+      <span class="nav-label">Shop</span>
     </a>
   </div>
 </mat-toolbar>
