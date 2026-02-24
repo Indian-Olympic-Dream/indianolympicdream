@@ -1,0 +1,74 @@
+<div class="sports-container">
+  <header class="sports-header">
+    <h1>India At The Olympics By Sport</h1>
+    <p>Filter by podium tier to see where India has excelled and where it is closing in.</p>
+  </header>
+
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading()">
+    <section class="controls-panel">
+      <div class="filter-row">
+        <button
+          *ngFor="let filter of filterOptions"
+          class="filter-btn"
+          [class.active]="selectedFilter() === filter.value"
+          (click)="setFilter(filter.value)">
+          <span class="filter-label">{{ filter.label }}</span>
+          <span class="filter-meta">{{ getFilterCount(filter.value) }} sports</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="sports-grid" *ngIf="displayedSportRows().length > 0; else noResults">
+      <a
+        *ngFor="let sport of displayedSportRows()"
+        class="sport-card"
+        [routerLink]="isLA2028ProgramSport(sport) ? null : ['/sport', sport.slug]"
+        [class.disabled]="isLA2028ProgramSport(sport)"
+        [class.has-gold]="sport.medalCount.gold > 0"
+        [class.has-silver]="sport.medalCount.gold === 0 && sport.medalCount.silver > 0"
+        [class.has-bronze]="sport.medalCount.gold === 0 && sport.medalCount.silver === 0 && sport.medalCount.bronze > 0"
+        [class.has-near]="isNearPodiumSport(sport)"
+        (click)="onSportCardClick($event, sport)">
+
+        <div class="sport-medal-badge la-badge" *ngIf="isLA2028ProgramSport(sport)">
+          LA 2028
+        </div>
+
+        <div class="sport-medal-badge" *ngIf="sport.medalCount.total > 0">
+          <span *ngIf="sport.medalCount.gold > 0">🥇{{ sport.medalCount.gold }}</span>
+          <span *ngIf="sport.medalCount.silver > 0">🥈{{ sport.medalCount.silver }}</span>
+          <span *ngIf="sport.medalCount.bronze > 0">🥉{{ sport.medalCount.bronze }}</span>
+        </div>
+
+        <div class="sport-medal-badge near-badge" *ngIf="sport.medalCount.total === 0 && sport.fourthPlaceCount > 0">
+          Heartbreak x{{ sport.fourthPlaceCount }}
+        </div>
+
+        <div class="sport-icon">
+          <img
+            *ngIf="sport.pictogramUrl"
+            [src]="sport.pictogramUrl"
+            [alt]="sport.name"
+            class="pictogram-img"
+            (error)="sport.pictogramUrl = null">
+          <span *ngIf="!sport.pictogramUrl">{{ getSportFallbackIcon(sport.name) }}</span>
+        </div>
+
+        <h3>{{ sport.name }}</h3>
+        <p>{{ getSportStatusText(sport) }}</p>
+      </a>
+    </section>
+
+    <ng-template #noResults>
+      <section class="no-results">
+        <mat-icon>travel_explore</mat-icon>
+        <h2>No sports in this tier yet</h2>
+        <p>Try another filter.</p>
+      </section>
+    </ng-template>
+  </ng-container>
+</div>

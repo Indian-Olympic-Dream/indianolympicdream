@@ -1,0 +1,300 @@
+.sports-container {
+  min-height: 100vh;
+  color: rgba(255, 255, 255, 0.95);
+  padding: 18px 14px 26px;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
+    radial-gradient(900px 420px at 100% -30%, rgba(65, 105, 225, 0.1), transparent 65%),
+    #07080b;
+}
+
+.sports-header {
+  text-align: center;
+  margin: 0 auto 14px;
+  max-width: 720px;
+
+  h1 {
+    margin: 0 0 6px;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: clamp(1.45rem, 4vw, 1.95rem);
+    font-weight: 700;
+    background: linear-gradient(180deg, #ffe89a 0%, #d9aa26 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p {
+    margin: 0;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.62);
+    letter-spacing: 0.35px;
+  }
+}
+
+.loading-state {
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controls-panel {
+  margin-bottom: 14px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filter-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  .filter-label {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .filter-meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  &.active {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: #d4af37;
+
+    .filter-label {
+      color: #d4af37;
+    }
+
+    .filter-meta {
+      color: #d4af37;
+      opacity: 0.8;
+    }
+  }
+}
+
+.sports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sport-card {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  min-height: 136px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.05);
+    text-decoration: none;
+  }
+
+  &.has-gold {
+    border-color: rgba(255, 215, 0, 0.42);
+  }
+
+  &.has-silver {
+    border-color: rgba(192, 192, 192, 0.42);
+  }
+
+  &.has-bronze {
+    border-color: rgba(205, 127, 50, 0.45);
+  }
+
+  &.has-near {
+    border-color: rgba(84, 161, 255, 0.45);
+  }
+
+  &.disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    border-color: rgba(126, 176, 255, 0.32);
+    background: rgba(84, 161, 255, 0.06);
+    transform: none;
+  }
+
+  h3 {
+    margin: 0;
+    color: #f1d45a;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.68);
+    font-family: 'Geist Mono', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+}
+
+.sport-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.pictogram-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: invert(1);
+}
+
+.sport-medal-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.64rem;
+  line-height: 1;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.sport-card.has-gold .sport-medal-badge {
+  background: rgba(255, 215, 0, 0.12);
+  color: #ffde6e;
+  border-color: rgba(255, 215, 0, 0.35);
+}
+
+.sport-card.has-silver .sport-medal-badge {
+  background: rgba(192, 192, 192, 0.12);
+  color: #e2e2e2;
+  border-color: rgba(192, 192, 192, 0.35);
+}
+
+.sport-card.has-bronze .sport-medal-badge {
+  background: rgba(205, 127, 50, 0.16);
+  color: #dfa271;
+  border-color: rgba(205, 127, 50, 0.36);
+}
+
+.sport-card.has-near .sport-medal-badge {
+  background: rgba(84, 161, 255, 0.16);
+  color: #9fccff;
+  border-color: rgba(84, 161, 255, 0.42);
+}
+
+.la-badge {
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  background: rgba(84, 161, 255, 0.16);
+  color: #9fccff;
+  border-color: rgba(84, 161, 255, 0.42);
+}
+
+.near-badge {
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+
+.no-results {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 180px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  mat-icon {
+    margin-bottom: 6px;
+    color: rgba(255, 255, 255, 0.52);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.62);
+  }
+}
+
+@media (min-width: 768px) {
+  .sports-container {
+    padding: 20px 24px 30px;
+  }
+
+  .controls-panel {
+    margin-bottom: 16px;
+  }
+
+  .sports-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .sport-card {
+    min-height: 144px;
+  }
+
+  .sport-icon {
+    width: 56px;
+    height: 56px;
+  }
+}

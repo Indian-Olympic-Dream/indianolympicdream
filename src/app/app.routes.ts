@@ -28,6 +28,16 @@ export const routes: Routes = [
       transitionType: "bottom-to-top",
     },
   },
+  {
+    path: "sports",
+    loadComponent: () =>
+      import("./sports/sports.component").then((m) => m.SportsComponent),
+    data: {
+      animation: "SportsPage",
+      order: 4,
+      transitionType: "bottom-to-top",
+    },
+  },
 
   {
     path: "calendar",
