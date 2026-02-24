@@ -1,112 +1,277 @@
-@use '@angular/material' as mat;
-
-.cards-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  margin: 0px 0px 0px 24px;
+.athletes-container {
+  min-height: 100vh;
+  color: rgba(255, 255, 255, 0.95);
+  padding: 18px 14px 26px;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
+    radial-gradient(900px 420px at 100% -30%, rgba(65, 105, 225, 0.1), transparent 65%),
+    #07080b;
 }
 
-.athletes-card {
-  width: 320px;
-  min-width: 320px;
-  margin-bottom: 16px;
-  margin-right: 16px;
-  height: 450px;
-  background-color: var(--mat-toolbar-container-background-color);
-}
+.athletes-header {
+  text-align: center;
+  margin: 0 auto 14px;
+  max-width: 720px;
 
+  h1 {
+    margin: 0 0 6px;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: clamp(1.45rem, 4vw, 1.95rem);
+    font-weight: 700;
+    background: linear-gradient(180deg, #ffe89a 0%, #d9aa26 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-.mat-mdc-card-header {
-  height: 76px;
-}
-
-.athlete-image {
-  height: 280px;
-  padding: 0px;
-  width: 320px;
-  margin-bottom: 4px;
-  object-fit: cover;
-}
-
-.chip-list {
-  width: 80%;
-}
-
-.search-field {
-  flex: 1;
-  max-width: 100%;
-  margin: 16px 16px 0 16px;
-  min-height: 56px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mat-form-field {
-  width: 100%;
-  padding-bottom: 0;
-  height: auto;
-  text-align: left;
-  font-family: "Geist Mono", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-  mat-icon {
-    color: var(--mat-toolbar-container-text-color);
-    opacity: 0.7;
-    margin-right: 8px;
+  p {
+    margin: 0;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.62);
+    letter-spacing: 0.35px;
   }
 }
 
-.pictogram-chip {
-  &.mat-mdc-standard-chip {
-    padding: 0;
-    overflow: visible;
+.filters-panel {
+  max-width: 1200px;
+  margin: 0 auto 12px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
 
-    .mdc-evolution-chip__action--primary {
-      padding: 0;
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.58);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  select {
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0 12px;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 13px;
+    outline: none;
+
+    &:focus {
+      border-color: rgba(212, 175, 55, 0.55);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+    }
+  }
+}
+
+.reset-item {
+  justify-content: flex-end;
+}
+
+.reset-btn {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.14);
+  color: #f1d45a;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.58);
+  }
+
+  &:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+  }
+}
+
+.table-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.table-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  .result-count {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f1d45a;
+  }
+
+  .result-total {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.56);
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.athletes-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 11px 12px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  th {
+    background: rgba(7, 8, 11, 0.86);
+    color: rgba(255, 255, 255, 0.66);
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  tbody tr {
+    transition: background 0.18s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
     }
   }
 
-  .mdc-chip__media {
-    margin: 0;
+  .athlete-name {
+    color: #f1d45a;
+    font-weight: 600;
+  }
+
+  .table-list {
+    color: rgba(255, 255, 255, 0.74);
+  }
+
+  .empty-row {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.58);
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    padding: 18px 12px;
   }
 }
 
-.pictogram-button-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-}
-.dark-theme .pictogram-button-image {
-  filter: brightness(1) contrast(0.8) invert(1);
-}
-
-.pictogram-chip-remove-icon {
-  position: absolute;
-  top: -12px;
-  right: -10px;
-  // background-color: var(--primary-color);
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
+.status-pill {
+  display: inline-flex;
   align-items: center;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  justify-content: center;
+  min-width: 74px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.84);
+  background: rgba(255, 255, 255, 0.06);
 
-  &:hover {
-    transform: scale(1.25);
+  &.active {
+    color: #8ce2a6;
+    border-color: rgba(80, 200, 120, 0.44);
+    background: rgba(80, 200, 120, 0.14);
+  }
+
+  &.inactive {
+    color: #ffb2a3;
+    border-color: rgba(255, 99, 71, 0.46);
+    background: rgba(255, 99, 71, 0.14);
+  }
+
+  &.unknown {
+    color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
   }
 }
-.road-to-la-container {
+
+.loading-state,
+.error-state {
+  min-height: 52vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+}
+
+.error-state {
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  color: #ff9f95;
+}
+
+@media (max-width: 1024px) {
+  .filters-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reset-item {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .athletes-container {
+    padding: 16px 12px 22px;
+  }
+
+  .filters-panel {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .reset-item {
+    grid-column: auto;
+  }
+
+  .athletes-table {
+    min-width: 760px;
+
+    th,
+    td {
+      padding: 10px;
+      font-size: 12px;
+    }
+  }
 }

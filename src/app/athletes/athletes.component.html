@@ -1,75 +1,110 @@
-<div *ngIf="total > 0" class="filter-options mat-elevation-z1">
-  <div class="filter-container">
-    <div class="search-field">
-      <mat-form-field appearance="outline" class="chip-list">
-        <mat-label>Search Sports</mat-label>
-        <mat-chip-grid #chipGrid aria-label="Sport selection">
-          <mat-chip-row class="pictogram-chip" *ngFor="let sport of sports" (removed)="remove(sport)">
-            <img class="pictogram-button-image" [src]="'assets/images/pictograms/icons/' + sport + '.png'"
-              [alt]="sport + ' pictogram'">
-            <mat-icon matChipRemove color="primary" class="pictogram-chip-remove-icon">cancel</mat-icon>
-          </mat-chip-row>
-          <input #sportInput [formControl]="sportCtrl" [matAutocomplete]="auto" [matChipInputFor]="chipGrid"
-            [matChipInputSeparatorKeyCodes]="separatorKeysCodes" placeholder="Search for a sport...">
-        </mat-chip-grid>
-        <mat-icon matPrefix>search</mat-icon>
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selected($event)">
-          <mat-option *ngFor="let sport of filteredSports | async" [value]="sport">
-            {{sport}}
-          </mat-option>
-        </mat-autocomplete>
-      </mat-form-field>
-    </div>
-    <!-- TO DO: Replace pagination with Virtual Scrolling -->
-    <!-- <mat-paginator class="paginator" [length]="length" [pageSize]="pageSize" [pageIndex]="pageIndex"
-      [pageSizeOptions]="pageSizeOptions" (page)="handlePageEvent($event)">
-    </mat-paginator> -->
-  </div>
-</div>
-<div *ngIf="total > 0" class="cards-container">
-  <mat-error *ngIf="errmsg">{{errmsg}}</mat-error>
-  <span *ngIf="athletes?.length === 0">
-    Our Athletes are trying hard, hopefully we'll see someone qualifying soon.
-  </span>
-  <mat-card color="primary" class="athletes-card mat-elevation-z8" *ngFor="let athlete of athletes">
-    <mat-card-header>
-      <img mat-card-avatar [routerLink]="['/sports/' + athlete.sportname]" [queryParams]="{edition: edition}"
-        class="pictogram-button-image" src="assets/images/pictograms/icons/{{athlete.sportname}}.png"
-        alt="{{athlete.sportname}} pictogram" />
-      <mat-card-title>{{ athlete.name }}</mat-card-title>
-      <mat-card-subtitle>{{ athlete.event }}</mat-card-subtitle>
-    </mat-card-header>
-    <picture>
-      <img mat-card-image class="athlete-image" [src]="athlete.photo" [attr.alt]="athlete.name + ' photo'"
-        onerror="this.onerror=null; this.src='assets/images/placeholder.svg';">
-    </picture>
-    <mat-card-content>
-      <!-- <p *ngIf="athlete.imagesrc">({{athlete.imagesrc}})</p> -->
-      <strong>Qualification Event:</strong>&nbsp;{{athlete.qualificationEvent}}<br />
-      <strong>Date Quota Earned:</strong>&nbsp;{{ athlete.date_qualified * 1000 | date}}
+<div class="athletes-container">
+  <header class="athletes-header">
+    <h1>Athletes</h1>
+    <p>Filter India's Olympians by sport, edition and active status.</p>
+  </header>
 
-    </mat-card-content>
-  </mat-card>
-</div>
-<div *ngIf="total > 0" class="bottom-note">
-  <mat-card *ngIf="!(athletes?.length === 0)">
-    <mat-card-content>
-      Note: The above athletes are the ones who has won quota places for India,
-      the final decision to confirm their participation for Tokyo will be taken by our NOCs. There is
-      full selection process in place where someone else may be sent by the National Fed. in lieu of the quota holder.
-    </mat-card-content>
-  </mat-card>
-</div>
-<div *ngIf="edition === '2028'" class="road-to-la-container">
-  <div *ngIf="total === 0" class="no-data-message">
-    The Central American and Caribbean Games, scheduled to take place in Santo Domingo, Dominican Republic, in 2026,
-    will
-    mark the beginning of the road to Los Angeles 2028.
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="44"></mat-spinner>
   </div>
-  <app-countdown *ngIf="total === 0" [targetDate]="countdownTargetDate" label="Road To Los Angeles 2028:">
-  </app-countdown>
-  <button mat-fab extended color="primary" class="view-all-button" (click)="onOlympicsChange('2020')">
-    <mat-icon>directions_run</mat-icon>
-    See Tokyo 2020 Athletes
-  </button>
+
+  <div *ngIf="!loading() && errorMessage()" class="error-state">
+    {{ errorMessage() }}
+  </div>
+
+  <ng-container *ngIf="!loading() && !errorMessage()">
+    <section class="filters-panel">
+      <div class="filter-item">
+        <label for="sport-filter">Sport</label>
+        <select
+          id="sport-filter"
+          [ngModel]="selectedSport()"
+          (ngModelChange)="setSportFilter($event)"
+        >
+          <option value="all">All sports</option>
+          <option *ngFor="let option of sportOptions()" [value]="option.value">
+            {{ option.label }} ({{ option.count }})
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="edition-filter">Edition</label>
+        <select
+          id="edition-filter"
+          [ngModel]="selectedEdition()"
+          (ngModelChange)="setEditionFilter($event)"
+        >
+          <option value="all">All editions</option>
+          <option *ngFor="let option of editionOptions()" [value]="option.value">
+            {{ option.label }} ({{ option.count }})
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="status-filter">Status</label>
+        <select
+          id="status-filter"
+          [ngModel]="selectedActive()"
+          (ngModelChange)="setActiveFilter($event)"
+        >
+          <option value="all">All athletes</option>
+          <option value="active">Active only</option>
+          <option value="inactive">Inactive only</option>
+        </select>
+      </div>
+
+      <div class="filter-item reset-item">
+        <button type="button" class="reset-btn" (click)="resetFilters()" [disabled]="!hasActiveFilters()">
+          Reset filters
+        </button>
+      </div>
+    </section>
+
+    <section class="table-panel">
+      <div class="table-meta">
+        <span class="result-count">{{ filteredRows().length }} athletes</span>
+        <span class="result-total">/ {{ athleteRows().length }} total</span>
+      </div>
+
+      <div class="table-scroll">
+        <table class="athletes-table" aria-label="Athletes table">
+          <thead>
+            <tr>
+              <th>Athlete</th>
+              <th>Country</th>
+              <th>Sports</th>
+              <th>Editions</th>
+              <th>Participations</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let athlete of filteredRows(); trackBy: trackByAthleteId">
+              <td class="athlete-name">{{ athlete.name }}</td>
+              <td>{{ athlete.country }}</td>
+              <td class="table-list">{{ athlete.sportsDisplay }}</td>
+              <td class="table-list">{{ athlete.editionsDisplay }}</td>
+              <td>{{ athlete.participationCount }}</td>
+              <td>
+                <span
+                  class="status-pill"
+                  [class.active]="athlete.isActive === true"
+                  [class.inactive]="athlete.isActive === false"
+                  [class.unknown]="athlete.isActive === null"
+                >
+                  {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Inactive' : 'Unknown' }}
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="filteredRows().length === 0">
+              <td colspan="6" class="empty-row">No athletes match the selected filters.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
 </div>

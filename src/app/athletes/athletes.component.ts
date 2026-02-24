@@ -1,191 +1,448 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
-import { SportsdataService } from '../sportsdata.service';
-// import { MatPaginatorModule, PageEvent, MatPaginator } from '@angular/material/paginator'; // Added MatPaginator type
-// import { Athletes} from '../models/app-models';
-import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { UntypedFormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent, MatAutocompleteTrigger, MatAutocomplete } from '@angular/material/autocomplete'; // Added MatAutocomplete type
-import { Observable, of as observableOf } from 'rxjs';
-import { map, startWith, catchError, finalize } from 'rxjs/operators';
-import { MatChipsModule, MatChipGrid } from '@angular/material/chips'; // Added MatChipGrid type
-import { MatInputModule } from '@angular/material/input'; // Corrected to MatInputModule
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { CountdownComponent } from '../countdown/countdown.component';
-import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { Athlete, Edition, OlympicParticipation, PayloadService, Sport } from '../services/payload.service';
 
-interface Athlete {
+type ActiveFilter = 'all' | 'active' | 'inactive';
+
+interface AthleteRow {
+  id: string;
   name: string;
-  sportname: string;
-  event: string;
-  index: string; // Add this field
-  image: string;
-  webpimage: string;
-  qualificationEvent: string;
-  date_qualified: number;
+  country: string;
+  sports: string[];
+  sportsDisplay: string;
+  editionIds: string[];
+  editions: string[];
+  editionsDisplay: string;
+  participationCount: number;
+  isActive: boolean | null;
 }
 
-interface AthleteResponse {
-  athletes: Athlete[];
-  total: number;
+interface FilterOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
+interface AthleteAggregate {
+  fallbackName: string;
+  sportNames: Set<string>;
+  editionIds: Set<string>;
+  participationCount: number;
 }
 
 @Component({
   selector: 'app-athletes',
   standalone: true,
+  imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
   templateUrl: './athletes.component.html',
   styleUrls: ['./athletes.component.scss'],
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterLink,
-    MatInputModule,
-    MatChipsModule,
-    MatIconModule,
-    MatAutocompleteModule,
-    // MatPaginatorModule,
-    MatCardModule,
-    CountdownComponent,
-    MatButtonModule
-  ]
 })
 export class AthletesComponent implements OnInit {
-  public errmsg: string;
-  public athletes: Athlete[];
-  public edition: string;
-  public total: number;
-  // @ViewChild(MatPaginator) paginator: MatPaginator; // Types are now imported
-  // TO DO: Replace pagination with Virtual Scrolling
-  // MatPaginator Inputs
-  // length: number;
-  // pageSize = 24;
-  // pageSizeOptions: number[] = [24, 48, 96];
-  // MatPaginator Output
-  // pageEvent: PageEvent;
-  // pageIndex = 0;
-  // Search autocomplete Inputs
-  visible = true;
-  selectable = true;
-  removable = true;
-  separatorKeysCodes: number[] = [ENTER, COMMA];
-  sportCtrl = new UntypedFormControl();
-  filteredSports: Observable<any>;
-  sports: string[] = [];
-  allsports: string[] = [
-    'Archery',
-    'Athletics',
-    'Badminton',
-    'Boxing',
-    'Equestrian',
-    'Fencing',
-    'Golf',
-    'Gymnastics',
-    'Hockey',
-    'Judo',
-    'Rowing',
-    'Shooting',
-    'Sailing',
-    'Swimming',
-    'TableTennis',
-    'Tennis',
-    'Weightlifting',
-    'Wrestling'
-  ];
-  public countdownTargetDate: Date = new Date('2026-07-24T00:00:00');
+  private payload = inject(PayloadService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private applyingQueryParams = false;
 
-  @ViewChild('sportInput') sportInput: ElementRef<HTMLInputElement>;
-  @ViewChild('auto') matAutocomplete: MatAutocomplete; // Types are now imported
-  @ViewChild('chipGrid') chipGrid: MatChipGrid; // Types are now imported
-  constructor(private route: ActivatedRoute, private router: Router, private sportservice: SportsdataService) {
-    this.filteredSports = this.sportCtrl.valueChanges.pipe(
-      map((sport: string | null) => sport ? this._filter(sport) : this.getallsports()));
+  loading = signal(true);
+  errorMessage = signal<string | null>(null);
+
+  athleteRows = signal<AthleteRow[]>([]);
+  sportOptions = signal<FilterOption[]>([]);
+  editionOptions = signal<FilterOption[]>([]);
+
+  selectedSport = signal<string>('all');
+  selectedEdition = signal<string>('all');
+  selectedActive = signal<ActiveFilter>('all');
+
+  hasActiveFilters = computed(() =>
+    this.selectedSport() !== 'all' ||
+    this.selectedEdition() !== 'all' ||
+    this.selectedActive() !== 'all',
+  );
+
+  filteredRows = computed(() => {
+    let rows = this.athleteRows();
+
+    const sport = this.selectedSport();
+    if (sport !== 'all') {
+      rows = rows.filter((row) => row.sports.includes(sport));
+    }
+
+    const edition = this.selectedEdition();
+    if (edition !== 'all') {
+      rows = rows.filter((row) => row.editionIds.includes(edition));
+    }
+
+    const activeFilter = this.selectedActive();
+    if (activeFilter === 'active') {
+      rows = rows.filter((row) => row.isActive === true);
+    } else if (activeFilter === 'inactive') {
+      rows = rows.filter((row) => row.isActive === false);
+    }
+
+    return [...rows].sort((a, b) => {
+      const nameDiff = a.name.localeCompare(b.name);
+      if (nameDiff !== 0) return nameDiff;
+      return a.id.localeCompare(b.id);
+    });
+  });
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      this.applyingQueryParams = true;
+      this.selectedSport.set(params.get('sport') || 'all');
+      this.selectedEdition.set(params.get('edition') || 'all');
+      this.selectedActive.set(this.parseActiveFilter(params.get('active')));
+      this.applyingQueryParams = false;
+    });
+
+    this.loadData();
   }
 
-  ngOnInit() {
-    this.route.queryParams
-      .subscribe(params => {
-        this.edition = params.edition || '2028';
-        this.sports = params.sports ? JSON.parse(params.sports) : [];
-        this.SearchAthletes(JSON.stringify(this.sports), "0", "100", this.edition);
+  setSportFilter(value: string): void {
+    this.selectedSport.set(value || 'all');
+    this.updateQueryParams();
+  }
+
+  setEditionFilter(value: string): void {
+    this.selectedEdition.set(value || 'all');
+    this.updateQueryParams();
+  }
+
+  setActiveFilter(value: ActiveFilter): void {
+    this.selectedActive.set(value || 'all');
+    this.updateQueryParams();
+  }
+
+  resetFilters(): void {
+    this.selectedSport.set('all');
+    this.selectedEdition.set('all');
+    this.selectedActive.set('all');
+    this.updateQueryParams();
+  }
+
+  trackByAthleteId = (_: number, row: AthleteRow): string => row.id;
+
+  private loadData(): void {
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    forkJoin({
+      athletes: this.loadAllAthletes(250),
+      participations: this.payload.getParticipations({ limit: 10000 }),
+      sports: this.payload.getSports(),
+      editions: this.payload.getEditions({ limit: 120 }),
+    }).subscribe({
+      next: ({ athletes, participations, sports, editions }) => {
+        const { rows, editionLabelById, editionYearById } = this.buildAthleteRows(
+          athletes,
+          participations,
+          sports,
+          editions,
+        );
+
+        this.athleteRows.set(rows);
+        this.sportOptions.set(this.buildSportOptions(rows));
+        this.editionOptions.set(this.buildEditionOptions(rows, editionLabelById, editionYearById));
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Unable to load athletes right now. Please try again.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadAllAthletes(limit: number): Observable<Athlete[]> {
+    return this.payload.getAthletes({ limit, page: 1 }).pipe(
+      switchMap((firstPage) => {
+        if (!firstPage.totalPages || firstPage.totalPages <= 1) {
+          return of(firstPage.docs);
+        }
+
+        const pageRequests = Array.from({ length: firstPage.totalPages - 1 }, (_, index) => {
+          const page = index + 2;
+          return this.payload.getAthletes({ limit, page });
+        });
+
+        return forkJoin(pageRequests).pipe(
+          map((otherPages) => [
+            ...firstPage.docs,
+            ...otherPages.flatMap((pageResult) => pageResult.docs),
+          ]),
+        );
+      }),
+      map((docs) => {
+        const seen = new Set<string>();
+        return docs.filter((athlete) => {
+          if (!athlete?.id || seen.has(athlete.id)) return false;
+          seen.add(athlete.id);
+          return true;
+        });
+      }),
+    );
+  }
+
+  private buildAthleteRows(
+    athletes: Athlete[],
+    participations: OlympicParticipation[],
+    sportsCatalog: Sport[],
+    editions: Edition[],
+  ): {
+    rows: AthleteRow[];
+    editionLabelById: Map<string, string>;
+    editionYearById: Map<string, number>;
+  } {
+    const sportsById = new Map<string, Sport>(sportsCatalog.map((sport) => [sport.id, sport]));
+
+    const editionLabelById = new Map<string, string>();
+    const editionYearById = new Map<string, number>();
+
+    editions.forEach((edition) => {
+      if (!edition?.id) return;
+      const year = edition.year || 0;
+      const label = edition.city && year ? `${edition.city} ${year}` : edition.name || String(year || 'Unknown');
+      editionLabelById.set(edition.id, label);
+      editionYearById.set(edition.id, year);
+    });
+
+    const aggregates = new Map<string, AthleteAggregate>();
+
+    participations.forEach((participation) => {
+      const athleteId = this.getAthleteId(participation);
+      if (!athleteId) return;
+
+      if (!aggregates.has(athleteId)) {
+        aggregates.set(athleteId, {
+          fallbackName: this.getAthleteName(participation),
+          sportNames: new Set<string>(),
+          editionIds: new Set<string>(),
+          participationCount: 0,
+        });
       }
-      );
-  }
-  get queryParams() {
-    // const index = this.paginator.pageIndex * this.paginator.pageSize;
-    // const size = this.paginator.pageSize;
-    const sports = JSON.stringify(this.sports);
-    const queryParams: Params = { sports: sports, pageIndex: 0, pazeSize: 100, edition: this.edition };
-    return queryParams;
-  }
-  private _filter(value: string): string[] {
-    const filterValue = value.toLowerCase();
-    if (this.sports.length > 0) {
-      const filteredallsports = this.allsports.filter(sport => !(this.sports.includes(sport)));
-      return filteredallsports.filter(sport => sport.toLowerCase().indexOf(filterValue) === 0);
-    } else {
-      return this.allsports.filter(sport => sport.toLowerCase().indexOf(filterValue) === 0);
-    }
-  }
-  getallsports() {
-    if (this.sports) {
-      // console.log(this.allsports.filter(sport => !(this.sports.includes(sport))))
-      return this.allsports.filter(sport => !(this.sports.includes(sport)));
-    } else {
-      return this.allsports.slice();
-    }
-  }
-  prepareQueryUrl() {
-    this.router.navigate(
-      [],
-      {
-        relativeTo: this.route,
-        queryParams: this.queryParams,
-        // queryParamsHandling: 'merge'
+
+      const aggregate = aggregates.get(athleteId)!;
+      aggregate.participationCount += 1;
+
+      const editionId = participation.edition?.id || null;
+      if (editionId) {
+        aggregate.editionIds.add(editionId);
+        if (!editionLabelById.has(editionId)) {
+          const year = participation.edition?.year || 0;
+          const label = participation.edition?.name || String(year || 'Unknown');
+          editionLabelById.set(editionId, label);
+          editionYearById.set(editionId, year);
+        }
+      }
+
+      if (typeof participation.event === 'object' && participation.event?.sport) {
+        const canonicalSportName = this.getCanonicalSportName(participation.event.sport, sportsById);
+        if (canonicalSportName) {
+          aggregate.sportNames.add(canonicalSportName);
+        }
+      }
+    });
+
+    const athleteIds = new Set<string>();
+    const rows: AthleteRow[] = athletes.map((athlete) => {
+      athleteIds.add(athlete.id);
+      const aggregate = aggregates.get(athlete.id);
+
+      const sportNames = new Set<string>();
+      (athlete.sports || []).forEach((sport) => {
+        const canonicalSportName = this.getCanonicalSportName(sport, sportsById);
+        if (canonicalSportName) sportNames.add(canonicalSportName);
       });
-  }
-  // handlePageEvent(e: PageEvent) {
-  //   // console.log(e);
-  //   this.prepareQueryUrl();
-  // }
+      aggregate?.sportNames.forEach((sportName) => sportNames.add(sportName));
 
-  selected(event: MatAutocompleteSelectedEvent): void {
-    this.sports.push(event.option.viewValue);
-    this.sportInput.nativeElement.value = '';
-    this.sportCtrl.setValue(null);
-    // this.paginator.pageIndex = 0;
-    this.prepareQueryUrl();
-  }
+      const editionEntries = Array.from(aggregate?.editionIds || []).map((editionId) => ({
+        id: editionId,
+        label: editionLabelById.get(editionId) || editionId,
+        year: editionYearById.get(editionId) || 0,
+      }));
 
-  remove(sport: string): void {
-    const index = this.sports.indexOf(sport);
-    if (index >= 0) {
-      this.sports.splice(index, 1);
-      // this.paginator.pageIndex = 0;
-      this.prepareQueryUrl();
-    }
-  }
-  public SearchAthletes(selectedsports: string, pageIndex: string, pageSize: string, edition: string) {
-    this.sportservice.getathletes(selectedsports, pageIndex, pageSize, edition)
-      .pipe(
-        catchError((error) => {
-          this.errmsg = error.message || 'An error occurred';
-          return observableOf({ athletes: [], total: 0 });
-        })
-      )
-      .subscribe((res: AthleteResponse) => {
-        this.athletes = res.athletes;
-        this.total = res.total;
+      editionEntries.sort((a, b) => {
+        if (b.year !== a.year) return b.year - a.year;
+        return a.label.localeCompare(b.label);
       });
+
+      const sports = Array.from(sportNames).sort((a, b) => a.localeCompare(b));
+      const editionIds = editionEntries.map((entry) => entry.id);
+      const editionLabels = editionEntries.map((entry) => entry.label);
+
+      return {
+        id: athlete.id,
+        name: athlete.fullName || 'Unknown',
+        country: athlete.country || 'India',
+        sports,
+        sportsDisplay: this.formatList(sports, 3),
+        editionIds,
+        editions: editionLabels,
+        editionsDisplay: this.formatList(editionLabels, 4),
+        participationCount: aggregate?.participationCount || 0,
+        isActive: typeof athlete.isActive === 'boolean' ? athlete.isActive : null,
+      };
+    });
+
+    aggregates.forEach((aggregate, athleteId) => {
+      if (athleteIds.has(athleteId)) return;
+
+      const sports = Array.from(aggregate.sportNames).sort((a, b) => a.localeCompare(b));
+      const editionEntries = Array.from(aggregate.editionIds).map((editionId) => ({
+        id: editionId,
+        label: editionLabelById.get(editionId) || editionId,
+        year: editionYearById.get(editionId) || 0,
+      }));
+
+      editionEntries.sort((a, b) => {
+        if (b.year !== a.year) return b.year - a.year;
+        return a.label.localeCompare(b.label);
+      });
+
+      const editionIds = editionEntries.map((entry) => entry.id);
+      const editionLabels = editionEntries.map((entry) => entry.label);
+
+      rows.push({
+        id: athleteId,
+        name: aggregate.fallbackName || 'Unknown',
+        country: 'India',
+        sports,
+        sportsDisplay: this.formatList(sports, 3),
+        editionIds,
+        editions: editionLabels,
+        editionsDisplay: this.formatList(editionLabels, 4),
+        participationCount: aggregate.participationCount,
+        isActive: null,
+      });
+    });
+
+    rows.sort((a, b) => {
+      const nameDiff = a.name.localeCompare(b.name);
+      if (nameDiff !== 0) return nameDiff;
+      return a.id.localeCompare(b.id);
+    });
+
+    return { rows, editionLabelById, editionYearById };
   }
 
-  onOlympicsChange(selection: string) {
+  private buildSportOptions(rows: AthleteRow[]): FilterOption[] {
+    const counts = new Map<string, number>();
+
+    rows.forEach((row) => {
+      row.sports.forEach((sportName) => {
+        counts.set(sportName, (counts.get(sportName) || 0) + 1);
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([sportName, count]) => ({ value: sportName, label: sportName, count }));
+  }
+
+  private buildEditionOptions(
+    rows: AthleteRow[],
+    editionLabelById: Map<string, string>,
+    editionYearById: Map<string, number>,
+  ): FilterOption[] {
+    const counts = new Map<string, number>();
+
+    rows.forEach((row) => {
+      row.editionIds.forEach((editionId) => {
+        counts.set(editionId, (counts.get(editionId) || 0) + 1);
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort((a, b) => {
+        const yearDiff = (editionYearById.get(b[0]) || 0) - (editionYearById.get(a[0]) || 0);
+        if (yearDiff !== 0) return yearDiff;
+        return (editionLabelById.get(a[0]) || a[0]).localeCompare(editionLabelById.get(b[0]) || b[0]);
+      })
+      .map(([editionId, count]) => ({
+        value: editionId,
+        label: editionLabelById.get(editionId) || editionId,
+        count,
+      }));
+  }
+
+  private formatList(values: string[], maxItems: number): string {
+    if (!values.length) return '—';
+    if (values.length <= maxItems) return values.join(', ');
+    const remaining = values.length - maxItems;
+    return `${values.slice(0, maxItems).join(', ')} +${remaining}`;
+  }
+
+  private getCanonicalSportName(rawSport: Sport | null | undefined, sportsById: Map<string, Sport>): string | null {
+    if (!rawSport) return null;
+
+    const sourceSport = rawSport.id ? sportsById.get(rawSport.id) || rawSport : rawSport;
+    const parentId = this.getParentSportId(sourceSport, sportsById);
+
+    if (parentId) {
+      const parentSport = sportsById.get(parentId);
+      if (parentSport?.name) return parentSport.name;
+    }
+
+    return sourceSport.name || null;
+  }
+
+  private getParentSportId(sport: Sport | null, sportsById: Map<string, Sport>): string | null {
+    if (!sport) return null;
+
+    const directParentId = this.extractParentSportId((sport as unknown as { parentSport?: unknown }).parentSport);
+    if (directParentId) return directParentId;
+
+    const catalogSport = sport.id ? sportsById.get(sport.id) || null : null;
+    if (!catalogSport) return null;
+
+    return this.extractParentSportId((catalogSport as unknown as { parentSport?: unknown }).parentSport);
+  }
+
+  private extractParentSportId(rawParent: unknown): string | null {
+    if (typeof rawParent === 'string') return rawParent;
+    if (typeof rawParent === 'object' && rawParent && 'id' in (rawParent as Record<string, unknown>)) {
+      const id = (rawParent as Record<string, unknown>).id;
+      return typeof id === 'string' ? id : null;
+    }
+    return null;
+  }
+
+  private getAthleteId(participation: OlympicParticipation): string | null {
+    if (typeof participation.athlete === 'object' && participation.athlete?.id) {
+      return participation.athlete.id;
+    }
+    return null;
+  }
+
+  private getAthleteName(participation: OlympicParticipation): string {
+    if (typeof participation.athlete === 'object' && participation.athlete?.fullName) {
+      return participation.athlete.fullName;
+    }
+    return 'Unknown';
+  }
+
+  private updateQueryParams(): void {
+    if (this.applyingQueryParams) return;
+
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { edition: selection },
-      queryParamsHandling: 'merge'
+      queryParams: {
+        sport: this.selectedSport() === 'all' ? null : this.selectedSport(),
+        edition: this.selectedEdition() === 'all' ? null : this.selectedEdition(),
+        active: this.selectedActive() === 'all' ? null : this.selectedActive(),
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
+  }
+
+  private parseActiveFilter(value: string | null): ActiveFilter {
+    if (value === 'active' || value === 'inactive') return value;
+    return 'all';
   }
 }
