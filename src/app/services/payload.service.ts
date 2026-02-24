@@ -81,7 +81,7 @@ export interface OlympicParticipation {
   athlete: Athlete;
   edition: Edition;
   event: Event;
-  result: 'gold' | 'silver' | 'bronze' | 'participated' | 'dnf' | 'dns' | 'dq' | 'reserve';
+  result: 'gold' | 'silver' | 'bronze' | '4th-8th' | 'participated' | 'dnf' | 'dns' | 'dq' | 'reserve';
   placement?: number;
   performance?: string;
 }
@@ -154,15 +154,17 @@ export interface GoldenMoment {
   year: number;
   city: string;
   event: string;
+  sport?: Sport | null;
   athlete: string;
-  media: {
+  media?: {
     url: string;
     alt: string;
     credits?: string;
-  };
+  } | null;
   linkedStory?: {
     slug: string;
   };
+  externalLink?: string;
 }
 
 export interface Product {
@@ -192,7 +194,6 @@ const ATHLETES_QUERY = gql`
       fullName
       slug
       country
-      gender
       state
       isActive
       worldRanking
@@ -266,7 +267,18 @@ const PARTICIPATIONS_QUERY = gql`
       result
       placement
       performance
-        athlete { id fullName slug photo { url } }
+        athlete {
+          id
+          fullName
+          slug
+          photo { url }
+          sports {
+            id
+            name
+            slug
+            parentSport { id }
+          }
+        }
         edition { id name slug year }
         event { id name type sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
     }
@@ -332,6 +344,12 @@ const GOLDEN_MOMENTS_QUERY = gql`
         year
         city
         event
+        sport {
+          id
+          name
+          slug
+          parentSport { id name slug }
+        }
         athlete
         media {
           url
@@ -341,6 +359,7 @@ const GOLDEN_MOMENTS_QUERY = gql`
         linkedStory {
           slug
         }
+        externalLink
       }
     }
   }
@@ -349,6 +368,7 @@ const GOLDEN_MOMENTS_QUERY = gql`
 const PRODUCTS_QUERY = gql`
   query GetProducts($limit: Int) {
     Products(limit: $limit) {
+      totalDocs
       docs {
         id
         title
@@ -380,8 +400,40 @@ export class PayloadService {
 
   getMediaUrl(media: { url: string } | undefined | null): string | null {
     if (!media?.url) return null;
-    if (media.url.startsWith('http')) return media.url;
-    return environment.payload_url + media.url;
+    return this.normalizeMediaUrl(media.url);
+  }
+
+  private normalizeMediaUrl(rawUrl: string): string {
+    const url = rawUrl.trim();
+    if (!url) return '';
+
+    // Relative payload media path (dev proxy / prod same-origin)
+    if (!/^https?:\/\//i.test(url)) {
+      return this.normalizeMediaPath(`${environment.payload_url}${url}`);
+    }
+
+    try {
+      const parsed = new URL(url);
+      const hostname = parsed.hostname.toLowerCase();
+      const isLoopbackHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+
+      // LAN devices cannot resolve localhost from CMS responses; use same-origin path so Angular proxy can serve it.
+      if (isLoopbackHost) {
+        return this.normalizeMediaPath(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+      }
+    } catch {
+      // Keep raw URL as-is when parsing fails.
+    }
+
+    return url;
+  }
+
+  private normalizeMediaPath(path: string): string {
+    if (!path) return path;
+    if (path.startsWith('/media/')) {
+      return `/api${path}`;
+    }
+    return path;
   }
 
   // ============ SPORTS ============
@@ -431,8 +483,12 @@ export class PayloadService {
 
     return this.apollo.query<{ Athletes: { docs: Athlete[]; totalDocs: number; totalPages: number; page: number } }>({
       query: ATHLETES_QUERY,
-      variables: { where, limit: options?.limit || 20, page: options?.page || 1 }
-    }).pipe(map(result => result.data.Athletes));
+      variables: { where, limit: options?.limit || 20, page: options?.page || 1 },
+      errorPolicy: 'all',
+      fetchPolicy: 'network-only',
+    }).pipe(
+      map((result) => result.data?.Athletes || { docs: [], totalDocs: 0, totalPages: 0, page: options?.page || 1 })
+    );
   }
 
   getAthleteBySlug(slug: string): Observable<Athlete | null> {
@@ -491,14 +547,16 @@ export class PayloadService {
 
     return this.apollo.query<{ OlympicParticipations: { docs: OlympicParticipation[] } }>({
       query: PARTICIPATIONS_QUERY,
-      variables: { where, limit: options?.limit || 500 }
+      variables: { where, limit: options?.limit || 500 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.OlympicParticipations.docs));
   }
 
   getMedalists(): Observable<OlympicParticipation[]> {
     return this.apollo.query<{ OlympicParticipations: { docs: OlympicParticipation[] } }>({
       query: PARTICIPATIONS_QUERY,
-      variables: { where: { result: { in: ['gold', 'silver', 'bronze'] } }, limit: 500 }
+      variables: { where: { result: { in: ['gold', 'silver', 'bronze'] } }, limit: 500 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.OlympicParticipations.docs));
   }
 
@@ -574,5 +632,13 @@ export class PayloadService {
       variables: { limit },
       context: { headers: { 'x-apollo-operation-name': 'GetProducts' } }
     }).valueChanges.pipe(map(result => result.data.Products.docs));
+  }
+
+  getProductsCount(): Observable<number> {
+    return this.apollo.query<{ Products: { totalDocs: number } }>({
+      query: PRODUCTS_QUERY,
+      variables: { limit: 1 },
+      context: { headers: { 'x-apollo-operation-name': 'GetProducts' } }
+    }).pipe(map(result => result.data.Products.totalDocs || 0));
   }
 }

@@ -5,8 +5,8 @@ const PROXY_CONFIG = {
     changeOrigin: true,
   },
   "/api/media": {
-    target: "https://iodsports.com",
-    secure: true,
+    target: "http://localhost:3000",
+    secure: false,
     changeOrigin: true,
   },
   "/api": {

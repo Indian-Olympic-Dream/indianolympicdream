@@ -45,4 +45,13 @@ export class OriginalsService {
       })
       .valueChanges.pipe(map((result) => result.data.Podcasts.docs));
   }
+
+  getPodcastsCount(): Observable<number> {
+    return this.apollo
+      .query<{ Podcasts: { totalDocs: number } }>({
+        query: GET_PODCASTS,
+        variables: { limit: 1, page: 1 },
+      })
+      .pipe(map((result) => result.data.Podcasts.totalDocs || 0));
+  }
 }
