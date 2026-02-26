@@ -54,10 +54,10 @@
         "/api/**"
       ],
       "cacheConfig": {
-        "strategy": "performance",
+        "strategy": "freshness",
         "maxSize": 100,
-        "maxAge": "1d",
-        "timeout": "5s"
+        "maxAge": "6h",
+        "timeout": "3s"
       }
     }
   ]

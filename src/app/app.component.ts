@@ -1,4 +1,5 @@
-import { Component, HostBinding } from "@angular/core";
+import { Component, HostBinding, PLATFORM_ID, inject } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { SwupdateService } from "./swupdate.service";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import {
@@ -61,6 +62,7 @@ export class AppComponent {
   selectedtheme: string;
   currentTheme = "dark-theme";
   currentSport: string = "";
+  private platformId = inject(PLATFORM_ID);
 
   constructor(
     public router: Router,
@@ -126,6 +128,7 @@ export class AppComponent {
   }
 
   loadThemePreference() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const savedTheme = localStorage.getItem("selectedTheme");
     this.currentTheme = savedTheme || "dark-theme";
 
@@ -142,6 +145,7 @@ export class AppComponent {
   }
 
   onSetTheme() {
+    if (!isPlatformBrowser(this.platformId)) return;
     this.currentTheme =
       this.currentTheme === "default-theme" ? "dark-theme" : "default-theme";
     localStorage.setItem("selectedTheme", this.currentTheme);
@@ -159,6 +163,7 @@ export class AppComponent {
   }
 
   private updateThemeColorMetaTag() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const themeColorMetaTag = document.querySelector(
       'meta[name="theme-color"]',
     );
