@@ -15,6 +15,7 @@ interface AthleteRow {
   country: string;
   sports: string[];
   sportsDisplay: string;
+  sportPictograms: Record<string, string>;
   editionIds: string[];
   editions: string[];
   editionsDisplay: string;
@@ -31,6 +32,7 @@ interface FilterOption {
 interface AthleteAggregate {
   fallbackName: string;
   sportNames: Set<string>;
+  sportPictograms: Map<string, string>;
   editionIds: Set<string>;
   participationCount: number;
 }
@@ -58,15 +60,24 @@ export class AthletesComponent implements OnInit {
   selectedSport = signal<string>('all');
   selectedEdition = signal<string>('all');
   selectedActive = signal<ActiveFilter>('all');
+  selectedTab = signal<'active' | 'all'>('active');
+  searchQuery = signal<string>('');
+  filtersOpen = signal<boolean>(false);
 
   hasActiveFilters = computed(() =>
     this.selectedSport() !== 'all' ||
     this.selectedEdition() !== 'all' ||
-    this.selectedActive() !== 'all',
+    this.selectedActive() !== 'all' ||
+    this.searchQuery().length > 0,
   );
 
   filteredRows = computed(() => {
     let rows = this.athleteRows();
+
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      rows = rows.filter((row) => row.name.toLowerCase().includes(query));
+    }
 
     const sport = this.selectedSport();
     if (sport !== 'all') {
@@ -90,6 +101,14 @@ export class AthletesComponent implements OnInit {
       if (nameDiff !== 0) return nameDiff;
       return a.id.localeCompare(b.id);
     });
+  });
+
+  activeAthletes = computed(() => {
+    return this.filteredRows().filter((r) => r.isActive === true);
+  });
+
+  allFilteredAthletes = computed(() => {
+    return this.filteredRows();
   });
 
   ngOnInit(): void {
@@ -123,6 +142,7 @@ export class AthletesComponent implements OnInit {
     this.selectedSport.set('all');
     this.selectedEdition.set('all');
     this.selectedActive.set('all');
+    this.searchQuery.set('');
     this.updateQueryParams();
   }
 
@@ -221,6 +241,7 @@ export class AthletesComponent implements OnInit {
         aggregates.set(athleteId, {
           fallbackName: this.getAthleteName(participation),
           sportNames: new Set<string>(),
+          sportPictograms: new Map<string, string>(),
           editionIds: new Set<string>(),
           participationCount: 0,
         });
@@ -241,9 +262,16 @@ export class AthletesComponent implements OnInit {
       }
 
       if (typeof participation.event === 'object' && participation.event?.sport) {
-        const canonicalSportName = this.getCanonicalSportName(participation.event.sport, sportsById);
+        const rawSport = participation.event.sport;
+        const canonicalSportName = this.getCanonicalSportName(rawSport, sportsById);
         if (canonicalSportName) {
           aggregate.sportNames.add(canonicalSportName);
+          if (!aggregate.sportPictograms.has(canonicalSportName)) {
+            const pictogramUrl = this.getCanonicalSportPictogram(rawSport, sportsById);
+            if (pictogramUrl) {
+              aggregate.sportPictograms.set(canonicalSportName, pictogramUrl);
+            }
+          }
         }
       }
     });
@@ -254,11 +282,22 @@ export class AthletesComponent implements OnInit {
       const aggregate = aggregates.get(athlete.id);
 
       const sportNames = new Set<string>();
+      const sportPictograms: Record<string, string> = {};
+
       (athlete.sports || []).forEach((sport) => {
         const canonicalSportName = this.getCanonicalSportName(sport, sportsById);
-        if (canonicalSportName) sportNames.add(canonicalSportName);
+        if (canonicalSportName) {
+          sportNames.add(canonicalSportName);
+          if (!sportPictograms[canonicalSportName]) {
+            const url = this.getCanonicalSportPictogram(sport, sportsById);
+            if (url) sportPictograms[canonicalSportName] = url;
+          }
+        }
       });
       aggregate?.sportNames.forEach((sportName) => sportNames.add(sportName));
+      aggregate?.sportPictograms.forEach((url, name) => {
+        if (!sportPictograms[name]) sportPictograms[name] = url;
+      });
 
       const editionEntries = Array.from(aggregate?.editionIds || []).map((editionId) => ({
         id: editionId,
@@ -281,6 +320,7 @@ export class AthletesComponent implements OnInit {
         country: athlete.country || 'India',
         sports,
         sportsDisplay: this.formatList(sports, 3),
+        sportPictograms,
         editionIds,
         editions: editionLabels,
         editionsDisplay: this.formatList(editionLabels, 4),
@@ -307,12 +347,17 @@ export class AthletesComponent implements OnInit {
       const editionIds = editionEntries.map((entry) => entry.id);
       const editionLabels = editionEntries.map((entry) => entry.label);
 
+      // Merge pictogram URLs from aggregate
+      const pictograms: Record<string, string> = {};
+      aggregate.sportPictograms.forEach((url, name) => { pictograms[name] = url; });
+
       rows.push({
         id: athleteId,
         name: aggregate.fallbackName || 'Unknown',
         country: 'India',
         sports,
         sportsDisplay: this.formatList(sports, 3),
+        sportPictograms: pictograms,
         editionIds,
         editions: editionLabels,
         editionsDisplay: this.formatList(editionLabels, 4),
@@ -389,6 +434,28 @@ export class AthletesComponent implements OnInit {
     }
 
     return sourceSport.name || null;
+  }
+
+  private getCanonicalSportPictogram(rawSport: Sport | null | undefined, sportsById: Map<string, Sport>): string | null {
+    if (!rawSport) return null;
+
+    const sourceSport = rawSport.id ? sportsById.get(rawSport.id) || rawSport : rawSport;
+
+    // Try the sport itself first
+    let url = this.payload.getMediaUrl(sourceSport.pictogram);
+    if (url) return url;
+
+    // Try the parent sport
+    const parentId = this.getParentSportId(sourceSport, sportsById);
+    if (parentId) {
+      const parentSport = sportsById.get(parentId);
+      if (parentSport) {
+        url = this.payload.getMediaUrl(parentSport.pictogram);
+        if (url) return url;
+      }
+    }
+
+    return null;
   }
 
   private getParentSportId(sport: Sport | null, sportsById: Map<string, Sport>): string | null {

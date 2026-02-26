@@ -1,4 +1,6 @@
 @use "@angular/material" as mat;
+$text-secondary: rgba(255, 255, 255, 0.6);
+$accent-gold: #d4af37;
 
 mat-toolbar {
   position: fixed;
@@ -17,28 +19,17 @@ mat-toolbar {
 
 .main-toolbar {
   @include mat.elevation(8);
-  display: grid;
-  grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr);
-  align-items: center;
-  padding: 0 12px;
-}
-
-.toolbar-side {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  min-width: 44px;
+  padding: 0 24px;
 }
 
-.left-slot {
-  justify-content: flex-start;
-}
-
-.right-slot {
-  justify-content: flex-end;
+.spacer {
+  flex: 1 1 auto;
 }
 
 .logo-container {
-  justify-self: center;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;
@@ -47,6 +38,22 @@ mat-toolbar {
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 1002;
+
+  .brand-text {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+
+    .iod {
+      color: $accent-gold;
+    }
+
+    .sports {
+      margin-left: 4px;
+      color: $text-secondary;
+    }
+  }
 
   .olympic-logo {
     height: 36px;
@@ -63,11 +70,7 @@ mat-toolbar {
   }
 }
 
-:host-context(.dark-theme) {
-  .logo-container .olympic-logo {
-    filter: drop-shadow(0px 1px 3px rgba(255, 255, 255, 0.3)) drop-shadow(0px 0px 10px var(--primary-color));
-  }
-}
+
 
 .auth-actions .auth-btn {
   color: var(--text-secondary);
@@ -110,64 +113,74 @@ mat-sidenav-content {
   position: relative;
 }
 
-.desktop-context-nav {
-  position: sticky;
-  top: 0;
-  z-index: 40;
+.desktop-nav {
   display: flex;
-  gap: 8px;
   align-items: center;
-  justify-content: center;
-  padding: 10px 16px 8px;
-  background:
-    linear-gradient(180deg, rgba(10, 10, 15, 0.96) 0%, rgba(10, 10, 15, 0.8) 85%, rgba(10, 10, 15, 0) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  gap: 8px;
+  height: 100%;
 }
 
-.context-link {
+.nav-link {
   height: 38px;
-  min-width: 96px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text-secondary);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
   }
 
   &.active-link {
-    background: rgba(212, 175, 55, 0.15);
-    border-color: var(--accent-gold);
+    background: rgba(212, 175, 55, 0.12);
+    border-color: rgba(212, 175, 55, 0.25);
     color: var(--accent-gold);
+    font-weight: 600;
 
-    .context-icon-pictogram {
+    .nav-icon-pictogram {
       filter: brightness(0) saturate(100%) invert(79%) sepia(46%) saturate(548%) hue-rotate(357deg) brightness(92%) contrast(87%);
       opacity: 1;
     }
 
-    .context-icon {
+    .nav-icon {
       opacity: 1;
     }
   }
 }
 
-.context-icon-col {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+.nav-icon {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &.nav-icon-logo {
+    height: 18px;
+    width: auto;
+  }
+
+  &.nav-icon-pictogram {
+    height: 18px;
+    width: 18px;
+    filter: invert(1) brightness(0.95) contrast(0.95);
+  }
+
+  &.mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+    line-height: 20px;
+  }
 }
 
 .context-icon {
@@ -178,31 +191,6 @@ mat-sidenav-content {
   opacity: 0.86;
 }
 
-.context-icon-image {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.context-icon-logo {
-  width: 18px;
-  height: 18px;
-  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.35));
-}
-
-.context-icon-pictogram {
-  filter: invert(1) brightness(0.95) contrast(0.95);
-  opacity: 0.9;
-}
-
-.context-label {
-  font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.15px;
-  line-height: 1;
-}
 
 // Responsive Helpers
 .hidden-mobile {

@@ -1,7 +1,9 @@
 <div class="athletes-container">
   <header class="athletes-header">
     <h1>Athletes</h1>
-    <p>Filter India's Olympians by sport, edition and active status.</p>
+    <p *ngIf="selectedTab() === 'active'">India's current Olympic-bound athletes</p>
+    <p *ngIf="selectedTab() === 'all'">India's complete Olympic journey — {{ athleteRows().length }} athletes across {{
+      editionOptions().length }} editions</p>
   </header>
 
   <div *ngIf="loading()" class="loading-state">
@@ -13,98 +15,201 @@
   </div>
 
   <ng-container *ngIf="!loading() && !errorMessage()">
-    <section class="filters-panel">
-      <div class="filter-item">
-        <label for="sport-filter">Sport</label>
-        <select
-          id="sport-filter"
-          [ngModel]="selectedSport()"
-          (ngModelChange)="setSportFilter($event)"
-        >
-          <option value="all">All sports</option>
-          <option *ngFor="let option of sportOptions()" [value]="option.value">
-            {{ option.label }} ({{ option.count }})
-          </option>
-        </select>
+
+    <!-- Tab Switcher -->
+    <div class="tab-bar">
+      <button class="tab-btn" [class.active]="selectedTab() === 'active'" (click)="selectedTab.set('active')">
+        <span class="pulse-dot-sm" *ngIf="selectedTab() === 'active'"></span>
+        Active
+        <span class="tab-count">{{ activeAthletes().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="selectedTab() === 'all'" (click)="selectedTab.set('all')">
+        All Athletes
+        <span class="tab-count muted">{{ athleteRows().length }}</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════ ACTIVE TAB ═══════════════ -->
+    <ng-container *ngIf="selectedTab() === 'active'">
+      <div class="active-grid" *ngIf="activeAthletes().length > 0">
+        <div class="athlete-card" *ngFor="let athlete of activeAthletes(); trackBy: trackByAthleteId">
+          <div class="card-accent"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-identity">
+                <div class="card-pictogram" *ngIf="athlete.sportPictograms[athlete.sports[0]]">
+                  <img [src]="athlete.sportPictograms[athlete.sports[0]]" [alt]="athlete.sports[0]"
+                    class="pictogram-icon" (error)="$any($event.target).parentElement.style.display='none'">
+                </div>
+                <div class="card-name-block">
+                  <h3 class="card-name">{{ athlete.name }}</h3>
+                  <span class="card-sport-label">{{ athlete.sportsDisplay }}</span>
+                </div>
+              </div>
+              <button class="follow-btn" disabled title="Follow coming soon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                Follow
+              </button>
+            </div>
+            <div class="card-stats">
+              <div class="stat">
+                <span class="stat-value">{{ athlete.participationCount }}</span>
+                <span class="stat-label">Entries</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{{ athlete.editions.length }}</span>
+                <span class="stat-label">Games</span>
+              </div>
+            </div>
+            <div class="card-editions">
+              {{ athlete.editionsDisplay }}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="filter-item">
-        <label for="edition-filter">Edition</label>
-        <select
-          id="edition-filter"
-          [ngModel]="selectedEdition()"
-          (ngModelChange)="setEditionFilter($event)"
-        >
-          <option value="all">All editions</option>
-          <option *ngFor="let option of editionOptions()" [value]="option.value">
-            {{ option.label }} ({{ option.count }})
-          </option>
-        </select>
+      <div class="empty-state" *ngIf="activeAthletes().length === 0">
+        <p>No active athletes found.</p>
       </div>
+    </ng-container>
 
-      <div class="filter-item">
-        <label for="status-filter">Status</label>
-        <select
-          id="status-filter"
-          [ngModel]="selectedActive()"
-          (ngModelChange)="setActiveFilter($event)"
-        >
-          <option value="all">All athletes</option>
-          <option value="active">Active only</option>
-          <option value="inactive">Inactive only</option>
-        </select>
-      </div>
+    <!-- ═══════════════ ALL ATHLETES TAB ═══════════════ -->
+    <ng-container *ngIf="selectedTab() === 'all'">
+      <div class="all-athletes-content">
 
-      <div class="filter-item reset-item">
-        <button type="button" class="reset-btn" (click)="resetFilters()" [disabled]="!hasActiveFilters()">
-          Reset filters
-        </button>
-      </div>
-    </section>
+        <!-- Search + Filter Toggle -->
+        <div class="search-bar">
+          <div class="search-input-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input type="text" class="search-input" placeholder="Search athletes by name…" [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)" />
+          </div>
+          <button class="filter-toggle hidden-desktop" (click)="filtersOpen.set(!filtersOpen())"
+            [class.has-filters]="hasActiveFilters()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span class="filter-badge" *ngIf="hasActiveFilters()"></span>
+          </button>
+        </div>
 
-    <section class="table-panel">
-      <div class="table-meta">
-        <span class="result-count">{{ filteredRows().length }} athletes</span>
-        <span class="result-total">/ {{ athleteRows().length }} total</span>
-      </div>
+        <!-- Collapsible Filters -->
+        <section class="filters-panel" [class.open]="filtersOpen()">
+          <div class="filter-item">
+            <label for="sport-filter">Sport</label>
+            <select id="sport-filter" [ngModel]="selectedSport()" (ngModelChange)="setSportFilter($event)">
+              <option value="all">All sports</option>
+              <option *ngFor="let option of sportOptions()" [value]="option.value">
+                {{ option.label }} ({{ option.count }})
+              </option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label for="edition-filter">Edition</label>
+            <select id="edition-filter" [ngModel]="selectedEdition()" (ngModelChange)="setEditionFilter($event)">
+              <option value="all">All editions</option>
+              <option *ngFor="let option of editionOptions()" [value]="option.value">
+                {{ option.label }} ({{ option.count }})
+              </option>
+            </select>
+          </div>
+          <div class="filter-item reset-item">
+            <button type="button" class="reset-btn" (click)="resetFilters()" [disabled]="!hasActiveFilters()">
+              Reset
+            </button>
+          </div>
+        </section>
 
-      <div class="table-scroll">
-        <table class="athletes-table" aria-label="Athletes table">
-          <thead>
-            <tr>
-              <th>Athlete</th>
-              <th>Country</th>
-              <th>Sports</th>
-              <th>Editions</th>
-              <th>Participations</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let athlete of filteredRows(); trackBy: trackByAthleteId">
-              <td class="athlete-name">{{ athlete.name }}</td>
-              <td>{{ athlete.country }}</td>
-              <td class="table-list">{{ athlete.sportsDisplay }}</td>
-              <td class="table-list">{{ athlete.editionsDisplay }}</td>
-              <td>{{ athlete.participationCount }}</td>
-              <td>
-                <span
-                  class="status-pill"
-                  [class.active]="athlete.isActive === true"
-                  [class.inactive]="athlete.isActive === false"
-                  [class.unknown]="athlete.isActive === null"
-                >
-                  {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Inactive' : 'Unknown' }}
+        <!-- Results count -->
+        <div class="table-meta">
+          <span class="result-count">{{ allFilteredAthletes().length }} athletes</span>
+          <span class="result-total">/ {{ athleteRows().length }} total</span>
+        </div>
+
+        <!-- Desktop Table -->
+        <section class="table-panel hidden-mobile">
+          <div class="table-scroll">
+            <table class="athletes-table" aria-label="All athletes table">
+              <thead>
+                <tr>
+                  <th>Athlete</th>
+                  <th>Sports</th>
+                  <th>Editions</th>
+                  <th>Entries</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let athlete of allFilteredAthletes(); trackBy: trackByAthleteId"
+                  [class.row-active]="athlete.isActive === true">
+                  <td class="athlete-name">{{ athlete.name }}</td>
+                  <td class="table-list">
+                    <span class="sport-inline" *ngFor="let sport of athlete.sports; let last = last">
+                      <img *ngIf="athlete.sportPictograms[sport]" [src]="athlete.sportPictograms[sport]" [alt]="sport"
+                        class="sport-pictogram-sm" (error)="$any($event.target).style.display='none'">
+                      {{ sport }}{{ last ? '' : ', ' }}
+                    </span>
+                  </td>
+                  <td class="table-list">{{ athlete.editionsDisplay }}</td>
+                  <td>{{ athlete.participationCount }}</td>
+                  <td>
+                    <span class="status-pill" [class.active]="athlete.isActive === true"
+                      [class.inactive]="athlete.isActive === false" [class.unknown]="athlete.isActive === null">
+                      {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Retired' : '—' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="allFilteredAthletes().length === 0">
+                  <td colspan="5" class="empty-row">No athletes match your search or filters.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Mobile Card List -->
+        <div class="mobile-card-list hidden-desktop">
+          <div class="mobile-athlete-card" *ngFor="let athlete of allFilteredAthletes(); trackBy: trackByAthleteId"
+            [class.is-active-athlete]="athlete.isActive === true">
+            <div class="mac-top">
+              <span class="mac-name">{{ athlete.name }}</span>
+              <span class="status-pill" [class.active]="athlete.isActive === true"
+                [class.inactive]="athlete.isActive === false" [class.unknown]="athlete.isActive === null">
+                {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Retired' : '—' }}
+              </span>
+            </div>
+            <div class="mac-detail">
+              <span class="mac-label">Sports</span>
+              <span class="mac-value">
+                <span class="sport-inline" *ngFor="let sport of athlete.sports; let last = last">
+                  <img *ngIf="athlete.sportPictograms[sport]" [src]="athlete.sportPictograms[sport]" [alt]="sport"
+                    class="sport-pictogram-sm" (error)="$any($event.target).style.display='none'">
+                  {{ sport }}{{ last ? '' : ', ' }}
                 </span>
-              </td>
-            </tr>
-
-            <tr *ngIf="filteredRows().length === 0">
-              <td colspan="6" class="empty-row">No athletes match the selected filters.</td>
-            </tr>
-          </tbody>
-        </table>
+              </span>
+            </div>
+            <div class="mac-detail">
+              <span class="mac-label">Editions</span>
+              <span class="mac-value">{{ athlete.editionsDisplay }}</span>
+            </div>
+            <div class="mac-detail">
+              <span class="mac-label">Entries</span>
+              <span class="mac-value">{{ athlete.participationCount }}</span>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="allFilteredAthletes().length === 0">
+            <p>No athletes match your search or filters.</p>
+          </div>
+        </div>
       </div>
-    </section>
+    </ng-container>
+
   </ng-container>
 </div>

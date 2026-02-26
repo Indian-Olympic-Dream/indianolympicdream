@@ -1,45 +1,39 @@
 <mat-toolbar class="main-toolbar">
-  <div class="toolbar-side left-slot"></div>
-
   <div class="logo-container" [routerLink]="['/']">
     <img src="assets/images/logo.png" class="olympic-logo" alt="IOD Sports" loading="eager" decoding="async"
       fetchpriority="high" width="50" height="50">
+    <div class="brand-text">
+      <span class="iod">IOD</span>
+      <span class="sports">SPORTS</span>
+    </div>
   </div>
 
-  <div class="toolbar-side right-slot"></div>
+  <div class="spacer"></div>
+
+  <nav class="desktop-nav hidden-mobile">
+    <a class="nav-link home-link" [routerLink]="['/']" [routerLinkActiveOptions]="{ exact: true }"
+      routerLinkActive="active-link">
+      <mat-icon class="nav-icon" aria-hidden="true">home</mat-icon>
+      <span class="nav-label">Home</span>
+    </a>
+    <a class="nav-link" [routerLink]="['/sports']" routerLinkActive="active-link">
+      <img class="nav-icon nav-icon-pictogram" src="assets/images/pictograms/icons/wrestling.svg" alt="Sports">
+      <span class="nav-label">Sports</span>
+    </a>
+    <a class="nav-link" [routerLink]="['/athletes']" routerLinkActive="active-link">
+      <img class="nav-icon nav-icon-pictogram" src="assets/images/pictograms/icons/athletics.svg" alt="Athletes">
+      <span class="nav-label">Athletes</span>
+    </a>
+    <a class="nav-link" [routerLink]="['/originals']" routerLinkActive="active-link">
+      <mat-icon class="nav-icon" aria-hidden="true">podcasts</mat-icon>
+      <span class="nav-label">Originals</span>
+    </a>
+  </nav>
 </mat-toolbar>
 
 <!-- Main Content (No Sidenav) -->
 <div class="main-content" (scroll)="onContentScroll($event)">
-  <nav class="desktop-context-nav hidden-mobile" *ngIf="!isActivePath()">
-    <a class="context-link home-link" [routerLink]="['/']" [routerLinkActiveOptions]="{ exact: true }"
-      routerLinkActive="active-link">
-      <span class="context-icon-col">
-        <img class="context-icon-image context-icon-logo" src="assets/images/logo.png" alt="IOD Sports home">
-      </span>
-      <span class="context-label">Home</span>
-    </a>
-    <a class="context-link" [routerLink]="['/sports']" routerLinkActive="active-link">
-      <span class="context-icon-col">
-        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/wrestling.svg"
-          alt="Sports">
-      </span>
-      <span class="context-label">Sports</span>
-    </a>
-    <a class="context-link" [routerLink]="['/athletes']" routerLinkActive="active-link">
-      <span class="context-icon-col">
-        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/athletics.svg"
-          alt="Athletes">
-      </span>
-      <span class="context-label">Athletes</span>
-    </a>
-    <a class="context-link" [routerLink]="['/originals']" routerLinkActive="active-link">
-      <span class="context-icon-col">
-        <mat-icon class="context-icon" aria-hidden="true">podcasts</mat-icon>
-      </span>
-      <span class="context-label">Originals</span>
-    </a>
-  </nav>
+
 
   <div [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
     <router-outlet #outlet="outlet"></router-outlet>
