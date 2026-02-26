@@ -6,20 +6,14 @@
       fetchpriority="high" width="50" height="50">
   </div>
 
-  <div class="toolbar-side right-slot auth-actions">
-    <button mat-icon-button *ngIf="!authService.isAuthenticated()" [routerLink]="['/auth']" class="auth-btn">
-      <mat-icon>login</mat-icon>
-    </button>
-    <button mat-icon-button *ngIf="authService.isAuthenticated()" (click)="logout()" class="auth-btn">
-      <mat-icon>logout</mat-icon>
-    </button>
-  </div>
+  <div class="toolbar-side right-slot"></div>
 </mat-toolbar>
 
 <!-- Main Content (No Sidenav) -->
 <div class="main-content" (scroll)="onContentScroll($event)">
   <nav class="desktop-context-nav hidden-mobile" *ngIf="!isActivePath()">
-    <a class="context-link home-link" [routerLink]="['/']" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active-link">
+    <a class="context-link home-link" [routerLink]="['/']" [routerLinkActiveOptions]="{ exact: true }"
+      routerLinkActive="active-link">
       <span class="context-icon-col">
         <img class="context-icon-image context-icon-logo" src="assets/images/logo.png" alt="IOD Sports home">
       </span>
@@ -27,13 +21,15 @@
     </a>
     <a class="context-link" [routerLink]="['/sports']" routerLinkActive="active-link">
       <span class="context-icon-col">
-        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/wrestling.svg" alt="Sports">
+        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/wrestling.svg"
+          alt="Sports">
       </span>
       <span class="context-label">Sports</span>
     </a>
     <a class="context-link" [routerLink]="['/athletes']" routerLinkActive="active-link">
       <span class="context-icon-col">
-        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/athletics.svg" alt="Athletes">
+        <img class="context-icon-image context-icon-pictogram" src="assets/images/pictograms/icons/athletics.svg"
+          alt="Athletes">
       </span>
       <span class="context-label">Athletes</span>
     </a>
@@ -42,12 +38,6 @@
         <mat-icon class="context-icon" aria-hidden="true">podcasts</mat-icon>
       </span>
       <span class="context-label">Originals</span>
-    </a>
-    <a class="context-link" [routerLink]="['/store']" routerLinkActive="active-link">
-      <span class="context-icon-col">
-        <mat-icon class="context-icon" aria-hidden="true">local_mall</mat-icon>
-      </span>
-      <span class="context-label">Shop</span>
     </a>
   </nav>
 

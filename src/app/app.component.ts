@@ -28,7 +28,6 @@ import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
 import { FooterComponent } from "./footer/footer.component";
-import { AuthService } from "./core/services/auth.service";
 
 @Component({
   selector: "app-root",
@@ -70,7 +69,6 @@ export class AppComponent {
     public overlayContainer: OverlayContainer,
     private loaderService: LoaderService,
     private scrollTrackingService: ScrollTrackingService,
-    public authService: AuthService,
   ) {
     this.loaderService.loaderState.subscribe((state) => {
       this.loading = state.show;
@@ -175,9 +173,5 @@ export class AppComponent {
 
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
-  }
-
-  logout() {
-    this.authService.logout();
   }
 }

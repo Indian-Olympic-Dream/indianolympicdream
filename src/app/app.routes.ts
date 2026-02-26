@@ -1,23 +1,6 @@
 import { Routes } from "@angular/router";
-import { authGuard } from "./core/guards/auth.guard";
 
 export const routes: Routes = [
-
-  {
-    path: "sub-home",
-    canActivate: [authGuard],
-    children: [
-      {
-        path: "",
-        loadComponent: () =>
-          import("./admin-home/home/home.component").then(
-            (m) => m.HomeComponent,
-          ),
-        // data: { animation: 'AdminHomePage', order: 3 }
-      },
-    ],
-  },
-
   {
     path: "athletes",
     loadComponent: () =>
@@ -35,37 +18,6 @@ export const routes: Routes = [
     data: {
       animation: "SportsPage",
       order: 4,
-      transitionType: "bottom-to-top",
-    },
-  },
-
-  {
-    path: "calendar",
-    loadComponent: () =>
-      import("./calendar/calendar.component").then((m) => m.CalendarComponent),
-    data: {
-      animation: "CalendarPage",
-      order: 4,
-      transitionType: "bottom-to-top",
-    },
-  },
-  {
-    path: "videos",
-    loadComponent: () =>
-      import("./videos/videos.component").then((m) => m.VideosComponent),
-    data: {
-      animation: "VideosPage",
-      order: 6,
-      transitionType: "bottom-to-top",
-    },
-  },
-  {
-    path: "store",
-    loadComponent: () =>
-      import("./store/store.component").then((m) => m.StoreComponent),
-    data: {
-      animation: "StorePage",
-      order: 9,
       transitionType: "bottom-to-top",
     },
   },
@@ -90,11 +42,6 @@ export const routes: Routes = [
       order: 8,
       transitionType: "bottom-to-top",
     },
-  },
-
-  {
-    path: "auth",
-    loadChildren: () => import("./auth/auth.routes").then((m) => m.AUTH_ROUTES),
   },
   {
     path: "internal-error",
@@ -121,3 +68,4 @@ export const routes: Routes = [
     data: { animation: "NotFoundPage", order: 11 },
   },
 ];
+
