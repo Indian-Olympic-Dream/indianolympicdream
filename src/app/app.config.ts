@@ -1,6 +1,6 @@
 import { ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideServiceWorker } from '@angular/service-worker';
@@ -12,7 +12,7 @@ import { graphqlProvider } from './graphql.provider';
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
-        provideHttpClient(),
+        provideHttpClient(withFetch()),
         provideAnimations(),
         provideClientHydration(),
         provideServiceWorker('ngsw-worker.js', {

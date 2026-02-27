@@ -9,6 +9,11 @@ const PROXY_CONFIG = {
     secure: false,
     changeOrigin: true,
   },
+  "/api/athletes": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
   "/api": {
     target: "https://iodsports.com",
     secure: true,

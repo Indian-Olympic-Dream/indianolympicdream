@@ -1,11 +1,4 @@
-<div class="athletes-container">
-  <header class="athletes-header">
-    <h1>Athletes</h1>
-    <p *ngIf="selectedTab() === 'active'">India's current Olympic-bound athletes</p>
-    <p *ngIf="selectedTab() === 'all'">India's complete Olympic journey — {{ athleteRows().length }} athletes across {{
-      editionOptions().length }} editions</p>
-  </header>
-
+<div class="athletes-shell">
   <div *ngIf="loading()" class="loading-state">
     <mat-spinner diameter="44"></mat-spinner>
   </div>
@@ -15,201 +8,256 @@
   </div>
 
   <ng-container *ngIf="!loading() && !errorMessage()">
+    <div class="athletes-content" [class.theme-medal]="selectedTab() === 'medal_hopeful'"
+      [class.theme-qualification]="selectedTab() === 'qualification_only'"
+      [class.theme-retired]="selectedTab() === 'retired'">
+      <section class="tab-switcher" aria-label="Athlete category tabs">
+        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'medal_hopeful'"
+          (click)="setTab('medal_hopeful')" title="Medal hopeful athletes and teams" aria-label="Medal hopeful tab">
+          <span class="tab-btn-label">Medal Hopeful</span>
+          <span class="tab-btn-count">{{ getTabCount('medal_hopeful') }}</span>
+        </button>
 
-    <!-- Tab Switcher -->
-    <div class="tab-bar">
-      <button class="tab-btn" [class.active]="selectedTab() === 'active'" (click)="selectedTab.set('active')">
-        <span class="pulse-dot-sm" *ngIf="selectedTab() === 'active'"></span>
-        Active
-        <span class="tab-count">{{ activeAthletes().length }}</span>
-      </button>
-      <button class="tab-btn" [class.active]="selectedTab() === 'all'" (click)="selectedTab.set('all')">
-        All Athletes
-        <span class="tab-count muted">{{ athleteRows().length }}</span>
-      </button>
-    </div>
+        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'qualification_only'"
+          (click)="setTab('qualification_only')" title="Qualification cycle athletes and teams"
+          aria-label="Qualification tab">
+          <span class="tab-btn-label">Qualification</span>
+          <span class="tab-btn-count">{{ getTabCount('qualification_only') }}</span>
+        </button>
 
-    <!-- ═══════════════ ACTIVE TAB ═══════════════ -->
-    <ng-container *ngIf="selectedTab() === 'active'">
-      <div class="active-grid" *ngIf="activeAthletes().length > 0">
-        <div class="athlete-card" *ngFor="let athlete of activeAthletes(); trackBy: trackByAthleteId">
-          <div class="card-accent"></div>
-          <div class="card-body">
-            <div class="card-top">
-              <div class="card-identity">
-                <div class="card-pictogram" *ngIf="athlete.sportPictograms[athlete.sports[0]]">
-                  <img [src]="athlete.sportPictograms[athlete.sports[0]]" [alt]="athlete.sports[0]"
-                    class="pictogram-icon" (error)="$any($event.target).parentElement.style.display='none'">
-                </div>
-                <div class="card-name-block">
-                  <h3 class="card-name">{{ athlete.name }}</h3>
-                  <span class="card-sport-label">{{ athlete.sportsDisplay }}</span>
-                </div>
-              </div>
-              <button class="follow-btn" disabled title="Follow coming soon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                Follow
-              </button>
-            </div>
-            <div class="card-stats">
-              <div class="stat">
-                <span class="stat-value">{{ athlete.participationCount }}</span>
-                <span class="stat-label">Entries</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ athlete.editions.length }}</span>
-                <span class="stat-label">Games</span>
-              </div>
-            </div>
-            <div class="card-editions">
-              {{ athlete.editionsDisplay }}
-            </div>
-          </div>
-        </div>
-      </div>
+        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'retired'" (click)="setTab('retired')"
+          title="Retired athletes from Olympic history" aria-label="Retired tab">
+          <span class="tab-btn-label">Retired</span>
+          <span class="tab-btn-count">{{ getTabCount('retired') }}</span>
+        </button>
+      </section>
 
-      <div class="empty-state" *ngIf="activeAthletes().length === 0">
-        <p>No active athletes found.</p>
-      </div>
-    </ng-container>
+      <section class="control-panel">
+        <label class="search-field" for="athlete-search">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input id="athlete-search" type="text" class="search-input"
+            [placeholder]="selectedTab() === 'retired' ? 'Search retired athletes by name, sport, event…' : 'Search contenders by name, sport, event, roster…'"
+            [ngModel]="searchQuery()" (ngModelChange)="setSearchQuery($event)" />
+        </label>
 
-    <!-- ═══════════════ ALL ATHLETES TAB ═══════════════ -->
-    <ng-container *ngIf="selectedTab() === 'all'">
-      <div class="all-athletes-content">
+        <div class="sport-scroller" aria-label="Sport filter">
+          <button class="sport-pill" type="button"
+            *ngFor="let option of sportToolbarOptions(); trackBy: trackBySportOption"
+            [class.active]="isSportOptionActive(option)" (click)="setSportFilter(option.value)"
+            [attr.title]="option.label + ' (' + option.count + ')'" [attr.aria-label]="option.label">
+            <span class="sport-pill-media" [class.sport-pill-media-category]="option.showLabel">
+              <ng-container *ngIf="option.showLabel; else compactSportOption">
+                <span class="sport-pill-cluster" *ngIf="option.pictograms?.length; else categoryOptionFallback">
+                  <span class="sport-pill-icon sport-pill-icon-mini"
+                    *ngFor="let pictogram of option.pictograms | slice: 0 : 3">
+                    <img [src]="pictogram" [alt]="option.label + ' sport pictogram'"
+                      (error)="$any($event.target).parentElement.style.display='none'">
+                  </span>
+                </span>
+                <ng-template #categoryOptionFallback>
+                  <span class="sport-pill-icon sport-pill-category-fallback">
+                    <mat-icon>{{ getSportOptionFallbackIcon(option) }}</mat-icon>
+                  </span>
+                </ng-template>
+                <span class="sport-pill-label">{{ option.label }}</span>
+                <span class="sport-pill-count sport-pill-count-inline">{{ option.count }}</span>
+              </ng-container>
 
-        <!-- Search + Filter Toggle -->
-        <div class="search-bar">
-          <div class="search-input-wrap">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input type="text" class="search-input" placeholder="Search athletes by name…" [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event)" />
-          </div>
-          <button class="filter-toggle hidden-desktop" (click)="filtersOpen.set(!filtersOpen())"
-            [class.has-filters]="hasActiveFilters()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            <span class="filter-badge" *ngIf="hasActiveFilters()"></span>
+              <ng-template #compactSportOption>
+                <span class="sport-pill-icon" *ngIf="option.pictogram">
+                  <img [src]="option.pictogram" [alt]="option.label"
+                    (error)="$any($event.target).parentElement.style.display='none'">
+                </span>
+                <span class="sport-pill-icon sport-pill-fallback" *ngIf="!option.pictogram">{{ option.label.charAt(0)
+                  }}</span>
+                <span class="sport-pill-count">{{ option.count }}</span>
+              </ng-template>
+            </span>
           </button>
         </div>
 
-        <!-- Collapsible Filters -->
-        <section class="filters-panel" [class.open]="filtersOpen()">
-          <div class="filter-item">
-            <label for="sport-filter">Sport</label>
-            <select id="sport-filter" [ngModel]="selectedSport()" (ngModelChange)="setSportFilter($event)">
-              <option value="all">All sports</option>
-              <option *ngFor="let option of sportOptions()" [value]="option.value">
-                {{ option.label }} ({{ option.count }})
-              </option>
-            </select>
-          </div>
-          <div class="filter-item">
-            <label for="edition-filter">Edition</label>
-            <select id="edition-filter" [ngModel]="selectedEdition()" (ngModelChange)="setEditionFilter($event)">
-              <option value="all">All editions</option>
-              <option *ngFor="let option of editionOptions()" [value]="option.value">
-                {{ option.label }} ({{ option.count }})
-              </option>
-            </select>
-          </div>
-          <div class="filter-item reset-item">
-            <button type="button" class="reset-btn" (click)="resetFilters()" [disabled]="!hasActiveFilters()">
-              Reset
+        <div class="retired-category-guide" *ngIf="selectedTab() === 'retired' && selectedRetiredCategory()">
+          <div class="retired-category-sports" *ngIf="visibleRetiredSports().length; else noSelectedCategorySports">
+            <button class="sport-pill" type="button"
+              *ngFor="let sport of visibleRetiredSports(); trackBy: trackByRetiredSport"
+              [class.active]="isRetiredSportActive(sport.name)"
+              (click)="setSportFilter(getRetiredSportFilterValue(sport.name))"
+              [attr.title]="sport.name + ' (' + sport.count + ')'" [attr.aria-label]="sport.name">
+              <span class="sport-pill-media">
+                <span class="sport-pill-icon"
+                  *ngIf="sportPictogramByName().get(sport.name); else selectedCategorySportFallback">
+                  <img [src]="sportPictogramByName().get(sport.name)" [alt]="sport.name"
+                    (error)="$any($event.target).parentElement.style.display='none'">
+                </span>
+                <ng-template #selectedCategorySportFallback>
+                  <span class="sport-pill-icon sport-pill-fallback">{{ sport.name.charAt(0) }}</span>
+                </ng-template>
+                <span class="sport-pill-count">{{ sport.count }}</span>
+              </span>
             </button>
           </div>
-        </section>
-
-        <!-- Results count -->
-        <div class="table-meta">
-          <span class="result-count">{{ allFilteredAthletes().length }} athletes</span>
-          <span class="result-total">/ {{ athleteRows().length }} total</span>
+          <ng-template #noSelectedCategorySports>
+            <span class="retired-category-empty">No sports in current result set.</span>
+          </ng-template>
         </div>
+      </section>
 
-        <!-- Desktop Table -->
-        <section class="table-panel hidden-mobile">
-          <div class="table-scroll">
-            <table class="athletes-table" aria-label="All athletes table">
-              <thead>
-                <tr>
-                  <th>Athlete</th>
-                  <th>Sports</th>
-                  <th>Editions</th>
-                  <th>Entries</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let athlete of allFilteredAthletes(); trackBy: trackByAthleteId"
-                  [class.row-active]="athlete.isActive === true">
-                  <td class="athlete-name">{{ athlete.name }}</td>
-                  <td class="table-list">
-                    <span class="sport-inline" *ngFor="let sport of athlete.sports; let last = last">
-                      <img *ngIf="athlete.sportPictograms[sport]" [src]="athlete.sportPictograms[sport]" [alt]="sport"
-                        class="sport-pictogram-sm" (error)="$any($event.target).style.display='none'">
-                      {{ sport }}{{ last ? '' : ', ' }}
-                    </span>
-                  </td>
-                  <td class="table-list">{{ athlete.editionsDisplay }}</td>
-                  <td>{{ athlete.participationCount }}</td>
-                  <td>
-                    <span class="status-pill" [class.active]="athlete.isActive === true"
-                      [class.inactive]="athlete.isActive === false" [class.unknown]="athlete.isActive === null">
-                      {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Retired' : '—' }}
-                    </span>
-                  </td>
-                </tr>
-                <tr *ngIf="allFilteredAthletes().length === 0">
-                  <td colspan="5" class="empty-row">No athletes match your search or filters.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Mobile Card List -->
-        <div class="mobile-card-list hidden-desktop">
-          <div class="mobile-athlete-card" *ngFor="let athlete of allFilteredAthletes(); trackBy: trackByAthleteId"
-            [class.is-active-athlete]="athlete.isActive === true">
-            <div class="mac-top">
-              <span class="mac-name">{{ athlete.name }}</span>
-              <span class="status-pill" [class.active]="athlete.isActive === true"
-                [class.inactive]="athlete.isActive === false" [class.unknown]="athlete.isActive === null">
-                {{ athlete.isActive === true ? 'Active' : athlete.isActive === false ? 'Retired' : '—' }}
-              </span>
-            </div>
-            <div class="mac-detail">
-              <span class="mac-label">Sports</span>
-              <span class="mac-value">
-                <span class="sport-inline" *ngFor="let sport of athlete.sports; let last = last">
-                  <img *ngIf="athlete.sportPictograms[sport]" [src]="athlete.sportPictograms[sport]" [alt]="sport"
-                    class="sport-pictogram-sm" (error)="$any($event.target).style.display='none'">
-                  {{ sport }}{{ last ? '' : ', ' }}
-                </span>
-              </span>
-            </div>
-            <div class="mac-detail">
-              <span class="mac-label">Editions</span>
-              <span class="mac-value">{{ athlete.editionsDisplay }}</span>
-            </div>
-            <div class="mac-detail">
-              <span class="mac-label">Entries</span>
-              <span class="mac-value">{{ athlete.participationCount }}</span>
-            </div>
-          </div>
-          <div class="empty-state" *ngIf="allFilteredAthletes().length === 0">
-            <p>No athletes match your search or filters.</p>
-          </div>
-        </div>
+      <div class="retired-inline-loading" *ngIf="selectedTab() === 'qualification_only' && qualificationLoading()">
+        <mat-spinner diameter="34"></mat-spinner>
       </div>
-    </ng-container>
 
+      <section class="cards-grid contender-grid"
+        *ngIf="selectedTab() !== 'retired' && !(selectedTab() === 'qualification_only' && qualificationLoading()) && displayedContenderUnits().length > 0"
+        [class.mode-medal]="selectedTab() === 'medal_hopeful'"
+        [class.mode-qualification]="selectedTab() === 'qualification_only'">
+        <article class="card contender-card" *ngFor="let unit of displayedContenderUnits(); trackBy: trackByContenderId"
+          [class.is-team]="unit.type === 'team' || unit.type === 'event_team'">
+          <div class="card-media">
+            <ng-container *ngIf="isContenderImageVisible(unit); else contenderMediaFallback">
+              <img [src]="unit.imageUrl!" [alt]="unit.name" class="card-media-image"
+                (error)="markContenderImageFailed(unit.id)">
+            </ng-container>
+            <ng-template #contenderMediaFallback>
+              <div class="card-media-fallback">
+                <img *ngIf="sportPictogramByName().get(unit.sport)" [src]="sportPictogramByName().get(unit.sport)"
+                  [alt]="unit.sport" class="card-media-icon" (error)="$any($event.target).style.display='none'">
+                <span class="card-media-mark" *ngIf="!sportPictogramByName().get(unit.sport)">{{ getInitials(unit.name)
+                  }}</span>
+              </div>
+            </ng-template>
+
+            <div class="card-media-overlay"></div>
+
+            <div class="card-media-badges">
+              <span class="track-chip">
+                {{ selectedTab() === 'medal_hopeful' ? 'Medal Track' : 'Qualification Track' }}
+              </span>
+              <span class="type-chip">{{ formatContenderType(unit.type) }}</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="card-title-row">
+              <h3 class="card-title">{{ unit.name }}</h3>
+              <span class="gender-chip" [class.gender-male]="unit.gender === 'male'"
+                [class.gender-female]="unit.gender === 'female'"
+                [class.gender-mixed]="unit.gender === 'mixed' || !unit.gender"
+                [attr.title]="formatContenderGender(unit.gender)"
+                [attr.aria-label]="formatContenderGender(unit.gender)">
+                <mat-icon>{{ getContenderGenderIcon(unit.gender) }}</mat-icon>
+              </span>
+            </div>
+
+            <div class="sport-row">
+              <img *ngIf="sportPictogramByName().get(unit.sport)" [src]="sportPictogramByName().get(unit.sport)"
+                [alt]="unit.sport" class="sport-pictogram-sm" (error)="$any($event.target).style.display='none'">
+              <span>{{ unit.sport }}</span>
+            </div>
+
+            <div class="event-chip-row" *ngIf="unit.events.length > 0; else contenderDescriptor">
+              <span class="event-chip" *ngFor="let eventName of unit.events | slice: 0 : 3">{{ eventName }}</span>
+              <span class="event-chip event-chip-more" *ngIf="unit.events.length > 3">+{{ unit.events.length - 3
+                }}</span>
+            </div>
+            <ng-template #contenderDescriptor>
+              <p class="card-descriptor">{{ getContenderDescriptor(unit) }}</p>
+            </ng-template>
+
+            <p class="card-roster" *ngIf="unit.athleteNames.length > 0 && unit.type !== 'individual'">
+              {{ unit.athleteNames.join(' • ') }}
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <div class="retired-inline-loading" *ngIf="selectedTab() === 'retired' && retiredLoading()">
+        <mat-spinner diameter="34"></mat-spinner>
+      </div>
+
+      <section class="cards-grid retired-grid"
+        *ngIf="selectedTab() === 'retired' && !retiredLoading() && displayedRetiredAthletes().length > 0">
+        <article class="card retired-row-card"
+          *ngFor="let athlete of displayedRetiredAthletes(); trackBy: trackByAthleteId; let i = index">
+          <div class="retired-row-top">
+            <span class="retired-rank">#{{ i + 1 }}</span>
+
+            <div class="retired-avatar">
+              <img *ngIf="shouldShowRetiredPhoto(athlete)" [src]="athlete.photoUrl!" [alt]="athlete.name"
+                (error)="markRetiredPhotoFailed(athlete.id)">
+              <img
+                *ngIf="!shouldShowRetiredPhoto(athlete) && athlete.sports[0] && athlete.sportPictograms[athlete.sports[0]]"
+                [src]="athlete.sportPictograms[athlete.sports[0]]" [alt]="athlete.sports[0]"
+                class="retired-avatar-pictogram" (error)="$any($event.target).style.display='none'">
+              <span
+                *ngIf="!shouldShowRetiredPhoto(athlete) && (!athlete.sports[0] || !athlete.sportPictograms[athlete.sports[0]])">
+                {{ getInitials(athlete.name) }}
+              </span>
+            </div>
+
+            <div class="retired-identity">
+              <h3 class="retired-name">{{ athlete.name }}</h3>
+              <span class="retired-career-chip">{{ getCareerSpan(athlete) }}</span>
+            </div>
+
+            <div class="retired-metrics">
+              <div class="retired-metric">
+                <span class="retired-metric-label">Medals</span>
+                <span class="retired-metric-value retired-metric-value-line">{{ getRetiredMedalSummary(athlete)
+                  }}</span>
+              </div>
+              <div class="retired-metric">
+                <span class="retired-metric-label">Participations</span>
+                <span class="retired-metric-value">{{ athlete.participationCount }}</span>
+              </div>
+              <div class="retired-metric">
+                <span class="retired-metric-label">Editions</span>
+                <span class="retired-metric-value">{{ athlete.editions.length }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="retired-row-bottom">
+            <div class="retired-detail">
+              <span class="retired-detail-label">Editions</span>
+              <span class="retired-detail-value">{{ athlete.editionsDisplay }}</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <div class="retired-load-more" *ngIf="selectedTab() === 'retired' && !retiredLoading() && canLoadMoreRetired()">
+        <button class="retired-load-more-btn" type="button" (click)="loadMoreRetired()">
+          Load more athletes
+        </button>
+      </div>
+
+      <div class="empty-state"
+        *ngIf="selectedTab() === 'qualification_only' && !qualificationLoading() && qualificationError()">
+        <p>{{ qualificationError() }}</p>
+      </div>
+
+      <div class="empty-state"
+        *ngIf="selectedTab() !== 'retired' && !(selectedTab() === 'qualification_only' && (qualificationLoading() || qualificationError())) && displayedContenderUnits().length === 0">
+        <p *ngIf="searchQuery().trim() || selectedSport() !== 'all'; else noContenderData">
+          No contenders match your search or selected sport.
+        </p>
+        <ng-template #noContenderData>
+          <p>No {{ selectedTab() === 'medal_hopeful' ? 'medal hopeful' : 'qualification' }} athletes available.</p>
+        </ng-template>
+      </div>
+
+      <div class="empty-state" *ngIf="selectedTab() === 'retired' && !retiredLoading() && retiredError()">
+        <p>{{ retiredError() }}</p>
+      </div>
+
+      <div class="empty-state"
+        *ngIf="selectedTab() === 'retired' && !retiredLoading() && !retiredError() && displayedRetiredAthletes().length === 0">
+        <p>No retired athletes match your search or selected sport.</p>
+      </div>
+    </div>
   </ng-container>
 </div>

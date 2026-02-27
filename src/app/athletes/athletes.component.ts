@@ -1,25 +1,44 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Observable, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { Athlete, Edition, OlympicParticipation, PayloadService, Sport } from '../services/payload.service';
+import { MatIconModule } from '@angular/material/icon';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import {
+  ContenderUnit as PayloadContenderUnit,
+  PayloadService,
+} from '../services/payload.service';
 
-type ActiveFilter = 'all' | 'active' | 'inactive';
+type AthleteTab = 'medal_hopeful' | 'qualification_only' | 'retired';
+type ContenderType = 'individual' | 'pair' | 'team' | 'event_team';
+type ContenderGender = 'male' | 'female' | 'mixed';
+type RetiredCategory = 'team' | 'individual' | 'medalists';
 
 interface AthleteRow {
   id: string;
   name: string;
   country: string;
+  photoUrl: string | null;
   sports: string[];
   sportsDisplay: string;
+  events: string[];
+  eventsDisplay: string;
   sportPictograms: Record<string, string>;
+  sportMedalCounts: Record<string, number>;
   editionIds: string[];
   editions: string[];
+  editionYears: number[];
+  firstEditionYear: number | null;
+  lastEditionYear: number | null;
   editionsDisplay: string;
   participationCount: number;
+  goldCount: number;
+  silverCount: number;
+  bronzeCount: number;
+  medalCount: number;
   isActive: boolean | null;
 }
 
@@ -29,146 +48,465 @@ interface FilterOption {
   count: number;
 }
 
-interface AthleteAggregate {
-  fallbackName: string;
-  sportNames: Set<string>;
-  sportPictograms: Map<string, string>;
-  editionIds: Set<string>;
-  participationCount: number;
+interface SportToolbarOption {
+  value: string;
+  label: string;
+  count: number;
+  pictogram: string | null;
+  pictograms?: string[];
+  showLabel?: boolean;
+  fallbackIcon?: string;
+}
+
+interface RetiredSportStat {
+  name: string;
+  count: number;
+}
+
+interface ContenderCard {
+  id: string;
+  name: string;
+  type: ContenderType;
+  sport: string;
+  imageUrl: string | null;
+  events: string[];
+  gender?: ContenderGender;
+  athleteNames: string[];
+  priority: number;
+  source: 'cms';
 }
 
 @Component({
   selector: 'app-athletes',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './athletes.component.html',
   styleUrls: ['./athletes.component.scss'],
 })
 export class AthletesComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private payload = inject(PayloadService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private applyingQueryParams = false;
+  private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  private retiredRequestSub: Subscription | null = null;
+  private retiredRequestToken = 0;
+  private readonly retiredPageSize = 36;
+  private readonly retiredTeamSportLabels = ['Hockey', 'Basketball', 'Football'];
+  private readonly retiredTeamSports = new Set(this.retiredTeamSportLabels.map((sport) => sport.toLowerCase()));
 
   loading = signal(true);
   errorMessage = signal<string | null>(null);
+  qualificationLoading = signal(false);
+  qualificationLoaded = signal(false);
+  qualificationError = signal<string | null>(null);
+  retiredLoading = signal(false);
+  retiredLoaded = signal(false);
+  retiredError = signal<string | null>(null);
+  retiredPage = signal(1);
+  retiredHasNextPage = signal(false);
+  retiredTotalDocs = signal(0);
+  retiredCategoryCounts = signal<{ team: number; individual: number; medalists: number }>({
+    team: 0,
+    individual: 0,
+    medalists: 0,
+  });
+  retiredSportsByCategory = signal<{
+    team: RetiredSportStat[];
+    individual: RetiredSportStat[];
+    medalists: RetiredSportStat[];
+  }>({
+    team: [],
+    individual: [],
+    medalists: [],
+  });
+  medalTabCount = signal(0);
+  qualificationTabCount = signal(0);
+  retiredTabCount = signal(0);
 
-  athleteRows = signal<AthleteRow[]>([]);
-  sportOptions = signal<FilterOption[]>([]);
-  editionOptions = signal<FilterOption[]>([]);
-
+  retiredDocs = signal<AthleteRow[]>([]);
+  medalContenderUnits = signal<PayloadContenderUnit[]>([]);
+  qualificationContenderUnits = signal<PayloadContenderUnit[]>([]);
+  failedContenderImages = signal<Set<string>>(new Set());
+  failedRetiredPhotos = signal<Set<string>>(new Set());
+  cmsContenderUnits = computed<PayloadContenderUnit[]>(() => {
+    const merged = [...this.medalContenderUnits(), ...this.qualificationContenderUnits()];
+    const byId = new Map<string, PayloadContenderUnit>();
+    merged.forEach((unit) => {
+      if (!unit?.id || byId.has(unit.id)) return;
+      byId.set(unit.id, unit);
+    });
+    return Array.from(byId.values());
+  });
+  selectedTab = signal<AthleteTab>('medal_hopeful');
   selectedSport = signal<string>('all');
-  selectedEdition = signal<string>('all');
-  selectedActive = signal<ActiveFilter>('all');
-  selectedTab = signal<'active' | 'all'>('active');
   searchQuery = signal<string>('');
-  filtersOpen = signal<boolean>(false);
 
-  hasActiveFilters = computed(() =>
-    this.selectedSport() !== 'all' ||
-    this.selectedEdition() !== 'all' ||
-    this.selectedActive() !== 'all' ||
-    this.searchQuery().length > 0,
+  retiredCategorySports = computed(() =>
+    this.retiredSportsByCategory(),
   );
 
-  filteredRows = computed(() => {
-    let rows = this.athleteRows();
+  selectedRetiredCategory = computed<RetiredCategory | null>(() =>
+    this.parseRetiredFilter(this.selectedSport()).category,
+  );
 
-    const query = this.searchQuery().toLowerCase().trim();
-    if (query) {
-      rows = rows.filter((row) => row.name.toLowerCase().includes(query));
-    }
+  visibleRetiredSports = computed<RetiredSportStat[]>(() => {
+    const selectedCategory = this.selectedRetiredCategory();
+    if (!selectedCategory) return [];
 
+    return this.getRetiredSportsForCategory(selectedCategory);
+  });
+
+  cmsMedalHopefulUnits = computed(() =>
+    this.buildContenderCardsFromCms(this.medalContenderUnits(), 'medal_hopeful'),
+  );
+  cmsQualificationOnlyUnits = computed(() =>
+    this.buildContenderCardsFromCms(this.qualificationContenderUnits(), 'qualification_only'),
+  );
+
+  medalHopefulUnits = computed(() => this.cmsMedalHopefulUnits());
+  qualificationOnlyUnits = computed(() => this.cmsQualificationOnlyUnits());
+
+  displayedRetiredAthletes = computed(() => this.retiredDocs());
+
+  canLoadMoreRetired = computed(() =>
+    this.retiredHasNextPage(),
+  );
+
+  displayedContenderUnits = computed(() => {
+    const selectedTab = this.selectedTab();
     const sport = this.selectedSport();
-    if (sport !== 'all') {
-      rows = rows.filter((row) => row.sports.includes(sport));
-    }
+    const query = this.searchQuery().trim().toLowerCase();
 
-    const edition = this.selectedEdition();
-    if (edition !== 'all') {
-      rows = rows.filter((row) => row.editionIds.includes(edition));
-    }
+    const pool = selectedTab === 'medal_hopeful' ? this.medalHopefulUnits() : this.qualificationOnlyUnits();
 
-    const activeFilter = this.selectedActive();
-    if (activeFilter === 'active') {
-      rows = rows.filter((row) => row.isActive === true);
-    } else if (activeFilter === 'inactive') {
-      rows = rows.filter((row) => row.isActive === false);
-    }
+    return pool.filter((unit) => {
+      const matchesSport = sport === 'all' || unit.sport === sport;
+      if (!matchesSport) return false;
 
-    return [...rows].sort((a, b) => {
-      const nameDiff = a.name.localeCompare(b.name);
-      if (nameDiff !== 0) return nameDiff;
-      return a.id.localeCompare(b.id);
+      if (!query) return true;
+      const searchable = [
+        unit.name,
+        unit.sport,
+        ...unit.events,
+        ...unit.athleteNames,
+      ]
+        .join(' ')
+        .toLowerCase();
+      return searchable.includes(query);
     });
   });
 
-  activeAthletes = computed(() => {
-    return this.filteredRows().filter((r) => r.isActive === true);
+  currentSportOptions = computed<FilterOption[]>(() => {
+    const selectedTab = this.selectedTab();
+    if (selectedTab === 'retired') {
+      return this.buildRetiredSportCategoryOptionsFromCounts(this.retiredCategoryCounts());
+    }
+    const units = selectedTab === 'medal_hopeful' ? this.medalHopefulUnits() : this.qualificationOnlyUnits();
+    return this.buildSportOptionsFromUnits(units);
   });
 
-  allFilteredAthletes = computed(() => {
-    return this.filteredRows();
+  sportPictogramByName = computed(() => {
+    const pictogramMap = new Map<string, string>();
+    this.cmsContenderUnits().forEach((unit) => {
+      if (!unit?.sport) return;
+      const sportName = unit.sport.parentSport?.name || unit.sport.name;
+      const pictogramUrl = this.payload.getMediaUrl(unit.sport.parentSport?.pictogram || unit.sport.pictogram);
+      if (sportName && pictogramUrl && !pictogramMap.has(sportName)) {
+        pictogramMap.set(sportName, pictogramUrl);
+      }
+    });
+
+    this.retiredDocs().forEach((row) => {
+      row.sports.forEach((sportName) => {
+        const url = row.sportPictograms[sportName];
+        if (url && !pictogramMap.has(sportName)) {
+          pictogramMap.set(sportName, url);
+        }
+      });
+    });
+    return pictogramMap;
   });
+
+  sportToolbarOptions = computed<SportToolbarOption[]>(() =>
+    {
+      const options = this.currentSportOptions();
+      const pictogramMap = this.sportPictogramByName();
+
+      if (this.selectedTab() !== 'retired') {
+        return options.map((option) => ({
+          value: option.value,
+          label: option.label,
+          count: option.count,
+          pictogram: pictogramMap.get(option.value) || null,
+        }));
+      }
+
+      const categoryPictograms = this.buildRetiredCategoryPictograms(this.retiredCategorySports(), pictogramMap);
+
+      return options.map((option) => {
+        if (option.value === 'team' || option.value === 'individual' || option.value === 'medalists') {
+          const pictograms =
+            option.value === 'team'
+              ? categoryPictograms.team
+              : option.value === 'individual'
+                ? categoryPictograms.individual
+                : categoryPictograms.medalists;
+          return {
+            value: option.value,
+            label: option.label,
+            count: option.count,
+            pictogram: pictograms[0] || null,
+            pictograms,
+            showLabel: true,
+            fallbackIcon:
+              option.value === 'team'
+                ? 'groups_3'
+                : option.value === 'individual'
+                  ? 'person'
+                  : 'workspace_premium',
+          };
+        }
+
+        return {
+          value: option.value,
+          label: option.label,
+          count: option.count,
+          pictogram: pictogramMap.get(option.value) || null,
+        };
+      });
+    },
+  );
+
+  trackByAthleteId = (_: number, row: AthleteRow): string => row.id;
+  trackBySportOption = (_: number, option: SportToolbarOption): string => option.value;
+  trackByRetiredSport = (_: number, sport: RetiredSportStat): string => sport.name;
+  trackByContenderId = (_: number, unit: ContenderCard): string => unit.id;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.searchDebounceHandle) {
+        clearTimeout(this.searchDebounceHandle);
+        this.searchDebounceHandle = null;
+      }
+      this.retiredRequestSub?.unsubscribe();
+      this.retiredRequestSub = null;
+    });
+  }
+
+  getInitials(value: string, maxChars = 2): string {
+    const clean = value.trim();
+    if (!clean) return 'IO';
+    return clean
+      .split(/\s+/)
+      .map((part) => part.charAt(0).toUpperCase())
+      .slice(0, maxChars)
+      .join('');
+  }
+
+  isContenderImageVisible(unit: ContenderCard): boolean {
+    if (!unit.imageUrl) return false;
+    return !this.failedContenderImages().has(unit.id);
+  }
+
+  markContenderImageFailed(unitId: string): void {
+    if (!unitId) return;
+    this.failedContenderImages.update((current) => {
+      if (current.has(unitId)) return current;
+      const next = new Set(current);
+      next.add(unitId);
+      return next;
+    });
+  }
+
+  shouldShowRetiredPhoto(row: AthleteRow): boolean {
+    if (!row.photoUrl) return false;
+    return !this.failedRetiredPhotos().has(row.id);
+  }
+
+  markRetiredPhotoFailed(athleteId: string): void {
+    if (!athleteId) return;
+    this.failedRetiredPhotos.update((current) => {
+      if (current.has(athleteId)) return current;
+      const next = new Set(current);
+      next.add(athleteId);
+      return next;
+    });
+  }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
-      this.applyingQueryParams = true;
-      this.selectedSport.set(params.get('sport') || 'all');
-      this.selectedEdition.set(params.get('edition') || 'all');
-      this.selectedActive.set(this.parseActiveFilter(params.get('active')));
-      this.applyingQueryParams = false;
-    });
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        this.applyingQueryParams = true;
+        this.searchQuery.set(params.get('search') || '');
+        this.selectedSport.set(params.get('sport') || 'all');
+        this.selectedTab.set(this.parseTab(params.get('tab'), params.get('status')));
+        this.applyingQueryParams = false;
+        if (this.selectedTab() === 'qualification_only') {
+          this.ensureQualificationDataLoaded();
+        }
+        if (this.selectedTab() === 'retired') {
+          this.loadRetiredData({ page: 1, append: false });
+        }
+        this.ensureSelectedSportIsAvailable();
+      });
 
-    this.loadData();
+    this.loadInitialData();
   }
 
   setSportFilter(value: string): void {
-    this.selectedSport.set(value || 'all');
+    const normalized = value || 'all';
+    this.selectedSport.set(this.selectedSport() === normalized ? 'all' : normalized);
     this.updateQueryParams();
   }
 
-  setEditionFilter(value: string): void {
-    this.selectedEdition.set(value || 'all');
+  setSearchQuery(value: string): void {
+    this.searchQuery.set(value || '');
+    if (this.searchDebounceHandle) {
+      clearTimeout(this.searchDebounceHandle);
+    }
+    this.searchDebounceHandle = setTimeout(() => {
+      this.searchDebounceHandle = null;
+      this.updateQueryParams();
+    }, 220);
+  }
+
+  setTab(tab: AthleteTab): void {
+    this.selectedTab.set(tab);
+    if (tab === 'qualification_only') {
+      this.ensureQualificationDataLoaded();
+    }
+    if (tab === 'retired') {
+      this.ensureRetiredDataLoaded();
+    }
+    this.ensureSelectedSportIsAvailable();
     this.updateQueryParams();
   }
 
-  setActiveFilter(value: ActiveFilter): void {
-    this.selectedActive.set(value || 'all');
-    this.updateQueryParams();
+  loadMoreRetired(): void {
+    if (this.retiredLoading() || !this.retiredHasNextPage()) return;
+    this.loadRetiredData({ page: this.retiredPage() + 1, append: true });
   }
 
-  resetFilters(): void {
-    this.selectedSport.set('all');
-    this.selectedEdition.set('all');
-    this.selectedActive.set('all');
-    this.searchQuery.set('');
-    this.updateQueryParams();
+  getTabCount(tab: AthleteTab): number {
+    if (tab === 'medal_hopeful') {
+      const count = this.medalTabCount();
+      return count > 0 ? count : this.medalHopefulUnits().length;
+    }
+    if (tab === 'qualification_only') {
+      const count = this.qualificationTabCount();
+      return count > 0 ? count : this.qualificationOnlyUnits().length;
+    }
+    const count = this.retiredTabCount();
+    return count > 0 ? count : this.retiredTotalDocs();
   }
 
-  trackByAthleteId = (_: number, row: AthleteRow): string => row.id;
+  formatContenderType(type: ContenderType): string {
+    if (type === 'event_team') return 'Event Team';
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  }
 
-  private loadData(): void {
+  formatContenderGender(gender?: ContenderGender): string {
+    if (!gender) return 'Open';
+    return gender.charAt(0).toUpperCase() + gender.slice(1);
+  }
+
+  getContenderGenderIcon(gender?: ContenderGender): string {
+    if (gender === 'male') return 'man';
+    if (gender === 'female') return 'woman';
+    if (gender === 'mixed') return 'diversity_3';
+    return 'person';
+  }
+
+  getSportOptionFallbackIcon(option: SportToolbarOption): string {
+    return option.fallbackIcon || 'sports';
+  }
+
+  isSportOptionActive(option: SportToolbarOption): boolean {
+    const selectedSport = this.selectedSport();
+
+    if (this.selectedTab() !== 'retired') {
+      return selectedSport === option.value;
+    }
+
+    return this.parseRetiredFilter(selectedSport).category === option.value;
+  }
+
+  getRetiredSportFilterValue(sportName: string): string {
+    const category = this.selectedRetiredCategory();
+    if (!category) return sportName;
+    return `${category}::${sportName}`;
+  }
+
+  isRetiredSportActive(sportName: string): boolean {
+    return this.parseRetiredFilter(this.selectedSport()).sport === sportName;
+  }
+
+  getCareerSpan(row: AthleteRow): string {
+    const first = row.firstEditionYear;
+    const last = row.lastEditionYear;
+    if (!first && !last) return 'Unknown era';
+    if (!first) return `${last}`;
+    if (!last) return `${first}`;
+    if (first === last) return `${first}`;
+    return `${first} - ${last}`;
+  }
+
+  getRetiredMedalSummary(row: AthleteRow): string {
+    if (row.medalCount === 0) return 'No medals';
+    return `🥇 ${row.goldCount}  🥈 ${row.silverCount}  🥉 ${row.bronzeCount}`;
+  }
+
+  getContenderDescriptor(unit: ContenderCard): string {
+    if (unit.events.length) return this.formatList(unit.events, 2);
+    return unit.type === 'team' || unit.type === 'event_team' ? 'Team Unit' : 'Individual Unit';
+  }
+
+  private loadInitialData(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
 
     forkJoin({
-      athletes: this.loadAllAthletes(250),
-      participations: this.payload.getParticipations({ limit: 10000 }),
-      sports: this.payload.getSports(),
-      editions: this.payload.getEditions({ limit: 120 }),
+      medalContenders: this.payload.getContenderUnits({
+        status: 'medal_hopeful',
+        activeOnly: true,
+        limit: 200,
+      }).pipe(catchError(() => of({ docs: [], totalDocs: 0 }))),
+      qualificationCount: this.payload.getContenderUnits({
+        status: 'qualification_only',
+        activeOnly: true,
+        limit: 1,
+      }).pipe(catchError(() => of({ docs: [], totalDocs: 0 }))),
+      retiredCount: this.payload.getRetiredAthletesFeed({
+        limit: 1,
+        page: 1,
+      }).pipe(catchError(() => of({
+        docs: [],
+        totalDocs: 0,
+        totalPages: 0,
+        page: 1,
+        hasNextPage: false,
+        totalRetired: 0,
+        facets: {
+          categories: { team: 0, individual: 0, medalists: 0 },
+          sportsByCategory: { team: [], individual: [], medalists: [] },
+        },
+      }))),
     }).subscribe({
-      next: ({ athletes, participations, sports, editions }) => {
-        const { rows, editionLabelById, editionYearById } = this.buildAthleteRows(
-          athletes,
-          participations,
-          sports,
-          editions,
-        );
-
-        this.athleteRows.set(rows);
-        this.sportOptions.set(this.buildSportOptions(rows));
-        this.editionOptions.set(this.buildEditionOptions(rows, editionLabelById, editionYearById));
+      next: ({ medalContenders, qualificationCount, retiredCount }) => {
+        this.medalContenderUnits.set(medalContenders.docs);
+        this.medalTabCount.set(medalContenders.totalDocs);
+        this.qualificationTabCount.set(qualificationCount.totalDocs);
+        this.retiredTabCount.set(retiredCount.totalRetired || retiredCount.totalDocs || 0);
+        this.ensureSelectedSportIsAvailable();
+        if (this.selectedTab() === 'qualification_only') {
+          this.ensureQualificationDataLoaded();
+        }
+        if (this.selectedTab() === 'retired') {
+          this.ensureRetiredDataLoaded();
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -178,319 +516,264 @@ export class AthletesComponent implements OnInit {
     });
   }
 
-  private loadAllAthletes(limit: number): Observable<Athlete[]> {
-    return this.payload.getAthletes({ limit, page: 1 }).pipe(
-      switchMap((firstPage) => {
-        if (!firstPage.totalPages || firstPage.totalPages <= 1) {
-          return of(firstPage.docs);
-        }
+  private ensureQualificationDataLoaded(): void {
+    if (this.qualificationLoaded() || this.qualificationLoading()) return;
 
-        const pageRequests = Array.from({ length: firstPage.totalPages - 1 }, (_, index) => {
-          const page = index + 2;
-          return this.payload.getAthletes({ limit, page });
-        });
+    this.qualificationLoading.set(true);
+    this.qualificationError.set(null);
 
-        return forkJoin(pageRequests).pipe(
-          map((otherPages) => [
-            ...firstPage.docs,
-            ...otherPages.flatMap((pageResult) => pageResult.docs),
-          ]),
-        );
-      }),
-      map((docs) => {
-        const seen = new Set<string>();
-        return docs.filter((athlete) => {
-          if (!athlete?.id || seen.has(athlete.id)) return false;
-          seen.add(athlete.id);
-          return true;
-        });
-      }),
-    );
+    this.payload.getContenderUnits({
+      status: 'qualification_only',
+      activeOnly: true,
+      limit: 300,
+    }).subscribe({
+      next: (result) => {
+        this.qualificationContenderUnits.set(result.docs);
+        this.qualificationTabCount.set(result.totalDocs);
+        this.qualificationLoaded.set(true);
+        this.ensureSelectedSportIsAvailable();
+        this.qualificationLoading.set(false);
+      },
+      error: () => {
+        this.qualificationError.set('Unable to load qualification athletes right now. Please try again.');
+        this.qualificationLoading.set(false);
+      },
+    });
   }
 
-  private buildAthleteRows(
-    athletes: Athlete[],
-    participations: OlympicParticipation[],
-    sportsCatalog: Sport[],
-    editions: Edition[],
-  ): {
-    rows: AthleteRow[];
-    editionLabelById: Map<string, string>;
-    editionYearById: Map<string, number>;
-  } {
-    const sportsById = new Map<string, Sport>(sportsCatalog.map((sport) => [sport.id, sport]));
-
-    const editionLabelById = new Map<string, string>();
-    const editionYearById = new Map<string, number>();
-
-    editions.forEach((edition) => {
-      if (!edition?.id) return;
-      const year = edition.year || 0;
-      const label = edition.city && year ? `${edition.city} ${year}` : edition.name || String(year || 'Unknown');
-      editionLabelById.set(edition.id, label);
-      editionYearById.set(edition.id, year);
-    });
-
-    const aggregates = new Map<string, AthleteAggregate>();
-
-    participations.forEach((participation) => {
-      const athleteId = this.getAthleteId(participation);
-      if (!athleteId) return;
-
-      if (!aggregates.has(athleteId)) {
-        aggregates.set(athleteId, {
-          fallbackName: this.getAthleteName(participation),
-          sportNames: new Set<string>(),
-          sportPictograms: new Map<string, string>(),
-          editionIds: new Set<string>(),
-          participationCount: 0,
-        });
-      }
-
-      const aggregate = aggregates.get(athleteId)!;
-      aggregate.participationCount += 1;
-
-      const editionId = participation.edition?.id || null;
-      if (editionId) {
-        aggregate.editionIds.add(editionId);
-        if (!editionLabelById.has(editionId)) {
-          const year = participation.edition?.year || 0;
-          const label = participation.edition?.name || String(year || 'Unknown');
-          editionLabelById.set(editionId, label);
-          editionYearById.set(editionId, year);
-        }
-      }
-
-      if (typeof participation.event === 'object' && participation.event?.sport) {
-        const rawSport = participation.event.sport;
-        const canonicalSportName = this.getCanonicalSportName(rawSport, sportsById);
-        if (canonicalSportName) {
-          aggregate.sportNames.add(canonicalSportName);
-          if (!aggregate.sportPictograms.has(canonicalSportName)) {
-            const pictogramUrl = this.getCanonicalSportPictogram(rawSport, sportsById);
-            if (pictogramUrl) {
-              aggregate.sportPictograms.set(canonicalSportName, pictogramUrl);
-            }
-          }
-        }
-      }
-    });
-
-    const athleteIds = new Set<string>();
-    const rows: AthleteRow[] = athletes.map((athlete) => {
-      athleteIds.add(athlete.id);
-      const aggregate = aggregates.get(athlete.id);
-
-      const sportNames = new Set<string>();
-      const sportPictograms: Record<string, string> = {};
-
-      (athlete.sports || []).forEach((sport) => {
-        const canonicalSportName = this.getCanonicalSportName(sport, sportsById);
-        if (canonicalSportName) {
-          sportNames.add(canonicalSportName);
-          if (!sportPictograms[canonicalSportName]) {
-            const url = this.getCanonicalSportPictogram(sport, sportsById);
-            if (url) sportPictograms[canonicalSportName] = url;
-          }
-        }
-      });
-      aggregate?.sportNames.forEach((sportName) => sportNames.add(sportName));
-      aggregate?.sportPictograms.forEach((url, name) => {
-        if (!sportPictograms[name]) sportPictograms[name] = url;
-      });
-
-      const editionEntries = Array.from(aggregate?.editionIds || []).map((editionId) => ({
-        id: editionId,
-        label: editionLabelById.get(editionId) || editionId,
-        year: editionYearById.get(editionId) || 0,
-      }));
-
-      editionEntries.sort((a, b) => {
-        if (b.year !== a.year) return b.year - a.year;
-        return a.label.localeCompare(b.label);
-      });
-
-      const sports = Array.from(sportNames).sort((a, b) => a.localeCompare(b));
-      const editionIds = editionEntries.map((entry) => entry.id);
-      const editionLabels = editionEntries.map((entry) => entry.label);
-
-      return {
-        id: athlete.id,
-        name: athlete.fullName || 'Unknown',
-        country: athlete.country || 'India',
-        sports,
-        sportsDisplay: this.formatList(sports, 3),
-        sportPictograms,
-        editionIds,
-        editions: editionLabels,
-        editionsDisplay: this.formatList(editionLabels, 4),
-        participationCount: aggregate?.participationCount || 0,
-        isActive: typeof athlete.isActive === 'boolean' ? athlete.isActive : null,
-      };
-    });
-
-    aggregates.forEach((aggregate, athleteId) => {
-      if (athleteIds.has(athleteId)) return;
-
-      const sports = Array.from(aggregate.sportNames).sort((a, b) => a.localeCompare(b));
-      const editionEntries = Array.from(aggregate.editionIds).map((editionId) => ({
-        id: editionId,
-        label: editionLabelById.get(editionId) || editionId,
-        year: editionYearById.get(editionId) || 0,
-      }));
-
-      editionEntries.sort((a, b) => {
-        if (b.year !== a.year) return b.year - a.year;
-        return a.label.localeCompare(b.label);
-      });
-
-      const editionIds = editionEntries.map((entry) => entry.id);
-      const editionLabels = editionEntries.map((entry) => entry.label);
-
-      // Merge pictogram URLs from aggregate
-      const pictograms: Record<string, string> = {};
-      aggregate.sportPictograms.forEach((url, name) => { pictograms[name] = url; });
-
-      rows.push({
-        id: athleteId,
-        name: aggregate.fallbackName || 'Unknown',
-        country: 'India',
-        sports,
-        sportsDisplay: this.formatList(sports, 3),
-        sportPictograms: pictograms,
-        editionIds,
-        editions: editionLabels,
-        editionsDisplay: this.formatList(editionLabels, 4),
-        participationCount: aggregate.participationCount,
-        isActive: null,
-      });
-    });
-
-    rows.sort((a, b) => {
-      const nameDiff = a.name.localeCompare(b.name);
-      if (nameDiff !== 0) return nameDiff;
-      return a.id.localeCompare(b.id);
-    });
-
-    return { rows, editionLabelById, editionYearById };
+  private ensureRetiredDataLoaded(): void {
+    if (this.retiredLoaded()) return;
+    this.loadRetiredData({ page: 1, append: false });
   }
 
-  private buildSportOptions(rows: AthleteRow[]): FilterOption[] {
+  private loadRetiredData(options: { page: number; append: boolean }): void {
+    if (options.append && this.retiredLoading()) return;
+    if (!options.append) {
+      this.retiredRequestSub?.unsubscribe();
+      this.retiredRequestSub = null;
+      this.failedRetiredPhotos.set(new Set());
+    }
+
+    const requestToken = ++this.retiredRequestToken;
+    this.retiredLoading.set(true);
+    if (!options.append) {
+      this.retiredError.set(null);
+    }
+
+    this.retiredRequestSub = this.payload.getRetiredAthletesFeed({
+      page: options.page,
+      limit: this.retiredPageSize,
+      search: this.searchQuery().trim(),
+      sportFilter: this.selectedSport(),
+    }).subscribe({
+      next: (result) => {
+        if (requestToken !== this.retiredRequestToken) return;
+        const nextDocs = result.docs.map((row) => ({
+          ...row,
+          isActive: false as const,
+        }));
+
+        if (options.append) {
+          const dedupedById = new Map<string, AthleteRow>();
+          [...this.retiredDocs(), ...nextDocs].forEach((row) => {
+            dedupedById.set(row.id, row);
+          });
+          this.retiredDocs.set(Array.from(dedupedById.values()));
+        } else {
+          this.retiredDocs.set(nextDocs);
+        }
+
+        this.retiredPage.set(result.page);
+        this.retiredHasNextPage.set(result.hasNextPage);
+        this.retiredTotalDocs.set(result.totalDocs);
+        this.retiredCategoryCounts.set(result.facets.categories);
+        this.retiredSportsByCategory.set(result.facets.sportsByCategory);
+        this.retiredTabCount.set(result.totalRetired || this.retiredTabCount());
+        this.retiredLoaded.set(true);
+        this.ensureSelectedSportIsAvailable();
+        this.retiredLoading.set(false);
+      },
+      error: () => {
+        if (requestToken !== this.retiredRequestToken) return;
+        this.retiredError.set('Unable to load retired athletes right now. Please try again.');
+        this.retiredLoading.set(false);
+      },
+      complete: () => {
+        if (requestToken !== this.retiredRequestToken) return;
+        this.retiredRequestSub = null;
+      },
+    });
+  }
+
+  private buildRetiredSportCategoryOptionsFromCounts(counts: {
+    team: number;
+    individual: number;
+    medalists: number;
+  }): FilterOption[] {
+    return [
+      { value: 'team', label: 'Team', count: counts.team || 0 },
+      { value: 'individual', label: 'Individual', count: counts.individual || 0 },
+      { value: 'medalists', label: 'Medalists', count: counts.medalists || 0 },
+    ].filter((option) => option.count > 0);
+  }
+
+  private buildRetiredCategoryPictograms(
+    categories: { team: RetiredSportStat[]; individual: RetiredSportStat[]; medalists: RetiredSportStat[] },
+    pictogramMap: Map<string, string>,
+  ): { team: string[]; individual: string[]; medalists: string[] } {
+    return {
+      team: this.takeDistinctPictograms(categories.team.map((sport) => sport.name), pictogramMap, 3),
+      individual: this.takeDistinctPictograms(categories.individual.map((sport) => sport.name), pictogramMap, 3),
+      medalists: this.takeDistinctPictograms(categories.medalists.map((sport) => sport.name), pictogramMap, 3),
+    };
+  }
+
+  private takeDistinctPictograms(
+    sports: string[],
+    pictogramMap: Map<string, string>,
+    limit: number,
+  ): string[] {
+    const result: string[] = [];
+    for (const sportName of sports) {
+      const url = pictogramMap.get(sportName);
+      if (!url || result.includes(url)) continue;
+      result.push(url);
+      if (result.length >= limit) break;
+    }
+    return result;
+  }
+
+  private getRetiredSportsForCategory(category: RetiredCategory): RetiredSportStat[] {
+    const categories = this.retiredCategorySports();
+    if (category === 'team') return categories.team;
+    if (category === 'individual') return categories.individual;
+    return categories.medalists;
+  }
+
+  private buildSportOptionsFromUnits(units: ContenderCard[]): FilterOption[] {
     const counts = new Map<string, number>();
-
-    rows.forEach((row) => {
-      row.sports.forEach((sportName) => {
-        counts.set(sportName, (counts.get(sportName) || 0) + 1);
-      });
+    units.forEach((unit) => {
+      counts.set(unit.sport, (counts.get(unit.sport) || 0) + 1);
     });
-
     return Array.from(counts.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([sportName, count]) => ({ value: sportName, label: sportName, count }));
   }
 
-  private buildEditionOptions(
-    rows: AthleteRow[],
-    editionLabelById: Map<string, string>,
-    editionYearById: Map<string, number>,
-  ): FilterOption[] {
-    const counts = new Map<string, number>();
+  private buildContenderCardsFromCms(
+    units: PayloadContenderUnit[],
+    status: 'medal_hopeful' | 'qualification_only',
+  ): ContenderCard[] {
+    return units
+      .filter((unit) => unit?.status === status)
+      .filter((unit) => unit?.isActive !== false)
+      .map((unit) => {
+        const type = this.parseContenderType(unit.type);
+        const heroImage = this.payload.getMediaUrl(unit.heroImage);
+        const roster = (unit.athletes || []).map((athlete) => athlete.fullName).filter((name) => !!name);
+        const rosterImage = (unit.athletes || [])
+          .map((athlete) => this.payload.getMediaUrl(athlete.photo))
+          .find((url) => !!url) || null;
+        const eventNameSet = new Set<string>(
+          (unit.events || [])
+            .map((event) => event?.name)
+            .filter((name): name is string => Boolean(name)),
+        );
+        const eventNames = Array.from(eventNameSet);
 
-    rows.forEach((row) => {
-      row.editionIds.forEach((editionId) => {
-        counts.set(editionId, (counts.get(editionId) || 0) + 1);
-      });
-    });
-
-    return Array.from(counts.entries())
-      .sort((a, b) => {
-        const yearDiff = (editionYearById.get(b[0]) || 0) - (editionYearById.get(a[0]) || 0);
-        if (yearDiff !== 0) return yearDiff;
-        return (editionLabelById.get(a[0]) || a[0]).localeCompare(editionLabelById.get(b[0]) || b[0]);
+        return {
+          id: unit.id,
+          name: unit.displayName || 'Unknown',
+          type,
+          sport: unit.sport?.parentSport?.name || unit.sport?.name || 'Unknown',
+          imageUrl: type === 'individual' ? (heroImage || rosterImage) : (heroImage || null),
+          events: eventNames,
+          gender: this.parseContenderGender(unit.gender),
+          athleteNames: roster,
+          priority: unit.priority || 999,
+          source: 'cms' as const,
+        };
       })
-      .map(([editionId, count]) => ({
-        value: editionId,
-        label: editionLabelById.get(editionId) || editionId,
-        count,
-      }));
+      .sort((a, b) => (a.priority - b.priority) || a.name.localeCompare(b.name));
+  }
+
+  private parseContenderType(type: string | undefined): ContenderType {
+    if (type === 'pair' || type === 'team' || type === 'event_team') return type;
+    return 'individual';
+  }
+
+  private parseContenderGender(gender: string | undefined): ContenderGender | undefined {
+    if (gender === 'male' || gender === 'female' || gender === 'mixed') return gender;
+    return undefined;
   }
 
   private formatList(values: string[], maxItems: number): string {
-    if (!values.length) return '—';
+    if (!values.length) return '-';
     if (values.length <= maxItems) return values.join(', ');
     const remaining = values.length - maxItems;
     return `${values.slice(0, maxItems).join(', ')} +${remaining}`;
   }
 
-  private getCanonicalSportName(rawSport: Sport | null | undefined, sportsById: Map<string, Sport>): string | null {
-    if (!rawSport) return null;
-
-    const sourceSport = rawSport.id ? sportsById.get(rawSport.id) || rawSport : rawSport;
-    const parentId = this.getParentSportId(sourceSport, sportsById);
-
-    if (parentId) {
-      const parentSport = sportsById.get(parentId);
-      if (parentSport?.name) return parentSport.name;
+  private parseRetiredFilter(filter: string): { category: RetiredCategory | null; sport: string | null } {
+    const raw = (filter || 'all').trim();
+    if (!raw || raw.toLowerCase() === 'all') {
+      return { category: null, sport: null };
     }
 
-    return sourceSport.name || null;
+    const [maybeCategory, ...sportParts] = raw.split('::');
+    const normalizedCategory = maybeCategory.trim().toLowerCase();
+    const sportFromParts = sportParts.join('::').trim();
+
+    if (normalizedCategory === 'team' || normalizedCategory === 'individual' || normalizedCategory === 'medalists') {
+      return {
+        category: normalizedCategory,
+        sport: sportFromParts || null,
+      };
+    }
+
+    const normalizedSport = raw.toLowerCase();
+    if (this.retiredTeamSports.has(normalizedSport)) {
+      return { category: 'team', sport: raw };
+    }
+
+    return { category: 'individual', sport: raw };
   }
 
-  private getCanonicalSportPictogram(rawSport: Sport | null | undefined, sportsById: Map<string, Sport>): string | null {
-    if (!rawSport) return null;
+  private ensureSelectedSportIsAvailable(): void {
+    if (this.loading()) return;
 
-    const sourceSport = rawSport.id ? sportsById.get(rawSport.id) || rawSport : rawSport;
+    const selectedSport = this.selectedSport();
+    if (selectedSport === 'all') return;
 
-    // Try the sport itself first
-    let url = this.payload.getMediaUrl(sourceSport.pictogram);
-    if (url) return url;
-
-    // Try the parent sport
-    const parentId = this.getParentSportId(sourceSport, sportsById);
-    if (parentId) {
-      const parentSport = sportsById.get(parentId);
-      if (parentSport) {
-        url = this.payload.getMediaUrl(parentSport.pictogram);
-        if (url) return url;
+    if (this.selectedTab() !== 'retired') {
+      if (this.selectedTab() === 'qualification_only' && !this.qualificationLoaded()) return;
+      const hasSelectedSport = this.currentSportOptions().some((option) => option.value === selectedSport);
+      if (!hasSelectedSport) {
+        this.selectedSport.set('all');
       }
+      return;
     }
 
-    return null;
-  }
+    if (!this.retiredLoaded()) return;
 
-  private getParentSportId(sport: Sport | null, sportsById: Map<string, Sport>): string | null {
-    if (!sport) return null;
-
-    const directParentId = this.extractParentSportId((sport as unknown as { parentSport?: unknown }).parentSport);
-    if (directParentId) return directParentId;
-
-    const catalogSport = sport.id ? sportsById.get(sport.id) || null : null;
-    if (!catalogSport) return null;
-
-    return this.extractParentSportId((catalogSport as unknown as { parentSport?: unknown }).parentSport);
-  }
-
-  private extractParentSportId(rawParent: unknown): string | null {
-    if (typeof rawParent === 'string') return rawParent;
-    if (typeof rawParent === 'object' && rawParent && 'id' in (rawParent as Record<string, unknown>)) {
-      const id = (rawParent as Record<string, unknown>).id;
-      return typeof id === 'string' ? id : null;
+    const { category, sport } = this.parseRetiredFilter(selectedSport);
+    if (!category) {
+      this.selectedSport.set('all');
+      return;
     }
-    return null;
-  }
 
-  private getAthleteId(participation: OlympicParticipation): string | null {
-    if (typeof participation.athlete === 'object' && participation.athlete?.id) {
-      return participation.athlete.id;
+    const hasCategory = this.currentSportOptions().some((option) => option.value === category);
+    if (!hasCategory) {
+      this.selectedSport.set('all');
+      return;
     }
-    return null;
-  }
 
-  private getAthleteName(participation: OlympicParticipation): string {
-    if (typeof participation.athlete === 'object' && participation.athlete?.fullName) {
-      return participation.athlete.fullName;
+    if (!sport) return;
+
+    const hasSport = this.getRetiredSportsForCategory(category).some((item) => item.name === sport);
+    if (!hasSport) {
+      this.selectedSport.set(category);
     }
-    return 'Unknown';
   }
 
   private updateQueryParams(): void {
@@ -499,17 +782,29 @@ export class AthletesComponent implements OnInit {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
+        search: this.searchQuery().trim() ? this.searchQuery().trim() : null,
         sport: this.selectedSport() === 'all' ? null : this.selectedSport(),
-        edition: this.selectedEdition() === 'all' ? null : this.selectedEdition(),
-        active: this.selectedActive() === 'all' ? null : this.selectedActive(),
+        tab: this.selectedTab() === 'medal_hopeful' ? null : this.selectedTab(),
+        medalists: null,
+        retiredSort: null,
+        status: null,
+        edition: null,
+        active: null,
+        sort: null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
   }
 
-  private parseActiveFilter(value: string | null): ActiveFilter {
-    if (value === 'active' || value === 'inactive') return value;
-    return 'all';
+  private parseTab(tabValue: string | null, statusValue: string | null): AthleteTab {
+    if (tabValue === 'medal_hopeful' || tabValue === 'qualification_only' || tabValue === 'retired') {
+      return tabValue;
+    }
+    if (statusValue === 'inactive') {
+      return 'retired';
+    }
+    return 'medal_hopeful';
   }
+
 }

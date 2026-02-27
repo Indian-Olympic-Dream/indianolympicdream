@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -107,6 +108,77 @@ export interface QualificationPathway {
   description?: any;
   quotaAvailable?: number;
   qualificationDeadline?: string;
+}
+
+export interface ContenderUnit {
+  id: string;
+  displayName: string;
+  status: 'medal_hopeful' | 'qualification_only';
+  type: 'individual' | 'pair' | 'team' | 'event_team';
+  sport: Sport;
+  events?: Event[] | null;
+  gender?: 'male' | 'female' | 'mixed';
+  athletes?: Athlete[];
+  heroImage?: { url: string } | null;
+  priority?: number;
+  cycle?: string;
+  isActive?: boolean;
+}
+
+export interface ContenderUnitResult {
+  docs: ContenderUnit[];
+  totalDocs: number;
+}
+
+export interface RetiredSportStat {
+  name: string;
+  count: number;
+}
+
+export interface RetiredAthleteRow {
+  id: string;
+  name: string;
+  country: string;
+  photoUrl: string | null;
+  sports: string[];
+  sportsDisplay: string;
+  events: string[];
+  eventsDisplay: string;
+  sportPictograms: Record<string, string>;
+  sportMedalCounts: Record<string, number>;
+  editionIds: string[];
+  editions: string[];
+  editionYears: number[];
+  firstEditionYear: number | null;
+  lastEditionYear: number | null;
+  editionsDisplay: string;
+  participationCount: number;
+  goldCount: number;
+  silverCount: number;
+  bronzeCount: number;
+  medalCount: number;
+  isActive: boolean;
+}
+
+export interface RetiredAthletesFeed {
+  docs: RetiredAthleteRow[];
+  totalDocs: number;
+  totalPages: number;
+  page: number;
+  hasNextPage: boolean;
+  totalRetired: number;
+  facets: {
+    categories: {
+      team: number;
+      individual: number;
+      medalists: number;
+    };
+    sportsByCategory: {
+      team: RetiredSportStat[];
+      individual: RetiredSportStat[];
+      medalists: RetiredSportStat[];
+    };
+  };
 }
 
 // ============ GRAPHQL QUERIES ============
@@ -280,7 +352,7 @@ const PARTICIPATIONS_QUERY = gql`
           }
         }
         edition { id name slug year }
-        event { id name type sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
+        event { id name type gender sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
     }
   }
 }
@@ -332,6 +404,47 @@ const QUALIFICATION_PATHWAYS_QUERY = gql`
     }
   }
 }
+`;
+
+const CONTENDER_UNITS_QUERY = gql`
+  query GetContenderUnits($where: ContenderUnit_where, $limit: Int) {
+    ContenderUnits(where: $where, limit: $limit, sort: "priority") {
+      totalDocs
+      docs {
+        id
+        displayName
+        status
+        type
+        gender
+        priority
+        cycle
+        isActive
+        heroImage { url }
+        events {
+          id
+          name
+          gender
+          type
+        }
+        sport {
+          id
+          name
+          slug
+          pictogram { url }
+          parentSport { id name slug pictogram { url } }
+        }
+        athletes {
+          id
+          fullName
+          slug
+          country
+          isActive
+          photo { url }
+          sports { id name slug }
+        }
+      }
+    }
+  }
 `;
 
 const GOLDEN_MOMENTS_QUERY = gql`
@@ -394,6 +507,7 @@ const PRODUCTS_QUERY = gql`
 })
 export class PayloadService {
   private apollo = inject(Apollo);
+  private http = inject(HttpClient);
 
   // Fallback image for athletes without photos
   readonly FALLBACK_ATHLETE_IMAGE = 'assets/images/placeholder.svg';
@@ -620,6 +734,36 @@ export class PayloadService {
     }).pipe(map(result => result.data.QualificationPathways.docs));
   }
 
+  getContenderUnits(options?: {
+    status?: 'medal_hopeful' | 'qualification_only';
+    cycle?: string;
+    activeOnly?: boolean;
+    limit?: number;
+  }): Observable<ContenderUnitResult> {
+    let where: any = {};
+    if (options?.status) {
+      where.status = { equals: options.status };
+    }
+    if (options?.cycle) {
+      where.cycle = { equals: options.cycle };
+    }
+    if (options?.activeOnly) {
+      where.isActive = { equals: true };
+    }
+
+    return this.apollo.query<{ ContenderUnits: { docs: ContenderUnit[]; totalDocs: number } }>({
+      query: CONTENDER_UNITS_QUERY,
+      variables: { where, limit: options?.limit || 200 },
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    }).pipe(
+      map((result) => ({
+        docs: result.data?.ContenderUnits?.docs || [],
+        totalDocs: result.data?.ContenderUnits?.totalDocs || 0,
+      })),
+    );
+  }
+
   getGoldenMoments(): Observable<GoldenMoment[]> {
     return this.apollo.query<{ GoldenMoments: { docs: GoldenMoment[] } }>({
       query: GOLDEN_MOMENTS_QUERY,
@@ -640,5 +784,25 @@ export class PayloadService {
       variables: { limit: 1 },
       context: { headers: { 'x-apollo-operation-name': 'GetProducts' } }
     }).pipe(map(result => result.data.Products.totalDocs || 0));
+  }
+
+  getRetiredAthletesFeed(options?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sportFilter?: string;
+  }): Observable<RetiredAthletesFeed> {
+    let params = new HttpParams()
+      .set('page', String(options?.page || 1))
+      .set('limit', String(options?.limit || 36));
+
+    if (options?.search?.trim()) {
+      params = params.set('search', options.search.trim());
+    }
+    if (options?.sportFilter && options.sportFilter !== 'all') {
+      params = params.set('sport', options.sportFilter);
+    }
+
+    return this.http.get<RetiredAthletesFeed>(`${environment.payload_url}/api/athletes/retired-feed`, { params });
   }
 }

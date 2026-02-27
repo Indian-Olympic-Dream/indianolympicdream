@@ -28,7 +28,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/.well-known"
             ],
             "styles": [
               "src/styles/theme-manager.scss",
@@ -112,7 +113,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/.well-known"
             ],
             "styles": [
               "src/styles/theme-manager.scss",
