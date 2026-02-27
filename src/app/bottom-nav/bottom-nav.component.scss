@@ -5,7 +5,7 @@
 .bottom-nav {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   align-items: stretch;
   min-height: 0 !important;
   height: auto !important;
@@ -35,7 +35,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 54px;
+  min-height: 52px;
   padding: 6px 2px;
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.68);
@@ -74,7 +74,7 @@
 
 .nav-label {
   font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: 9px;
+  font-size: 8px;
   margin-top: 4px;
   letter-spacing: 0.25px;
   line-height: 1;

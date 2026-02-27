@@ -1,6 +1,6 @@
 <mat-toolbar class="bottom-nav">
   <div class="nav-item-container">
-    <a class="nav-link home-link" routerLink="/" routerLinkActive="active-link"
+    <a class="nav-link" routerLink="/" routerLinkActive="active-link"
       [routerLinkActiveOptions]="{exact: true}">
       <span class="nav-icon-col">
         <img class="nav-inline-image nav-home-logo" src="assets/images/logo.png" alt="Home">
@@ -9,11 +9,19 @@
     </a>
   </div>
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/sports" routerLinkActive="active-link">
+    <a class="nav-link" routerLink="/history" routerLinkActive="active-link">
       <span class="nav-icon-col">
-        <img class="nav-inline-image nav-pictogram" src="assets/images/pictograms/icons/wrestling.svg" alt="Sports">
+        <mat-icon class="nav-inline-icon" aria-hidden="true">history</mat-icon>
       </span>
-      <span class="nav-label">Sports</span>
+      <span class="nav-label">History</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a class="nav-link" routerLink="/calendar" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <mat-icon class="nav-inline-icon" aria-hidden="true">calendar_month</mat-icon>
+      </span>
+      <span class="nav-label">Calendar</span>
     </a>
   </div>
   <div class="nav-item-container">

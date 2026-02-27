@@ -20,24 +20,48 @@ mat-toolbar {
 .main-toolbar {
   @include mat.elevation(8);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   padding: 0 24px;
-}
-
-.spacer {
-  flex: 1 1 auto;
+  position: relative;
 }
 
 .logo-container {
-  padding: 0;
-  border-radius: 50%;
+  border-radius: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   z-index: 1002;
+  text-decoration: none;
+  position: relative;
+  padding: 4px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 45px;
+    background: radial-gradient(circle at 35% 300%,
+        rgba(212, 175, 55, 0.18) 0%,
+        rgba(212, 175, 55, 0.08) 44%,
+        rgba(212, 175, 55, 0) 76%);
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.24s ease, transform 0.24s ease;
+    pointer-events: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.55);
+    outline-offset: 2px;
+  }
+
+  &.active-home::before {
+    opacity: 0.68;
+    transform: scale(1);
+  }
 
   .brand-text {
     font-family: 'Geist Sans', -apple-system, sans-serif;
@@ -60,7 +84,20 @@ mat-toolbar {
     width: auto;
     margin: 0;
     vertical-align: middle;
-    transition: filter 0.3s ease;
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
+  &.active-home {
+    .olympic-logo {
+      filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.8));
+      transform: translateY(-0.25px);
+    }
+
+    .brand-text {
+      .iod {
+        color: #e6c96b;
+      }
+    }
   }
 
   @media (max-width: 1024px) {
@@ -69,39 +106,6 @@ mat-toolbar {
     }
   }
 }
-
-
-
-.auth-actions .auth-btn {
-  color: var(--text-secondary);
-
-  &:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.08);
-  }
-}
-
-.mat-menu-item {
-  display: flex;
-  align-items: center;
-
-  .mat-icon {
-    margin-right: 8px;
-  }
-}
-
-::ng-deep .custom-menu {
-  .mat-mdc-menu-item {
-    min-height: 36px;
-    padding: 0px;
-    text-align: center;
-  }
-
-  .mat-mdc-menu-item .mat-icon {
-    margin-right: 0px;
-  }
-}
-
 mat-sidenav-content {
   display: flex;
   flex-direction: column;
@@ -117,7 +121,10 @@ mat-sidenav-content {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .nav-link {
@@ -164,11 +171,6 @@ mat-sidenav-content {
   transition: all 0.2s ease;
   flex-shrink: 0;
 
-  &.nav-icon-logo {
-    height: 18px;
-    width: auto;
-  }
-
   &.nav-icon-pictogram {
     height: 18px;
     width: 18px;
@@ -182,15 +184,6 @@ mat-sidenav-content {
     line-height: 20px;
   }
 }
-
-.context-icon {
-  width: 18px;
-  height: 18px;
-  font-size: 18px;
-  line-height: 18px;
-  opacity: 0.86;
-}
-
 
 // Responsive Helpers
 .hidden-mobile {
@@ -207,6 +200,17 @@ mat-sidenav-content {
   }
 }
 
+@media (max-width: 768px) {
+  .main-toolbar {
+    justify-content: center;
+    padding: 0 12px;
+  }
+
+  .logo-container {
+    margin: 0 auto;
+  }
+}
+
 // Main Content area
 .main-content {
   position: relative;
@@ -215,7 +219,6 @@ mat-sidenav-content {
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--dark-bg);
-  padding-top: 64px;
 
   // Flex layout for sticky footer
   display: flex;

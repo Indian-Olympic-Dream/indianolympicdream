@@ -10,7 +10,7 @@
         <div class="hero-vignette"></div>
 
         <!-- Back button -->
-        <button class="hero-back-btn" routerLink="/">
+        <button class="hero-back-btn" routerLink="/history">
             <mat-icon>arrow_back</mat-icon>
         </button>
 
@@ -92,7 +92,7 @@
         <h2>Sports Contested</h2>
         <div class="sports-grid">
             <a *ngFor="let group of sportGroups()" class="sport-card"
-                [routerLink]="['/sport', getSportSlug(group.sport)]" [queryParams]="{ edition: edition()?.slug }"
+                [routerLink]="['/history/sport', getSportSlug(group.sport)]" [queryParams]="{ edition: edition()?.slug }"
                 [class.has-gold]="group.medalCount.gold > 0"
                 [class.has-silver]="group.medalCount.gold === 0 && group.medalCount.silver > 0"
                 [class.has-bronze]="group.medalCount.gold === 0 && group.medalCount.silver === 0 && group.medalCount.bronze > 0">

@@ -396,11 +396,11 @@ export class HistorySportDetailComponent implements OnInit {
 
         const focusedEdition = this.focusedEditionSlug();
         if (focusedEdition) {
-            this.router.navigateByUrl(`/${focusedEdition}`);
+            this.router.navigateByUrl(`/history/${focusedEdition}`);
             return;
         }
 
-        this.router.navigateByUrl('/');
+        this.router.navigateByUrl('/history');
     }
 
     ngOnInit() {

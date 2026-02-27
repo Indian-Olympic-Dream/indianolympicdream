@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.calendar-shell {
+  min-height: 100%;
+  padding: 22px 16px 26px;
+  color: var(--text-primary);
+}
+
+.calendar-header h1 {
+  margin: 0;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+}
+
+.calendar-header p {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.calendar-card {
+  margin-top: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 20px 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-card mat-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 28px;
+  line-height: 28px;
+  color: var(--accent-gold);
+}
+
+.calendar-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.calendar-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

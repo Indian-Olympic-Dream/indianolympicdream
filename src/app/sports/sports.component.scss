@@ -1,7 +1,8 @@
 .sports-container {
   min-height: 100vh;
+  --sports-page-x: 14px;
   color: rgba(255, 255, 255, 0.95);
-  padding: 18px 14px 26px;
+  padding: 0 var(--sports-page-x) 26px;
   background:
     radial-gradient(1200px 500px at 10% -10%, rgba(212, 175, 55, 0.12), transparent 60%),
     radial-gradient(900px 420px at 100% -30%, rgba(65, 105, 225, 0.1), transparent 65%),
@@ -10,15 +11,17 @@
 
 .sports-header {
   text-align: center;
-  margin: 0 auto 14px;
-  max-width: 720px;
+  margin: 0 calc(var(--sports-page-x) * -1) 14px;
+  padding: 16px 24px 24px;
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.08) 0%, transparent 100%);
+  position: relative;
 
   h1 {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     font-family: 'Geist Sans', -apple-system, sans-serif;
-    font-size: clamp(1.45rem, 4vw, 1.95rem);
-    font-weight: 700;
-    background: linear-gradient(180deg, #ffe89a 0%, #d9aa26 100%);
+    font-size: 1.75rem;
+    font-weight: 600;
+    background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -28,8 +31,9 @@
     margin: 0;
     font-family: 'Geist Mono', monospace;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.62);
-    letter-spacing: 0.35px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
 }
 
@@ -277,7 +281,8 @@
 
 @media (min-width: 768px) {
   .sports-container {
-    padding: 20px 24px 30px;
+    --sports-page-x: 24px;
+    padding-bottom: 30px;
   }
 
   .controls-panel {

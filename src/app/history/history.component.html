@@ -1,8 +1,8 @@
 <div class="history-container">
     <!-- Header with proper spacing from toolbar -->
     <header class="history-header">
-        <h1>Indian Olympic Dream</h1>
-        <p class="subtitle">124 Year journey of grit, grind and glory (1900 - 2024)</p>
+        <h1>Indian Olympic Legacy</h1>
+        <p class="subtitle">41 Medals, 26 Editions, 22 Sports and 1038 Olympians</p>
     </header>
 
     <!-- Loading State -->
@@ -15,11 +15,6 @@
         <section class="era-toolbar">
             <div class="era-filter">
                 <!-- LA 2028 Current Edition -->
-                <a routerLink="/la-2028" class="era-btn la2028-btn">
-                    <!-- <img src="assets/images/olympics/la2028.png" alt="LA 2028" class="la2028-icon"> -->
-                    <span class="era-label">LA</span>
-                    <span class="era-years">2028</span>
-                </a>
 
                 <button class="era-btn" [class.active]="selectedEra() === 'all'" (click)="onEraFilter('all')">
                     <span class="era-label">All Time</span>
@@ -79,7 +74,7 @@
                     </div>
                     <div class="sports-scroll">
                         <a *ngFor="let sport of sportsBreakdown()" class="sport-card"
-                            [routerLink]="['/sport', sport.slug]" [class.has-gold]="sport.gold > 0"
+                            [routerLink]="['/history/sport', sport.slug]" [class.has-gold]="sport.gold > 0"
                             [class.has-silver]="sport.gold === 0 && sport.silver > 0"
                             [class.has-bronze]="sport.gold === 0 && sport.silver === 0 && sport.bronze > 0">
 
@@ -109,8 +104,9 @@
                         <span class="rail-count">{{ editionCards().length }}</span>
                     </div>
                     <div class="editions-scroll">
-                        <a *ngFor="let edition of editionCards()" [routerLink]="['/', edition.slug || edition.year]"
-                            class="edition-card" [class.has-gold]="edition.gold > 0"
+                        <a *ngFor="let edition of editionCards()"
+                            [routerLink]="['/history', edition.slug || edition.year]" class="edition-card"
+                            [class.has-gold]="edition.gold > 0"
                             [class.has-silver]="edition.gold === 0 && edition.silver > 0"
                             [class.has-bronze]="edition.gold === 0 && edition.silver === 0 && edition.bronze > 0"
                             [class.no-medals]="edition.total === 0">
