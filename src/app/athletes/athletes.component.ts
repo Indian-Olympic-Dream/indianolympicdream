@@ -212,7 +212,10 @@ export class AthletesComponent implements OnInit {
     this.cmsContenderUnits().forEach((unit) => {
       if (!unit?.sport) return;
       const sportName = unit.sport.parentSport?.name || unit.sport.name;
-      const pictogramUrl = this.payload.getMediaUrl(unit.sport.parentSport?.pictogram || unit.sport.pictogram);
+      const pictogramUrl = this.payload.getSportPictogramUrl({
+        sport: unit.sport,
+        includePlaceholderFallback: false,
+      });
       if (sportName && pictogramUrl && !pictogramMap.has(sportName)) {
         pictogramMap.set(sportName, pictogramUrl);
       }

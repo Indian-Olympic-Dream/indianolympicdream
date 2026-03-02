@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
+import { Observable, throwError, of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { PayloadService, Sport, Athlete } from './services/payload.service';
 import { AllSports, Calendar } from './models/app-models';
@@ -23,65 +23,75 @@ export class SportsdataService {
   };
 
   /**
-   * Static list of sports for home page - matches static pictogram assets
-   * These match the files in assets/images/pictograms/kinetic/*.webp
-   */
-  private readonly HOME_PAGE_SPORTS = [
-    'Archery', 'Athletics', 'Badminton', 'Boxing', 'Equestrian',
-    'Fencing', 'Golf', 'Gymnastics', 'Hockey', 'Judo',
-    'Rowing', 'Sailing', 'Shooting', 'Swimming', 'TableTennis',
-    'Tennis', 'Weightlifting', 'Wrestling'
-  ];
-
-  /**
-   * Get all sports - returns static list matching pictogram assets for home page
+   * Get all sports - DB first, with canonical pictogram resolution.
    */
   public getallsports(edition: string): Observable<AllSports[]> {
-    // Return static list to match existing pictogram assets
-    return of(this.HOME_PAGE_SPORTS.map(name => ({
-      name,
-      pictogram: `pictograms/${name}.png`,
-      isimportant: true,
-    })));
+    return this.payload.getSports().pipe(
+      map((sports) =>
+        sports
+          .filter((sport) => this.isTopLevelSport(sport))
+          .map((sport) => ({
+            name: sport.name,
+            pictogram:
+              this.payload.getSportPictogramUrl({
+                sport,
+                includePlaceholderFallback: true,
+              }) || this.payload.FALLBACK_SPORT_PICTOGRAM,
+            isimportant: true,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+      ),
+      catchError(this.handleError)
+    );
   }
 
   /**
-   * Get sport details by name - returns static data for the 18 main sports
+   * Get sport details by name.
    * Returns array format expected by component (res[0])
    */
   public getsports(sportname: string, edition: string): Observable<any[]> {
-    // Check if it's one of our main sports
-    const normalizedName = sportname.charAt(0).toUpperCase() + sportname.slice(1);
-    if (this.HOME_PAGE_SPORTS.includes(normalizedName) || this.HOME_PAGE_SPORTS.includes(sportname)) {
-      const name = this.HOME_PAGE_SPORTS.find(s =>
-        s.toLowerCase() === sportname.toLowerCase()
-      ) || sportname;
+    const normalizedSlug = this.toSlug(sportname);
 
-      // Return static sport data in array format
-      return of([{
-        name: name,
-        slug: name.toLowerCase(),
-        alias: name,
-        description: `${name} at the Olympic Games`,
-        pictogram: `pictograms/${name}.png`,
-        Medals: '0',
-        athletes: [],
-        events: { man: [], women: [], mixed: [] },
-        doc_pdf: '',
-        image: '',
-      }]);
-    }
+    return forkJoin({
+      bySlug: this.payload.getSportBySlug(normalizedSlug),
+      allSports: this.payload.getSports(),
+    }).pipe(
+      map(({ bySlug, allSports }) => {
+        const sport =
+          bySlug ||
+          allSports.find((s) => this.toSlug(s.name) === normalizedSlug) ||
+          null;
 
-    // Fallback to Payload for other sports
-    return this.payload.getSportBySlug(sportname.toLowerCase()).pipe(
-      map(sport => {
-        if (!sport) return [];
+        if (!sport) {
+          return [{
+            name: sportname,
+            slug: normalizedSlug,
+            alias: sportname,
+            description: `${sportname} at the Olympic Games`,
+            pictogram:
+              this.payload.getSportPictogramUrl({
+                sportSlug: normalizedSlug,
+                sportName: sportname,
+                includePlaceholderFallback: true,
+              }) || this.payload.FALLBACK_SPORT_PICTOGRAM,
+            Medals: '0',
+            athletes: [],
+            events: { man: [], women: [], mixed: [] },
+            doc_pdf: '',
+            image: '',
+          }];
+        }
+
         return [{
           name: sport.name,
           slug: sport.slug,
           alias: sport.alias,
           description: sport.description,
-          pictogram: sport.pictogram?.url || null,
+          pictogram:
+            this.payload.getSportPictogramUrl({
+              sport,
+              includePlaceholderFallback: true,
+            }) || this.payload.FALLBACK_SPORT_PICTOGRAM,
           Medals: '0',
           athletes: [],
           events: { man: [], women: [], mixed: [] },
@@ -205,6 +215,21 @@ export class SportsdataService {
     if (!athlete.sports || athlete.sports.length === 0) return '';
     const firstSport = athlete.sports[0];
     return firstSport?.name || '';
+  }
+
+  private isTopLevelSport(sport: Sport): boolean {
+    if (!sport.parentSport?.id) return true;
+    return sport.parentSport.id === sport.id;
+  }
+
+  private toSlug(value: string): string {
+    if (!value) return '';
+    return value
+      .trim()
+      .replace(/([a-z])([A-Z])/g, '$1-$2')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
   }
 
   private handleError(error: HttpErrorResponse) {

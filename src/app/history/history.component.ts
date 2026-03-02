@@ -405,15 +405,23 @@ export class HistoryComponent implements OnInit {
         name: canonicalName,
         slug: canonicalSlug,
         pictogramUrl:
-          this.payload.getMediaUrl(canonicalSport?.pictogram) ||
-          this.payload.getMediaUrl(parentFromParticipation?.pictogram) ||
-          this.payload.getMediaUrl(eventSport.pictogram),
+          this.payload.getSportPictogramUrl({
+            sport: canonicalSport || eventSport,
+            sportSlug: canonicalSlug,
+            sportName: canonicalName,
+            parentSport: parentFromParticipation,
+            includePlaceholderFallback: false,
+          }) || null,
       },
       discipline: {
         id: eventSport.id,
         name: eventSport.name,
         slug: eventSport.slug || this.toSlug(eventSport.name),
-        pictogramUrl: this.payload.getMediaUrl(eventSport.pictogram),
+        pictogramUrl:
+          this.payload.getSportPictogramUrl({
+            sport: eventSport,
+            includePlaceholderFallback: false,
+          }) || null,
       },
     };
   }

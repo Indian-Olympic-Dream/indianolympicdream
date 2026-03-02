@@ -511,10 +511,31 @@ export class PayloadService {
 
   // Fallback image for athletes without photos
   readonly FALLBACK_ATHLETE_IMAGE = 'assets/images/placeholder.svg';
+  readonly FALLBACK_SPORT_PICTOGRAM = 'assets/images/placeholder.svg';
 
   getMediaUrl(media: { url: string } | undefined | null): string | null {
     if (!media?.url) return null;
     return this.normalizeMediaUrl(media.url);
+  }
+
+  getSportPictogramUrl(input?: {
+    sport?: Partial<Sport> | null;
+    sportSlug?: string | null;
+    sportName?: string | null;
+    parentSport?: Partial<Sport> | null;
+    includePlaceholderFallback?: boolean;
+  }): string | null {
+    const includePlaceholderFallback = input?.includePlaceholderFallback !== false;
+    const sport = input?.sport;
+    const parentSport = input?.parentSport || sport?.parentSport || null;
+
+    const direct = this.getMediaUrl((sport?.pictogram as { url: string } | null | undefined) || null);
+    if (direct) return direct;
+
+    const parentDirect = this.getMediaUrl((parentSport?.pictogram as { url: string } | null | undefined) || null);
+    if (parentDirect) return parentDirect;
+
+    return includePlaceholderFallback ? this.FALLBACK_SPORT_PICTOGRAM : null;
   }
 
   private normalizeMediaUrl(rawUrl: string): string {
@@ -614,7 +635,7 @@ export class PayloadService {
 
   getAthleteImageUrl(athlete: Athlete): string {
     if (athlete.photo?.url) {
-      return environment.payload_url + athlete.photo.url;
+      return this.normalizeMediaUrl(athlete.photo.url);
     }
     return this.FALLBACK_ATHLETE_IMAGE;
   }

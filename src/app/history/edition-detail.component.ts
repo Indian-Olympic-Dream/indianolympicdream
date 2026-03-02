@@ -297,16 +297,11 @@ export class EditionDetailComponent implements OnInit {
   getPictogramFromParticipation(p: OlympicParticipation): string | null {
     if (typeof p.event === 'object' && p.event?.sport) {
       const sport = p.event.sport as any; // Cast to access nested fields
-
-      // Try direct icon
-      let url = this.payload.getMediaUrl(sport.pictogram);
+      const url = this.payload.getSportPictogramUrl({
+        sport,
+        includePlaceholderFallback: false,
+      });
       if (url) return url;
-
-      // Try parent icon
-      if (sport.parentSport?.pictogram) {
-        url = this.payload.getMediaUrl(sport.parentSport.pictogram);
-        if (url) return url;
-      }
     }
     return null;
   }

@@ -60,8 +60,6 @@ export class SportsComponent implements OnInit {
     'badminton',
     'basketball',
     'boxing',
-    'canoeing',
-    'canoe',
     'cycling',
     'equestrian',
     'fencing',
@@ -85,7 +83,6 @@ export class SportsComponent implements OnInit {
     'taekwondo',
     'tennis',
     'triathlon',
-    'volleyball',
     'weightlifting',
     'wrestling',
     'baseball-softball',
@@ -101,12 +98,12 @@ export class SportsComponent implements OnInit {
 
   filterOptions: { label: string; value: SportFilter }[] = [
     { label: 'All Sports', value: 'all' },
+    { label: 'New', value: 'la2028-program' },
     { label: 'Golden', value: 'gold' },
     { label: 'Silver', value: 'silver' },
     { label: 'Bronze', value: 'bronze' },
     { label: 'Heartbreak', value: 'near-podium' },
     { label: 'Participated', value: 'participated' },
-    { label: 'LA 2028 Program', value: 'la2028-program' },
   ];
 
   displayedSportRows = computed(() => {
@@ -273,20 +270,31 @@ export class SportsComponent implements OnInit {
 
     // Seed all top-level sports so sports with zero participation remain visible and ready for future qualifiers.
     sports
-      .filter(sport => {
+      .filter((sport) => {
         const parentId = this.getParentSportId(sport);
         return !parentId || parentId === sport.id;
       })
       .forEach(sport => {
         const firstChildPictogram = (childDisciplinesByParent.get(sport.id) || [])
-          .map(child => this.payload.getMediaUrl(child.pictogram))
+          .map(child =>
+            this.payload.getSportPictogramUrl({
+              sport: child,
+              includePlaceholderFallback: false,
+            })
+          )
           .find((url): url is string => !!url);
 
         totals.set(sport.id, {
           id: sport.id,
           name: sport.name,
           slug: sport.slug,
-          pictogramUrl: this.payload.getMediaUrl(sport.pictogram) || firstChildPictogram || null,
+          pictogramUrl:
+            this.payload.getSportPictogramUrl({
+              sport,
+              includePlaceholderFallback: false,
+            }) ||
+            firstChildPictogram ||
+            null,
           athleteEditionKeys: new Set<string>(),
           participationCount: 0,
           uniqueAthleteIds: new Set<string>(),
@@ -331,14 +339,14 @@ export class SportsComponent implements OnInit {
 
       if (!row.disciplineMap.has(discipline.id)) {
         row.disciplineMap.set(discipline.id, {
-            id: discipline.id,
-            name: discipline.name,
-            slug: discipline.slug,
-            athleteEditionKeys: new Set<string>(),
-            participationCount: 0,
-            countedMedals: new Set<string>(),
-            medalCount: { gold: 0, silver: 0, bronze: 0, total: 0 },
-          });
+          id: discipline.id,
+          name: discipline.name,
+          slug: discipline.slug,
+          athleteEditionKeys: new Set<string>(),
+          participationCount: 0,
+          countedMedals: new Set<string>(),
+          medalCount: { gold: 0, silver: 0, bronze: 0, total: 0 },
+        });
       }
       const disciplineRow = row.disciplineMap.get(discipline.id)!;
 
@@ -497,15 +505,23 @@ export class SportsComponent implements OnInit {
         name: canonicalSport?.name || parentFromParticipation?.name || eventSport.name,
         slug: canonicalSport?.slug || parentFromParticipation?.slug || eventSport.slug || '',
         pictogramUrl:
-          this.payload.getMediaUrl(canonicalSport?.pictogram) ||
-          this.payload.getMediaUrl(parentFromParticipation?.pictogram) ||
-          this.payload.getMediaUrl(eventSport.pictogram),
+          this.payload.getSportPictogramUrl({
+            sport: canonicalSport || eventSport,
+            sportSlug: canonicalSport?.slug || parentFromParticipation?.slug || eventSport.slug,
+            sportName: canonicalSport?.name || parentFromParticipation?.name || eventSport.name,
+            parentSport: parentFromParticipation,
+            includePlaceholderFallback: false,
+          }) || null,
       },
       discipline: {
         id: eventSport.id,
         name: eventSport.name,
         slug: eventSport.slug || '',
-        pictogramUrl: this.payload.getMediaUrl(eventSport.pictogram),
+        pictogramUrl:
+          this.payload.getSportPictogramUrl({
+            sport: eventSport,
+            includePlaceholderFallback: false,
+          }) || null,
       },
     };
   }

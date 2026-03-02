@@ -102,7 +102,11 @@ export class HistorySportDetailComponent implements OnInit {
                     id: discipline.id,
                     name: discipline.name,
                     slug: discipline.slug,
-                    pictogramUrl: this.payload.getMediaUrl(discipline.pictogram),
+                    pictogramUrl:
+                        this.payload.getSportPictogramUrl({
+                            sport: discipline,
+                            includePlaceholderFallback: false,
+                        }) || null,
                     athleteEntries: 0,
                     medalCount: { gold: 0, silver: 0, bronze: 0, total: 0 },
                 });
@@ -337,13 +341,11 @@ export class HistorySportDetailComponent implements OnInit {
         const sport = this.sport();
         if (!sport) return null;
 
-        const directUrl = this.payload.getMediaUrl(sport.pictogram);
+        const directUrl = this.payload.getSportPictogramUrl({
+            sport,
+            includePlaceholderFallback: false,
+        });
         if (directUrl) return directUrl;
-
-        if (sport.parentSport?.pictogram) {
-            const parentUrl = this.payload.getMediaUrl(sport.parentSport.pictogram);
-            if (parentUrl) return parentUrl;
-        }
 
         // Fallback: use first available child/linked event sport pictogram from loaded participations.
         for (const participation of this.participations()) {
@@ -355,13 +357,12 @@ export class HistorySportDetailComponent implements OnInit {
             const matchesCurrentSport = eventSport.id === sport.id || parentSport?.id === sport.id;
             if (!matchesCurrentSport) continue;
 
-            const eventSportUrl = this.payload.getMediaUrl(eventSport.pictogram);
+            const eventSportUrl = this.payload.getSportPictogramUrl({
+                sport: eventSport,
+                parentSport,
+                includePlaceholderFallback: false,
+            });
             if (eventSportUrl) return eventSportUrl;
-
-            if (parentSport?.pictogram) {
-                const parentSportUrl = this.payload.getMediaUrl(parentSport.pictogram);
-                if (parentSportUrl) return parentSportUrl;
-            }
         }
 
         return null;
@@ -487,7 +488,11 @@ export class HistorySportDetailComponent implements OnInit {
                 id: selectedSport?.id || 'unknown-discipline',
                 name: selectedSport?.name || 'Discipline',
                 slug: selectedSport?.slug || '',
-                pictogramUrl: this.payload.getMediaUrl(selectedSport?.pictogram),
+                pictogramUrl:
+                    this.payload.getSportPictogramUrl({
+                        sport: selectedSport || null,
+                        includePlaceholderFallback: false,
+                    }) || null,
             };
         }
 
@@ -498,7 +503,11 @@ export class HistorySportDetailComponent implements OnInit {
                 id: selectedSport?.id || 'unknown-discipline',
                 name: selectedSport?.name || 'Discipline',
                 slug: selectedSport?.slug || '',
-                pictogramUrl: this.payload.getMediaUrl(selectedSport?.pictogram),
+                pictogramUrl:
+                    this.payload.getSportPictogramUrl({
+                        sport: selectedSport || null,
+                        includePlaceholderFallback: false,
+                    }) || null,
             };
         }
 
@@ -515,9 +524,11 @@ export class HistorySportDetailComponent implements OnInit {
                     name: inferredDiscipline.name,
                     slug: inferredDiscipline.slug,
                     pictogramUrl:
-                        this.payload.getMediaUrl(inferredDiscipline.pictogram) ||
-                        this.payload.getMediaUrl(eventSport.pictogram) ||
-                        this.payload.getMediaUrl(parentSport?.pictogram),
+                        this.payload.getSportPictogramUrl({
+                            sport: inferredDiscipline,
+                            parentSport,
+                            includePlaceholderFallback: false,
+                        }) || null,
                 };
             }
 
@@ -525,7 +536,11 @@ export class HistorySportDetailComponent implements OnInit {
                 id: `${UNMAPPED_DISCIPLINE_PREFIX}${selectedSport!.id}`,
                 name: 'Needs Mapping',
                 slug: `${selectedSport!.slug}-needs-mapping`,
-                pictogramUrl: this.payload.getMediaUrl(selectedSport?.pictogram),
+                pictogramUrl:
+                    this.payload.getSportPictogramUrl({
+                        sport: selectedSport || null,
+                        includePlaceholderFallback: false,
+                    }) || null,
             };
         }
 
@@ -537,9 +552,11 @@ export class HistorySportDetailComponent implements OnInit {
             name: disciplineSport.name || selectedSport?.name || 'Discipline',
             slug: disciplineSport.slug || selectedSport?.slug || '',
             pictogramUrl:
-                this.payload.getMediaUrl(disciplineSport.pictogram) ||
-                this.payload.getMediaUrl(eventSport.pictogram) ||
-                this.payload.getMediaUrl(parentSport?.pictogram),
+                this.payload.getSportPictogramUrl({
+                    sport: disciplineSport,
+                    parentSport,
+                    includePlaceholderFallback: false,
+                }) || null,
         };
     }
 
