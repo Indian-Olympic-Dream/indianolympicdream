@@ -95,9 +95,11 @@ export interface CalendarEvent {
   endDate?: string;
   location?: string;
   country?: string;
+  type?: string;
   category?: string;
   status: string;
   isQualifier?: boolean;
+  notes?: string;
 }
 
 export interface QualificationPathway {
@@ -376,15 +378,23 @@ const CALENDAR_EVENTS_QUERY = gql`
   CalendarEvents(where: $where, limit: $limit, sort: "startDate") {
       docs {
       id
-      title
+      title: name
       startDate
       endDate
       location
       country
+      type
       category
       status
-      isQualifier
-        sport { id name slug }
+      isQualifier: isQualificationEvent
+      notes
+        sport {
+          id
+          name
+          slug
+          pictogram { url }
+          parentSport { id name slug pictogram { url } }
+        }
     }
   }
 }
@@ -716,6 +726,7 @@ export class PayloadService {
     sportId?: string;
     status?: string;
     isQualifier?: boolean;
+    isQualificationEvent?: boolean;
     limit?: number;
   }): Observable<CalendarEvent[]> {
     let where: any = {};
@@ -725,13 +736,14 @@ export class PayloadService {
     if (options?.status) {
       where.status = { equals: options.status };
     }
-    if (options?.isQualifier !== undefined) {
-      where.isQualifier = { equals: options.isQualifier };
+    const qualificationFlag = options?.isQualificationEvent ?? options?.isQualifier;
+    if (qualificationFlag !== undefined) {
+      where.isQualificationEvent = { equals: qualificationFlag };
     }
 
     return this.apollo.query<{ CalendarEvents: { docs: CalendarEvent[] } }>({
       query: CALENDAR_EVENTS_QUERY,
-      variables: { where, limit: options?.limit || 50 }
+      variables: { where, limit: options?.limit || 500 }
     }).pipe(map(result => result.data.CalendarEvents.docs));
   }
 
