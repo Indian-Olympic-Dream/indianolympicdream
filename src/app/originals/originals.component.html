@@ -1,18 +1,107 @@
-<div class="originals-container" *ngIf="podcasts$ | async as podcasts; else loading">
-  <div *ngFor="let podcast of podcasts" class="embed-wrapper">
-    <app-embed-block [block]="{
-      platform: 'youtube',
-      url: podcast.youtubeURL,
-      embedTitle: podcast.title,
-      embedDescription: podcast.description,
-      duration: podcast.duration,
-      tags: [{ name: 'Podcast'}]
-    }"></app-embed-block>
-  </div>
+<div class="originals-loading" *ngIf="loading()">
+  <mat-spinner diameter="44"></mat-spinner>
+  <p>Loading Originals...</p>
 </div>
 
-<ng-template #loading>
-  <div class="loading-spinner">
-    <mat-spinner></mat-spinner>
-  </div>
-</ng-template>
+<div class="originals-page" *ngIf="!loading()">
+  <header class="originals-header">
+    <p class="subtitle">Stories in motion from India's Olympic journey.</p>
+
+    <section class="tab-switcher" aria-label="Originals tabs">
+      <button type="button" class="tab-btn" *ngFor="let tab of tabs" [class.active]="activeTab() === tab.id"
+        (click)="setTab(tab.id)">
+        <span class="tab-btn-label">
+          <mat-icon>{{ tab.icon }}</mat-icon>
+          <span>{{ tab.label }}</span>
+        </span>
+        <span class="tab-btn-count">{{ getTabCountLabel(tab.id) }}</span>
+      </button>
+    </section>
+  </header>
+
+  <article class="state-card error" *ngIf="loadError()">
+    <mat-icon>error_outline</mat-icon>
+    <h2>{{ loadError() }}</h2>
+  </article>
+
+  <article class="state-card" *ngIf="!loadError() && tabLoading()">
+    <mat-spinner diameter="30"></mat-spinner>
+    <h2>Loading {{ getTypeLabel() }}</h2>
+  </article>
+
+  <section class="videos-grid" [class.shorts-grid]="activeTab() === 'short'"
+    *ngIf="!loadError() && !tabLoading() && displayVideos().length > 0; else emptyState">
+    <article class="video-card" [class.short-card]="activeTab() === 'short'"
+      *ngFor="let video of displayVideos(); trackBy: trackByVideo">
+      <div class="video-player" [class.is-playing]="isPlaying(video)" [class.is-disabled]="!video.playable"
+        (click)="playVideo(video)">
+        <img *ngIf="!isPlaying(video)" [src]="video.thumbnailUrl" [alt]="video.title" class="thumb" loading="lazy"
+          (error)="onThumbnailError(video, $event)" />
+        <div class="play-overlay" *ngIf="!isPlaying(video)">
+          <div class="play-btn"><span></span></div>
+        </div>
+        <div class="duration-badge" *ngIf="video.duration && !isPlaying(video)">
+          {{ video.duration | formatDuration }}
+        </div>
+
+        <div class="media-top-actions" *ngIf="activeTab() === 'short' && !isPlaying(video)">
+          <button type="button" class="overlay-youtube" (click)="openOnYouTube(video, $event)"
+            [attr.aria-label]="'Open ' + video.title + ' on YouTube'">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+
+        <div class="media-bottom-meta" *ngIf="activeTab() === 'short' && !isPlaying(video)">
+          <span class="media-sport-chip" *ngIf="video.sports.length > 0; else shortTypeFallback">
+            {{ video.sports[0].name }}
+            <span class="more-count" *ngIf="video.sports.length > 1">+{{ video.sports.length - 1 }}</span>
+          </span>
+          <ng-template #shortTypeFallback>
+            <span class="media-type">{{ getTypeLabel() }}</span>
+          </ng-template>
+          <span class="media-date" *ngIf="video.publishedLabel">{{ video.publishedLabel }}</span>
+        </div>
+
+        <button type="button" class="stop-btn" *ngIf="isPlaying(video)" (click)="stopVideo($event)"
+          aria-label="Stop video">
+          <mat-icon>close</mat-icon>
+        </button>
+
+        <iframe *ngIf="isPlaying(video)" [src]="getVideoEmbedUrl(video) | safeResourceUrl"
+          (load)="onVideoLoad(video.id)" frameborder="0" class="video-iframe"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+
+      <div class="video-content" *ngIf="activeTab() !== 'short'">
+        <div class="meta-row">
+          <span class="type-chip">
+            <mat-icon>{{ getTypeIcon() }}</mat-icon>
+            {{ getTypeLabel() }}
+          </span>
+          <span class="video-sport-chip" *ngIf="video.sports.length > 0">
+            {{ video.sports[0].name }}
+            <span class="more-count" *ngIf="video.sports.length > 1">+{{ video.sports.length - 1 }}</span>
+          </span>
+          <span class="date" *ngIf="video.publishedLabel">{{ video.publishedLabel }}</span>
+        </div>
+
+        <h3>{{ video.title }}</h3>
+        <p class="description" *ngIf="video.description">{{ video.description }}</p>
+
+        <button type="button" class="youtube-link" (click)="openOnYouTube(video, $event)"
+          [attr.aria-label]="'Open ' + video.title + ' on YouTube'">
+          Watch on YouTube
+          <mat-icon>open_in_new</mat-icon>
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <ng-template #emptyState>
+    <article class="state-card" *ngIf="!loadError() && !tabLoading()">
+      <mat-icon>video_library</mat-icon>
+      <h2>No {{ getTypeLabel() }} available right now</h2>
+      <p>Check back soon.</p>
+    </article>
+  </ng-template>
+</div>
