@@ -11,8 +11,15 @@ import {
   ContenderUnit as PayloadContenderUnit,
   PayloadService,
 } from '../services/payload.service';
+import {
+  IndiaTier,
+  INDIA_TIER_LABELS,
+  INDIA_TIER_TRACK_LABELS,
+  normalizeLegacyContenderTier,
+  resolveDefaultIndiaTier,
+} from '../models/india-tier';
 
-type AthleteTab = 'medal_hopeful' | 'qualification_only' | 'retired';
+type AthleteTab = 'medal_hopeful' | 'outside_chance' | 'qualification_watch' | 'retired';
 type ContenderType = 'individual' | 'pair' | 'team' | 'event_team';
 type ContenderGender = 'male' | 'female' | 'mixed';
 type RetiredCategory = 'team' | 'individual' | 'medalists';
@@ -66,6 +73,7 @@ interface RetiredSportStat {
 interface ContenderCard {
   id: string;
   name: string;
+  tier: IndiaTier;
   type: ContenderType;
   sport: string;
   imageUrl: string | null;
@@ -98,9 +106,6 @@ export class AthletesComponent implements OnInit {
 
   loading = signal(true);
   errorMessage = signal<string | null>(null);
-  qualificationLoading = signal(false);
-  qualificationLoaded = signal(false);
-  qualificationError = signal<string | null>(null);
   retiredLoading = signal(false);
   retiredLoaded = signal(false);
   retiredError = signal<string | null>(null);
@@ -121,24 +126,13 @@ export class AthletesComponent implements OnInit {
     individual: [],
     medalists: [],
   });
-  medalTabCount = signal(0);
-  qualificationTabCount = signal(0);
   retiredTabCount = signal(0);
 
   retiredDocs = signal<AthleteRow[]>([]);
-  medalContenderUnits = signal<PayloadContenderUnit[]>([]);
-  qualificationContenderUnits = signal<PayloadContenderUnit[]>([]);
+  contenderUnits = signal<PayloadContenderUnit[]>([]);
   failedContenderImages = signal<Set<string>>(new Set());
   failedRetiredPhotos = signal<Set<string>>(new Set());
-  cmsContenderUnits = computed<PayloadContenderUnit[]>(() => {
-    const merged = [...this.medalContenderUnits(), ...this.qualificationContenderUnits()];
-    const byId = new Map<string, PayloadContenderUnit>();
-    merged.forEach((unit) => {
-      if (!unit?.id || byId.has(unit.id)) return;
-      byId.set(unit.id, unit);
-    });
-    return Array.from(byId.values());
-  });
+  cmsContenderUnits = computed<PayloadContenderUnit[]>(() => this.contenderUnits());
   selectedTab = signal<AthleteTab>('medal_hopeful');
   selectedSport = signal<string>('all');
   searchQuery = signal<string>('');
@@ -159,14 +153,18 @@ export class AthletesComponent implements OnInit {
   });
 
   cmsMedalHopefulUnits = computed(() =>
-    this.buildContenderCardsFromCms(this.medalContenderUnits(), 'medal_hopeful'),
+    this.buildContenderCardsFromCms(this.contenderUnits(), 'medal_hopeful'),
   );
-  cmsQualificationOnlyUnits = computed(() =>
-    this.buildContenderCardsFromCms(this.qualificationContenderUnits(), 'qualification_only'),
+  cmsOutsideChanceUnits = computed(() =>
+    this.buildContenderCardsFromCms(this.contenderUnits(), 'outside_chance'),
+  );
+  cmsQualificationWatchUnits = computed(() =>
+    this.buildContenderCardsFromCms(this.contenderUnits(), 'qualification_watch'),
   );
 
   medalHopefulUnits = computed(() => this.cmsMedalHopefulUnits());
-  qualificationOnlyUnits = computed(() => this.cmsQualificationOnlyUnits());
+  outsideChanceUnits = computed(() => this.cmsOutsideChanceUnits());
+  qualificationWatchUnits = computed(() => this.cmsQualificationWatchUnits());
 
   displayedRetiredAthletes = computed(() => this.retiredDocs());
 
@@ -179,7 +177,7 @@ export class AthletesComponent implements OnInit {
     const sport = this.selectedSport();
     const query = this.searchQuery().trim().toLowerCase();
 
-    const pool = selectedTab === 'medal_hopeful' ? this.medalHopefulUnits() : this.qualificationOnlyUnits();
+    const pool = this.getContenderPoolForTab(selectedTab);
 
     return pool.filter((unit) => {
       const matchesSport = sport === 'all' || unit.sport === sport;
@@ -203,7 +201,7 @@ export class AthletesComponent implements OnInit {
     if (selectedTab === 'retired') {
       return this.buildRetiredSportCategoryOptionsFromCounts(this.retiredCategoryCounts());
     }
-    const units = selectedTab === 'medal_hopeful' ? this.medalHopefulUnits() : this.qualificationOnlyUnits();
+    const units = this.getContenderPoolForTab(selectedTab);
     return this.buildSportOptionsFromUnits(units);
   });
 
@@ -347,9 +345,6 @@ export class AthletesComponent implements OnInit {
         this.selectedSport.set(params.get('sport') || 'all');
         this.selectedTab.set(this.parseTab(params.get('tab'), params.get('status')));
         this.applyingQueryParams = false;
-        if (this.selectedTab() === 'qualification_only') {
-          this.ensureQualificationDataLoaded();
-        }
         if (this.selectedTab() === 'retired') {
           this.loadRetiredData({ page: 1, append: false });
         }
@@ -378,9 +373,6 @@ export class AthletesComponent implements OnInit {
 
   setTab(tab: AthleteTab): void {
     this.selectedTab.set(tab);
-    if (tab === 'qualification_only') {
-      this.ensureQualificationDataLoaded();
-    }
     if (tab === 'retired') {
       this.ensureRetiredDataLoaded();
     }
@@ -395,15 +387,20 @@ export class AthletesComponent implements OnInit {
 
   getTabCount(tab: AthleteTab): number {
     if (tab === 'medal_hopeful') {
-      const count = this.medalTabCount();
-      return count > 0 ? count : this.medalHopefulUnits().length;
+      return this.medalHopefulUnits().length;
     }
-    if (tab === 'qualification_only') {
-      const count = this.qualificationTabCount();
-      return count > 0 ? count : this.qualificationOnlyUnits().length;
+    if (tab === 'outside_chance') {
+      return this.outsideChanceUnits().length;
+    }
+    if (tab === 'qualification_watch') {
+      return this.qualificationWatchUnits().length;
     }
     const count = this.retiredTabCount();
     return count > 0 ? count : this.retiredTotalDocs();
+  }
+
+  getTrackChipLabel(unit: ContenderCard): string {
+    return INDIA_TIER_TRACK_LABELS[unit.tier as Exclude<IndiaTier, 'history_only'>] || INDIA_TIER_LABELS[unit.tier];
   }
 
   formatContenderType(type: ContenderType): string {
@@ -472,15 +469,9 @@ export class AthletesComponent implements OnInit {
     this.errorMessage.set(null);
 
     forkJoin({
-      medalContenders: this.payload.getContenderUnits({
-        status: 'medal_hopeful',
+      contenders: this.payload.getContenderUnits({
         activeOnly: true,
-        limit: 200,
-      }).pipe(catchError(() => of({ docs: [], totalDocs: 0 }))),
-      qualificationCount: this.payload.getContenderUnits({
-        status: 'qualification_only',
-        activeOnly: true,
-        limit: 1,
+        limit: 400,
       }).pipe(catchError(() => of({ docs: [], totalDocs: 0 }))),
       retiredCount: this.payload.getRetiredAthletesFeed({
         limit: 1,
@@ -498,15 +489,10 @@ export class AthletesComponent implements OnInit {
         },
       }))),
     }).subscribe({
-      next: ({ medalContenders, qualificationCount, retiredCount }) => {
-        this.medalContenderUnits.set(medalContenders.docs);
-        this.medalTabCount.set(medalContenders.totalDocs);
-        this.qualificationTabCount.set(qualificationCount.totalDocs);
+      next: ({ contenders, retiredCount }) => {
+        this.contenderUnits.set(contenders.docs);
         this.retiredTabCount.set(retiredCount.totalRetired || retiredCount.totalDocs || 0);
         this.ensureSelectedSportIsAvailable();
-        if (this.selectedTab() === 'qualification_only') {
-          this.ensureQualificationDataLoaded();
-        }
         if (this.selectedTab() === 'retired') {
           this.ensureRetiredDataLoaded();
         }
@@ -515,31 +501,6 @@ export class AthletesComponent implements OnInit {
       error: () => {
         this.errorMessage.set('Unable to load athletes right now. Please try again.');
         this.loading.set(false);
-      },
-    });
-  }
-
-  private ensureQualificationDataLoaded(): void {
-    if (this.qualificationLoaded() || this.qualificationLoading()) return;
-
-    this.qualificationLoading.set(true);
-    this.qualificationError.set(null);
-
-    this.payload.getContenderUnits({
-      status: 'qualification_only',
-      activeOnly: true,
-      limit: 300,
-    }).subscribe({
-      next: (result) => {
-        this.qualificationContenderUnits.set(result.docs);
-        this.qualificationTabCount.set(result.totalDocs);
-        this.qualificationLoaded.set(true);
-        this.ensureSelectedSportIsAvailable();
-        this.qualificationLoading.set(false);
-      },
-      error: () => {
-        this.qualificationError.set('Unable to load qualification athletes right now. Please try again.');
-        this.qualificationLoading.set(false);
       },
     });
   }
@@ -653,6 +614,13 @@ export class AthletesComponent implements OnInit {
     return categories.medalists;
   }
 
+  private getContenderPoolForTab(tab: AthleteTab): ContenderCard[] {
+    if (tab === 'medal_hopeful') return this.medalHopefulUnits();
+    if (tab === 'outside_chance') return this.outsideChanceUnits();
+    if (tab === 'qualification_watch') return this.qualificationWatchUnits();
+    return [];
+  }
+
   private buildSportOptionsFromUnits(units: ContenderCard[]): FilterOption[] {
     const counts = new Map<string, number>();
     units.forEach((unit) => {
@@ -665,11 +633,11 @@ export class AthletesComponent implements OnInit {
 
   private buildContenderCardsFromCms(
     units: PayloadContenderUnit[],
-    status: 'medal_hopeful' | 'qualification_only',
+    tier: IndiaTier,
   ): ContenderCard[] {
     return units
-      .filter((unit) => unit?.status === status)
       .filter((unit) => unit?.isActive !== false)
+      .filter((unit) => this.resolveContenderTier(unit) === tier)
       .map((unit) => {
         const type = this.parseContenderType(unit.type);
         const heroImage = this.payload.getMediaUrl(unit.heroImage);
@@ -687,6 +655,7 @@ export class AthletesComponent implements OnInit {
         return {
           id: unit.id,
           name: unit.displayName || 'Unknown',
+          tier,
           type,
           sport: unit.sport?.parentSport?.name || unit.sport?.name || 'Unknown',
           imageUrl: type === 'individual' ? (heroImage || rosterImage) : (heroImage || null),
@@ -698,6 +667,23 @@ export class AthletesComponent implements OnInit {
         };
       })
       .sort((a, b) => (a.priority - b.priority) || a.name.localeCompare(b.name));
+  }
+
+  private resolveContenderTier(unit: PayloadContenderUnit): IndiaTier | null {
+    const directTier = unit?.indiaTier || null;
+    if (directTier) return directTier;
+
+    const parentSport = unit?.sport?.parentSport || null;
+    const sportTier = parentSport?.indiaTier || unit?.sport?.indiaTier || null;
+    if (sportTier) return sportTier;
+
+    const defaultSportTier = resolveDefaultIndiaTier({
+      slug: parentSport?.slug || unit?.sport?.slug || '',
+      name: parentSport?.name || unit?.sport?.name || '',
+    });
+    if (defaultSportTier) return defaultSportTier;
+
+    return normalizeLegacyContenderTier(unit?.status);
   }
 
   private parseContenderType(type: string | undefined): ContenderType {
@@ -749,7 +735,6 @@ export class AthletesComponent implements OnInit {
     if (selectedSport === 'all') return;
 
     if (this.selectedTab() !== 'retired') {
-      if (this.selectedTab() === 'qualification_only' && !this.qualificationLoaded()) return;
       const hasSelectedSport = this.currentSportOptions().some((option) => option.value === selectedSport);
       if (!hasSelectedSport) {
         this.selectedSport.set('all');
@@ -801,8 +786,16 @@ export class AthletesComponent implements OnInit {
   }
 
   private parseTab(tabValue: string | null, statusValue: string | null): AthleteTab {
-    if (tabValue === 'medal_hopeful' || tabValue === 'qualification_only' || tabValue === 'retired') {
+    if (
+      tabValue === 'medal_hopeful' ||
+      tabValue === 'outside_chance' ||
+      tabValue === 'qualification_watch' ||
+      tabValue === 'retired'
+    ) {
       return tabValue;
+    }
+    if (tabValue === 'qualification_only') {
+      return 'qualification_watch';
     }
     if (statusValue === 'inactive') {
       return 'retired';

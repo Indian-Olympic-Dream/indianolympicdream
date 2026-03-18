@@ -153,11 +153,20 @@
     border-color: rgba(84, 161, 255, 0.45);
   }
 
+  &.is-new {
+    border-color: rgba(95, 200, 154, 0.42);
+  }
+
+  &.is-discontinued {
+    border-color: rgba(201, 143, 108, 0.36);
+    background: rgba(201, 143, 108, 0.05);
+  }
+
   &.disabled {
     opacity: 0.72;
     cursor: not-allowed;
-    border-color: rgba(126, 176, 255, 0.32);
-    background: rgba(84, 161, 255, 0.06);
+    border-color: rgba(126, 176, 255, 0.24);
+    background: rgba(84, 161, 255, 0.04);
     transform: none;
   }
 
@@ -218,6 +227,23 @@
   white-space: nowrap;
 }
 
+.sport-meta-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.64rem;
+  line-height: 1;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
 .sport-card.has-gold .sport-medal-badge {
   background: rgba(255, 215, 0, 0.12);
   color: #ffde6e;
@@ -242,9 +268,24 @@
   border-color: rgba(84, 161, 255, 0.42);
 }
 
-.la-badge {
+.lifecycle-badge {
   text-transform: uppercase;
   letter-spacing: 0.35px;
+}
+
+.sport-card.is-new .lifecycle-badge {
+  background: rgba(95, 200, 154, 0.16);
+  color: #c7f5e1;
+  border-color: rgba(95, 200, 154, 0.42);
+}
+
+.sport-card.is-discontinued .lifecycle-badge {
+  background: rgba(201, 143, 108, 0.16);
+  color: #efc5a9;
+  border-color: rgba(201, 143, 108, 0.4);
+}
+
+.sport-card:not(.is-new):not(.is-discontinued) .lifecycle-badge {
   background: rgba(84, 161, 255, 0.16);
   color: #9fccff;
   border-color: rgba(84, 161, 255, 0.42);

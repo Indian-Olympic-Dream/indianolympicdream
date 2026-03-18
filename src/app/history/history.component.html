@@ -76,7 +76,12 @@
                         <a *ngFor="let sport of sportsBreakdown()" class="sport-card"
                             [routerLink]="['/history/sport', sport.slug]" [class.has-gold]="sport.gold > 0"
                             [class.has-silver]="sport.gold === 0 && sport.silver > 0"
-                            [class.has-bronze]="sport.gold === 0 && sport.silver === 0 && sport.bronze > 0">
+                            [class.has-bronze]="sport.gold === 0 && sport.silver === 0 && sport.bronze > 0"
+                            [class.is-discontinued]="sport.olympicStatus === 'discontinued'">
+
+                            <div class="sport-meta-badge lifecycle-badge" *ngIf="getSportLifecycleBadge(sport)">
+                                {{ getSportLifecycleBadge(sport) }}
+                            </div>
 
                             <div class="sport-medal-badge" *ngIf="sport.total > 0">
                                 <span *ngIf="sport.gold > 0">🥇{{ sport.gold }}</span>

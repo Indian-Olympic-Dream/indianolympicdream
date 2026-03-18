@@ -21,14 +21,15 @@
 
     <section class="sports-grid" *ngIf="displayedSportRows().length > 0; else noResults">
       <a *ngFor="let sport of displayedSportRows()" class="sport-card"
-        [routerLink]="isLA2028ProgramSport(sport) ? null : ['/history/sport', sport.slug]"
-        [class.disabled]="isLA2028ProgramSport(sport)" [class.has-gold]="sport.medalCount.gold > 0"
+        [routerLink]="isNavigableSport(sport) ? ['/history/sport', sport.slug] : null"
+        [class.disabled]="!isNavigableSport(sport)" [class.has-gold]="sport.medalCount.gold > 0"
         [class.has-silver]="sport.medalCount.gold === 0 && sport.medalCount.silver > 0"
         [class.has-bronze]="sport.medalCount.gold === 0 && sport.medalCount.silver === 0 && sport.medalCount.bronze > 0"
-        [class.has-near]="isNearPodiumSport(sport)" (click)="onSportCardClick($event, sport)">
+        [class.has-near]="isNearPodiumSport(sport)" [class.is-discontinued]="sport.olympicStatus === 'discontinued'"
+        [class.is-new]="sport.olympicStatus === 'new_in_la28'" (click)="onSportCardClick($event, sport)">
 
-        <div class="sport-medal-badge la-badge" *ngIf="isLA2028ProgramSport(sport)">
-          LA 2028
+        <div class="sport-meta-badge lifecycle-badge" *ngIf="getLifecycleBadge(sport)">
+          {{ getLifecycleBadge(sport) }}
         </div>
 
         <div class="sport-medal-badge" *ngIf="sport.medalCount.total > 0">

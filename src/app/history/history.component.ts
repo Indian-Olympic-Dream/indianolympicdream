@@ -5,11 +5,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { PayloadService, OlympicParticipation, Edition, GoldenMoment, Sport } from '../services/payload.service';
+import { SportLifecycle, resolveDefaultSportLifecycle } from '../models/india-tier';
 
 interface SportBreakdown {
   name: string;
   slug: string;
   pictogramUrl?: string | null;
+  olympicStatus?: SportLifecycle | null;
   participationCount: number;
   uniqueAthletes: number;
   gold: number;
@@ -245,9 +247,18 @@ export class HistoryComponent implements OnInit {
   }
 
   getSportStatusText(sport: SportBreakdown): string {
+    if (sport.olympicStatus === 'discontinued') {
+      return 'Historical archive · discontinued';
+    }
     const athleteLabel = sport.uniqueAthletes === 1 ? 'athlete' : 'athletes';
     const participationLabel = sport.participationCount === 1 ? 'participation' : 'participations';
     return `${sport.uniqueAthletes} ${athleteLabel} · ${sport.participationCount} ${participationLabel}`;
+  }
+
+  getSportLifecycleBadge(sport: SportBreakdown): string | null {
+    if (sport.olympicStatus === 'discontinued') return 'Discontinued';
+    if (sport.olympicStatus === 'new_in_la28') return 'LA28 New';
+    return null;
   }
 
   private buildSportsBreakdown(participations: OlympicParticipation[]): SportBreakdown[] {
@@ -271,6 +282,7 @@ export class HistoryComponent implements OnInit {
           name: canonicalSport.name,
           slug: canonicalSport.slug,
           pictogramUrl: canonicalSport.pictogramUrl,
+          olympicStatus: canonicalSport.olympicStatus,
           participationCount: 0,
           uniqueAthletes: 0,
           gold: 0,
@@ -285,6 +297,9 @@ export class HistoryComponent implements OnInit {
       const row = breakdown.get(sportKey)!;
       if (!row.pictogramUrl && canonicalSport.pictogramUrl) {
         row.pictogramUrl = canonicalSport.pictogramUrl;
+      }
+      if (!row.olympicStatus && canonicalSport.olympicStatus) {
+        row.olympicStatus = canonicalSport.olympicStatus;
       }
 
       row.participationCount += 1;
@@ -312,6 +327,7 @@ export class HistoryComponent implements OnInit {
         name: sport.name,
         slug: sport.slug,
         pictogramUrl: sport.pictogramUrl,
+        olympicStatus: sport.olympicStatus,
         participationCount: sport.participationCount,
         uniqueAthletes: sport.athleteIds.size,
         gold: sport.gold,
@@ -378,7 +394,13 @@ export class HistoryComponent implements OnInit {
     participation: OlympicParticipation,
     sportsById: Map<string, Sport>,
   ): {
-    canonical: { id: string; name: string; slug: string; pictogramUrl: string | null };
+    canonical: {
+      id: string;
+      name: string;
+      slug: string;
+      pictogramUrl: string | null;
+      olympicStatus: SportLifecycle | null;
+    };
     discipline: { id: string; name: string; slug: string; pictogramUrl: string | null };
   } | null {
     if (typeof participation.event !== 'object' || !participation.event?.sport || typeof participation.event.sport !== 'object') {
@@ -404,6 +426,7 @@ export class HistoryComponent implements OnInit {
         id: canonicalId,
         name: canonicalName,
         slug: canonicalSlug,
+        olympicStatus: this.resolveSportLifecycle(canonicalSport || eventSport),
         pictogramUrl:
           this.payload.getSportPictogramUrl({
             sport: canonicalSport || eventSport,
@@ -424,6 +447,18 @@ export class HistoryComponent implements OnInit {
           }) || null,
       },
     };
+  }
+
+  private resolveSportLifecycle(sport: Partial<Sport> | null | undefined): SportLifecycle | null {
+    const parentSport = typeof sport?.parentSport === 'object' ? sport.parentSport : null;
+    return (
+      sport?.olympicStatus ||
+      parentSport?.olympicStatus ||
+      resolveDefaultSportLifecycle({
+        slug: parentSport?.slug || sport?.slug || '',
+        name: parentSport?.name || sport?.name || '',
+      })
+    );
   }
 
   private getParentSportId(sport: Sport | null, sportsById: Map<string, Sport>): string | null {

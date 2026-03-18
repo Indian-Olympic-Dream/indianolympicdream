@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { IndiaTier, SportLifecycle } from '../models/india-tier';
 
 /**
  * PayloadService - GraphQL client for Payload CMS
@@ -18,6 +19,8 @@ export interface Sport {
   alias?: string;
   pictogram?: { url: string } | null;
   description?: string;
+  indiaTier?: IndiaTier | null;
+  olympicStatus?: SportLifecycle | null;
   parentSport?: Sport | null;
   isParentOnly?: boolean;
 }
@@ -115,7 +118,8 @@ export interface QualificationPathway {
 export interface ContenderUnit {
   id: string;
   displayName: string;
-  status: 'medal_hopeful' | 'qualification_only';
+  status: 'medal_hopeful' | 'outside_chance' | 'qualification_only' | 'qualification_watch' | 'history_only';
+  indiaTier?: IndiaTier | null;
   type: 'individual' | 'pair' | 'team' | 'event_team';
   sport: Sport;
   events?: Event[] | null;
@@ -194,9 +198,11 @@ const SPORTS_QUERY = gql`
         slug
         alias
         description
+        indiaTier
+        olympicStatus
         isParentOnly
         pictogram { url }
-        parentSport { id name slug pictogram { url } }
+        parentSport { id name slug indiaTier olympicStatus pictogram { url } }
       }
     }
   }
@@ -211,9 +217,11 @@ const SPORT_BY_SLUG_QUERY = gql`
         slug
         alias
         description
+        indiaTier
+        olympicStatus
         isParentOnly
         pictogram { url }
-        parentSport { id name slug pictogram { url } }
+        parentSport { id name slug indiaTier olympicStatus pictogram { url } }
       }
     }
   }
@@ -424,6 +432,7 @@ const CONTENDER_UNITS_QUERY = gql`
         id
         displayName
         status
+        indiaTier
         type
         gender
         priority
@@ -440,8 +449,10 @@ const CONTENDER_UNITS_QUERY = gql`
           id
           name
           slug
+          indiaTier
+          olympicStatus
           pictogram { url }
-          parentSport { id name slug pictogram { url } }
+          parentSport { id name slug indiaTier olympicStatus pictogram { url } }
         }
         athletes {
           id
@@ -594,7 +605,8 @@ export class PayloadService {
 
     return this.apollo.query<{ Sports: { docs: Sport[] } }>({
       query: SPORTS_QUERY,
-      variables: { where, limit: 100 }
+      variables: { where, limit: 100 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.Sports.docs));
   }
 
@@ -602,7 +614,8 @@ export class PayloadService {
   getSportBySlug(slug: string): Observable<Sport | null> {
     return this.apollo.query<{ Sports: { docs: Sport[] } }>({
       query: SPORT_BY_SLUG_QUERY,
-      variables: { slug }
+      variables: { slug },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.Sports.docs[0] || null));
   }
 
@@ -768,7 +781,7 @@ export class PayloadService {
   }
 
   getContenderUnits(options?: {
-    status?: 'medal_hopeful' | 'qualification_only';
+    status?: 'medal_hopeful' | 'outside_chance' | 'qualification_only' | 'qualification_watch' | 'history_only';
     cycle?: string;
     activeOnly?: boolean;
     limit?: number;

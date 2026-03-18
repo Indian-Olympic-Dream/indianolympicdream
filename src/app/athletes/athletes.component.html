@@ -9,20 +9,28 @@
 
   <ng-container *ngIf="!loading() && !errorMessage()">
     <div class="athletes-content" [class.theme-medal]="selectedTab() === 'medal_hopeful'"
-      [class.theme-qualification]="selectedTab() === 'qualification_only'"
+      [class.theme-outside]="selectedTab() === 'outside_chance'"
+      [class.theme-qualification]="selectedTab() === 'qualification_watch'"
       [class.theme-retired]="selectedTab() === 'retired'">
       <section class="tab-switcher" aria-label="Athlete category tabs">
         <button class="tab-btn" type="button" [class.active]="selectedTab() === 'medal_hopeful'"
           (click)="setTab('medal_hopeful')" title="Medal hopeful athletes and teams" aria-label="Medal hopeful tab">
-          <span class="tab-btn-label">Medal Hopeful</span>
+          <span class="tab-btn-label">Medal Hope</span>
           <span class="tab-btn-count">{{ getTabCount('medal_hopeful') }}</span>
         </button>
 
-        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'qualification_only'"
-          (click)="setTab('qualification_only')" title="Qualification cycle athletes and teams"
+        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'outside_chance'"
+          (click)="setTab('outside_chance')" title="Outside chance athletes and teams"
+          aria-label="Outside chance tab">
+          <span class="tab-btn-label">Outside Chance</span>
+          <span class="tab-btn-count">{{ getTabCount('outside_chance') }}</span>
+        </button>
+
+        <button class="tab-btn" type="button" [class.active]="selectedTab() === 'qualification_watch'"
+          (click)="setTab('qualification_watch')" title="Qualification cycle athletes and teams"
           aria-label="Qualification tab">
           <span class="tab-btn-label">Qualification</span>
-          <span class="tab-btn-count">{{ getTabCount('qualification_only') }}</span>
+          <span class="tab-btn-count">{{ getTabCount('qualification_watch') }}</span>
         </button>
 
         <button class="tab-btn" type="button" [class.active]="selectedTab() === 'retired'" (click)="setTab('retired')"
@@ -106,14 +114,11 @@
         </div>
       </section>
 
-      <div class="retired-inline-loading" *ngIf="selectedTab() === 'qualification_only' && qualificationLoading()">
-        <mat-spinner diameter="34"></mat-spinner>
-      </div>
-
       <section class="cards-grid contender-grid"
-        *ngIf="selectedTab() !== 'retired' && !(selectedTab() === 'qualification_only' && qualificationLoading()) && displayedContenderUnits().length > 0"
+        *ngIf="selectedTab() !== 'retired' && displayedContenderUnits().length > 0"
         [class.mode-medal]="selectedTab() === 'medal_hopeful'"
-        [class.mode-qualification]="selectedTab() === 'qualification_only'">
+        [class.mode-outside]="selectedTab() === 'outside_chance'"
+        [class.mode-qualification]="selectedTab() === 'qualification_watch'">
         <article class="card contender-card" *ngFor="let unit of displayedContenderUnits(); trackBy: trackByContenderId"
           [class.is-team]="unit.type === 'team' || unit.type === 'event_team'">
           <div class="card-media">
@@ -134,7 +139,7 @@
 
             <div class="card-media-badges">
               <span class="track-chip">
-                {{ selectedTab() === 'medal_hopeful' ? 'Medal Track' : 'Qualification Track' }}
+                {{ getTrackChipLabel(unit) }}
               </span>
               <span class="type-chip">{{ formatContenderType(unit.type) }}</span>
             </div>
@@ -236,17 +241,18 @@
       </div>
 
       <div class="empty-state"
-        *ngIf="selectedTab() === 'qualification_only' && !qualificationLoading() && qualificationError()">
-        <p>{{ qualificationError() }}</p>
-      </div>
-
-      <div class="empty-state"
-        *ngIf="selectedTab() !== 'retired' && !(selectedTab() === 'qualification_only' && (qualificationLoading() || qualificationError())) && displayedContenderUnits().length === 0">
+        *ngIf="selectedTab() !== 'retired' && displayedContenderUnits().length === 0">
         <p *ngIf="searchQuery().trim() || selectedSport() !== 'all'; else noContenderData">
           No contenders match your search or selected sport.
         </p>
         <ng-template #noContenderData>
-          <p>No {{ selectedTab() === 'medal_hopeful' ? 'medal hopeful' : 'qualification' }} athletes available.</p>
+          <p>No {{
+            selectedTab() === 'medal_hopeful'
+              ? 'medal hope'
+              : selectedTab() === 'outside_chance'
+                ? 'outside chance'
+                : 'qualification'
+          }} athletes available.</p>
         </ng-template>
       </div>
 

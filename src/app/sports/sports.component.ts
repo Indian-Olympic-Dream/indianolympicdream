@@ -5,8 +5,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
 import { OlympicParticipation, PayloadService, Sport } from '../services/payload.service';
+import {
+  IndiaTier,
+  INDIA_TIER_LABELS,
+  SportLifecycle,
+  resolveDefaultIndiaTier,
+  resolveDefaultSportLifecycle,
+} from '../models/india-tier';
 
-type SportTier = 'gold' | 'silver' | 'bronze' | 'near-podium' | 'participated' | 'la2028-program';
+type SportTier = IndiaTier;
 type SportFilter = 'all' | SportTier;
 
 interface DisciplineSummary {
@@ -28,6 +35,8 @@ interface SportAthleteRow {
   name: string;
   slug: string;
   pictogramUrl: string | null;
+  indiaTier: IndiaTier | null;
+  olympicStatus: SportLifecycle | null;
   athleteEntries: number;
   participationCount: number;
   uniqueAthletes: number;
@@ -52,45 +61,6 @@ interface SportAthleteRow {
 })
 export class SportsComponent implements OnInit {
   private payload = inject(PayloadService);
-  // Source: IOC Official Programme of the Olympic Games Los Angeles 2028 (9 April 2025)
-  private readonly la2028ProgramSlugs = new Set([
-    'aquatics',
-    'archery',
-    'athletics',
-    'badminton',
-    'basketball',
-    'boxing',
-    'cycling',
-    'equestrian',
-    'fencing',
-    'football',
-    'golf',
-    'gymnastics',
-    'handball',
-    'hockey',
-    'judo',
-    'modern-pentathlon',
-    'rowing',
-    'rugby',
-    'rugby-sevens',
-    'sailing',
-    'shooting',
-    'skateboarding',
-    'sport-climbing',
-    'climbing',
-    'surfing',
-    'table-tennis',
-    'taekwondo',
-    'tennis',
-    'triathlon',
-    'weightlifting',
-    'wrestling',
-    'baseball-softball',
-    'cricket',
-    'flag-football',
-    'lacrosse',
-    'squash',
-  ]);
 
   loading = signal(true);
   sportRows = signal<SportAthleteRow[]>([]);
@@ -98,12 +68,10 @@ export class SportsComponent implements OnInit {
 
   filterOptions: { label: string; value: SportFilter }[] = [
     { label: 'All Sports', value: 'all' },
-    { label: 'New', value: 'la2028-program' },
-    { label: 'Golden', value: 'gold' },
-    { label: 'Silver', value: 'silver' },
-    { label: 'Bronze', value: 'bronze' },
-    { label: 'Heartbreak', value: 'near-podium' },
-    { label: 'Participated', value: 'participated' },
+    { label: INDIA_TIER_LABELS.medal_hopeful, value: 'medal_hopeful' },
+    { label: INDIA_TIER_LABELS.outside_chance, value: 'outside_chance' },
+    { label: INDIA_TIER_LABELS.qualification_watch, value: 'qualification_watch' },
+    { label: INDIA_TIER_LABELS.history_only, value: 'history_only' },
   ];
 
   displayedSportRows = computed(() => {
@@ -116,9 +84,12 @@ export class SportsComponent implements OnInit {
     }
 
     return [...rows].sort((a, b) => {
-      const tierRankDiff = this.getTierRank(this.getSportTier(a)) - this.getTierRank(this.getSportTier(b));
-      if (tierRankDiff !== 0) return tierRankDiff;
+      const medalRankDiff = this.getDefaultSortRank(a) - this.getDefaultSortRank(b);
+      if (medalRankDiff !== 0) return medalRankDiff;
       if (b.medalCount.total !== a.medalCount.total) return b.medalCount.total - a.medalCount.total;
+      if (b.fourthPlaceCount !== a.fourthPlaceCount) return b.fourthPlaceCount - a.fourthPlaceCount;
+      const productTierDiff = this.getProductTierRank(this.getSportTier(a)) - this.getProductTierRank(this.getSportTier(b));
+      if (productTierDiff !== 0) return productTierDiff;
       if (b.athleteEntries !== a.athleteEntries) return b.athleteEntries - a.athleteEntries;
       if ((a.bestPlacement ?? 999) !== (b.bestPlacement ?? 999)) return (a.bestPlacement ?? 999) - (b.bestPlacement ?? 999);
       return a.name.localeCompare(b.name);
@@ -145,20 +116,32 @@ export class SportsComponent implements OnInit {
   }
 
   getSportStatusText(sport: SportAthleteRow): string {
-    if (this.isLA2028ProgramSport(sport)) {
-      return 'No participation yet';
+    if (sport.olympicStatus === 'discontinued') {
+      return sport.participationCount > 0 ? 'Historical archive · discontinued' : 'Discontinued Olympic sport';
+    }
+    if (sport.olympicStatus === 'new_in_la28' && sport.participationCount === 0) {
+      return 'New in LA 2028';
+    }
+    if (sport.participationCount === 0) {
+      return 'No Olympic participation yet';
     }
     return `${sport.uniqueAthletes} athletes · ${sport.participationCount} participations`;
   }
 
-  isLA2028ProgramSport(sport: SportAthleteRow): boolean {
-    return sport.participationCount === 0 && this.la2028ProgramSlugs.has((sport.slug || '').toLowerCase());
+  isNavigableSport(sport: SportAthleteRow): boolean {
+    return sport.participationCount > 0;
   }
 
   onSportCardClick(event: Event, sport: SportAthleteRow) {
-    if (!this.isLA2028ProgramSport(sport)) return;
+    if (this.isNavigableSport(sport)) return;
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  getLifecycleBadge(sport: SportAthleteRow): string | null {
+    if (sport.olympicStatus === 'new_in_la28') return 'LA28 New';
+    if (sport.olympicStatus === 'discontinued') return 'Discontinued';
+    return null;
   }
 
   getSportFallbackIcon(sportName: string): string {
@@ -198,12 +181,19 @@ export class SportsComponent implements OnInit {
     return icons[sportName] || '🏅';
   }
 
-  private getTierRank(tier: SportTier): number {
-    if (tier === 'gold') return 0;
-    if (tier === 'silver') return 1;
-    if (tier === 'bronze') return 2;
-    if (tier === 'near-podium') return 3;
-    if (tier === 'participated') return 4;
+  private getProductTierRank(tier: SportTier): number {
+    if (tier === 'medal_hopeful') return 0;
+    if (tier === 'outside_chance') return 1;
+    if (tier === 'qualification_watch') return 2;
+    return 3;
+  }
+
+  private getDefaultSortRank(row: SportAthleteRow): number {
+    if (row.medalCount.gold > 0) return 0;
+    if (row.medalCount.gold === 0 && row.medalCount.silver > 0) return 1;
+    if (row.medalCount.gold === 0 && row.medalCount.silver === 0 && row.medalCount.bronze > 0) return 2;
+    if (this.isNearPodiumSport(row)) return 3;
+    if (row.olympicStatus === 'new_in_la28') return 4;
     return 5;
   }
 
@@ -223,12 +213,7 @@ export class SportsComponent implements OnInit {
   }
 
   private getSportTier(row: SportAthleteRow): SportTier {
-    if (this.isLA2028ProgramSport(row)) return 'la2028-program';
-    if (row.medalCount.gold > 0) return 'gold';
-    if (row.medalCount.silver > 0) return 'silver';
-    if (row.medalCount.bronze > 0) return 'bronze';
-    if (this.isNearPodiumSport(row)) return 'near-podium';
-    return 'participated';
+    return row.indiaTier || 'history_only';
   }
 
   private buildSportRows(sports: Sport[], participations: OlympicParticipation[]): SportAthleteRow[] {
@@ -248,6 +233,8 @@ export class SportsComponent implements OnInit {
       name: string;
       slug: string;
       pictogramUrl: string | null;
+      indiaTier: IndiaTier | null;
+      olympicStatus: SportLifecycle | null;
       athleteEditionKeys: Set<string>;
       participationCount: number;
       uniqueAthleteIds: Set<string>;
@@ -295,6 +282,8 @@ export class SportsComponent implements OnInit {
             }) ||
             firstChildPictogram ||
             null,
+          indiaTier: this.resolveSportIndiaTier(sport),
+          olympicStatus: this.resolveSportLifecycle(sport),
           athleteEditionKeys: new Set<string>(),
           participationCount: 0,
           uniqueAthleteIds: new Set<string>(),
@@ -319,6 +308,8 @@ export class SportsComponent implements OnInit {
           name: canonical.name,
           slug: canonical.slug,
           pictogramUrl: canonical.pictogramUrl,
+          indiaTier: canonical.indiaTier,
+          olympicStatus: canonical.olympicStatus,
           athleteEditionKeys: new Set<string>(),
           participationCount: 0,
           uniqueAthleteIds: new Set<string>(),
@@ -335,6 +326,12 @@ export class SportsComponent implements OnInit {
       const row = totals.get(canonical.id)!;
       if (!row.pictogramUrl && canonical.pictogramUrl) {
         row.pictogramUrl = canonical.pictogramUrl;
+      }
+      if (!row.indiaTier && canonical.indiaTier) {
+        row.indiaTier = canonical.indiaTier;
+      }
+      if (!row.olympicStatus && canonical.olympicStatus) {
+        row.olympicStatus = canonical.olympicStatus;
       }
 
       if (!row.disciplineMap.has(discipline.id)) {
@@ -421,6 +418,8 @@ export class SportsComponent implements OnInit {
           name: row.name,
           slug: row.slug,
           pictogramUrl: row.pictogramUrl,
+          indiaTier: row.indiaTier,
+          olympicStatus: row.olympicStatus,
           athleteEntries: row.athleteEditionKeys.size,
           participationCount: disciplines.reduce((total, discipline) => total + discipline.participationCount, 0),
           uniqueAthletes: row.uniqueAthleteIds.size,
@@ -478,7 +477,14 @@ export class SportsComponent implements OnInit {
     participation: OlympicParticipation,
     sportsById: Map<string, Sport>,
   ): {
-    canonical: { id: string; name: string; slug: string; pictogramUrl: string | null };
+    canonical: {
+      id: string;
+      name: string;
+      slug: string;
+      pictogramUrl: string | null;
+      indiaTier: IndiaTier | null;
+      olympicStatus: SportLifecycle | null;
+    };
     discipline: { id: string; name: string; slug: string; pictogramUrl: string | null };
   } | null {
     if (typeof participation.event !== 'object' || !participation.event?.sport || typeof participation.event.sport !== 'object') {
@@ -504,6 +510,8 @@ export class SportsComponent implements OnInit {
         id: canonicalId,
         name: canonicalSport?.name || parentFromParticipation?.name || eventSport.name,
         slug: canonicalSport?.slug || parentFromParticipation?.slug || eventSport.slug || '',
+        indiaTier: this.resolveSportIndiaTier(canonicalSport || parentFromParticipation || eventSport),
+        olympicStatus: this.resolveSportLifecycle(canonicalSport || parentFromParticipation || eventSport),
         pictogramUrl:
           this.payload.getSportPictogramUrl({
             sport: canonicalSport || eventSport,
@@ -524,5 +532,29 @@ export class SportsComponent implements OnInit {
           }) || null,
       },
     };
+  }
+
+  private resolveSportIndiaTier(sport: Partial<Sport> | null | undefined): IndiaTier | null {
+    const parentSport = typeof sport?.parentSport === 'object' ? sport.parentSport : null;
+    return (
+      sport?.indiaTier ||
+      parentSport?.indiaTier ||
+      resolveDefaultIndiaTier({
+        slug: parentSport?.slug || sport?.slug || '',
+        name: parentSport?.name || sport?.name || '',
+      })
+    );
+  }
+
+  private resolveSportLifecycle(sport: Partial<Sport> | null | undefined): SportLifecycle | null {
+    const parentSport = typeof sport?.parentSport === 'object' ? sport.parentSport : null;
+    return (
+      sport?.olympicStatus ||
+      parentSport?.olympicStatus ||
+      resolveDefaultSportLifecycle({
+        slug: parentSport?.slug || sport?.slug || '',
+        name: parentSport?.name || sport?.name || '',
+      })
+    );
   }
 }

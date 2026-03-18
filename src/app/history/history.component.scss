@@ -652,6 +652,11 @@ $accent-gold: #d4af37;
         border-color: rgba(205, 127, 50, 0.45);
       }
 
+      &.is-discontinued {
+        border-color: rgba(201, 143, 108, 0.36);
+        background: rgba(201, 143, 108, 0.05);
+      }
+
       h3 {
         margin: 0;
         color: #f1d45a;
@@ -710,6 +715,29 @@ $accent-gold: #d4af37;
         line-height: 1;
         padding: 2px 4px;
         white-space: nowrap;
+      }
+
+      .sport-meta-badge {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.52rem;
+        line-height: 1;
+        padding: 2px 4px;
+        white-space: nowrap;
+      }
+
+      &.is-discontinued .lifecycle-badge {
+        background: rgba(201, 143, 108, 0.16);
+        color: #efc5a9;
+        border-color: rgba(201, 143, 108, 0.4);
       }
 
       &.has-gold .sport-medal-badge {
