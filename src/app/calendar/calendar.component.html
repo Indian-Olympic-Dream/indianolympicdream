@@ -1,14 +1,68 @@
 <section class="calendar-shell">
   <header class="calendar-header">
     <h1>Calendar</h1>
-    <p>Track key qualification windows and Olympic competition milestones.</p>
+    <p>The events India fans should actually keep an eye on.</p>
   </header>
 
-  <article class="calendar-card">
-    <mat-icon>calendar_month</mat-icon>
-    <h2>Schedule Feed In Progress</h2>
-    <p>
-      Calendar is now part of top navigation. Full event timeline cards will be wired in next.
-    </p>
-  </article>
+  <div class="tab-row">
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'upcoming'"
+      (click)="setTab('upcoming')">
+      Upcoming
+    </button>
+
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab() === 'completed'"
+      (click)="setTab('completed')">
+      Completed
+    </button>
+  </div>
+
+  <section class="calendar-panel">
+    <header class="panel-header">
+      <h2>{{ panelTitle() }}</h2>
+      <p>{{ panelCopy() }}</p>
+    </header>
+
+    <div class="sport-filter-row" *ngIf="sportFilters().length > 0">
+      <button
+        *ngFor="let filter of sportFilters(); trackBy: trackByFilter"
+        class="sport-filter-chip"
+        [class.active]="selectedSport() === filter.slug"
+        (click)="setSportFilter(filter.slug)">
+        <span class="sport-filter-icon" *ngIf="filter.slug !== 'all'">
+          <img *ngIf="filter.pictogramUrl; else fallbackChip" [src]="filter.pictogramUrl" [alt]="filter.name">
+          <ng-template #fallbackChip>{{ getSportChipText(filter.name) }}</ng-template>
+        </span>
+        <span class="sport-filter-label">{{ filter.name }}</span>
+      </button>
+    </div>
+
+    <div *ngIf="loading() && selectedTab() === 'upcoming'" class="loading-state">
+      <mat-spinner diameter="42"></mat-spinner>
+    </div>
+
+    <div
+      class="card-stack"
+      *ngIf="!loading() || selectedTab() === 'completed'">
+      <article
+        *ngFor="let card of displayedCards(); trackBy: trackByCard"
+        class="event-card">
+        <div class="card-topline">
+          <span class="sport-pill">{{ card.sportName }}</span>
+          <span class="date-pill">{{ card.dateLabel }}</span>
+        </div>
+
+        <h3>{{ card.title }}</h3>
+        <p class="meta-line" *ngIf="card.metaLabel">{{ card.metaLabel }}</p>
+      </article>
+
+      <section class="empty-state" *ngIf="displayedCards().length === 0">
+        <h3>{{ emptyTitle() }}</h3>
+        <p>{{ emptyCopy() }}</p>
+      </section>
+    </div>
+  </section>
 </section>

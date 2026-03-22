@@ -1,0 +1,2398 @@
+{
+  "meta": {
+    "name": "India Universal Sports Calendar 2026 (Research Draft)",
+    "asOfDate": "2026-02-28",
+    "timezone": "Asia/Kolkata",
+    "purpose": "Collect and normalize 2026 sports calendar data before final DB model decisions.",
+    "status": "in-progress"
+  },
+  "normalization": {
+    "dateCertaintyValues": [
+      "confirmed",
+      "window",
+      "tentative",
+      "tbc"
+    ],
+    "competitionLevels": [
+      "domestic",
+      "international",
+      "continental",
+      "world-championship",
+      "multi-sport-games"
+    ],
+    "calendarArchetypes": [
+      "league_fixture",
+      "tour_circuit",
+      "championship_bracket",
+      "multi_sport_games"
+    ],
+    "genderCategoryValues": [
+      "men",
+      "women",
+      "mixed",
+      "open",
+      "tbc"
+    ]
+  },
+  "sports": [
+    {
+      "sportSlug": "hockey",
+      "sportName": "Hockey",
+      "priorityTier": "primary",
+      "calendarArchetype": "league_fixture",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "FIH Pro League Men 2025-26 PDF",
+          "url": "https://hockey-india.b-cdn.net/uploads/tournament-docs/17600142952_FIHPROLEAUGE2025-26.pdf"
+        },
+        {
+          "label": "FIH WWCQ Women 2026 PDF",
+          "url": "https://hockey-india.b-cdn.net/uploads/tournament-docs/17693318172_WWCQ2026.webp1.pdf"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "hockey-fih-pro-league-men-2025-26",
+          "name": "FIH Pro League Men 2025-26 (India Window)",
+          "startDate": "2026-02-10",
+          "endDate": "2026-06-28",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Multiple venues",
+          "country": "Multiple",
+          "indiaPriority": "core",
+          "notes": "Use fixture-level child entries for India matches once match dates are confirmed."
+        },
+        {
+          "id": "hockey-fih-wwcq-women-2026",
+          "name": "FIH Women's World Cup Qualifier 2026",
+          "startDate": "2026-03-08",
+          "endDate": "2026-03-14",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Hyderabad",
+          "country": "India",
+          "indiaPriority": "core",
+          "notes": "Qualification event for Women's World Cup participation."
+        },
+        {
+          "id": "hockey-test-series-men-mar-2026",
+          "name": "Hockey Test Series (Malaysia, New Zealand, Australia) - Men",
+          "startDate": "2026-03-25",
+          "endDate": "2026-03-31",
+          "dateCertainty": "tentative",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "TBC",
+          "country": "TBC",
+          "indiaPriority": "high",
+          "notes": "Dates and venue not officially confirmed."
+        },
+        {
+          "id": "hockey-fih-world-cup-women-2026",
+          "name": "FIH Hockey Women's World Cup 2026",
+          "startDate": "2026-08-15",
+          "endDate": "2026-08-30",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Belgium and Netherlands",
+          "country": "BEL/NED",
+          "indiaPriority": "core",
+          "notes": "India participation subject to qualifier outcome."
+        },
+        {
+          "id": "hockey-asian-games-2026",
+          "name": "Asian Games 2026 Hockey Tournament",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Sport-level schedule window; match schedule to be expanded when available."
+        }
+      ]
+    },
+    {
+      "sportSlug": "wrestling",
+      "sportName": "Wrestling",
+      "priorityTier": "primary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [],
+      "events": [
+        {
+          "id": "wrestling-asian-championships-2026",
+          "name": "Asian Wrestling Championships 2026",
+          "startDate": "2026-04-06",
+          "endDate": "2026-04-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Bishkek",
+          "country": "Kyrgyzstan",
+          "indiaPriority": "high",
+          "notes": "Key continental benchmark."
+        },
+        {
+          "id": "wrestling-india-selection-trials-2026",
+          "name": "Domestic Selection Trials",
+          "startDate": "2026-05-01",
+          "endDate": "2026-07-31",
+          "dateCertainty": "window",
+          "competitionLevel": "domestic",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "IG Stadium / Sonepat",
+          "country": "India",
+          "indiaPriority": "core",
+          "notes": "Window only. Exact trial dates pending WFI schedule."
+        },
+        {
+          "id": "wrestling-asian-games-2026",
+          "name": "Asian Games 2026 Wrestling",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Event-day splits to be added once official schedule is published."
+        },
+        {
+          "id": "wrestling-world-championships-2026",
+          "name": "Senior World Championships 2026",
+          "startDate": "2026-10-24",
+          "endDate": "2026-11-01",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Manama",
+          "country": "Bahrain",
+          "indiaPriority": "core",
+          "notes": "Major global ranking benchmark."
+        },
+        {
+          "id": "wrestling-commonwealth-championships-2026",
+          "name": "Commonwealth Championships 2026",
+          "startDate": "2026-12-04",
+          "endDate": "2026-12-06",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Cape Town",
+          "country": "South Africa",
+          "indiaPriority": "high",
+          "notes": "Historically strong medal return for India."
+        }
+      ]
+    },
+    {
+      "sportSlug": "badminton",
+      "sportName": "Badminton",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "available-in-db",
+      "sources": [
+        {
+          "label": "Existing local source file (seed source)",
+          "url": "scripts/bwf-calendar-2026.json"
+        },
+        {
+          "label": "Database collection (seeded)",
+          "url": "calendar-events (sport=badminton)"
+        }
+      ],
+      "events": [],
+      "researchNotes": "Full BWF 2026 calendar already exists in DB. This file keeps badminton as DB-backed and can optionally add India-priority subsets later."
+    },
+    {
+      "sportSlug": "athletics",
+      "sportName": "Athletics",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "World Athletics Cross Country Championships Tallahassee 26",
+          "url": "https://worldathletics.org/competitions/world-athletics-cross-country-championships/tallahassee26/florida-fun-run/"
+        },
+        {
+          "label": "World Athletics Indoor Championships Kujawy Pomorze 26",
+          "url": "https://worldathletics.org/en/competitions/world-athletics-indoor-championships/kujawypomorze26"
+        },
+        {
+          "label": "World Athletics Relays Gaborone 26",
+          "url": "https://worldathletics.org/competitions/world-athletics-relays/gaborone26"
+        },
+        {
+          "label": "World Athletics Diamond League 2026 calendar news",
+          "url": "https://worldathletics.org/competitions/diamond-league/news/diamond-league-calendar-2026"
+        },
+        {
+          "label": "World Athletics Ultimate Championship hosting page",
+          "url": "https://worldathletics.org/hosting/other-events/ultimate"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "athletics-world-cross-country-2026",
+          "name": "World Athletics Cross Country Championships 2026",
+          "startDate": "2026-01-10",
+          "endDate": "2026-01-10",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Tallahassee, Florida",
+          "country": "USA",
+          "indiaPriority": "medium",
+          "notes": "One-day world championship event."
+        },
+        {
+          "id": "athletics-world-indoor-championships-2026",
+          "name": "World Athletics Indoor Championships Kujawy Pomorze 26",
+          "startDate": "2026-03-20",
+          "endDate": "2026-03-22",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Torun",
+          "country": "Poland",
+          "indiaPriority": "medium",
+          "notes": "Indoor global championship with qualification standards and wild cards."
+        },
+        {
+          "id": "athletics-world-relays-gaborone-2026",
+          "name": "World Athletics Relays Gaborone 26",
+          "startDate": "2026-05-02",
+          "endDate": "2026-05-03",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Gaborone",
+          "country": "Botswana",
+          "indiaPriority": "high",
+          "notes": "Major relay benchmark; pathway relevance for top relay teams."
+        },
+        {
+          "id": "athletics-diamond-league-season-2026",
+          "name": "Wanda Diamond League 2026 Season",
+          "startDate": "2026-05-08",
+          "endDate": "2026-09-05",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Multiple global cities",
+          "country": "Multiple",
+          "indiaPriority": "high",
+          "notes": "Use child events if athlete-specific starts are needed."
+        },
+        {
+          "id": "athletics-india-selection-trials-2026",
+          "name": "Athletics India Selection Trials 2026",
+          "startDate": "2026-05-01",
+          "endDate": "2026-07-31",
+          "dateCertainty": "window",
+          "competitionLevel": "domestic",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "India (TBC)",
+          "country": "India",
+          "indiaPriority": "core",
+          "notes": "Window-level placeholder pending AFI confirmation of exact trials dates."
+        },
+        {
+          "id": "athletics-ultimate-championship-2026",
+          "name": "World Athletics Ultimate Championship 2026",
+          "startDate": "2026-09-11",
+          "endDate": "2026-09-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Budapest",
+          "country": "Hungary",
+          "indiaPriority": "high",
+          "notes": "New elite season-finale world event."
+        },
+        {
+          "id": "athletics-asian-games-2026",
+          "name": "Asian Games 2026 Athletics",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; athletics event-day programme should be split when official timetable is published."
+        }
+      ]
+    },
+    {
+      "sportSlug": "archery",
+      "sportName": "Archery",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "Puebla replaces Central Florida for Archery World Cup Stage 1 (World Archery)",
+          "url": "https://www.worldarchery.sport/news/202070/puebla-replace-central-florida-opening-stage-world-cup-2026"
+        },
+        {
+          "label": "Archery World Cup stages calendar 2026 (World Archery)",
+          "url": "https://www.worldarchery.sport/news/201077/calendar-released-archery-world-cup-stages-2024-2027"
+        },
+        {
+          "label": "Puebla 2026 Stage 1 Invitation Package (World Archery Extranet PDF)",
+          "url": "https://extranet.worldarchery.sport/documents/index.php/Events/World_Cup/2026/1_Puebla_WC_MEX/IP_HAWC_Stage_1_Puebla_Mexico_V1.1_270126-3.pdf"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "archery-world-cup-stage-1-puebla-2026",
+          "name": "Hyundai Archery World Cup Stage 1",
+          "startDate": "2026-04-07",
+          "endDate": "2026-04-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Puebla",
+          "country": "Mexico",
+          "indiaPriority": "high",
+          "notes": "Opening stage of 2026 season."
+        },
+        {
+          "id": "archery-world-cup-stage-2-shanghai-2026",
+          "name": "Hyundai Archery World Cup Stage 2",
+          "startDate": "2026-05-05",
+          "endDate": "2026-05-10",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Shanghai",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Major points event for recurve and compound squads."
+        },
+        {
+          "id": "archery-world-cup-stage-3-antalya-2026",
+          "name": "Hyundai Archery World Cup Stage 3",
+          "startDate": "2026-06-09",
+          "endDate": "2026-06-14",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Antalya",
+          "country": "Türkiye",
+          "indiaPriority": "high",
+          "notes": "Traditional mid-season World Cup stage."
+        },
+        {
+          "id": "archery-world-cup-stage-4-madrid-2026",
+          "name": "Hyundai Archery World Cup Stage 4",
+          "startDate": "2026-07-07",
+          "endDate": "2026-07-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Madrid",
+          "country": "Spain",
+          "indiaPriority": "high",
+          "notes": "Final stage before World Cup Final qualification closes."
+        },
+        {
+          "id": "archery-world-cup-final-2026",
+          "name": "Hyundai Archery World Cup Final 2026",
+          "startDate": "2026-09-01",
+          "endDate": "2026-09-30",
+          "dateCertainty": "tbc",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "TBC (Mexico)",
+          "country": "Mexico",
+          "indiaPriority": "high",
+          "notes": "Country confirmed as Mexico; city and exact dates pending final announcement."
+        },
+        {
+          "id": "archery-asian-games-2026",
+          "name": "Asian Games 2026 Archery",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window. Sport-day splits to be added later."
+        }
+      ]
+    },
+    {
+      "sportSlug": "boxing",
+      "sportName": "Boxing",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "World Boxing updated 2026 calendar",
+          "url": "https://worldboxing.org/world-boxing-publishes-updated-2026-competition-calendar/"
+        },
+        {
+          "label": "World Boxing competitions page",
+          "url": "https://worldboxing.org/competitions/"
+        },
+        {
+          "label": "Asian Boxing Elite Championships 2026 event page",
+          "url": "https://asianboxing.org/event/asian-boxing-elite-boxing-championships/"
+        },
+        {
+          "label": "Glasgow 2026 Commonwealth Games",
+          "url": "https://www.commonwealthsport.com/commonwealth-games/glasgow-2026"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "boxing-asian-elite-championships-2026",
+          "name": "Asian Boxing Elite Championships 2026",
+          "startDate": "2026-03-28",
+          "endDate": "2026-04-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Ulaanbaatar",
+          "country": "Mongolia",
+          "indiaPriority": "high",
+          "notes": "Major continental championship window."
+        },
+        {
+          "id": "boxing-world-boxing-cup-stage-1-2026",
+          "name": "World Boxing Cup 2026 Stage 1",
+          "startDate": "2026-04-20",
+          "endDate": "2026-04-26",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Foz do Iguacu",
+          "country": "Brazil",
+          "indiaPriority": "high",
+          "notes": "Elite World Boxing Cup series opener."
+        },
+        {
+          "id": "boxing-world-boxing-cup-stage-2-2026",
+          "name": "World Boxing Cup 2026 Stage 2",
+          "startDate": "2026-06-15",
+          "endDate": "2026-06-20",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Guiyang City",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Second stage in elite World Boxing Cup pathway."
+        },
+        {
+          "id": "boxing-commonwealth-games-2026",
+          "name": "Commonwealth Games 2026 Boxing",
+          "startDate": "2026-07-23",
+          "endDate": "2026-08-02",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Glasgow",
+          "country": "Scotland",
+          "indiaPriority": "core",
+          "notes": "Core multi-sport milestone for Indian boxing cycle."
+        },
+        {
+          "id": "boxing-asian-games-2026",
+          "name": "Asian Games 2026 Boxing",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; specific boxing dates to be split later."
+        },
+        {
+          "id": "boxing-world-boxing-cup-finals-2026",
+          "name": "World Boxing Cup Finals 2026",
+          "startDate": "2026-11-25",
+          "endDate": "2026-12-02",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Tashkent",
+          "country": "Uzbekistan",
+          "indiaPriority": "core",
+          "notes": "Final event of the World Boxing Cup series."
+        }
+      ]
+    },
+    {
+      "sportSlug": "shooting",
+      "sportName": "Shooting",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "ISSF Competitions Calendar",
+          "url": "https://www.issf-sports.org/competitions"
+        },
+        {
+          "label": "ISSF calendar changes confirmed for 2026 season",
+          "url": "https://www.issf-sports.org/news/4722"
+        },
+        {
+          "label": "ISSF World Cup dates in Tangier and Lonato altered",
+          "url": "https://www.issf-sports.org/news/4808"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "shooting-asian-championship-rifle-pistol-2026",
+          "name": "Asian Championship Rifle/Pistol 2026",
+          "startDate": "2026-02-02",
+          "endDate": "2026-02-14",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "New Delhi",
+          "country": "India",
+          "indiaPriority": "core",
+          "notes": "Major home event before World Cup legs."
+        },
+        {
+          "id": "shooting-issf-world-cup-shotgun-tangier-2026",
+          "name": "ISSF World Cup Shotgun - Tangier",
+          "startDate": "2026-03-25",
+          "endDate": "2026-04-03",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Tangier",
+          "country": "Morocco",
+          "indiaPriority": "high",
+          "notes": "Date updated by ISSF with one-day extension."
+        },
+        {
+          "id": "shooting-issf-world-cup-rifle-pistol-granada-2026",
+          "name": "ISSF World Cup Rifle/Pistol - Granada",
+          "startDate": "2026-04-05",
+          "endDate": "2026-04-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Granada",
+          "country": "Spain",
+          "indiaPriority": "high",
+          "notes": "World Cup leg for rifle and pistol events."
+        },
+        {
+          "id": "shooting-issf-world-cup-shotgun-almaty-2026",
+          "name": "ISSF World Cup Shotgun - Almaty",
+          "startDate": "2026-05-02",
+          "endDate": "2026-05-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Almaty",
+          "country": "Kazakhstan",
+          "indiaPriority": "high",
+          "notes": "Host city moved from Shymkent to Almaty."
+        },
+        {
+          "id": "shooting-issf-world-cup-rifle-pistol-munich-2026",
+          "name": "ISSF World Cup Rifle/Pistol - Munich",
+          "startDate": "2026-05-24",
+          "endDate": "2026-05-31",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Munich",
+          "country": "Germany",
+          "indiaPriority": "high",
+          "notes": "Core ranking event for rifle/pistol squads."
+        },
+        {
+          "id": "shooting-issf-world-cup-shotgun-lonato-2026",
+          "name": "ISSF World Cup Shotgun - Lonato",
+          "startDate": "2026-07-03",
+          "endDate": "2026-07-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Lonato",
+          "country": "Italy",
+          "indiaPriority": "high",
+          "notes": "Shotgun World Cup leg with adjusted dates."
+        },
+        {
+          "id": "shooting-issf-world-cup-combined-hangzhou-2026",
+          "name": "ISSF World Cup Rifle/Pistol/Shotgun - Hangzhou",
+          "startDate": "2026-07-20",
+          "endDate": "2026-07-29",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Hangzhou",
+          "country": "China",
+          "indiaPriority": "core",
+          "notes": "Combined disciplines World Cup leg."
+        },
+        {
+          "id": "shooting-asian-games-2026",
+          "name": "Asian Games 2026 Shooting",
+          "startDate": "2026-09-20",
+          "endDate": "2026-10-02",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Shooting-specific dates listed on ISSF competitions calendar."
+        },
+        {
+          "id": "shooting-issf-world-cup-rifle-pistol-cairo-2026",
+          "name": "ISSF World Cup Rifle/Pistol - Cairo",
+          "startDate": "2026-10-08",
+          "endDate": "2026-10-16",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Cairo",
+          "country": "Egypt",
+          "indiaPriority": "high",
+          "notes": "Late-season World Cup stop."
+        },
+        {
+          "id": "shooting-issf-world-championship-doha-2026",
+          "name": "ISSF World Championship Rifle/Pistol/Shotgun 2026",
+          "startDate": "2026-11-01",
+          "endDate": "2026-11-15",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Doha",
+          "country": "Qatar",
+          "indiaPriority": "core",
+          "notes": "Primary global championship for 2026 season."
+        }
+      ]
+    },
+    {
+      "sportSlug": "weightlifting",
+      "sportName": "Weightlifting",
+      "priorityTier": "primary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "IWF Calendar 2026",
+          "url": "https://iwf.sport/events/calendar-2026/"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "weightlifting-asian-championships-gandhinagar-2026",
+          "name": "Asian Weightlifting Championships 2026",
+          "startDate": "2026-04-01",
+          "endDate": "2026-04-10",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Gandhinagar",
+          "country": "India",
+          "indiaPriority": "core",
+          "notes": "Major continental event hosted in India."
+        },
+        {
+          "id": "weightlifting-iwf-world-junior-2026",
+          "name": "IWF World Junior Championships 2026",
+          "startDate": "2026-05-02",
+          "endDate": "2026-05-08",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Ismailia",
+          "country": "Egypt",
+          "indiaPriority": "high",
+          "notes": "Key pathway event for India's junior lifters."
+        },
+        {
+          "id": "weightlifting-iwf-world-youth-2026",
+          "name": "IWF World Youth Championships 2026",
+          "startDate": "2026-07-05",
+          "endDate": "2026-07-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Cali",
+          "country": "Colombia",
+          "indiaPriority": "medium",
+          "notes": "Youth global benchmark in 2026 season."
+        },
+        {
+          "id": "weightlifting-commonwealth-games-2026",
+          "name": "Commonwealth Games 2026 Weightlifting",
+          "startDate": "2026-07-26",
+          "endDate": "2026-07-30",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Glasgow",
+          "country": "Scotland",
+          "indiaPriority": "core",
+          "notes": "Commonwealth multi-sport window listed on IWF calendar."
+        },
+        {
+          "id": "weightlifting-asian-games-2026",
+          "name": "Asian Games 2026 Weightlifting",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Sport-level schedule window; event-day splits pending final technical handbook."
+        },
+        {
+          "id": "weightlifting-iwf-world-championships-2026",
+          "name": "IWF World Championships 2026",
+          "startDate": "2026-10-27",
+          "endDate": "2026-11-08",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Ningbo",
+          "country": "China",
+          "indiaPriority": "core",
+          "notes": "Top senior global championship for the season."
+        }
+      ]
+    },
+    {
+      "sportSlug": "table-tennis",
+      "sportName": "Table Tennis",
+      "priorityTier": "primary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "ITTF 2026 Events Calendar",
+          "url": "https://www.ittf.com/2026-events-calendar/"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "tt-wtt-champions-doha-2026",
+          "name": "WTT Champions Doha 2026",
+          "startDate": "2026-01-07",
+          "endDate": "2026-01-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Doha",
+          "country": "Qatar",
+          "indiaPriority": "high",
+          "notes": "Top-tier WTT singles event."
+        },
+        {
+          "id": "tt-wtt-star-contender-doha-2026",
+          "name": "WTT Star Contender Doha 2026",
+          "startDate": "2026-01-13",
+          "endDate": "2026-01-18",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Doha",
+          "country": "Qatar",
+          "indiaPriority": "high",
+          "notes": "Important ranking event for doubles and singles pathways."
+        },
+        {
+          "id": "tt-wtt-contender-muscat-2026",
+          "name": "WTT Contender Muscat 2026",
+          "startDate": "2026-01-19",
+          "endDate": "2026-01-24",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Muscat",
+          "country": "Oman",
+          "indiaPriority": "high",
+          "notes": "Regular stop for Indian paddlers in early season."
+        },
+        {
+          "id": "tt-wtt-champions-chongqing-2026",
+          "name": "WTT Champions Chongqing 2026",
+          "startDate": "2026-03-10",
+          "endDate": "2026-03-15",
+          "dateCertainty": "tentative",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Chongqing",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Expected March window; keep until reconfirmed on ITTF/WTT release."
+        },
+        {
+          "id": "tt-ittf-world-cup-macao-2026",
+          "name": "ITTF Men's and Women's World Cup Macao 2026",
+          "startDate": "2026-03-30",
+          "endDate": "2026-04-05",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Macao",
+          "country": "China",
+          "indiaPriority": "core",
+          "notes": "Major global singles benchmark."
+        },
+        {
+          "id": "tt-asian-games-2026",
+          "name": "Asian Games 2026 Table Tennis",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; event-day split pending."
+        },
+        {
+          "id": "tt-ittf-mixed-team-world-cup-2026",
+          "name": "ITTF Mixed Team World Cup 2026",
+          "startDate": "2026-11-29",
+          "endDate": "2026-12-06",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "mixed"
+          ],
+          "location": "Chengdu",
+          "country": "China",
+          "indiaPriority": "core",
+          "notes": "Global mixed-team tournament."
+        },
+        {
+          "id": "tt-wtt-finals-hong-kong-2026",
+          "name": "WTT Finals Hong Kong 2026",
+          "startDate": "2026-12-08",
+          "endDate": "2026-12-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Hong Kong",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Season finale for top-ranked WTT players."
+        }
+      ]
+    },
+    {
+      "sportSlug": "tennis",
+      "sportName": "Tennis",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "ATP Tour 2026 Calendar",
+          "url": "https://www.atptour.com/en/news/what-is-the-2026-atp-tour-calendar/"
+        },
+        {
+          "label": "US Open 2025-2026 Dates Announcement",
+          "url": "https://www.usopen.org/en_US/news/articles/2024-06-17/usta_announces_2025_2026_us_open_dates.html"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "tennis-australian-open-2026",
+          "name": "Australian Open 2026",
+          "startDate": "2026-01-18",
+          "endDate": "2026-02-01",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Melbourne",
+          "country": "Australia",
+          "indiaPriority": "high",
+          "notes": "Grand Slam window from ATP 2026 calendar."
+        },
+        {
+          "id": "tennis-roland-garros-2026",
+          "name": "Roland Garros 2026",
+          "startDate": "2026-05-24",
+          "endDate": "2026-06-07",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Paris",
+          "country": "France",
+          "indiaPriority": "high",
+          "notes": "Grand Slam clay major."
+        },
+        {
+          "id": "tennis-wimbledon-2026",
+          "name": "Wimbledon 2026",
+          "startDate": "2026-06-29",
+          "endDate": "2026-07-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "London",
+          "country": "Great Britain",
+          "indiaPriority": "high",
+          "notes": "Grand Slam grass major."
+        },
+        {
+          "id": "tennis-us-open-2026",
+          "name": "US Open 2026",
+          "startDate": "2026-08-31",
+          "endDate": "2026-09-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "New York",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "Grand Slam hard-court major."
+        },
+        {
+          "id": "tennis-asian-games-2026",
+          "name": "Asian Games 2026 Tennis",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; tennis-specific draw dates to be added later."
+        },
+        {
+          "id": "tennis-davis-cup-finals-2026",
+          "name": "Davis Cup Finals 2026",
+          "startDate": "2026-11-24",
+          "endDate": "2026-11-29",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Bologna",
+          "country": "Italy",
+          "indiaPriority": "medium",
+          "notes": "Tournament dates confirmed; India participation depends on qualification pathway."
+        }
+      ]
+    },
+    {
+      "sportSlug": "football",
+      "sportName": "Football",
+      "priorityTier": "secondary",
+      "calendarArchetype": "league_fixture",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "AIFF: ISL 2025-26 fixtures announced",
+          "url": "https://www.the-aiff.com/article/isl-2025-26-fixtures-announced"
+        },
+        {
+          "label": "AIFF: India drawn in AFC Asian Cup 2027 Qualifiers Group C",
+          "url": "https://www.the-aiff.com/article/india-drawn-with-hong-kong-singapore-bangladesh-in-group-c-of-asian-cup-2027-qualifiers-final-round"
+        },
+        {
+          "label": "AFC Women's Asian Cup 2026 official site (India team schedule)",
+          "url": "https://www.the-afc.com/en/national/afc_womens_asian_cup/news/schedule_for_afc_womens_asian_cup_australia_2026%E2%84%A2_finalised.html"
+        },
+        {
+          "label": "AFC Women's Asian Cup 2026 fixtures PDF",
+          "url": "https://assets.the-afc.com/migration/n/a/na0ahx41xrx9otyc6wkh.pdf"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "football-isl-2025-26-kickoff",
+          "name": "Indian Super League 2025-26 Season Kick-off",
+          "startDate": "2026-02-14",
+          "endDate": "2026-02-14",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "domestic",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Multiple venues",
+          "country": "India",
+          "indiaPriority": "high",
+          "notes": "AIFF confirms season starts on 14 February 2026; add full fixture entries separately."
+        },
+        {
+          "id": "football-afc-womens-asian-cup-2026",
+          "name": "AFC Women's Asian Cup Australia 2026",
+          "startDate": "2026-03-01",
+          "endDate": "2026-03-21",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Sydney / Perth / Gold Coast",
+          "country": "Australia",
+          "indiaPriority": "core",
+          "notes": "Major women's continental championship."
+        },
+        {
+          "id": "football-india-women-group-stage-wac-2026",
+          "name": "India Women Group Stage - AFC Women's Asian Cup 2026",
+          "startDate": "2026-03-03",
+          "endDate": "2026-03-10",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Perth",
+          "country": "Australia",
+          "indiaPriority": "core",
+          "notes": "India fixtures: vs Vietnam (3 Mar), vs Japan (7 Mar), vs Chinese Taipei (10 Mar)."
+        },
+        {
+          "id": "football-afc-asian-cup-qualifiers-india-group-c-2026",
+          "name": "AFC Asian Cup 2027 Qualifiers - India Group C Fixtures",
+          "startDate": "2026-03-31",
+          "endDate": "2026-11-18",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Multiple venues",
+          "country": "Multiple",
+          "indiaPriority": "core",
+          "notes": "AIFF published dates include Hong Kong vs India (31 Mar), Bangladesh vs India (9 Jun), India vs Bangladesh (14 Oct), India vs Singapore (14 Nov), and Singapore vs India (18 Nov)."
+        },
+        {
+          "id": "football-asian-games-2026",
+          "name": "Asian Games 2026 Football",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; football draw and matchday splits to be added when official schedule is published."
+        }
+      ]
+    },
+    {
+      "sportSlug": "aquatics",
+      "sportName": "Aquatics",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "World Aquatics confirms Beijing 2026 short-course world championships dates",
+          "url": "https://www.worldaquatics.com/news/4368754/world-aquatics-confirms-dates-for-the-world-aquatics-swimming-championships-25m-beijing-2026"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "aquatics-world-aquatics-swimming-25m-beijing-2026",
+          "name": "World Aquatics Swimming Championships (25m) Beijing 2026",
+          "startDate": "2026-12-01",
+          "endDate": "2026-12-06",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Beijing",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Short-course global championship confirmed by World Aquatics."
+        },
+        {
+          "id": "aquatics-asian-games-2026",
+          "name": "Asian Games 2026 Aquatics",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Umbrella sport entry (swimming/diving/water polo/artistic swimming/open water); discipline-level schedules to be expanded."
+        }
+      ]
+    },
+    {
+      "sportSlug": "basketball",
+      "sportName": "Basketball",
+      "priorityTier": "secondary",
+      "calendarArchetype": "league_fixture",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "FIBA Women's World Cup 2026 competition system",
+          "url": "https://www.fiba.basketball/en/events/fiba-womens-basketball-world-cup-2026/competition-system"
+        },
+        {
+          "label": "FIBA Women's World Cup 2026 qualifying tournaments draw",
+          "url": "https://www.fiba.basketball/en/events/fiba-womens-basketball-world-cup-2026/news/fiba-womens-basketball-world-cup-2026-qualifying-tournaments-draw-concluded"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "basketball-fiba-womens-world-cup-qualifiers-2026",
+          "name": "FIBA Women's Basketball World Cup 2026 Qualifying Tournaments",
+          "startDate": "2026-03-11",
+          "endDate": "2026-03-17",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Wuhan / Lyon-Villeurbanne / San Juan / Istanbul",
+          "country": "China / France / Puerto Rico / Turkiye",
+          "indiaPriority": "high",
+          "notes": "Final qualification stage for 2026 Women's World Cup."
+        },
+        {
+          "id": "basketball-fiba-womens-world-cup-2026",
+          "name": "FIBA Women's Basketball World Cup 2026",
+          "startDate": "2026-09-04",
+          "endDate": "2026-09-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Berlin",
+          "country": "Germany",
+          "indiaPriority": "core",
+          "notes": "16-team world championship event."
+        },
+        {
+          "id": "basketball-asian-games-2026",
+          "name": "Asian Games 2026 Basketball",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Games-level window; tournament format and matchday fixtures pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "cycling",
+      "sportName": "Cycling",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "UCI BMX Freestyle World Cup 2026 calendar",
+          "url": "https://www.uci.org/pressrelease/the-uci-unveils-the-2026-uci-bmx-freestyle-world-cup-calendar/13fBUvoQmYPGR4wMMfgR6z"
+        },
+        {
+          "label": "UCI Trials World Cup 2026 calendar",
+          "url": "https://www.uci.org/pressrelease/2026-uci-trials-world-cup-a-calendar-featuring-three-new-rounds/EcllxVmwVk2iyxdT8OLJQ"
+        },
+        {
+          "label": "UCI Road World Championships partnership release (includes 2026 Montreal dates)",
+          "url": "https://www.uci.org/pressrelease/mywhoosh-becomes-main-partner-of-the-uci-road-world-championships-for-the/3DEVgRoWLmfAn6I1adtnCE"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "cycling-uci-trials-world-cup-2026",
+          "name": "UCI Trials World Cup 2026",
+          "startDate": "2026-05-08",
+          "endDate": "2026-08-23",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Dole / Rzeszow / Claussnitz",
+          "country": "France / Poland / Germany",
+          "indiaPriority": "medium",
+          "notes": "Three-round series in May, July-August, and August."
+        },
+        {
+          "id": "cycling-uci-bmx-freestyle-world-cup-2026",
+          "name": "UCI BMX Freestyle World Cup 2026",
+          "startDate": "2026-05-13",
+          "endDate": "2026-11-29",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Montpellier / Birmingham / Shanghai / TBC",
+          "country": "France / USA / China / TBC",
+          "indiaPriority": "medium",
+          "notes": "Four-round World Cup series across 2026 season."
+        },
+        {
+          "id": "cycling-uci-road-world-championships-2026",
+          "name": "UCI Road World Championships 2026",
+          "startDate": "2026-09-20",
+          "endDate": "2026-09-27",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Montreal",
+          "country": "Canada",
+          "indiaPriority": "high",
+          "notes": "UCI lists Montreal dates for the 2026 edition."
+        },
+        {
+          "id": "cycling-asian-games-2026",
+          "name": "Asian Games 2026 Cycling",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Umbrella entry for track/road/BMX/MTB; discipline-specific schedules to be added."
+        }
+      ]
+    },
+    {
+      "sportSlug": "equestrian",
+      "sportName": "Equestrian",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "FEI confirms dates and hosts for FEI World Championships 2026",
+          "url": "https://inside.fei.org/media-updates/fei-world-championships-2026-aachen-and-al-ula-confirmed-hosts"
+        },
+        {
+          "label": "FEI games/championships/finals allocation table",
+          "url": "https://inside.fei.org/bidding-platform/events"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "equestrian-fei-world-cup-finals-fort-worth-2026",
+          "name": "Longines FEI Jumping & FEI Dressage World Cup Finals 2026",
+          "startDate": "2026-04-08",
+          "endDate": "2026-04-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "open"
+          ],
+          "location": "Fort Worth",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "Flagship FEI World Cup finals listed in FEI allocations."
+        },
+        {
+          "id": "equestrian-fei-world-championships-aachen-2026",
+          "name": "FEI World Championships 2026 (Jumping, Dressage, Para Dressage, Eventing, Driving, Vaulting)",
+          "startDate": "2026-08-10",
+          "endDate": "2026-08-23",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "open"
+          ],
+          "location": "Aachen",
+          "country": "Germany",
+          "indiaPriority": "core",
+          "notes": "Main FEI world championship block in Aachen."
+        },
+        {
+          "id": "equestrian-fei-endurance-world-championship-2026",
+          "name": "FEI Endurance World Championship 2026",
+          "startDate": "2026-10-17",
+          "endDate": "2026-10-17",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "open"
+          ],
+          "location": "Al Ula",
+          "country": "Saudi Arabia",
+          "indiaPriority": "high",
+          "notes": "Endurance world championship staged separately in Al Ula."
+        },
+        {
+          "id": "equestrian-asian-games-2026",
+          "name": "Asian Games 2026 Equestrian",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "open"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Open-category competition in FEI disciplines; detailed dressage/jumping/eventing schedule pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "fencing",
+      "sportName": "Fencing",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "FIE 2026 opening weekend preview",
+          "url": "https://fie.org/articles/1562"
+        },
+        {
+          "label": "FIE Grand Prix Tunis 2026 competition page",
+          "url": "https://fie.org/competitions/2026/1431"
+        },
+        {
+          "label": "FIE World Championships Hong Kong 2026 competition page",
+          "url": "https://fie.org/competitions/2026/250"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "fencing-fie-grand-prix-tunis-2026",
+          "name": "FIE Grand Prix Tunis 2026 (Sabre)",
+          "startDate": "2026-01-09",
+          "endDate": "2026-01-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Tunis",
+          "country": "Tunisia",
+          "indiaPriority": "high",
+          "notes": "Senior Grand Prix weekend in sabre."
+        },
+        {
+          "id": "fencing-fie-world-cup-hong-kong-2026",
+          "name": "FIE Women's Foil World Cup Hong Kong 2026",
+          "startDate": "2026-01-09",
+          "endDate": "2026-01-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Hong Kong",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "Women's foil World Cup event in opening 2026 weekend."
+        },
+        {
+          "id": "fencing-world-championships-hong-kong-2026",
+          "name": "FIE World Championships 2026",
+          "startDate": "2026-07-22",
+          "endDate": "2026-07-30",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Hong Kong",
+          "country": "China",
+          "indiaPriority": "core",
+          "notes": "Senior world championship dates listed across FIE event pages."
+        },
+        {
+          "id": "fencing-asian-games-2026",
+          "name": "Asian Games 2026 Fencing",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Sport-level window; weapon and team event dates to be added."
+        }
+      ]
+    },
+    {
+      "sportSlug": "golf",
+      "sportName": "Golf",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "Masters Tournament 2026 dates",
+          "url": "https://jobs.masters.com/"
+        },
+        {
+          "label": "PGA Championship 2026 event page",
+          "url": "https://www.pgachampionship.com/2026"
+        },
+        {
+          "label": "US Open 2026 event page",
+          "url": "https://www.usopen.com/"
+        },
+        {
+          "label": "The Open 2026 key information",
+          "url": "https://www.theopen.com/latest/all-you-need-to-know-154th-open-royal-birkdale"
+        },
+        {
+          "label": "AIG Women's Open 2026 venue and dates",
+          "url": "https://www.aigwomensopen.com/royal-lytham-st-annes-2026"
+        },
+        {
+          "label": "KPMG Women's PGA Championship 2026",
+          "url": "https://www.kpmgwomenspgachampionship.com/about-us"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "golf-masters-tournament-2026",
+          "name": "Masters Tournament 2026",
+          "startDate": "2026-04-06",
+          "endDate": "2026-04-12",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Augusta, Georgia",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "Tournament week dates listed by Masters; championship rounds are 9-12 April."
+        },
+        {
+          "id": "golf-pga-championship-2026",
+          "name": "PGA Championship 2026",
+          "startDate": "2026-05-11",
+          "endDate": "2026-05-17",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Aronimink Golf Club, Newtown Square",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "Major championship week in Pennsylvania."
+        },
+        {
+          "id": "golf-us-open-2026",
+          "name": "US Open 2026",
+          "startDate": "2026-06-18",
+          "endDate": "2026-06-21",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Shinnecock Hills, Southampton",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "Major championship dates confirmed by US Open site."
+        },
+        {
+          "id": "golf-kpmg-womens-pga-2026",
+          "name": "KPMG Women's PGA Championship 2026",
+          "startDate": "2026-06-25",
+          "endDate": "2026-06-28",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Hazeltine National Golf Club, Chaska",
+          "country": "USA",
+          "indiaPriority": "high",
+          "notes": "LPGA major week at Hazeltine."
+        },
+        {
+          "id": "golf-the-open-2026",
+          "name": "The Open Championship 2026",
+          "startDate": "2026-07-16",
+          "endDate": "2026-07-19",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Royal Birkdale, Southport",
+          "country": "Great Britain",
+          "indiaPriority": "high",
+          "notes": "Championship play dates; Open week runs 12-19 July."
+        },
+        {
+          "id": "golf-aig-womens-open-2026",
+          "name": "AIG Women's Open 2026",
+          "startDate": "2026-07-30",
+          "endDate": "2026-08-02",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Royal Lytham & St Annes",
+          "country": "Great Britain",
+          "indiaPriority": "high",
+          "notes": "Championship week at Royal Lytham & St Annes."
+        },
+        {
+          "id": "golf-asian-games-2026",
+          "name": "Asian Games 2026 Golf",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Games window; stroke-play and team medal schedule pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "gymnastics",
+      "sportName": "Gymnastics",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "54th Artistic Gymnastics World Championships event detail",
+          "url": "https://www.gymnastics.sport/site/events/detail.php?id=17247"
+        },
+        {
+          "label": "42nd Rhythmic Gymnastics World Championships event detail",
+          "url": "https://www.gymnastics.sport/site/events/detail.php?id=17544"
+        },
+        {
+          "label": "39th Trampoline & Tumbling World Championships event detail",
+          "url": "https://www.gymnastics.sport/site/events/detail.php?id=18189"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "gymnastics-rhythmic-world-championships-2026",
+          "name": "42nd Rhythmic Gymnastics World Championships",
+          "startDate": "2026-08-12",
+          "endDate": "2026-08-16",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Frankfurt am Main",
+          "country": "Germany",
+          "indiaPriority": "high",
+          "notes": "FIG world championship event in rhythmic discipline."
+        },
+        {
+          "id": "gymnastics-artistic-world-championships-2026",
+          "name": "54th Artistic Gymnastics World Championships",
+          "startDate": "2026-10-17",
+          "endDate": "2026-10-25",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Rotterdam",
+          "country": "Netherlands",
+          "indiaPriority": "core",
+          "notes": "Flagship artistic gymnastics world championship."
+        },
+        {
+          "id": "gymnastics-trampoline-world-championships-2026",
+          "name": "39th Trampoline & Tumbling Gymnastics World Championships",
+          "startDate": "2026-11-04",
+          "endDate": "2026-11-08",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Nanjing",
+          "country": "China",
+          "indiaPriority": "high",
+          "notes": "FIG world championship event in trampoline and tumbling."
+        },
+        {
+          "id": "gymnastics-asian-games-2026",
+          "name": "Asian Games 2026 Gymnastics",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Umbrella entry for artistic/rhythmic/trampoline where applicable; apparatus schedule pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "judo",
+      "sportName": "Judo",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "IJF Calendar 2026",
+          "url": "https://www.ijf.org/calendar"
+        },
+        {
+          "label": "Paris Grand Slam 2026 event page",
+          "url": "https://www.ijf.org/competition/3131"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "judo-paris-grand-slam-2026",
+          "name": "Paris Grand Slam 2026",
+          "startDate": "2026-02-07",
+          "endDate": "2026-02-08",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Paris",
+          "country": "France",
+          "indiaPriority": "high",
+          "notes": "Opening IJF World Tour Grand Slam of India's 2026 cycle."
+        },
+        {
+          "id": "judo-lausanne-grand-slam-2026",
+          "name": "Lausanne Grand Slam 2026",
+          "startDate": "2026-08-28",
+          "endDate": "2026-08-30",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Lausanne",
+          "country": "Switzerland",
+          "indiaPriority": "high",
+          "notes": "Late-season IJF World Tour Grand Slam."
+        },
+        {
+          "id": "judo-world-senior-championships-baku-2026",
+          "name": "Baku World Senior Championships 2026",
+          "startDate": "2026-10-04",
+          "endDate": "2026-10-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Baku",
+          "country": "Azerbaijan",
+          "indiaPriority": "core",
+          "notes": "Individuals from 4-10 Oct and mixed teams on 11 Oct."
+        },
+        {
+          "id": "judo-asian-games-2026",
+          "name": "Asian Games 2026 Judo",
+          "startDate": "2026-09-30",
+          "endDate": "2026-10-03",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "IJF calendar lists XX Asian Games judo dates including mixed teams."
+        }
+      ]
+    },
+    {
+      "sportSlug": "rowing",
+      "sportName": "Rowing",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "World Rowing Virtual Indoor Championships 2026 event page",
+          "url": "https://worldrowing.com/2026-world-rowing-virtual-indoor-championships-presented-by-concept2/"
+        },
+        {
+          "label": "World Rowing Championships Amsterdam 2026 announcement",
+          "url": "https://worldrowing.com/2025/07/10/2026-world-rowing-championships-paulis-and-rienks-appointed-as-regatta-directors-staatsloterij-as-main-national-sponsor/"
+        },
+        {
+          "label": "World Rowing Masters Regatta Bled 2026 entries open",
+          "url": "https://worldrowing.com/2026/02/02/entries-are-now-open-for-the-2026-world-rowing-masters-regatta-in-bled/"
+        },
+        {
+          "label": "World Rowing Shanghai Sprints launch",
+          "url": "https://www.worldrowing.com/2025/10/02/world-rowing-launches-annual-shanghai-based-sprint-rowing-event/"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "rowing-world-virtual-indoor-championships-2026",
+          "name": "World Rowing Virtual Indoor Championships 2026",
+          "startDate": "2026-02-21",
+          "endDate": "2026-02-28",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Virtual",
+          "country": "Global",
+          "indiaPriority": "high",
+          "notes": "Heats on 21-22 Feb and finals on 28 Feb."
+        },
+        {
+          "id": "rowing-world-championships-amsterdam-2026",
+          "name": "World Rowing Championships 2026",
+          "startDate": "2026-08-24",
+          "endDate": "2026-08-30",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Amsterdam (Bosbaan)",
+          "country": "Netherlands",
+          "indiaPriority": "core",
+          "notes": "Primary senior world championship regatta for 2026."
+        },
+        {
+          "id": "rowing-world-masters-regatta-bled-2026",
+          "name": "World Rowing Masters Regatta 2026",
+          "startDate": "2026-09-09",
+          "endDate": "2026-09-13",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Lake Bled",
+          "country": "Slovenia",
+          "indiaPriority": "medium",
+          "notes": "Masters regatta with open entries."
+        },
+        {
+          "id": "rowing-shanghai-sprints-2026",
+          "name": "World Rowing Shanghai Sprints 2026",
+          "startDate": "2026-09-20",
+          "endDate": "2026-09-30",
+          "dateCertainty": "window",
+          "competitionLevel": "international",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Shanghai",
+          "country": "China",
+          "indiaPriority": "medium",
+          "notes": "Debut edition planned for late September; exact dates pending final confirmation."
+        },
+        {
+          "id": "rowing-asian-games-2026",
+          "name": "Asian Games 2026 Rowing",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Games-level window; regatta day-by-day programme pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "sailing",
+      "sportName": "Sailing",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "World Sailing Youth Match Racing World Championship 2026",
+          "url": "https://www.sailing.org/2025/12/18/2026-youth-match-racing-world-championship-heads-to-denmark/"
+        },
+        {
+          "label": "World Sailing Inclusion Championships 2026 host and dates",
+          "url": "https://www.sailing.org/2026/02/16/portimao-confirmed-to-host-the-2026-world-sailing-inclusion-championships/"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "sailing-youth-match-racing-world-championship-2026",
+          "name": "Youth Match Racing World Championship 2026",
+          "startDate": "2026-06-21",
+          "endDate": "2026-06-25",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "mixed"
+          ],
+          "location": "Middelfart",
+          "country": "Denmark",
+          "indiaPriority": "high",
+          "notes": "World Sailing youth world championship in match racing format."
+        },
+        {
+          "id": "sailing-world-sailing-inclusion-championships-2026",
+          "name": "World Sailing Inclusion Championships 2026",
+          "startDate": "2026-10-01",
+          "endDate": "2026-10-11",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "open",
+            "mixed"
+          ],
+          "location": "Portimao",
+          "country": "Portugal",
+          "indiaPriority": "high",
+          "notes": "Includes Inclusive Development Programme and championship racing."
+        },
+        {
+          "id": "sailing-asian-games-2026",
+          "name": "Asian Games 2026 Sailing",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "high",
+          "notes": "Games-level window; class-by-class race schedule pending."
+        }
+      ]
+    },
+    {
+      "sportSlug": "cricket",
+      "sportName": "Cricket",
+      "priorityTier": "secondary",
+      "calendarArchetype": "championship_bracket",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "ICC Men's T20 World Cup 2026 fixtures",
+          "url": "https://www.icc-cricket.com/tournaments/mens-t20-world-cup-2026/news/fixtures-groups-released-for-icc-men-s-t20-world-cup-2026"
+        },
+        {
+          "label": "ICC Women's T20 World Cup 2026 full schedule",
+          "url": "https://www.icc-cricket.com/media-releases/full-schedule-unveiled-for-icc-women-s-t20-world-cup-2026"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "cricket-icc-mens-t20-world-cup-2026",
+          "name": "ICC Men's T20 World Cup 2026",
+          "startDate": "2026-02-07",
+          "endDate": "2026-03-08",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men"
+          ],
+          "location": "Multiple venues",
+          "country": "India / Sri Lanka",
+          "indiaPriority": "core",
+          "notes": "India co-hosts the tournament."
+        },
+        {
+          "id": "cricket-icc-womens-t20-world-cup-2026",
+          "name": "ICC Women's T20 World Cup 2026",
+          "startDate": "2026-06-12",
+          "endDate": "2026-07-05",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "women"
+          ],
+          "location": "Multiple venues",
+          "country": "England and Wales",
+          "indiaPriority": "core",
+          "notes": "Expanded women's event with 12 teams."
+        },
+        {
+          "id": "cricket-asian-games-2026",
+          "name": "Asian Games 2026 Cricket (T20)",
+          "startDate": "2026-09-19",
+          "endDate": "2026-10-04",
+          "dateCertainty": "window",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Games window; T20 format in sports programme."
+        }
+      ]
+    },
+    {
+      "sportSlug": "squash",
+      "sportName": "Squash",
+      "priorityTier": "secondary",
+      "calendarArchetype": "tour_circuit",
+      "coverageStatus": "partial-confirmed",
+      "sources": [
+        {
+          "label": "Asian Squash Federation events page",
+          "url": "https://www.asiansquash.org/eventpage/asian-championships-major-games"
+        },
+        {
+          "label": "PSA World Championships 2025-26 official site",
+          "url": "https://worldsquashchamps.com/home/"
+        },
+        {
+          "label": "Aichi-Nagoya 2026 Schedule PDF",
+          "url": "https://www.aichi-nagoya2026.org/assets/file/tournament/file6.pdf"
+        }
+      ],
+      "events": [
+        {
+          "id": "squash-asian-team-championships-2026",
+          "name": "Asian Team Squash Championships 2026",
+          "startDate": "2026-04-14",
+          "endDate": "2026-04-18",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Islamabad",
+          "country": "Pakistan",
+          "indiaPriority": "high",
+          "notes": "Major continental team benchmark."
+        },
+        {
+          "id": "squash-world-championships-2026",
+          "name": "PSA World Squash Championships 2025-26",
+          "startDate": "2026-05-08",
+          "endDate": "2026-05-16",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "world-championship",
+          "genderCategories": [
+            "men",
+            "women"
+          ],
+          "location": "Cairo",
+          "country": "Egypt",
+          "indiaPriority": "core",
+          "notes": "Primary global championship in the 2026 cycle."
+        },
+        {
+          "id": "squash-asian-doubles-championships-2026",
+          "name": "Asian Doubles Squash Championships 2026",
+          "startDate": "2026-06-18",
+          "endDate": "2026-06-21",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "continental",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Sarawak",
+          "country": "Malaysia",
+          "indiaPriority": "high",
+          "notes": "Includes men's, women's and mixed doubles formats."
+        },
+        {
+          "id": "squash-asian-games-2026",
+          "name": "Asian Games 2026 Squash",
+          "startDate": "2026-09-23",
+          "endDate": "2026-10-02",
+          "dateCertainty": "confirmed",
+          "competitionLevel": "multi-sport-games",
+          "genderCategories": [
+            "men",
+            "women",
+            "mixed"
+          ],
+          "location": "Aichi-Nagoya",
+          "country": "Japan",
+          "indiaPriority": "core",
+          "notes": "Sport-specific dates listed by Asian Squash Federation."
+        }
+      ]
+    }
+  ]
+}
