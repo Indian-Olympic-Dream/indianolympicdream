@@ -27,6 +27,18 @@ export const routes: Routes = [
     data: { animation: "HistoryPage", order: 2 },
   },
   {
+    path: "calendar/:slug",
+    loadComponent: () =>
+      import("./calendar/calendar-detail.component").then(
+        (m) => m.CalendarDetailComponent,
+      ),
+    data: {
+      animation: "CalendarDetailPage",
+      order: 3,
+      transitionType: "bottom-to-top",
+    },
+  },
+  {
     path: "calendar",
     loadComponent: () =>
       import("./calendar/calendar.component").then((m) => m.CalendarComponent),

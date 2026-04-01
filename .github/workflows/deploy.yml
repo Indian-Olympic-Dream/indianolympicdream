@@ -35,14 +35,14 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build for production
         run: npm run build
 
       - name: Deploy to Nginx
         run: |
-          sudo rsync -a --delete dist/indianolympicdream/ /var/www/iod-frontend/
+          sudo rsync -a --delete dist/indianolympicdream/browser/ /var/www/iod-frontend/
           sudo chown -R www-data:www-data /var/www/iod-frontend/
           sudo nginx -t && sudo systemctl reload nginx
 
@@ -62,9 +62,9 @@ jobs:
   #       with:
   #         node-version: 20
   #         cache: 'npm'
-  #     - run: npm ci
+  #     - run: npm ci --legacy-peer-deps
   #     - run: npm run build
   #     - run: |
-  #         sudo rsync -a --delete dist/indianolympicdream/ /var/www/iod-frontend/
+  #         sudo rsync -a --delete dist/indianolympicdream/browser/ /var/www/iod-frontend/
   #         sudo chown -R www-data:www-data /var/www/iod-frontend/
   #         sudo nginx -t && sudo systemctl reload nginx
