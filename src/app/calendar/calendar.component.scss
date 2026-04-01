@@ -2,238 +2,681 @@
   display: block;
 }
 
+// ─── Design Tokens ─────────────────────────────────────────
+$bg-primary: #06070a;
+$bg-card: rgba(255, 255, 255, 0.035);
+$bg-card-hover: rgba(255, 255, 255, 0.06);
+$border-subtle: rgba(255, 255, 255, 0.08);
+$border-hover: rgba(255, 255, 255, 0.14);
+$text-primary: rgba(255, 255, 255, 0.94);
+$text-secondary: rgba(255, 255, 255, 0.62);
+$text-tertiary: rgba(255, 255, 255, 0.42);
+$gold: #f3c85c;
+$gold-bg: rgba(243, 200, 92, 0.12);
+$gold-border: rgba(243, 200, 92, 0.28);
+$blue: #7eb0ff;
+$blue-bg: rgba(126, 176, 255, 0.1);
+$blue-border: rgba(126, 176, 255, 0.22);
+$green: #6ee7b7;
+$green-bg: rgba(110, 231, 183, 0.1);
+$green-border: rgba(110, 231, 183, 0.22);
+$live-red: #f87171;
+$live-red-bg: rgba(248, 113, 113, 0.12);
+$live-red-border: rgba(248, 113, 113, 0.32);
+
+// ─── Shell ─────────────────────────────────────────────────
 .calendar-shell {
   min-height: 100vh;
-  padding: 22px 16px 32px;
-  color: rgba(255, 255, 255, 0.94);
+  padding: 20px 14px 40px;
+  color: $text-primary;
   background:
-    radial-gradient(920px 420px at 10% -10%, rgba(212, 175, 55, 0.14), transparent 58%),
-    radial-gradient(760px 360px at 100% 0%, rgba(90, 140, 220, 0.12), transparent 62%),
-    #06070a;
+    radial-gradient(900px 400px at 0% -10%, rgba(212, 175, 55, 0.1), transparent 58%),
+    radial-gradient(740px 400px at 100% 0%, rgba(67, 116, 196, 0.06), transparent 60%),
+    $bg-primary;
 }
 
+// ─── Header ────────────────────────────────────────────────
 .calendar-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(247, 222, 160, 0.72);
 }
 
 .calendar-header h1 {
-  margin: 0;
+  margin: 8px 0 0;
   font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: clamp(2rem, 7vw, 2.8rem);
+  font-size: clamp(2rem, 8vw, 3rem);
   line-height: 0.98;
   letter-spacing: -0.05em;
 }
 
-.calendar-header p {
-  margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.tab-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 4px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.tab-btn {
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.68);
-  padding: 12px 14px;
-  font: inherit;
-  font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease;
-}
-
-.tab-btn.active {
-  background: rgba(243, 200, 92, 0.12);
-  color: #f7dea0;
-}
-
-.calendar-panel {
-  margin-top: 14px;
-  padding: 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.panel-header h2 {
-  margin: 0;
-  font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: 1.15rem;
-}
-
-.panel-header p {
-  margin: 6px 0 0;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.86rem;
-  line-height: 1.5;
-}
-
-.sport-filter-row {
+.header-live-dot {
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  margin-top: 14px;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.sport-filter-row::-webkit-scrollbar {
-  display: none;
-}
-
-.sport-filter-chip {
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: $live-red-bg;
+  border: 1px solid $live-red-border;
   flex-shrink: 0;
+  animation: liveGlow 2s ease-in-out infinite;
+}
+
+.live-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $live-red;
+  letter-spacing: 0.02em;
+}
+
+// ─── Pulse Dot ─────────────────────────────────────────────
+.pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $live-red;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: $live-red;
+    opacity: 0;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes liveGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(248, 113, 113, 0.14);
+  }
+}
+
+// ─── Sport Filter Bar ──────────────────────────────────────
+.sport-filter-bar {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sport-chip {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
-  color: rgba(255, 255, 255, 0.74);
-  font: inherit;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid $border-subtle;
+  background: $bg-card;
+  color: $text-secondary;
+  font-size: 0.76rem;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: $border-hover;
+    background: $bg-card-hover;
+  }
+
+  &.active {
+    border-color: $gold-border;
+    background: $gold-bg;
+    color: $gold;
+  }
 }
 
-.sport-filter-chip.active {
-  border-color: rgba(243, 200, 92, 0.28);
-  background: rgba(243, 200, 92, 0.1);
-  color: #f7dea0;
+.chip-icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(0.8);
+
+  .sport-chip.active & {
+    filter: brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(15deg);
+  }
 }
 
-.sport-filter-icon {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
+.chip-count {
+  opacity: 0.6;
+  font-size: 0.7rem;
+}
+
+// ─── Loading ───────────────────────────────────────────────
+.loading-state {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  overflow: hidden;
-  font-family: 'Geist Mono', monospace;
-  font-size: 0.72rem;
-}
-
-.sport-filter-icon img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  filter: invert(1);
-}
-
-.sport-filter-label {
-  white-space: nowrap;
+  gap: 14px;
+  color: $text-secondary;
   font-size: 0.88rem;
 }
 
-.loading-state,
-.empty-state {
-  min-height: 180px;
-  display: grid;
-  place-items: center;
-  text-align: center;
+// ─── Time Group Sections ───────────────────────────────────
+.time-group {
+  margin-bottom: 24px;
 }
 
-.empty-state {
-  gap: 8px;
-}
-
-.empty-state h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.empty-state p {
-  margin: 0;
-  max-width: 320px;
-  color: rgba(255, 255, 255, 0.58);
-  line-height: 1.5;
-}
-
-.card-stack {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.event-card {
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.card-topline {
+.group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
-.sport-pill,
-.date-pill {
+.group-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-header h2 {
+  margin: 0;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.group-count {
+  color: $text-tertiary;
+  font-size: 0.82rem;
+  font-family: 'Geist Mono', monospace;
+}
+
+// ─── Event Cards (Grid — for Live, Today, This Week) ──────
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.event-card {
+  display: block;
+  position: relative;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
+  background: $bg-card;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: all 0.22s ease;
+
+  &:hover:not(.no-link) {
+    border-color: $border-hover;
+    background: $bg-card-hover;
+    transform: translateY(-1px);
+  }
+
+  &.no-link {
+    cursor: default;
+  }
+}
+
+// Accent bar — top border color based on importance
+.card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+
+  &.importance-core {
+    background: linear-gradient(90deg, $gold, rgba(243, 200, 92, 0.3));
+  }
+  &.importance-high {
+    background: linear-gradient(90deg, $blue, rgba(126, 176, 255, 0.3));
+  }
+  &.importance-watch {
+    background: linear-gradient(90deg, $green, rgba(110, 231, 183, 0.3));
+  }
+  &.importance-context {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), transparent);
+  }
+}
+
+.live-card {
+  border-color: $live-red-border;
+  background: $live-red-bg;
+
+  .card-accent {
+    background: linear-gradient(90deg, $live-red, rgba(248, 113, 113, 0.3)) !important;
+    height: 3px;
+  }
+}
+
+.card-sport-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card-sport-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-pictogram {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(0.75);
+  flex-shrink: 0;
+}
+
+.card-sport-name {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+// Live badge
+.live-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 999px;
-  padding: 7px 10px;
-  font-size: 0.74rem;
-  line-height: 1;
+  background: rgba(248, 113, 113, 0.2);
+  color: $live-red;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.sport-pill {
-  border: 1px solid rgba(126, 176, 255, 0.24);
-  background: rgba(126, 176, 255, 0.12);
-  color: #b9d6ff;
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $live-red;
+  animation: pulse 1.8s ease-in-out infinite;
 }
 
-.date-pill {
-  border: 1px solid rgba(243, 200, 92, 0.24);
-  background: rgba(243, 200, 92, 0.12);
-  color: #f7dea0;
+// Importance chip
+.importance-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+
+  &.importance-core {
+    background: $gold-bg;
+    color: $gold;
+    border: 1px solid $gold-border;
+  }
+  &.importance-high {
+    background: $blue-bg;
+    color: $blue;
+    border: 1px solid $blue-border;
+  }
+  &.importance-watch {
+    background: $green-bg;
+    color: $green;
+    border: 1px solid $green-border;
+  }
+  &.importance-context {
+    background: rgba(255, 255, 255, 0.045);
+    color: $text-secondary;
+    border: 1px solid $border-subtle;
+  }
 }
 
-.event-card h3 {
-  margin: 12px 0 0;
+.card-title {
+  margin: 0;
   font-family: 'Geist Sans', -apple-system, sans-serif;
-  font-size: 1.02rem;
-  line-height: 1.35;
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.meta-line {
-  margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.5;
-  font-size: 0.9rem;
+.card-meta {
+  margin: 6px 0 0;
+  color: $text-secondary;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
-@media (min-width: 768px) {
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.card-date,
+.card-location {
+  font-size: 0.78rem;
+  color: $text-secondary;
+}
+
+.card-date {
+  font-weight: 500;
+}
+
+.card-location {
+  text-align: right;
+  opacity: 0.7;
+}
+
+// ─── Event Rows (for This Month & Later) ──────────────────
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 3px 40px minmax(0, 1fr) auto;
+  gap: 0 12px;
+  align-items: center;
+  padding: 14px 16px 14px 0;
+  background: $bg-card;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease;
+
+  &:hover:not(.no-link) {
+    background: $bg-card-hover;
+  }
+
+  &.no-link {
+    cursor: default;
+  }
+
+  & + .event-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+}
+
+.row-accent {
+  width: 3px;
+  height: 100%;
+  min-height: 38px;
+
+  &.importance-core {
+    background: $gold;
+  }
+  &.importance-high {
+    background: $blue;
+  }
+  &.importance-watch {
+    background: $green;
+  }
+  &.importance-context {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.row-sport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-pictogram {
+  width: 22px;
+  height: 22px;
+  filter: brightness(0) invert(0.65);
+
+  &.dimmed {
+    opacity: 0.4;
+  }
+}
+
+.row-content {
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  p {
+    margin: 3px 0 0;
+    color: $text-secondary;
+    font-size: 0.76rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.row-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.relative-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.row-time small {
+  font-size: 0.72rem;
+  color: $text-tertiary;
+}
+
+// ─── Empty State ───────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 20px;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: $text-primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.88rem;
+    max-width: 320px;
+  }
+}
+
+// ─── Completed Section ─────────────────────────────────────
+.completed-section {
+  margin-top: 32px;
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
+  background: $bg-card;
+  overflow: hidden;
+}
+
+.completed-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: $bg-card-hover;
+  }
+}
+
+.toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $text-tertiary;
+  }
+
+  span {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+}
+
+.toggle-count {
+  color: $text-tertiary;
+  font-size: 0.82rem;
+  font-family: 'Geist Mono', monospace;
+}
+
+.completed-list {
+  border-top: 1px solid $border-subtle;
+}
+
+.completed-row {
+  padding: 12px 16px 12px 0 !important;
+
+  .row-content h3 {
+    color: $text-secondary;
+  }
+}
+
+.completed-label {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: $text-tertiary;
+}
+
+// ─── Desktop ───────────────────────────────────────────────
+@media (min-width: 900px) {
   .calendar-shell {
-    padding: 24px 20px 36px;
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
   }
 
-  .calendar-panel {
-    padding: 18px;
+  .events-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .card-stack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .live-group .events-grid {
+    grid-template-columns: 1fr; // Live events stay full-width for emphasis
+  }
+}
+
+@media (min-width: 1200px) {
+  .events-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ─── Small Mobile ──────────────────────────────────────────
+@media (max-width: 420px) {
+  .event-card {
+    padding: 14px 14px 12px;
+  }
+
+  .card-title {
+    font-size: 0.96rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .card-location {
+    text-align: left;
+  }
+
+  .event-row {
+    grid-template-columns: 3px 32px minmax(0, 1fr) auto;
+    gap: 0 8px;
+    padding: 12px 12px 12px 0;
   }
 }

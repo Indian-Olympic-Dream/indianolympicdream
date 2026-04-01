@@ -1,68 +1,225 @@
 <section class="calendar-shell">
+  <!-- Header -->
   <header class="calendar-header">
-    <h1>Calendar</h1>
-    <p>The events India fans should actually keep an eye on.</p>
+    <div class="header-top">
+      <div class="header-text">
+        <p class="eyebrow">IOD Calendar · 2026</p>
+        <h1>What's On</h1>
+      </div>
+      <div class="header-live-dot" *ngIf="liveCards().length > 0">
+        <span class="pulse-dot"></span>
+        <span class="live-count">{{ liveCards().length }} Live</span>
+      </div>
+    </div>
   </header>
 
-  <div class="tab-row">
-    <button
-      class="tab-btn"
-      [class.active]="selectedTab() === 'upcoming'"
-      (click)="setTab('upcoming')">
-      Upcoming
+  <!-- Sport filter chips -->
+  <nav class="sport-filter-bar" *ngIf="!loading() && sportFilters().length > 1">
+    <button class="sport-chip" [class.active]="activeSportFilter() === 'all'"
+      (click)="setSportFilter('all')">
+      <span class="chip-label">All</span>
     </button>
+    <button class="sport-chip" *ngFor="let sport of sportFilters()"
+      [class.active]="activeSportFilter() === sport.slug"
+      (click)="setSportFilter(sport.slug)">
+      <img *ngIf="sport.pictogramUrl" [src]="sport.pictogramUrl" [alt]="sport.name" class="chip-icon">
+      <span class="chip-label">{{ sport.name }}</span>
+      <span class="chip-count">{{ sport.count }}</span>
+    </button>
+  </nav>
 
-    <button
-      class="tab-btn"
-      [class.active]="selectedTab() === 'completed'"
-      (click)="setTab('completed')">
-      Completed
-    </button>
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading calendar events…</p>
   </div>
 
-  <section class="calendar-panel">
-    <header class="panel-header">
-      <h2>{{ panelTitle() }}</h2>
-      <p>{{ panelCopy() }}</p>
-    </header>
+  <ng-container *ngIf="!loading()">
 
-    <div class="sport-filter-row" *ngIf="sportFilters().length > 0">
-      <button
-        *ngFor="let filter of sportFilters(); trackBy: trackByFilter"
-        class="sport-filter-chip"
-        [class.active]="selectedSport() === filter.slug"
-        (click)="setSportFilter(filter.slug)">
-        <span class="sport-filter-icon" *ngIf="filter.slug !== 'all'">
-          <img *ngIf="filter.pictogramUrl; else fallbackChip" [src]="filter.pictogramUrl" [alt]="filter.name">
-          <ng-template #fallbackChip>{{ getSportChipText(filter.name) }}</ng-template>
-        </span>
-        <span class="sport-filter-label">{{ filter.name }}</span>
-      </button>
-    </div>
-
-    <div *ngIf="loading() && selectedTab() === 'upcoming'" class="loading-state">
-      <mat-spinner diameter="42"></mat-spinner>
-    </div>
-
-    <div
-      class="card-stack"
-      *ngIf="!loading() || selectedTab() === 'completed'">
-      <article
-        *ngFor="let card of displayedCards(); trackBy: trackByCard"
-        class="event-card">
-        <div class="card-topline">
-          <span class="sport-pill">{{ card.sportName }}</span>
-          <span class="date-pill">{{ card.dateLabel }}</span>
+    <!-- ═══ LIVE ═══ -->
+    <section class="time-group live-group" *ngIf="liveCards().length > 0">
+      <header class="group-header">
+        <div class="group-label-row">
+          <span class="pulse-dot"></span>
+          <h2>Happening Now</h2>
         </div>
+        <span class="group-count">{{ liveCards().length }}</span>
+      </header>
 
-        <h3>{{ card.title }}</h3>
-        <p class="meta-line" *ngIf="card.metaLabel">{{ card.metaLabel }}</p>
-      </article>
+      <div class="events-grid">
+        <a class="event-card live-card" *ngFor="let card of liveCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              <span class="card-sport-name">{{ card.sportName }}</span>
+            </div>
+            <span class="live-badge">
+              <span class="live-dot"></span>
+              LIVE
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</p>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <span class="card-location" *ngIf="card.locationLabel">{{ card.locationLabel }}</span>
+          </div>
+        </a>
+      </div>
+    </section>
 
-      <section class="empty-state" *ngIf="displayedCards().length === 0">
-        <h3>{{ emptyTitle() }}</h3>
-        <p>{{ emptyCopy() }}</p>
-      </section>
-    </div>
-  </section>
+    <!-- ═══ TODAY ═══ -->
+    <section class="time-group" *ngIf="todayCards().length > 0">
+      <header class="group-header">
+        <h2>Today</h2>
+        <span class="group-count">{{ todayCards().length }}</span>
+      </header>
+      <div class="events-grid">
+        <a class="event-card" *ngFor="let card of todayCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              <span class="card-sport-name">{{ card.sportName }}</span>
+            </div>
+            <span class="importance-chip" [class]="card.importanceClass">
+              {{ card.event.importance === 'core' ? 'Core' : card.event.importance === 'high' ? 'High' : 'Watch' }}
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</p>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <span class="card-location" *ngIf="card.locationLabel">{{ card.locationLabel }}</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══ THIS WEEK ═══ -->
+    <section class="time-group" *ngIf="thisWeekCards().length > 0">
+      <header class="group-header">
+        <h2>This Week</h2>
+        <span class="group-count">{{ thisWeekCards().length }}</span>
+      </header>
+      <div class="events-grid">
+        <a class="event-card" *ngFor="let card of thisWeekCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              <span class="card-sport-name">{{ card.sportName }}</span>
+            </div>
+            <span class="importance-chip" [class]="card.importanceClass">
+              {{ card.event.importance === 'core' ? 'Core' : card.event.importance === 'high' ? 'High' : 'Watch' }}
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</p>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <span class="card-location" *ngIf="card.locationLabel">{{ card.locationLabel }}</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══ THIS MONTH ═══ -->
+    <section class="time-group" *ngIf="thisMonthCards().length > 0">
+      <header class="group-header">
+        <h2>This Month</h2>
+        <span class="group-count">{{ thisMonthCards().length }}</span>
+      </header>
+      <div class="events-list">
+        <a class="event-row" *ngFor="let card of thisMonthCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="row-accent" [class]="card.importanceClass"></div>
+          <div class="row-sport">
+            <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram">
+          </div>
+          <div class="row-content">
+            <h3>{{ card.event.title }}</h3>
+            <p>{{ card.sportName }} · {{ card.locationLabel || card.categoryLabel }}</p>
+          </div>
+          <div class="row-time">
+            <span class="relative-label">{{ card.relativeLabel }}</span>
+            <small>{{ card.dateLabel }}</small>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══ LATER ═══ -->
+    <section class="time-group" *ngIf="laterCards().length > 0">
+      <header class="group-header">
+        <h2>Coming Up</h2>
+        <span class="group-count">{{ laterCards().length }}</span>
+      </header>
+      <div class="events-list">
+        <a class="event-row compact" *ngFor="let card of laterCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="row-accent" [class]="card.importanceClass"></div>
+          <div class="row-sport">
+            <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram">
+          </div>
+          <div class="row-content">
+            <h3>{{ card.event.title }}</h3>
+            <p>{{ card.sportName }} · {{ card.locationLabel || card.dateLabel }}</p>
+          </div>
+          <div class="row-time">
+            <span class="relative-label">{{ card.relativeLabel }}</span>
+            <small>{{ card.dateLabel }}</small>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══ EMPTY STATE ═══ -->
+    <section class="empty-state" *ngIf="hasNoUpcoming()">
+      <mat-icon>event_busy</mat-icon>
+      <h2>No upcoming events</h2>
+      <p *ngIf="activeSportFilter() !== 'all'">Try switching the sport filter or check completed events below.</p>
+      <p *ngIf="activeSportFilter() === 'all'">Calendar events haven't been seeded yet. Check back soon.</p>
+    </section>
+
+    <!-- ═══ COMPLETED ═══ -->
+    <section class="completed-section" *ngIf="completedCards().length > 0">
+      <button class="completed-toggle" type="button" (click)="toggleCompleted()">
+        <div class="toggle-left">
+          <mat-icon>{{ showCompleted() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span>Completed Events</span>
+        </div>
+        <span class="toggle-count">{{ completedCards().length }}</span>
+      </button>
+
+      <div class="completed-list" *ngIf="showCompleted()">
+        <a class="event-row completed-row" *ngFor="let card of completedCards(); trackBy: trackByCard"
+          [routerLink]="getEventRouterLink(card)"
+          [class.no-link]="!card.event.slug">
+          <div class="row-accent importance-context"></div>
+          <div class="row-sport">
+            <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram dimmed">
+          </div>
+          <div class="row-content">
+            <h3>{{ card.event.title }}</h3>
+            <p>{{ card.sportName }}<span *ngIf="card.locationLabel"> · {{ card.locationLabel }}</span></p>
+          </div>
+          <div class="row-time">
+            <span class="completed-label">Done</span>
+            <small>{{ card.dateLabel }}</small>
+          </div>
+        </a>
+      </div>
+    </section>
+
+  </ng-container>
 </section>
