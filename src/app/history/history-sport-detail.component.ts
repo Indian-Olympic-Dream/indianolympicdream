@@ -856,4 +856,31 @@ export class HistorySportDetailComponent implements OnInit {
         }
     }
 
+    getMomentsHeading(): string {
+        const moments = this.goldenMoments();
+        const sportName = this.sport()?.name || 'this sport';
+        const types = new Set(moments.map(m => m.type || 'gold'));
+
+        if (types.size === 1 && types.has('gold')) {
+            return `🏆 Golden Moments in ${sportName}`;
+        }
+        if (types.has('gold')) {
+            return `🏅 Olympic Moments in ${sportName}`;
+        }
+        if (types.has('heartbreak') && types.size === 1) {
+            return `💔 Heartbreak Moments in ${sportName}`;
+        }
+        return `🏅 Olympic Moments in ${sportName}`;
+    }
+
+    getMomentBadge(moment: GoldenMoment): string {
+        switch (moment.type) {
+            case 'gold': return '🥇';
+            case 'silver': return '🥈';
+            case 'bronze': return '🥉';
+            case 'heartbreak': return '💔';
+            default: return '🥇';
+        }
+    }
+
 }

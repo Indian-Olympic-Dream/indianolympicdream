@@ -90,18 +90,35 @@ export interface OlympicParticipation {
   performance?: string;
 }
 
+export interface CalendarEventParticipant {
+  id: string;
+  fullName: string;
+  slug: string;
+  photo?: { url: string } | null;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
+  slug?: string;
+  summary?: string;
   sport?: Sport;
+  edition?: Edition | null;
   startDate: string;
   endDate?: string;
   location?: string;
   country?: string;
   type?: string;
   category?: string;
+  eventScope?: 'sport_event' | 'qualification_window' | 'multi_sport_window';
+  importance?: 'core' | 'high' | 'watch' | 'context';
   status: string;
   isQualifier?: boolean;
+  heroImage?: { url: string } | null;
+  hubKey?: string;
+  qualificationContext?: string;
+  indianParticipants?: CalendarEventParticipant[];
+  externalUrl?: string;
   notes?: string;
 }
 
@@ -229,15 +246,19 @@ const SPORT_BY_SLUG_QUERY = gql`
 
 
 
+export type MomentType = 'gold' | 'silver' | 'bronze' | 'heartbreak';
+
 export interface GoldenMoment {
   id: string;
   title: string;
+  type: MomentType;
   description: string;
   year: number;
   city: string;
   event: string;
   sport?: Sport | null;
   athlete: string;
+  placement?: number;
   media?: {
     url: string;
     alt: string;
@@ -387,15 +408,33 @@ const CALENDAR_EVENTS_QUERY = gql`
       docs {
       id
       title: name
+      slug
+      summary
       startDate
       endDate
       location
       country
       type
       category
+      eventScope
+      importance
       status
       isQualifier: isQualificationEvent
+      hubKey
+      qualificationContext
       notes
+        edition {
+          id
+          name
+          slug
+          year
+          city
+          status
+          type
+        }
+        heroImage {
+          url
+        }
         sport {
           id
           name
@@ -406,6 +445,62 @@ const CALENDAR_EVENTS_QUERY = gql`
     }
   }
 }
+`;
+
+const CALENDAR_EVENT_BY_SLUG_QUERY = gql`
+  query GetCalendarEventBySlug($slug: String!) {
+    CalendarEvents(where: { slug: { equals: $slug } }, limit: 1) {
+      docs {
+        id
+        title: name
+        slug
+        summary
+        startDate
+        endDate
+        location
+        country
+        type
+        category
+        eventScope
+        importance
+        status
+        isQualifier: isQualificationEvent
+        hubKey
+        qualificationContext
+        externalUrl
+        notes
+        edition {
+          id
+          name
+          slug
+          year
+          city
+          status
+          type
+          heroImage {
+            url
+          }
+        }
+        heroImage {
+          url
+        }
+        sport {
+          id
+          name
+          slug
+          description
+          pictogram { url }
+          parentSport { id name slug pictogram { url } }
+        }
+        indianParticipants {
+          id
+          fullName
+          slug
+          photo { url }
+        }
+      }
+    }
+  }
 `;
 
 const QUALIFICATION_PATHWAYS_QUERY = gql`
@@ -470,10 +565,11 @@ const CONTENDER_UNITS_QUERY = gql`
 
 const GOLDEN_MOMENTS_QUERY = gql`
   query GetGoldenMoments {
-    GoldenMoments(limit: 100, sort: "year") {
+    GoldenMoments(limit: 200, sort: "year") {
       docs {
         id
         title
+        type
         description
         year
         city
@@ -485,6 +581,7 @@ const GOLDEN_MOMENTS_QUERY = gql`
           parentSport { id name slug }
         }
         athlete
+        placement
         media {
           url
           alt
@@ -758,6 +855,14 @@ export class PayloadService {
       query: CALENDAR_EVENTS_QUERY,
       variables: { where, limit: options?.limit || 500 }
     }).pipe(map(result => result.data.CalendarEvents.docs));
+  }
+
+  getCalendarEventBySlug(slug: string): Observable<CalendarEvent | null> {
+    return this.apollo.query<{ CalendarEvents: { docs: CalendarEvent[] } }>({
+      query: CALENDAR_EVENT_BY_SLUG_QUERY,
+      variables: { slug },
+      fetchPolicy: 'network-only',
+    }).pipe(map(result => result.data.CalendarEvents.docs[0] || null));
   }
 
   // ============ QUALIFICATION PATHWAYS ============

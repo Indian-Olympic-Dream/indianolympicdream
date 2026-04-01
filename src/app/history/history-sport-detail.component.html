@@ -74,8 +74,8 @@
         *ngIf="!loading() && hasSubDisciplineView() && displayedDisciplineSummary().length > 0">
         <div class="discipline-overview-title">Sub-disciplines</div>
         <div class="discipline-overview-row">
-            <button type="button" class="discipline-chip"
-                [class.active]="activeDisciplineId() === 'all'" (click)="setDisciplineFilter('all')">
+            <button type="button" class="discipline-chip" [class.active]="activeDisciplineId() === 'all'"
+                (click)="setDisciplineFilter('all')">
                 <div class="discipline-chip-name">
                     <img *ngIf="sportPictogramUrl()" [src]="sportPictogramUrl()" [alt]="sport()?.name"
                         class="discipline-chip-icon">
@@ -97,19 +97,26 @@
                 </div>
                 <div class="discipline-chip-meta">
                     <span>{{ discipline.athleteEntries }} participations</span>
-                    <span class="chip-medal" *ngIf="discipline.medalCount.gold">🥇{{ discipline.medalCount.gold }}</span>
-                    <span class="chip-medal" *ngIf="discipline.medalCount.silver">🥈{{ discipline.medalCount.silver }}</span>
-                    <span class="chip-medal" *ngIf="discipline.medalCount.bronze">🥉{{ discipline.medalCount.bronze }}</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.gold">🥇{{ discipline.medalCount.gold
+                        }}</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.silver">🥈{{ discipline.medalCount.silver
+                        }}</span>
+                    <span class="chip-medal" *ngIf="discipline.medalCount.bronze">🥉{{ discipline.medalCount.bronze
+                        }}</span>
                 </div>
             </button>
         </div>
     </section>
 
-    <!-- Golden Moments in This Sport -->
+    <!-- Olympic Moments in This Sport -->
     <section class="golden-moments" *ngIf="!loading() && goldenMoments().length > 0">
-        <h2>🏆 Golden Moments in {{ sport()?.name }}</h2>
+        <h2>{{ getMomentsHeading() }}</h2>
         <div class="moments-carousel">
-            <article class="moment-card" *ngFor="let moment of goldenMoments()">
+            <article class="moment-card" *ngFor="let moment of goldenMoments()"
+                [class.moment-gold]="moment.type === 'gold' || !moment.type"
+                [class.moment-silver]="moment.type === 'silver'" [class.moment-bronze]="moment.type === 'bronze'"
+                [class.moment-heartbreak]="moment.type === 'heartbreak'">
+                <!-- <div class="moment-type-badge">{{ getMomentBadge(moment) }}</div> -->
                 <div class="moment-year">{{ moment.year }}</div>
                 <div class="moment-location">{{ moment.city }}</div>
                 <div class="moment-content">
@@ -117,11 +124,12 @@
                     <div class="moment-event">{{ moment.event }}</div>
                     <p class="moment-story">{{ moment.description }}</p>
                 </div>
-                <a class="moment-link" *ngIf="moment.linkedStory?.slug" [routerLink]="['/stories', moment.linkedStory?.slug]">
+                <a class="moment-link" *ngIf="moment.linkedStory?.slug"
+                    [routerLink]="['/stories', moment.linkedStory?.slug]">
                     Read story
                 </a>
-                <a class="moment-link" *ngIf="!moment.linkedStory?.slug && moment.externalLink" [href]="moment.externalLink"
-                    target="_blank" rel="noopener">
+                <a class="moment-link" *ngIf="!moment.linkedStory?.slug && moment.externalLink"
+                    [href]="moment.externalLink" target="_blank" rel="noopener">
                     Read more
                 </a>
             </article>
@@ -161,17 +169,20 @@
                         [class.unmapped]="isUnmappedDisciplineId(discipline.id)">
                         <header class="discipline-header">
                             <div class="discipline-header-left">
-                                <img *ngIf="discipline.pictogramUrl" [src]="discipline.pictogramUrl" [alt]="discipline.name"
-                                    class="discipline-header-icon">
+                                <img *ngIf="discipline.pictogramUrl" [src]="discipline.pictogramUrl"
+                                    [alt]="discipline.name" class="discipline-header-icon">
                                 <h4>{{ getDisciplineDisplayName(discipline.name) }}</h4>
                                 <span class="discipline-athlete-count">{{ discipline.athletes.length }} athletes</span>
                             </div>
 
                             <div class="discipline-medals"
                                 *ngIf="discipline.medalCount.gold || discipline.medalCount.silver || discipline.medalCount.bronze">
-                                <span class="discipline-medal gold" *ngIf="discipline.medalCount.gold">🥇{{ discipline.medalCount.gold }}</span>
-                                <span class="discipline-medal silver" *ngIf="discipline.medalCount.silver">🥈{{ discipline.medalCount.silver }}</span>
-                                <span class="discipline-medal bronze" *ngIf="discipline.medalCount.bronze">🥉{{ discipline.medalCount.bronze }}</span>
+                                <span class="discipline-medal gold" *ngIf="discipline.medalCount.gold">🥇{{
+                                    discipline.medalCount.gold }}</span>
+                                <span class="discipline-medal silver" *ngIf="discipline.medalCount.silver">🥈{{
+                                    discipline.medalCount.silver }}</span>
+                                <span class="discipline-medal bronze" *ngIf="discipline.medalCount.bronze">🥉{{
+                                    discipline.medalCount.bronze }}</span>
                             </div>
                         </header>
 
