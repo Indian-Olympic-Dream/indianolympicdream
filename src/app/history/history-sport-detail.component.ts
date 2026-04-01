@@ -873,14 +873,4 @@ export class HistorySportDetailComponent implements OnInit {
         return `🏅 Olympic Moments in ${sportName}`;
     }
 
-    getMomentBadge(moment: GoldenMoment): string {
-        switch (moment.type) {
-            case 'gold': return '🥇';
-            case 'silver': return '🥈';
-            case 'bronze': return '🥉';
-            case 'heartbreak': return '💔';
-            default: return '🥇';
-        }
-    }
-
 }
