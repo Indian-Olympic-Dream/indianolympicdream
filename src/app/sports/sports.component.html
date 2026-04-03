@@ -22,7 +22,8 @@
     <section class="sports-grid" *ngIf="displayedSportRows().length > 0; else noResults">
       <a *ngFor="let sport of displayedSportRows()" class="sport-card"
         [routerLink]="isNavigableSport(sport) ? ['/history/sport', sport.slug] : null"
-        [class.disabled]="!isNavigableSport(sport)" [class.has-gold]="sport.medalCount.gold > 0"
+        [queryParams]="isNavigableSport(sport) ? { view: 'current' } : null" [class.disabled]="!isNavigableSport(sport)"
+        [class.has-gold]="sport.medalCount.gold > 0"
         [class.has-silver]="sport.medalCount.gold === 0 && sport.medalCount.silver > 0"
         [class.has-bronze]="sport.medalCount.gold === 0 && sport.medalCount.silver === 0 && sport.medalCount.bronze > 0"
         [class.has-near]="isNearPodiumSport(sport)" [class.is-discontinued]="sport.olympicStatus === 'discontinued'"

@@ -74,7 +74,8 @@
                     </div>
                     <div class="sports-scroll">
                         <a *ngFor="let sport of sportsBreakdown()" class="sport-card"
-                            [routerLink]="['/history/sport', sport.slug]" [class.has-gold]="sport.gold > 0"
+                            [routerLink]="['/history/sport', sport.slug]" [queryParams]="{ view: 'legacy' }"
+                            [class.has-gold]="sport.gold > 0"
                             [class.has-silver]="sport.gold === 0 && sport.silver > 0"
                             [class.has-bronze]="sport.gold === 0 && sport.silver === 0 && sport.bronze > 0"
                             [class.is-discontinued]="sport.olympicStatus === 'discontinued'">

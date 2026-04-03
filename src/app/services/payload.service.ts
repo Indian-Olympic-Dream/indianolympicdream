@@ -18,6 +18,9 @@ export interface Sport {
   slug: string;
   alias?: string;
   pictogram?: { url: string } | null;
+  heroImage?: { url: string } | null;
+  currentHeroImage?: { url: string } | null;
+  legacyHeroImage?: { url: string } | null;
   description?: string;
   indiaTier?: IndiaTier | null;
   olympicStatus?: SportLifecycle | null;
@@ -129,7 +132,21 @@ export interface QualificationPathway {
   sport: Sport;
   description?: any;
   quotaAvailable?: number;
+  programmeEventCount?: number;
+  maxEntriesPerNoc?: string;
+  qualificationFormat?: string;
   qualificationDeadline?: string;
+  currentCycleContext?: string;
+  qualifyingEvents?: {
+    eventName: string;
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+  }[];
+  externalLinks?: {
+    label: string;
+    url: string;
+  }[];
 }
 
 export interface ContenderUnit {
@@ -219,7 +236,10 @@ const SPORTS_QUERY = gql`
         olympicStatus
         isParentOnly
         pictogram { url }
-        parentSport { id name slug indiaTier olympicStatus pictogram { url } }
+        heroImage { url }
+        currentHeroImage { url }
+        legacyHeroImage { url }
+        parentSport { id name slug indiaTier olympicStatus pictogram { url } heroImage { url } currentHeroImage { url } legacyHeroImage { url } }
       }
     }
   }
@@ -238,7 +258,10 @@ const SPORT_BY_SLUG_QUERY = gql`
         olympicStatus
         isParentOnly
         pictogram { url }
-        parentSport { id name slug indiaTier olympicStatus pictogram { url } }
+        heroImage { url }
+        currentHeroImage { url }
+        legacyHeroImage { url }
+        parentSport { id name slug indiaTier olympicStatus pictogram { url } heroImage { url } currentHeroImage { url } legacyHeroImage { url } }
       }
     }
   }
@@ -268,6 +291,57 @@ export interface GoldenMoment {
     slug: string;
   };
   externalLink?: string;
+}
+
+export interface LegacyDisciplineOverview {
+  id: string;
+  name: string;
+  slug: string;
+  pictogramUrl: string | null;
+  athleteKeys: string[];
+  athleteCount: number;
+  participationCount: number;
+  medalCount: {
+    gold: number;
+    silver: number;
+    bronze: number;
+    total: number;
+  };
+}
+
+export interface LegacyEditionOverview {
+  edition: Edition;
+  athleteKeys: string[];
+  athleteCount: number;
+  participationCount: number;
+  medalCount: {
+    gold: number;
+    silver: number;
+    bronze: number;
+    total: number;
+  };
+  disciplines: LegacyDisciplineOverview[];
+}
+
+export interface SportLegacyOverview {
+  editions: LegacyEditionOverview[];
+  goldenMoments: GoldenMoment[];
+}
+
+export interface SportLegacySummary {
+  editionCount: number;
+  athleteCount: number;
+  participationCount: number;
+  medalCount: {
+    gold: number;
+    silver: number;
+    bronze: number;
+    total: number;
+  };
+}
+
+export interface SportLegacyEditionDetail {
+  participations: OlympicParticipation[];
 }
 
 export interface Product {
@@ -422,7 +496,14 @@ const CALENDAR_EVENTS_QUERY = gql`
       isQualifier: isQualificationEvent
       hubKey
       qualificationContext
+      externalUrl
       notes
+      indianParticipants {
+        id
+        fullName
+        slug
+        photo { url }
+      }
         edition {
           id
           name
@@ -510,10 +591,24 @@ const QUALIFICATION_PATHWAYS_QUERY = gql`
       id
       title
       quotaAvailable
+      programmeEventCount
+      maxEntriesPerNoc
+      qualificationFormat
       qualificationDeadline
+      currentCycleContext
       description
-        edition { id name slug year }
-        sport { id name slug }
+      qualifyingEvents {
+        eventName
+        startDate
+        endDate
+        location
+      }
+      externalLinks {
+        label
+        url
+      }
+        edition { id name slug year city status type }
+        sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
     }
   }
 }
@@ -654,6 +749,42 @@ export class PayloadService {
     if (parentDirect) return parentDirect;
 
     return includePlaceholderFallback ? this.FALLBACK_SPORT_PICTOGRAM : null;
+  }
+
+  getSportHeroImageUrl(input?: {
+    sport?: Partial<Sport> | null;
+    parentSport?: Partial<Sport> | null;
+    includeParentFallback?: boolean;
+    variant?: 'current' | 'legacy' | 'default';
+  }): string | null {
+    const sport = input?.sport;
+    const includeParentFallback = input?.includeParentFallback !== false;
+    const parentSport = includeParentFallback ? input?.parentSport || sport?.parentSport || null : null;
+    const variant = input?.variant || 'default';
+
+    const variantImage =
+      variant === 'current'
+        ? (sport?.currentHeroImage as { url: string } | null | undefined)
+        : variant === 'legacy'
+          ? (sport?.legacyHeroImage as { url: string } | null | undefined)
+          : null;
+    const direct =
+      this.getMediaUrl(variantImage || null) ||
+      this.getMediaUrl((sport?.heroImage as { url: string } | null | undefined) || null);
+    if (direct) return direct;
+
+    const parentVariantImage =
+      variant === 'current'
+        ? (parentSport?.currentHeroImage as { url: string } | null | undefined)
+        : variant === 'legacy'
+          ? (parentSport?.legacyHeroImage as { url: string } | null | undefined)
+          : null;
+    const parentDirect =
+      this.getMediaUrl(parentVariantImage || null) ||
+      this.getMediaUrl((parentSport?.heroImage as { url: string } | null | undefined) || null);
+    if (parentDirect) return parentDirect;
+
+    return null;
   }
 
   private normalizeMediaUrl(rawUrl: string): string {
@@ -830,6 +961,23 @@ export class PayloadService {
     ));
   }
 
+  getSportLegacyOverview(sportSlug: string): Observable<SportLegacyOverview> {
+    const params = new HttpParams().set('slug', sportSlug);
+    return this.http.get<SportLegacyOverview>(`${environment.payload_url}/api/sports/legacy-overview`, { params });
+  }
+
+  getSportLegacySummary(sportSlug: string): Observable<SportLegacySummary> {
+    const params = new HttpParams().set('slug', sportSlug);
+    return this.http.get<SportLegacySummary>(`${environment.payload_url}/api/sports/legacy-summary`, { params });
+  }
+
+  getSportLegacyEditionDetail(sportSlug: string, editionId: string): Observable<SportLegacyEditionDetail> {
+    const params = new HttpParams()
+      .set('slug', sportSlug)
+      .set('editionId', editionId);
+    return this.http.get<SportLegacyEditionDetail>(`${environment.payload_url}/api/sports/legacy-edition`, { params });
+  }
+
   // ============ CALENDAR EVENTS ============
 
   getCalendarEvents(options?: {
@@ -881,7 +1029,8 @@ export class PayloadService {
 
     return this.apollo.query<{ QualificationPathways: { docs: QualificationPathway[] } }>({
       query: QUALIFICATION_PATHWAYS_QUERY,
-      variables: { where, limit: 50 }
+      variables: { where, limit: 100 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.QualificationPathways.docs));
   }
 

@@ -75,7 +75,7 @@
           This event should eventually sit inside the broader current-context sport page, alongside
           contenders, qualification pathways, and the India-facing event roadmap.
         </p>
-        <a class="inline-link" [routerLink]="['/history/sport', sportSlug()]">
+        <a class="inline-link" [routerLink]="['/history/sport', sportSlug()]" [queryParams]="{ view: 'current' }">
           Open sport page
         </a>
       </section>

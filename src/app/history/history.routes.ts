@@ -10,10 +10,10 @@ export const HISTORY_ROUTES: Routes = [
     {
         path: 'sport/:sportname',
         loadComponent: () =>
-            import('./history-sport-detail.component').then(
-                (m) => m.HistorySportDetailComponent,
+            import('./sport-detail.component').then(
+                (m) => m.SportDetailComponent,
             ),
-        data: { animation: 'HistorySportDetailPage', order: 6 },
+        data: { animation: 'SportDetailPage', order: 6 },
     },
     {
         path: ':slug',
