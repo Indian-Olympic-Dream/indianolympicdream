@@ -35,6 +35,11 @@ export interface Video {
     id: string;
     fullName: string;
   }[];
+  calendarEvents: {
+    id: string;
+    slug?: string | null;
+    title: string;
+  }[];
   tags: {
     name: string;
   }[];
@@ -89,6 +94,21 @@ const sanitizeVideo = (row: any): Video => ({
         }))
         .filter((athlete: { id: string }) => !!athlete.id)
     : [],
+  calendarEvents: Array.isArray(row?.calendarEvents)
+    ? row.calendarEvents
+        .filter(Boolean)
+        .map((calendarEvent: any) => ({
+          id: String(calendarEvent?.id || ""),
+          slug: typeof calendarEvent?.slug === "string" ? calendarEvent.slug : null,
+          title:
+            typeof calendarEvent?.title === "string"
+              ? calendarEvent.title
+              : typeof calendarEvent?.name === "string"
+                ? calendarEvent.name
+                : "",
+        }))
+        .filter((calendarEvent: { id: string }) => !!calendarEvent.id)
+    : [],
   tags: Array.isArray(row?.tags)
     ? row.tags
         .filter(Boolean)
@@ -122,6 +142,11 @@ const GET_ALL_VIDEOS = gql`
           id
           fullName
         }
+        calendarEvents {
+          id
+          slug
+          title: name
+        }
         tags {
           name
         }
@@ -153,6 +178,11 @@ const GET_VIDEOS_BY_TYPE = gql`
         athletes {
           id
           fullName
+        }
+        calendarEvents {
+          id
+          slug
+          title: name
         }
         tags {
           name

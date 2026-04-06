@@ -6,9 +6,9 @@ import { forkJoin, of } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 import { FormatDurationPipe } from "../shared/pipes/format-duration.pipe";
 import { SafeResourceUrlPipe } from "../shared/pipes/safe-resource-url.pipe";
-import { OriginalsService, Video } from "./originals.service";
+import { OriginalsService, Video, VideoType } from "./originals.service";
 
-type OriginalsTab = "podcast" | "short" | "interview";
+type OriginalsTab = "ground" | "podcast" | "interview" | "short";
 
 interface OriginalsVideoView extends Video {
   resolvedYoutubeId: string | null;
@@ -19,18 +19,21 @@ interface OriginalsVideoView extends Video {
 }
 
 interface TabVideoCache {
+  ground: OriginalsVideoView[];
   podcast: OriginalsVideoView[];
   short: OriginalsVideoView[];
   interview: OriginalsVideoView[];
 }
 
 interface TabLoadedState {
+  ground: boolean;
   podcast: boolean;
   short: boolean;
   interview: boolean;
 }
 
 interface TabCountState {
+  ground: number | null;
   podcast: number | null;
   short: number | null;
   interview: number | null;
@@ -58,49 +61,68 @@ export class OriginalsComponent implements OnInit {
   tabLoading = signal(false);
   loadError = signal<string | null>(null);
 
-  activeTab = signal<OriginalsTab>("podcast");
+  activeTab = signal<OriginalsTab>("ground");
 
   // Video player state
   playingVideoId = signal<string | null>(null);
   loadingVideoId = signal<string | null>(null);
 
   readonly tabs: { id: OriginalsTab; label: string; icon: string }[] = [
+    { id: "ground", label: "On Ground", icon: "videocam" },
     { id: "podcast", label: "Podcasts", icon: "podcasts" },
-    { id: "short", label: "Shorts", icon: "short_text" },
     { id: "interview", label: "Interviews", icon: "mic" },
+    { id: "short", label: "Shorts", icon: "short_text" },
   ];
 
+  private featuredCandidates = signal<OriginalsVideoView[]>([]);
+
   private tabVideos = signal<TabVideoCache>({
+    ground: [],
     podcast: [],
     short: [],
     interview: [],
   });
 
   private loadedTabs = signal<TabLoadedState>({
+    ground: false,
     podcast: false,
     short: false,
     interview: false,
   });
 
   private tabCounts = signal<TabCountState>({
+    ground: null,
     podcast: null,
     short: null,
     interview: null,
   });
 
+  featuredVideo = computed(() => this.selectFeaturedVideo(this.featuredCandidates()));
+
   currentTabVideos = computed(() => this.tabVideos()[this.activeTab()]);
 
-  displayVideos = computed(() => this.currentTabVideos());
+  displayVideos = computed(() => {
+    const videos = this.currentTabVideos();
+    const featuredId = this.featuredVideo()?.id;
+    if (!featuredId || videos.length <= 1) return videos;
+    return videos.filter((video) => video.id !== featuredId);
+  });
 
   ngOnInit(): void {
     this.loading.set(true);
     this.loadError.set(null);
     this.loadTabCounts();
 
-    this.fetchTabVideos("podcast").subscribe({
-      next: (videos) => {
-        this.setTabVideos("podcast", videos);
-        this.markTabLoaded("podcast");
+    forkJoin({
+      featured: this.originalsService
+        .getAllVideos(18, 1)
+        .pipe(map((videos) => this.normalizeTabVideos(videos || [])), catchError(() => of([]))),
+      initialTab: this.fetchTabVideos(this.activeTab()),
+    }).subscribe({
+      next: ({ featured, initialTab }) => {
+        this.featuredCandidates.set(featured);
+        this.setTabVideos(this.activeTab(), initialTab);
+        this.markTabLoaded(this.activeTab());
         this.syncPlayback();
         this.loading.set(false);
       },
@@ -127,20 +149,63 @@ export class OriginalsComponent implements OnInit {
 
   getTypeLabel(): string {
     const labels: Record<OriginalsTab, string> = {
-      podcast: "Podcast",
-      short: "Short",
-      interview: "Interview",
+      ground: "On Ground",
+      podcast: "Podcasts",
+      short: "Shorts",
+      interview: "Interviews",
     };
     return labels[this.activeTab()];
   }
 
   getTypeIcon(): string {
     const icons: Record<OriginalsTab, string> = {
+      ground: "videocam",
       podcast: "podcasts",
       short: "short_text",
       interview: "mic",
     };
     return icons[this.activeTab()];
+  }
+
+  getVideoTypeLabel(video: OriginalsVideoView): string {
+    switch (video.type) {
+      case "podcast":
+        return "Podcast";
+      case "short":
+        return "Short";
+      case "interview":
+        return "Interview";
+      case "mixedZone":
+        return "Mixed zone";
+      case "highlight":
+        return "Highlight";
+      case "clip":
+        return "Clip";
+      case "documentary":
+        return "Documentary";
+      default:
+        return this.getTypeLabel();
+    }
+  }
+
+  getVideoTypeIcon(video: OriginalsVideoView): string {
+    switch (video.type) {
+      case "podcast":
+        return "podcasts";
+      case "short":
+        return "short_text";
+      case "interview":
+      case "mixedZone":
+        return "mic";
+      case "highlight":
+        return "star";
+      case "clip":
+        return "play_circle";
+      case "documentary":
+        return "movie";
+      default:
+        return this.getTypeIcon();
+    }
   }
 
   getEmbedUrl(youtubeId?: string | null): string {
@@ -150,6 +215,45 @@ export class OriginalsComponent implements OnInit {
 
   getVideoEmbedUrl(video: OriginalsVideoView): string {
     return this.getEmbedUrl(video.resolvedYoutubeId);
+  }
+
+  getFeaturedKicker(video: OriginalsVideoView): string {
+    if (video.calendarEvents.length > 0) return "From the Ground";
+    switch (video.type) {
+      case "podcast":
+      case "documentary":
+      case "clip":
+        return "Featured Show";
+      case "interview":
+        return "Featured Interview";
+      case "mixedZone":
+      case "highlight":
+        return "Latest Coverage";
+      case "short":
+        return "Quick Watch";
+      default:
+        return "Featured";
+    }
+  }
+
+  getFeaturedSummary(video: OriginalsVideoView): string {
+    const cleaned = (video.description || "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (cleaned) {
+      return cleaned.length > 240 ? `${cleaned.slice(0, 237)}...` : cleaned;
+    }
+
+    if (video.calendarEvents.length > 0) {
+      return `Coverage linked to ${video.calendarEvents[0].title}.`;
+    }
+
+    if (video.sports.length > 0) {
+      return `${this.getVideoTypeLabel(video)} from the IOD universe of ${video.sports[0].name}.`;
+    }
+
+    return "Fresh stories, conversations, and on-ground coverage from India's Olympic journey.";
   }
 
   isPlaying(video: OriginalsVideoView): boolean {
@@ -210,6 +314,7 @@ export class OriginalsComponent implements OnInit {
       },
       error: () => {
         this.tabCounts.set({
+          ground: null,
           podcast: null,
           short: null,
           interview: null,
@@ -237,17 +342,111 @@ export class OriginalsComponent implements OnInit {
   }
 
   private fetchTabVideos(tab: OriginalsTab) {
-    return this.originalsService
-      .getVideosByType(tab, 140)
-      .pipe(map((videos) => this.normalizeTabVideos(videos || [])));
+    return this.fetchGroupedVideos(this.getTabTypes(tab), 140);
   }
 
   private fetchTabCounts() {
     return forkJoin({
-      podcast: this.originalsService.getVideosCountByType("podcast").pipe(catchError(() => of(null))),
-      short: this.originalsService.getVideosCountByType("short").pipe(catchError(() => of(null))),
-      interview: this.originalsService.getVideosCountByType("interview").pipe(catchError(() => of(null))),
+      ground: this.fetchGroupedCount(this.getTabTypes("ground")).pipe(catchError(() => of(null))),
+      podcast: this.fetchGroupedCount(this.getTabTypes("podcast")).pipe(catchError(() => of(null))),
+      short: this.fetchGroupedCount(this.getTabTypes("short")).pipe(catchError(() => of(null))),
+      interview: this.fetchGroupedCount(this.getTabTypes("interview")).pipe(catchError(() => of(null))),
     });
+  }
+
+  private fetchGroupedVideos(types: VideoType[], limit: number) {
+    return forkJoin(types.map((type) => this.originalsService.getVideosByType(type, limit))).pipe(
+      map((groups) => this.normalizeTabVideos(groups.flat())),
+    );
+  }
+
+  private fetchGroupedCount(types: VideoType[]) {
+    return forkJoin(types.map((type) => this.originalsService.getVideosCountByType(type))).pipe(
+      map((counts) => counts.reduce((sum, count) => sum + (count || 0), 0)),
+    );
+  }
+
+  private getTabTypes(tab: OriginalsTab): VideoType[] {
+    switch (tab) {
+      case "ground":
+        return ["highlight", "mixedZone"];
+      case "podcast":
+        return ["podcast", "documentary", "clip"];
+      case "interview":
+        return ["interview"];
+      case "short":
+        return ["short"];
+      default:
+        return ["podcast"];
+    }
+  }
+
+  private selectFeaturedVideo(videos: OriginalsVideoView[]): OriginalsVideoView | null {
+    if (!videos.length) return null;
+
+    return (
+      videos.find((video) => video.featured && video.type !== "short") ||
+      videos.find((video) => video.calendarEvents.length > 0 && video.type !== "short") ||
+      videos.find((video) => video.type !== "short") ||
+      videos[0]
+    );
+  }
+
+  private isInterviewFamilyVideo(video: Video): boolean {
+    return video.type === "interview" || video.type === "mixedZone";
+  }
+
+  private isOnGroundFamilyVideo(video: Video): boolean {
+    return video.type === "highlight" || video.type === "mixedZone";
+  }
+
+  private isPodcastFamilyVideo(video: Video): boolean {
+    return video.type === "podcast" || video.type === "documentary" || video.type === "clip";
+  }
+
+  private isVideoInTab(video: Video, tab: OriginalsTab): boolean {
+    switch (tab) {
+      case "ground":
+        return this.isOnGroundFamilyVideo(video);
+      case "podcast":
+        return this.isPodcastFamilyVideo(video);
+      case "interview":
+        return this.isInterviewFamilyVideo(video);
+      case "short":
+        return video.type === "short";
+      default:
+        return false;
+    }
+  }
+
+  private getTypeFamilyLabel(video: Video): string {
+    if (this.isOnGroundFamilyVideo(video)) return "On Ground";
+    if (this.isInterviewFamilyVideo(video)) return "Interviews";
+    if (this.isPodcastFamilyVideo(video)) return "Podcasts";
+    if (video.type === "short") return "Shorts";
+    return "Originals";
+  }
+
+  private getTypeFamilyIcon(video: Video): string {
+    if (this.isOnGroundFamilyVideo(video)) return "videocam";
+    if (this.isInterviewFamilyVideo(video)) return "mic";
+    if (this.isPodcastFamilyVideo(video)) return "podcasts";
+    if (video.type === "short") return "short_text";
+    return "video_library";
+  }
+
+  getFallbackTypeLabel(video: OriginalsVideoView): string {
+    if (this.isVideoInTab(video, this.activeTab())) {
+      return this.getTypeFamilyLabel(video);
+    }
+    return this.getVideoTypeLabel(video);
+  }
+
+  getFallbackTypeIcon(video: OriginalsVideoView): string {
+    if (this.isVideoInTab(video, this.activeTab())) {
+      return this.getTypeFamilyIcon(video);
+    }
+    return this.getVideoTypeIcon(video);
   }
 
   private normalizeTabVideos(videos: Video[]): OriginalsVideoView[] {
