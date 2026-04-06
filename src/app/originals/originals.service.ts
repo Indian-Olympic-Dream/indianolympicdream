@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { Apollo, gql } from "apollo-angular";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
+import { environment } from "../../environments/environment";
 
 export type VideoType =
   | "podcast"
@@ -30,6 +31,7 @@ export interface Video {
     id: string;
     name: string;
     slug: string;
+    pictogramUrl?: string | null;
   }[];
   athletes: {
     id: string;
@@ -44,6 +46,35 @@ export interface Video {
     name: string;
   }[];
 }
+
+const normalizeOriginalsMediaUrl = (rawUrl: unknown): string | null => {
+  const value = typeof rawUrl === "string" ? rawUrl.trim() : "";
+  if (!value) return null;
+  if (!/^https?:\/\//i.test(value)) {
+    return normalizeOriginalsMediaPath(`${environment.payload_url}${value}`);
+  }
+
+  try {
+    const parsed = new URL(value);
+    const hostname = parsed.hostname.toLowerCase();
+    const isLoopbackHost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+    if (isLoopbackHost) {
+      return normalizeOriginalsMediaPath(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    }
+  } catch {
+    // Keep raw URL as-is when parsing fails.
+  }
+
+  return value;
+};
+
+const normalizeOriginalsMediaPath = (path: string): string => {
+  if (!path) return path;
+  if (path.startsWith("/media/")) {
+    return `/api${path}`;
+  }
+  return path;
+};
 
 const sanitizeVideoType = (type: unknown): VideoType => {
   const allowed: VideoType[] = [
@@ -82,6 +113,7 @@ const sanitizeVideo = (row: any): Video => ({
           id: String(sport?.id || ""),
           name: typeof sport?.name === "string" ? sport.name : "",
           slug: typeof sport?.slug === "string" ? sport.slug : "",
+          pictogramUrl: normalizeOriginalsMediaUrl(sport?.pictogram?.url),
         }))
         .filter((sport: { id: string; slug: string }) => !!sport.id && !!sport.slug)
     : [],
@@ -137,6 +169,7 @@ const GET_ALL_VIDEOS = gql`
           id
           name
           slug
+          pictogram { url }
         }
         athletes {
           id
@@ -174,6 +207,7 @@ const GET_VIDEOS_BY_TYPE = gql`
           id
           name
           slug
+          pictogram { url }
         }
         athletes {
           id
@@ -225,16 +259,5 @@ export class OriginalsService {
         errorPolicy: "all",
       })
       .pipe(map((result) => (result.data?.Videos?.docs || []).map(sanitizeVideo)));
-  }
-
-  getVideosCountByType(type: string): Observable<number> {
-    return this.apollo
-      .query<{ Videos: { totalDocs: number } }>({
-        query: GET_VIDEOS_BY_TYPE,
-        variables: { type, limit: 1, sort: "-publishedDate" },
-        fetchPolicy: "network-only",
-        errorPolicy: "all",
-      })
-      .pipe(map((result) => result.data?.Videos?.totalDocs || 0));
   }
 }

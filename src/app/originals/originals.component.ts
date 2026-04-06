@@ -2,13 +2,21 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { forkJoin, of } from "rxjs";
-import { catchError, map } from "rxjs/operators";
+import { forkJoin } from "rxjs";
+import { map } from "rxjs/operators";
 import { FormatDurationPipe } from "../shared/pipes/format-duration.pipe";
 import { SafeResourceUrlPipe } from "../shared/pipes/safe-resource-url.pipe";
-import { OriginalsService, Video, VideoType } from "./originals.service";
+import { OriginalsService, Video } from "./originals.service";
 
-type OriginalsTab = "ground" | "podcast" | "interview" | "short";
+type OriginalsTab = "ground" | "podcast" | "interview" | "short" | "clip";
+type OriginalsTypeFilter = "all" | OriginalsTab;
+
+interface OriginalsSportFilterOption {
+  slug: string;
+  name: string;
+  pictogramUrl: string | null;
+  count: number;
+}
 
 interface OriginalsVideoView extends Video {
   resolvedYoutubeId: string | null;
@@ -23,20 +31,7 @@ interface TabVideoCache {
   podcast: OriginalsVideoView[];
   short: OriginalsVideoView[];
   interview: OriginalsVideoView[];
-}
-
-interface TabLoadedState {
-  ground: boolean;
-  podcast: boolean;
-  short: boolean;
-  interview: boolean;
-}
-
-interface TabCountState {
-  ground: number | null;
-  podcast: number | null;
-  short: number | null;
-  interview: number | null;
+  clip: OriginalsVideoView[];
 }
 
 @Component({
@@ -58,71 +53,95 @@ export class OriginalsComponent implements OnInit {
   private thumbnailFallbackIndex = new Map<string, number>();
 
   loading = signal(true);
-  tabLoading = signal(false);
   loadError = signal<string | null>(null);
 
-  activeTab = signal<OriginalsTab>("ground");
+  activeTypeFilter = signal<OriginalsTypeFilter>("all");
+  activeSportFilter = signal<string>("all");
 
   // Video player state
   playingVideoId = signal<string | null>(null);
   loadingVideoId = signal<string | null>(null);
 
-  readonly tabs: { id: OriginalsTab; label: string; icon: string }[] = [
-    { id: "ground", label: "On Ground", icon: "videocam" },
+  readonly typeFilters: { id: OriginalsTypeFilter; label: string; icon: string }[] = [
+    { id: "all", label: "All", icon: "apps" },
+    { id: "ground", label: "IOD On Ground", icon: "videocam" },
     { id: "podcast", label: "Podcasts", icon: "podcasts" },
     { id: "interview", label: "Interviews", icon: "mic" },
+    { id: "clip", label: "Clips", icon: "play_circle" },
     { id: "short", label: "Shorts", icon: "short_text" },
   ];
-
-  private featuredCandidates = signal<OriginalsVideoView[]>([]);
 
   private tabVideos = signal<TabVideoCache>({
     ground: [],
     podcast: [],
     short: [],
     interview: [],
+    clip: [],
   });
 
-  private loadedTabs = signal<TabLoadedState>({
-    ground: false,
-    podcast: false,
-    short: false,
-    interview: false,
+  sportFilters = computed<OriginalsSportFilterOption[]>(() => {
+    const sportMap = new Map<string, OriginalsSportFilterOption>();
+
+    this.getAllUniqueVideos().forEach((video) => {
+      video.sports.forEach((sport) => {
+        const existing = sportMap.get(sport.slug);
+        if (existing) {
+          existing.count += 1;
+          if (!existing.pictogramUrl && sport.pictogramUrl) {
+            existing.pictogramUrl = sport.pictogramUrl;
+          }
+          return;
+        }
+
+        sportMap.set(sport.slug, {
+          slug: sport.slug,
+          name: sport.name,
+          pictogramUrl: sport.pictogramUrl || null,
+          count: 1,
+        });
+      });
+    });
+
+    return [...sportMap.values()].sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.name.localeCompare(b.name);
+    });
   });
 
-  private tabCounts = signal<TabCountState>({
-    ground: null,
-    podcast: null,
-    short: null,
-    interview: null,
+  visibleTypeFilters = computed(() => {
+    const order = new Map(this.typeFilters.map((filter, index) => [filter.id, index]));
+    const visible = this.typeFilters.filter((filter) => filter.id === "all" || this.getTypeCount(filter.id) > 0);
+
+    const allFilter = visible.find((filter) => filter.id === "all") || null;
+    const sortable = visible
+      .filter((filter) => filter.id !== "all")
+      .sort((a, b) => {
+        const countDelta = this.getTypeCount(b.id) - this.getTypeCount(a.id);
+        if (countDelta !== 0) return countDelta;
+        return (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0);
+      });
+
+    return allFilter ? [allFilter, ...sortable] : sortable;
   });
 
-  featuredVideo = computed(() => this.selectFeaturedVideo(this.featuredCandidates()));
-
-  currentTabVideos = computed(() => this.tabVideos()[this.activeTab()]);
-
-  displayVideos = computed(() => {
-    const videos = this.currentTabVideos();
-    const featuredId = this.featuredVideo()?.id;
-    if (!featuredId || videos.length <= 1) return videos;
-    return videos.filter((video) => video.id !== featuredId);
+  currentTypeVideos = computed(() => {
+    const type = this.activeTypeFilter();
+    const baseVideos = type === "all" ? this.getAllUniqueVideos() : this.tabVideos()[type];
+    return this.filterVideosBySport(baseVideos);
   });
+
+  isShortDisplayMode = computed(() => this.activeTypeFilter() === "short");
+
+  displayVideos = computed(() => this.currentTypeVideos());
 
   ngOnInit(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.loadTabCounts();
-
-    forkJoin({
-      featured: this.originalsService
-        .getAllVideos(18, 1)
-        .pipe(map((videos) => this.normalizeTabVideos(videos || [])), catchError(() => of([]))),
-      initialTab: this.fetchTabVideos(this.activeTab()),
-    }).subscribe({
-      next: ({ featured, initialTab }) => {
-        this.featuredCandidates.set(featured);
-        this.setTabVideos(this.activeTab(), initialTab);
-        this.markTabLoaded(this.activeTab());
+    this.preloadAllTabs().subscribe({
+      next: (tabs) => {
+        this.tabVideos.set(tabs);
+        this.resetThumbnailFallbacks();
+        this.ensureActiveTypeFilterIsVisible();
         this.syncPlayback();
         this.loading.set(false);
       },
@@ -133,79 +152,45 @@ export class OriginalsComponent implements OnInit {
     });
   }
 
-  setTab(tabId: OriginalsTab): void {
-    if (this.activeTab() === tabId) return;
-    this.activeTab.set(tabId);
+  setTypeFilter(filterId: OriginalsTypeFilter): void {
+    if (this.activeTypeFilter() === filterId) return;
+    this.activeTypeFilter.set(filterId);
     this.syncPlayback();
-    this.ensureTabLoaded(tabId);
   }
 
-  getTabCountLabel(tab: OriginalsTab): string {
-    const cached = this.tabCounts()[tab];
-    if (cached !== null) return String(cached);
-    if (this.loadedTabs()[tab]) return String(this.tabVideos()[tab].length);
-    return "—";
+  setSportFilter(slug: string): void {
+    this.activeSportFilter.set(slug);
+    this.ensureActiveTypeFilterIsVisible();
+    this.syncPlayback();
   }
 
-  getTypeLabel(): string {
-    const labels: Record<OriginalsTab, string> = {
+  getTypeCountLabel(filter: OriginalsTypeFilter): string {
+    return String(this.getTypeCount(filter));
+  }
+
+  trackSportFilter(_: number, sport: OriginalsSportFilterOption): string {
+    return sport.slug;
+  }
+
+  onSportFilterImageError(sport: OriginalsSportFilterOption): void {
+    sport.pictogramUrl = null;
+  }
+
+  getActiveSportName(): string {
+    if (this.activeSportFilter() === "all") return "";
+    return this.sportFilters().find((sport) => sport.slug === this.activeSportFilter())?.name || "";
+  }
+
+  getActiveTypeLabel(): string {
+    const labels: Record<OriginalsTypeFilter, string> = {
+      all: "Videos",
       ground: "On Ground",
       podcast: "Podcasts",
+      clip: "Clips",
       short: "Shorts",
       interview: "Interviews",
     };
-    return labels[this.activeTab()];
-  }
-
-  getTypeIcon(): string {
-    const icons: Record<OriginalsTab, string> = {
-      ground: "videocam",
-      podcast: "podcasts",
-      short: "short_text",
-      interview: "mic",
-    };
-    return icons[this.activeTab()];
-  }
-
-  getVideoTypeLabel(video: OriginalsVideoView): string {
-    switch (video.type) {
-      case "podcast":
-        return "Podcast";
-      case "short":
-        return "Short";
-      case "interview":
-        return "Interview";
-      case "mixedZone":
-        return "Mixed zone";
-      case "highlight":
-        return "Highlight";
-      case "clip":
-        return "Clip";
-      case "documentary":
-        return "Documentary";
-      default:
-        return this.getTypeLabel();
-    }
-  }
-
-  getVideoTypeIcon(video: OriginalsVideoView): string {
-    switch (video.type) {
-      case "podcast":
-        return "podcasts";
-      case "short":
-        return "short_text";
-      case "interview":
-      case "mixedZone":
-        return "mic";
-      case "highlight":
-        return "star";
-      case "clip":
-        return "play_circle";
-      case "documentary":
-        return "movie";
-      default:
-        return this.getTypeIcon();
-    }
+    return labels[this.activeTypeFilter()];
   }
 
   getEmbedUrl(youtubeId?: string | null): string {
@@ -215,45 +200,6 @@ export class OriginalsComponent implements OnInit {
 
   getVideoEmbedUrl(video: OriginalsVideoView): string {
     return this.getEmbedUrl(video.resolvedYoutubeId);
-  }
-
-  getFeaturedKicker(video: OriginalsVideoView): string {
-    if (video.calendarEvents.length > 0) return "From the Ground";
-    switch (video.type) {
-      case "podcast":
-      case "documentary":
-      case "clip":
-        return "Featured Show";
-      case "interview":
-        return "Featured Interview";
-      case "mixedZone":
-      case "highlight":
-        return "Latest Coverage";
-      case "short":
-        return "Quick Watch";
-      default:
-        return "Featured";
-    }
-  }
-
-  getFeaturedSummary(video: OriginalsVideoView): string {
-    const cleaned = (video.description || "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (cleaned) {
-      return cleaned.length > 240 ? `${cleaned.slice(0, 237)}...` : cleaned;
-    }
-
-    if (video.calendarEvents.length > 0) {
-      return `Coverage linked to ${video.calendarEvents[0].title}.`;
-    }
-
-    if (video.sports.length > 0) {
-      return `${this.getVideoTypeLabel(video)} from the IOD universe of ${video.sports[0].name}.`;
-    }
-
-    return "Fresh stories, conversations, and on-ground coverage from India's Olympic journey.";
   }
 
   isPlaying(video: OriginalsVideoView): boolean {
@@ -307,101 +253,68 @@ export class OriginalsComponent implements OnInit {
     return video.id;
   }
 
-  private loadTabCounts(): void {
-    this.fetchTabCounts().subscribe({
-      next: (counts) => {
-        this.tabCounts.set(counts);
-      },
-      error: () => {
-        this.tabCounts.set({
-          ground: null,
-          podcast: null,
-          short: null,
-          interview: null,
-        });
-      },
-    });
-  }
-
-  private ensureTabLoaded(tab: OriginalsTab): void {
-    if (this.loadedTabs()[tab]) return;
-    this.tabLoading.set(true);
-
-    this.fetchTabVideos(tab).subscribe({
-      next: (videos) => {
-        this.setTabVideos(tab, videos);
-        this.markTabLoaded(tab);
-        this.syncPlayback();
-        this.tabLoading.set(false);
-      },
-      error: () => {
-        this.tabLoading.set(false);
-        this.loadError.set("Unable to load Originals right now.");
-      },
-    });
-  }
-
-  private fetchTabVideos(tab: OriginalsTab) {
-    return this.fetchGroupedVideos(this.getTabTypes(tab), 140);
-  }
-
-  private fetchTabCounts() {
+  private preloadAllTabs() {
+    const limit = 140;
     return forkJoin({
-      ground: this.fetchGroupedCount(this.getTabTypes("ground")).pipe(catchError(() => of(null))),
-      podcast: this.fetchGroupedCount(this.getTabTypes("podcast")).pipe(catchError(() => of(null))),
-      short: this.fetchGroupedCount(this.getTabTypes("short")).pipe(catchError(() => of(null))),
-      interview: this.fetchGroupedCount(this.getTabTypes("interview")).pipe(catchError(() => of(null))),
-    });
-  }
-
-  private fetchGroupedVideos(types: VideoType[], limit: number) {
-    return forkJoin(types.map((type) => this.originalsService.getVideosByType(type, limit))).pipe(
-      map((groups) => this.normalizeTabVideos(groups.flat())),
-    );
-  }
-
-  private fetchGroupedCount(types: VideoType[]) {
-    return forkJoin(types.map((type) => this.originalsService.getVideosCountByType(type))).pipe(
-      map((counts) => counts.reduce((sum, count) => sum + (count || 0), 0)),
-    );
-  }
-
-  private getTabTypes(tab: OriginalsTab): VideoType[] {
-    switch (tab) {
-      case "ground":
-        return ["highlight", "mixedZone"];
-      case "podcast":
-        return ["podcast", "documentary", "clip"];
-      case "interview":
-        return ["interview"];
-      case "short":
-        return ["short"];
-      default:
-        return ["podcast"];
-    }
-  }
-
-  private selectFeaturedVideo(videos: OriginalsVideoView[]): OriginalsVideoView | null {
-    if (!videos.length) return null;
-
-    return (
-      videos.find((video) => video.featured && video.type !== "short") ||
-      videos.find((video) => video.calendarEvents.length > 0 && video.type !== "short") ||
-      videos.find((video) => video.type !== "short") ||
-      videos[0]
+      podcast: this.originalsService.getVideosByType("podcast", limit),
+      documentary: this.originalsService.getVideosByType("documentary", limit),
+      interview: this.originalsService.getVideosByType("interview", limit),
+      mixedZone: this.originalsService.getVideosByType("mixedZone", limit),
+      highlight: this.originalsService.getVideosByType("highlight", limit),
+      clip: this.originalsService.getVideosByType("clip", limit),
+      short: this.originalsService.getVideosByType("short", limit),
+    }).pipe(
+      map((source) => ({
+        ground: this.normalizeTabVideos([
+          ...source.mixedZone,
+          ...source.highlight,
+          ...source.podcast,
+        ], "ground"),
+        podcast: this.normalizeTabVideos([
+          ...source.podcast,
+          ...source.documentary,
+        ], "podcast"),
+        interview: this.normalizeTabVideos(source.interview, "interview"),
+        clip: this.normalizeTabVideos(source.clip, "clip"),
+        short: this.normalizeTabVideos([
+          ...source.short,
+          ...source.highlight,
+        ], "short"),
+      })),
     );
   }
 
   private isInterviewFamilyVideo(video: Video): boolean {
-    return video.type === "interview" || video.type === "mixedZone";
+    return video.type === "interview";
   }
 
   private isOnGroundFamilyVideo(video: Video): boolean {
-    return video.type === "highlight" || video.type === "mixedZone";
+    if (video.type === "mixedZone") return true;
+    if (this.isShortFormVideo(video)) return false;
+    if (video.type === "highlight") return true;
+    return video.type === "podcast" && this.isOnGroundTitle(video.title);
   }
 
   private isPodcastFamilyVideo(video: Video): boolean {
-    return video.type === "podcast" || video.type === "documentary" || video.type === "clip";
+    if (video.type === "documentary") return true;
+    if (video.type !== "podcast") return false;
+    if (this.isOnGroundTitle(video.title)) return false;
+    return !this.isClipLikeTitle(video.title);
+  }
+
+  private isClipFamilyVideo(video: Video): boolean {
+    return video.type === "clip";
+  }
+
+  private isShortFamilyVideo(video: Video): boolean {
+    if (video.type === "short") return true;
+    return video.type === "highlight" && this.isShortFormVideo(video);
+  }
+
+  private filterVideosBySport(videos: OriginalsVideoView[]): OriginalsVideoView[] {
+    const activeSport = this.activeSportFilter();
+    if (activeSport === "all") return videos;
+    return videos.filter((video) => video.sports.some((sport) => sport.slug === activeSport));
   }
 
   private isVideoInTab(video: Video, tab: OriginalsTab): boolean {
@@ -412,8 +325,10 @@ export class OriginalsComponent implements OnInit {
         return this.isPodcastFamilyVideo(video);
       case "interview":
         return this.isInterviewFamilyVideo(video);
+      case "clip":
+        return this.isClipFamilyVideo(video);
       case "short":
-        return video.type === "short";
+        return this.isShortFamilyVideo(video);
       default:
         return false;
     }
@@ -423,7 +338,8 @@ export class OriginalsComponent implements OnInit {
     if (this.isOnGroundFamilyVideo(video)) return "On Ground";
     if (this.isInterviewFamilyVideo(video)) return "Interviews";
     if (this.isPodcastFamilyVideo(video)) return "Podcasts";
-    if (video.type === "short") return "Shorts";
+    if (this.isClipFamilyVideo(video)) return "Clips";
+    if (this.isShortFamilyVideo(video)) return "Shorts";
     return "Originals";
   }
 
@@ -431,51 +347,121 @@ export class OriginalsComponent implements OnInit {
     if (this.isOnGroundFamilyVideo(video)) return "videocam";
     if (this.isInterviewFamilyVideo(video)) return "mic";
     if (this.isPodcastFamilyVideo(video)) return "podcasts";
-    if (video.type === "short") return "short_text";
+    if (this.isClipFamilyVideo(video)) return "play_circle";
+    if (this.isShortFamilyVideo(video)) return "short_text";
     return "video_library";
   }
 
   getFallbackTypeLabel(video: OriginalsVideoView): string {
-    if (this.isVideoInTab(video, this.activeTab())) {
-      return this.getTypeFamilyLabel(video);
-    }
-    return this.getVideoTypeLabel(video);
+    return this.getTypeFamilyLabel(video);
   }
 
   getFallbackTypeIcon(video: OriginalsVideoView): string {
-    if (this.isVideoInTab(video, this.activeTab())) {
-      return this.getTypeFamilyIcon(video);
-    }
-    return this.getVideoTypeIcon(video);
+    return this.getTypeFamilyIcon(video);
   }
 
-  private normalizeTabVideos(videos: Video[]): OriginalsVideoView[] {
+  private normalizeTabVideos(videos: Video[], tab: OriginalsTab): OriginalsVideoView[] {
     const dedupe = new Map<string, OriginalsVideoView>();
 
     videos.forEach((video) => {
       if (!video?.id) return;
-      dedupe.set(video.id, this.toViewVideo(video));
+      const viewVideo = this.toViewVideo(video);
+      if (!this.isVideoInTab(viewVideo, tab)) return;
+
+      const dedupeKey = this.getDiscoveryKey(viewVideo, tab);
+      const existing = dedupe.get(dedupeKey);
+      if (!existing || this.getPreferredVideoScore(viewVideo, tab) > this.getPreferredVideoScore(existing, tab)) {
+        dedupe.set(dedupeKey, viewVideo);
+      }
     });
 
     return [...dedupe.values()].sort((a, b) => this.getDateWeight(b.publishedDate) - this.getDateWeight(a.publishedDate));
   }
 
-  private setTabVideos(tab: OriginalsTab, videos: OriginalsVideoView[]): void {
-    videos.forEach((video) => {
-      this.thumbnailFallbackIndex.delete(video.id);
+  private getAllUniqueVideos(): OriginalsVideoView[] {
+    const dedupe = new Map<string, OriginalsVideoView>();
+    const tabs = this.tabVideos();
+
+    Object.values(tabs).forEach((videos) => {
+      videos.forEach((video) => {
+        if (!dedupe.has(video.id)) {
+          dedupe.set(video.id, video);
+        }
+      });
     });
 
-    this.tabVideos.set({
-      ...this.tabVideos(),
-      [tab]: videos,
-    });
+    return [...dedupe.values()];
   }
 
-  private markTabLoaded(tab: OriginalsTab): void {
-    this.loadedTabs.set({
-      ...this.loadedTabs(),
-      [tab]: true,
-    });
+  private getTypeCount(filter: OriginalsTypeFilter): number {
+    if (filter === "all") {
+      return this.filterVideosBySport(this.getAllUniqueVideos()).length;
+    }
+    return this.filterVideosBySport(this.tabVideos()[filter]).length;
+  }
+
+  private ensureActiveTypeFilterIsVisible(): void {
+    if (this.activeTypeFilter() === "all") return;
+    if (this.getTypeCount(this.activeTypeFilter()) > 0) return;
+    this.activeTypeFilter.set("all");
+  }
+
+  private isClipLikeTitle(title?: string | null): boolean {
+    const value = (title || "").toLowerCase();
+    return /\bclip\b|\bclips\b|\bteaser\b|\bsnippet\b|\bpromo\b|\btrailer\b/.test(value);
+  }
+
+  private isOnGroundTitle(title?: string | null): boolean {
+    const value = (title || "").toLowerCase();
+    return /\bvlog\b|\blive\b|\bstream\b|\blivestream\b|\blive stream\b|\bday\s*\d+\b|\bon ground\b/.test(value);
+  }
+
+  private isShortFormVideo(video: Video): boolean {
+    const duration = video.duration || 0;
+    if (video.type === "short") return true;
+    if (duration > 0 && duration <= 95) return true;
+    return this.isClipLikeTitle(video.title) && duration > 0 && duration <= 180;
+  }
+
+  private getDiscoveryKey(video: OriginalsVideoView, tab: OriginalsTab): string {
+    if (tab === "short") {
+      return video.id;
+    }
+
+    const normalizedTitle = (video.title || "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .replace(/\b(and|the|a|an)\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return normalizedTitle || video.id;
+  }
+
+  private getPreferredVideoScore(video: OriginalsVideoView, tab: OriginalsTab): number {
+    const duration = video.duration || 0;
+    const title = (video.title || "").toLowerCase();
+    let score = 0;
+
+    if (!this.isClipLikeTitle(title)) score += 100;
+    if (!/\bcropped\b|\bcut\b|\bedit\b|\bexcerpt\b/.test(title)) score += 30;
+    if (video.playable) score += 20;
+
+    if (tab === "short") {
+      score += Math.max(0, 180 - duration);
+    } else {
+      score += Math.min(duration, 7200) / 10;
+    }
+
+    return score;
+  }
+
+  private resetThumbnailFallbacks(): void {
+    this.tabVideos().ground.forEach((video) => this.thumbnailFallbackIndex.delete(video.id));
+    this.tabVideos().podcast.forEach((video) => this.thumbnailFallbackIndex.delete(video.id));
+    this.tabVideos().interview.forEach((video) => this.thumbnailFallbackIndex.delete(video.id));
+    this.tabVideos().clip.forEach((video) => this.thumbnailFallbackIndex.delete(video.id));
+    this.tabVideos().short.forEach((video) => this.thumbnailFallbackIndex.delete(video.id));
   }
 
   private resolveYoutubeId(video: Video): string | null {

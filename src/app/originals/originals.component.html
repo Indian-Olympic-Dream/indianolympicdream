@@ -7,69 +7,40 @@
   <header class="originals-header">
     <p class="subtitle">Stories in motion from India's Olympic journey.</p>
 
-    <section class="featured-hero" *ngIf="featuredVideo() as featured">
-      <div class="featured-copy">
-        <p class="featured-kicker">{{ getFeaturedKicker(featured) }}</p>
-        <h1>{{ featured.title }}</h1>
-        <p class="featured-summary">{{ getFeaturedSummary(featured) }}</p>
-
-        <div class="featured-meta">
-          <span class="type-chip">
-            <mat-icon>{{ getFallbackTypeIcon(featured) }}</mat-icon>
-            {{ getFallbackTypeLabel(featured) }}
+    <section class="sport-filter-rail" *ngIf="sportFilters().length > 0" aria-label="Filter Originals by sport">
+      <button type="button" class="sport-filter-chip"
+        [class.active]="activeSportFilter() === 'all'" (click)="setSportFilter('all')">
+        <span class="sport-filter-circle">
+          <span class="sport-filter-icon-frame sport-filter-more-icon-frame">
+            <mat-icon>sports</mat-icon>
           </span>
-          <span class="video-sport-chip" *ngIf="featured.sports.length > 0">
-            {{ featured.sports[0].name }}
-            <span class="more-count" *ngIf="featured.sports.length > 1">+{{ featured.sports.length - 1 }}</span>
-          </span>
-          <span class="featured-event-chip" *ngIf="featured.calendarEvents.length > 0">
-            {{ featured.calendarEvents[0].title }}
-          </span>
-          <span class="date" *ngIf="featured.publishedLabel">{{ featured.publishedLabel }}</span>
-        </div>
+        </span>
+        <span class="sport-filter-label">All Sports</span>
+      </button>
 
-        <div class="featured-actions">
-          <button type="button" class="feature-play" [disabled]="!featured.playable" (click)="playVideo(featured)">
-            <mat-icon>play_arrow</mat-icon>
-            <span>{{ isPlaying(featured) ? "Playing" : "Play now" }}</span>
-          </button>
-          <button type="button" class="feature-youtube" (click)="openOnYouTube(featured, $event)">
-            <span>Watch on YouTube</span>
-            <mat-icon>open_in_new</mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <div class="featured-media">
-        <div class="video-player featured-player" [class.is-playing]="isPlaying(featured)"
-          [class.is-disabled]="!featured.playable" (click)="playVideo(featured)">
-          <img *ngIf="!isPlaying(featured)" [src]="featured.thumbnailUrl" [alt]="featured.title" class="thumb"
-            loading="lazy" (error)="onThumbnailError(featured, $event)" />
-          <div class="play-overlay" *ngIf="!isPlaying(featured)">
-            <div class="play-btn"><span></span></div>
-          </div>
-          <div class="duration-badge" *ngIf="featured.duration && !isPlaying(featured)">
-            {{ featured.duration | formatDuration }}
-          </div>
-          <button type="button" class="stop-btn" *ngIf="isPlaying(featured)" (click)="stopVideo($event)"
-            aria-label="Stop video">
-            <mat-icon>close</mat-icon>
-          </button>
-          <iframe *ngIf="isPlaying(featured)" [src]="getVideoEmbedUrl(featured) | safeResourceUrl"
-            (load)="onVideoLoad(featured.id)" frameborder="0" class="video-iframe"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-      </div>
+      <button type="button" class="sport-filter-chip" *ngFor="let sport of sportFilters(); trackBy: trackSportFilter"
+        [class.active]="activeSportFilter() === sport.slug" (click)="setSportFilter(sport.slug)">
+        <span class="sport-filter-circle">
+          <span class="sport-filter-icon-frame">
+            <img *ngIf="sport.pictogramUrl; else sportInitial" [src]="sport.pictogramUrl" [alt]="sport.name"
+              class="sport-filter-icon" loading="lazy" (error)="onSportFilterImageError(sport)" width="36" height="36" />
+            <ng-template #sportInitial>
+              <span class="sport-filter-fallback">{{ sport.name.charAt(0) }}</span>
+            </ng-template>
+          </span>
+        </span>
+        <span class="sport-filter-label">{{ sport.name }}</span>
+      </button>
     </section>
 
-    <section class="tab-switcher" aria-label="Originals tabs">
-      <button type="button" class="tab-btn" *ngFor="let tab of tabs" [class.active]="activeTab() === tab.id"
-        (click)="setTab(tab.id)">
-        <span class="tab-btn-label">
-          <mat-icon>{{ tab.icon }}</mat-icon>
-          <span>{{ tab.label }}</span>
+    <section class="type-filter-row" aria-label="Filter Originals by type">
+      <button type="button" class="type-filter-chip" *ngFor="let filter of visibleTypeFilters()"
+        [class.active]="activeTypeFilter() === filter.id" (click)="setTypeFilter(filter.id)">
+        <span class="type-filter-label">
+          <mat-icon>{{ filter.icon }}</mat-icon>
+          <span>{{ filter.label }}</span>
         </span>
-        <span class="tab-btn-count">{{ getTabCountLabel(tab.id) }}</span>
+        <span class="type-filter-count">{{ getTypeCountLabel(filter.id) }}</span>
       </button>
     </section>
   </header>
@@ -79,14 +50,9 @@
     <h2>{{ loadError() }}</h2>
   </article>
 
-  <article class="state-card" *ngIf="!loadError() && tabLoading()">
-    <mat-spinner diameter="30"></mat-spinner>
-    <h2>Loading {{ getTypeLabel() }}</h2>
-  </article>
-
-  <section class="videos-grid" [class.shorts-grid]="activeTab() === 'short'"
-    *ngIf="!loadError() && !tabLoading() && displayVideos().length > 0">
-    <article class="video-card" [class.short-card]="activeTab() === 'short'"
+  <section class="videos-grid" [class.shorts-grid]="isShortDisplayMode()"
+    *ngIf="!loadError() && displayVideos().length > 0">
+    <article class="video-card" [class.short-card]="isShortDisplayMode()"
       *ngFor="let video of displayVideos(); trackBy: trackByVideo">
       <div class="video-player" [class.is-playing]="isPlaying(video)" [class.is-disabled]="!video.playable"
         (click)="playVideo(video)">
@@ -99,14 +65,14 @@
           {{ video.duration | formatDuration }}
         </div>
 
-        <div class="media-top-actions" *ngIf="activeTab() === 'short' && !isPlaying(video)">
+        <div class="media-top-actions" *ngIf="isShortDisplayMode() && !isPlaying(video)">
           <button type="button" class="overlay-youtube" (click)="openOnYouTube(video, $event)"
             [attr.aria-label]="'Open ' + video.title + ' on YouTube'">
             <mat-icon>open_in_new</mat-icon>
           </button>
         </div>
 
-        <div class="media-bottom-meta" *ngIf="activeTab() === 'short' && !isPlaying(video)">
+        <div class="media-bottom-meta" *ngIf="isShortDisplayMode() && !isPlaying(video)">
           <span class="media-sport-chip" *ngIf="video.sports.length > 0; else shortTypeFallback">
             {{ video.sports[0].name }}
             <span class="more-count" *ngIf="video.sports.length > 1">+{{ video.sports.length - 1 }}</span>
@@ -127,7 +93,7 @@
           allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
 
-      <div class="video-content" *ngIf="activeTab() !== 'short'">
+      <div class="video-content" *ngIf="!isShortDisplayMode()">
         <div class="meta-row">
           <span class="type-chip">
             <mat-icon>{{ getFallbackTypeIcon(video) }}</mat-icon>
@@ -136,6 +102,9 @@
           <span class="video-sport-chip" *ngIf="video.sports.length > 0">
             {{ video.sports[0].name }}
             <span class="more-count" *ngIf="video.sports.length > 1">+{{ video.sports.length - 1 }}</span>
+          </span>
+          <span class="video-event-chip" *ngIf="video.calendarEvents.length > 0">
+            {{ video.calendarEvents[0].title }}
           </span>
           <span class="date" *ngIf="video.publishedLabel">{{ video.publishedLabel }}</span>
         </div>
@@ -152,9 +121,9 @@
     </article>
   </section>
 
-  <article class="state-card" *ngIf="!loadError() && !tabLoading() && currentTabVideos().length === 0">
+  <article class="state-card" *ngIf="!loadError() && currentTypeVideos().length === 0">
     <mat-icon>video_library</mat-icon>
-    <h2>No {{ getTypeLabel() }} available right now</h2>
+    <h2>No {{ getActiveTypeLabel() }}{{ getActiveSportName() ? ' in ' + getActiveSportName() : '' }} available right now</h2>
     <p>Check back soon.</p>
   </article>
 </div>
