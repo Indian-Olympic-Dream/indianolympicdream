@@ -5,11 +5,11 @@
 
 <div class="originals-page" *ngIf="!loading()">
   <header class="originals-header">
-    <p class="subtitle">Stories in motion from India's Olympic journey.</p>
+    <!-- <p class="subtitle">Stories in motion from India's Olympic journey.</p> -->
 
     <section class="sport-filter-rail" *ngIf="sportFilters().length > 0" aria-label="Filter Originals by sport">
-      <button type="button" class="sport-filter-chip"
-        [class.active]="activeSportFilter() === 'all'" (click)="setSportFilter('all')">
+      <button type="button" class="sport-filter-chip" [class.active]="activeSportFilter() === 'all'"
+        (click)="setSportFilter('all')">
         <span class="sport-filter-circle">
           <span class="sport-filter-icon-frame sport-filter-more-icon-frame">
             <mat-icon>sports</mat-icon>
@@ -23,7 +23,8 @@
         <span class="sport-filter-circle">
           <span class="sport-filter-icon-frame">
             <img *ngIf="sport.pictogramUrl; else sportInitial" [src]="sport.pictogramUrl" [alt]="sport.name"
-              class="sport-filter-icon" loading="lazy" (error)="onSportFilterImageError(sport)" width="36" height="36" />
+              class="sport-filter-icon" loading="lazy" (error)="onSportFilterImageError(sport)" width="36"
+              height="36" />
             <ng-template #sportInitial>
               <span class="sport-filter-fallback">{{ sport.name.charAt(0) }}</span>
             </ng-template>
@@ -123,7 +124,8 @@
 
   <article class="state-card" *ngIf="!loadError() && currentTypeVideos().length === 0">
     <mat-icon>video_library</mat-icon>
-    <h2>No {{ getActiveTypeLabel() }}{{ getActiveSportName() ? ' in ' + getActiveSportName() : '' }} available right now</h2>
+    <h2>No {{ getActiveTypeLabel() }}{{ getActiveSportName() ? ' in ' + getActiveSportName() : '' }} available right now
+    </h2>
     <p>Check back soon.</p>
   </article>
 </div>

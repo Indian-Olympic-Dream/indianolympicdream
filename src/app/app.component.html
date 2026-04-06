@@ -11,19 +11,20 @@
 
   <nav class="desktop-nav hidden-mobile">
     <a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link">
-      <mat-icon class="nav-icon" aria-hidden="true">history</mat-icon>
+      <img class="nav-icon nav-icon-premium" src="assets/icons/legacy.svg" alt="" aria-hidden="true">
       <span class="nav-label">Legacy</span>
     </a>
     <a class="nav-link" [routerLink]="['/athletes']" routerLinkActive="active-link">
-      <img class="nav-icon nav-icon-pictogram" src="assets/images/pictograms/icons/athletics.svg" alt="Athletes">
+      <img class="nav-icon nav-icon-pictogram" src="assets/icons/athletes.svg" alt="Athletes">
       <span class="nav-label">Athletes</span>
     </a>
     <a class="nav-link" [routerLink]="['/calendar']" routerLinkActive="active-link">
-      <mat-icon class="nav-icon" aria-hidden="true">calendar_month</mat-icon>
+      <img class="nav-icon nav-icon-premium nav-icon-premium-calendar" src="assets/icons/calendar.svg" alt=""
+        aria-hidden="true">
       <span class="nav-label">Calendar</span>
     </a>
     <a class="nav-link" [routerLink]="['/originals']" routerLinkActive="active-link">
-      <mat-icon class="nav-icon" aria-hidden="true">play_circle</mat-icon>
+      <img class="nav-icon nav-icon-premium" src="assets/icons/originals.svg" alt="" aria-hidden="true">
       <span class="nav-label">IOD Originals</span>
     </a>
   </nav>

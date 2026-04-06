@@ -56,8 +56,14 @@
     background: rgba(212, 175, 55, 0.14);
     box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.42);
 
-    .nav-pictogram {
+    .nav-pictogram,
+    .nav-premium-icon {
       filter: brightness(0) saturate(100%) invert(79%) sepia(46%) saturate(548%) hue-rotate(357deg) brightness(92%) contrast(87%);
+      opacity: 1;
+    }
+
+    .nav-premium-icon-calendar {
+      filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.2));
       opacity: 1;
     }
   }
@@ -106,6 +112,16 @@
 .nav-pictogram {
   filter: invert(1) brightness(0.95) contrast(0.95);
   opacity: 0.9;
+}
+
+.nav-premium-icon {
+  filter: invert(1) brightness(0.96) contrast(0.94);
+  opacity: 0.9;
+}
+
+.nav-premium-icon-calendar {
+  filter: none;
+  opacity: 0.96;
 }
 
 @media (max-width: 768px) {
