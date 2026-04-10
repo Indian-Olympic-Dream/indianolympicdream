@@ -14,6 +14,7 @@ import {
     Event,
     GoldenMoment,
     CalendarEvent,
+    CalendarEventNavigation,
     QualificationPathway,
     ContenderUnit,
     LegacyEditionOverview,
@@ -57,7 +58,6 @@ const PRIORITY_SPORT_SWITCHER_SLUGS = [
     'boxing',
     'tennis',
     'table-tennis',
-    'football',
     'cricket',
     'squash',
 ] as const;
@@ -72,7 +72,6 @@ const FULL_CURRENT_COVERAGE_SLUGS = new Set([
     'boxing',
     'tennis',
     'table-tennis',
-    'football',
 ]);
 const SPORT_SWITCH_TIER_ORDER: IndiaTier[] = [
     'medal_hopeful',
@@ -137,9 +136,11 @@ interface CurrentCalendarCard {
     sortValue: number;
     locationLabel: string;
     categoryLabel: string;
+    typeLabel: string;
     importanceClass: string;
     pictogramUrl: string | null;
     disciplineId: string;
+    navigation: CalendarEventNavigation;
 }
 
 interface CurrentDisciplineSummary {
@@ -838,6 +839,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     currentCalendarCards = computed<CurrentCalendarCard[]>(() =>
         [...this.la28CalendarEvents()]
             .map(event => this.toCurrentCalendarCard(event))
+            .filter((card): card is CurrentCalendarCard => !!card)
             .sort((a, b) => {
                 const groupOrder = this.getCurrentCalendarGroupOrder(a.timeGroup) - this.getCurrentCalendarGroupOrder(b.timeGroup);
                 if (groupOrder !== 0) return groupOrder;
@@ -2136,8 +2138,11 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return `${sportName}${suffix} Olympic legacy`;
     }
 
-    getCurrentCalendarEventRouterLink(card: CurrentCalendarCard): string[] | null {
-        return card.event.slug ? ['/calendar', card.event.slug] : null;
+    getCurrentCalendarEventLinkLabel(card: CurrentCalendarCard): string | null {
+        if (card.navigation.kind === 'external') {
+            return card.timeGroup === 'completed' ? 'Official Results' : 'Official Source';
+        }
+        return null;
     }
 
     getLa28EventImportanceLabel(event: CalendarEvent): string {
@@ -2155,8 +2160,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    getLa28EventSynopsis(event: CalendarEvent): string {
-        return event.qualificationContext || event.summary || event.notes || event.category || event.location || 'Event context will be added in CMS.';
+    getLa28EventSynopsis(event: CalendarEvent): string | null {
+        return event.summary || null;
     }
 
     getCurrentCalendarEventImageUrl(event: CalendarEvent): string | null {
@@ -2293,10 +2298,16 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return null;
     }
 
-    private toCurrentCalendarCard(event: CalendarEvent): CurrentCalendarCard {
+    private toCurrentCalendarCard(event: CalendarEvent): CurrentCalendarCard | null {
         const sport = this.resolveSportWithCatalog(event.sport || null);
         const parentSport = sport ? this.sportsById().get(this.getParentSportId(sport) || '') || null : null;
         const selectedSport = this.sport();
+        const start = this.toDate(event.startDate);
+        const end = this.toDate(event.endDate || event.startDate);
+
+        if (this.isSeasonWrapperCalendarEvent(event, start, end)) {
+            return null;
+        }
 
         return {
             event,
@@ -2305,7 +2316,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             dateLabel: this.formatDateRange(event.startDate, event.endDate),
             sortValue: this.toDate(event.startDate)?.getTime() || Number.MAX_SAFE_INTEGER,
             locationLabel: this.getCurrentCalendarLocationLabel(event.location, event.country),
-            categoryLabel: event.category || this.getCurrentCalendarTypeLabel(event.type) || '',
+            categoryLabel: this.getCurrentCalendarCategoryLabel(event),
+            typeLabel: this.getCurrentCalendarTypeLabel(event.type, event.category) || '',
             importanceClass: this.getCurrentCalendarImportanceClass(event.importance, this.isLiveCalendarEvent(event)),
             pictogramUrl:
                 this.payload.getSportPictogramUrl({
@@ -2314,6 +2326,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
                     includePlaceholderFallback: false,
                 }) || null,
             disciplineId: this.resolveCurrentDisciplineId(sport, selectedSport),
+            navigation: this.payload.getCalendarEventNavigation(event),
         };
     }
 
@@ -2359,8 +2372,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         const end = this.toDate(event.endDate || event.startDate);
 
         if (!start || !end) return 'later';
-        if (end < today || event.status === 'completed') return 'completed';
-        if (event.status === 'live' || (start <= now && end >= today)) return 'live';
+        if (this.isCompletedCalendarEvent(event, end, today)) return 'completed';
+        if (this.isLiveCalendarEventWindow(event, start, end, now, today)) return 'live';
 
         const endOfToday = new Date(today);
         endOfToday.setDate(endOfToday.getDate() + 1);
@@ -2370,9 +2383,9 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         endOfWeek.setDate(endOfWeek.getDate() + 7);
         if (start < endOfWeek) return 'thisWeek';
 
-        const endOfMonth = new Date(today);
-        endOfMonth.setDate(endOfMonth.getDate() + 30);
-        if (start < endOfMonth) return 'thisMonth';
+        if (start.getFullYear() === today.getFullYear() && start.getMonth() === today.getMonth()) {
+            return 'thisMonth';
+        }
 
         return 'later';
     }
@@ -2384,8 +2397,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         const end = this.toDate(event.endDate || event.startDate);
 
         if (!start || !end) return 'TBC';
-        if (event.status === 'completed' || end < today) return 'Completed';
-        if (event.status === 'live' || (start <= now && end >= today)) return 'LIVE';
+        if (this.isCompletedCalendarEvent(event, end, today)) return 'Completed';
+        if (this.isLiveCalendarEventWindow(event, start, end, now, today)) return 'LIVE';
 
         const daysAway = Math.ceil((start.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
         if (daysAway <= 0) return 'Today';
@@ -2432,27 +2445,62 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private getCurrentCalendarTypeLabel(type?: string): string {
-        switch (type) {
-            case 'world-championship':
-                return 'World Championship';
+    private getCurrentCalendarTypeLabel(type?: string, category?: string): string {
+        const normalizedType = this.normalizeCurrentCalendarTypeValue(type);
+
+        switch (normalizedType) {
+            case 'world championship':
+            case 'world championships':
+                return 'World';
             case 'continental':
                 return 'Continental';
             case 'qualification':
+            case 'qualifier':
+            case 'qualifiers':
                 return 'Qualification';
             case 'tour':
                 return 'Tour';
             case 'major':
-                return 'Grand Slam';
+            case 'games':
+                return 'Games';
             case 'super':
+            case 'super series':
                 return 'Super Series';
             case 'international':
                 return 'International';
             case 'domestic':
                 return 'Domestic';
-            default:
-                return '';
         }
+
+        const normalizedCategory = this.normalizeCurrentCalendarTypeValue(category);
+        if (normalizedCategory.includes('world championship')) return 'World';
+        if (normalizedCategory.includes('asian games') || normalizedCategory.includes('commonwealth games')) {
+            return 'Games';
+        }
+        if (normalizedCategory.includes('qualifier')) return 'Qualification';
+
+        return '';
+    }
+
+    private getCurrentCalendarCategoryLabel(event: CalendarEvent): string {
+        const category = (event.category || '').trim();
+        const qualificationContext = this.normalizeCurrentCalendarTypeValue(event.qualificationContext);
+
+        if (qualificationContext === 'la 2028 qualifier') {
+            if (!category) return 'LA28 Qualifier';
+            if (this.normalizeCurrentCalendarTypeValue(category).includes('qualifier')) return category;
+            return `${category} · LA28 Qualifier`;
+        }
+
+        return category;
+    }
+
+    private normalizeCurrentCalendarTypeValue(value?: string | null): string {
+        return (value || '')
+            .toLowerCase()
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
     private getCurrentCalendarLocationLabel(location?: string | null, country?: string | null): string {
@@ -2575,14 +2623,53 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     }
 
     private isLiveCalendarEvent(event: CalendarEvent): boolean {
-        if (event.status === 'live') return true;
-
         const now = new Date();
+        const today = this.startOfDay(now);
         const start = this.toDate(event.startDate);
         const end = this.toDate(event.endDate || event.startDate);
+        return this.isLiveCalendarEventWindow(event, start, end, now, today);
+    }
+
+    private isLiveCalendarEventWindow(
+        event: CalendarEvent,
+        start: Date | null,
+        end: Date | null,
+        now: Date,
+        today: Date,
+    ): boolean {
+        if (!start || !end) return false;
+        if (this.isSeasonWrapperCalendarEvent(event, start, end)) return false;
+
+        const status = (event.status || '').toLowerCase();
+        if (status === 'cancelled' || status === 'postponed') {
+            return false;
+        }
+
+        return start <= now && end >= today;
+    }
+
+    private isSeasonWrapperCalendarEvent(
+        event: CalendarEvent,
+        start?: Date | null,
+        end?: Date | null,
+    ): boolean {
         if (!start || !end) return false;
 
-        return start <= now && end >= this.startOfDay(now);
+        const durationDays = Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+        if (durationDays < 45) return false;
+
+        const location = (event.location || '').toLowerCase();
+        const country = (event.country || '').toLowerCase();
+        const isMultiVenue = location.includes('multiple') || location.includes('various') || country === 'multiple';
+
+        return isMultiVenue && !event.externalUrl;
+    }
+
+    private isCompletedCalendarEvent(event: CalendarEvent, end?: Date | null, today?: Date): boolean {
+        const effectiveEnd = end || this.toDate(event.endDate || event.startDate);
+        const effectiveToday = today || this.startOfDay(new Date());
+        if (!effectiveEnd) return false;
+        return effectiveEnd < effectiveToday;
     }
 
     private getImportanceRank(importance?: string | null): number {

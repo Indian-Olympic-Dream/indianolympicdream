@@ -125,6 +125,17 @@ export interface CalendarEvent {
   notes?: string;
 }
 
+export type CalendarEventExperience = 'external_only' | 'preview_page' | 'covered_page' | 'live_hub';
+
+export interface CalendarEventNavigation {
+  experience: CalendarEventExperience;
+  kind: 'internal' | 'external' | 'none';
+  routerLink: string[] | null;
+  href: string | null;
+  target: '_blank' | null;
+  rel: string | null;
+}
+
 export interface QualificationPathway {
   id: string;
   title: string;
@@ -787,6 +798,83 @@ export class PayloadService {
     return null;
   }
 
+  getCalendarEventExperience(
+    event: Partial<CalendarEvent> | null | undefined,
+    options?: {
+      hasExplicitCoverage?: boolean;
+      liveEnabled?: boolean;
+    },
+  ): CalendarEventExperience {
+    void options;
+    if (!event) return 'external_only';
+    return 'external_only';
+  }
+
+  getCalendarEventNavigation(
+    event: Partial<CalendarEvent> | null | undefined,
+    options?: {
+      hasExplicitCoverage?: boolean;
+      liveEnabled?: boolean;
+    },
+  ): CalendarEventNavigation {
+    const experience = this.getCalendarEventExperience(event, options);
+    const slug = event?.slug ? ['/calendar', event.slug] : null;
+    const href = event?.externalUrl || null;
+
+    if (experience === 'external_only') {
+      if (href) {
+        return {
+          experience,
+          kind: 'external',
+          routerLink: null,
+          href,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        };
+      }
+
+      return {
+        experience,
+        kind: 'none',
+        routerLink: null,
+        href: null,
+        target: null,
+        rel: null,
+      };
+    }
+
+    if (slug) {
+      return {
+        experience,
+        kind: 'internal',
+        routerLink: slug,
+        href: null,
+        target: null,
+        rel: null,
+      };
+    }
+
+    if (href) {
+      return {
+        experience: 'external_only',
+        kind: 'external',
+        routerLink: null,
+        href,
+        target: '_blank',
+        rel: 'noopener noreferrer',
+      };
+    }
+
+    return {
+      experience,
+      kind: 'none',
+      routerLink: null,
+      href: null,
+      target: null,
+      rel: null,
+    };
+  }
+
   private normalizeMediaUrl(rawUrl: string): string {
     const url = rawUrl.trim();
     if (!url) return '';
@@ -819,7 +907,6 @@ export class PayloadService {
     }
     return path;
   }
-
   // ============ SPORTS ============
 
   getSports(options?: { parentOnly?: boolean; discipline?: boolean }): Observable<Sport[]> {
@@ -1001,7 +1088,8 @@ export class PayloadService {
 
     return this.apollo.query<{ CalendarEvents: { docs: CalendarEvent[] } }>({
       query: CALENDAR_EVENTS_QUERY,
-      variables: { where, limit: options?.limit || 500 }
+      variables: { where, limit: options?.limit || 500 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.CalendarEvents.docs));
   }
 

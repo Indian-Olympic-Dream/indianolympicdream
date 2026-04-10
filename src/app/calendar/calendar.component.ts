@@ -1,11 +1,12 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatIconModule } from '@angular/material/icon';
+import { NgFor, NgIf } from '@angular/common';
+import { MatSpinner } from '@angular/material/progress-spinner';
+import { MatIcon } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   CalendarEvent,
+  CalendarEventNavigation,
   PayloadService,
   Sport,
 } from '../services/payload.service';
@@ -21,9 +22,13 @@ interface CalendarCard {
   sportSlug: string;
   pictogramUrl: string | null;
   importanceClass: string;
+  importanceLabel: string;
   sortValue: number;
   locationLabel: string;
   categoryLabel: string;
+  typeLabel: string;
+  summaryLabel: string | null;
+  navigation: CalendarEventNavigation;
 }
 
 interface SportFilter {
@@ -36,12 +41,14 @@ interface SportFilter {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [NgIf, NgFor, MatSpinner, MatIcon],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements OnInit {
   private payload = inject(PayloadService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   loading = signal(true);
   allCards = signal<CalendarCard[]>([]);
@@ -77,6 +84,10 @@ export class CalendarComponent implements OnInit {
     return cards.filter((c) => c.sportSlug === filter);
   });
 
+  private unfilteredUpcomingCards = computed(() =>
+    this.allCards().filter((c) => c.timeGroup !== 'completed'),
+  );
+
   liveCards = computed(() => this.filteredCards().filter((c) => c.timeGroup === 'live'));
   todayCards = computed(() => this.filteredCards().filter((c) => c.timeGroup === 'today'));
   thisWeekCards = computed(() => this.filteredCards().filter((c) => c.timeGroup === 'thisWeek'));
@@ -98,9 +109,16 @@ export class CalendarComponent implements OnInit {
       this.laterCards().length,
   );
 
+  totalUpcomingCount = computed(() => this.unfilteredUpcomingCards().length);
+
   hasNoUpcoming = computed(() => this.upcomingCount() === 0);
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const requestedSport = (params.get('sport') || 'all').trim().toLowerCase();
+      this.activeSportFilter.set(requestedSport || 'all');
+    });
+
     forkJoin({
       events: this.payload.getCalendarEvents({ limit: 500 }),
       sports: this.payload.getSports(),
@@ -108,6 +126,7 @@ export class CalendarComponent implements OnInit {
       next: ({ events, sports }) => {
         const sportLookup = new Map(sports.map((s) => [s.id, s]));
         this.allCards.set(this.buildCards(events, sportLookup));
+        this.ensureValidSportFilter();
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -116,6 +135,11 @@ export class CalendarComponent implements OnInit {
 
   setSportFilter(slug: string): void {
     this.activeSportFilter.set(slug);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { sport: slug === 'all' ? null : slug },
+      queryParamsHandling: 'merge',
+    });
   }
 
   toggleCompleted(): void {
@@ -126,15 +150,22 @@ export class CalendarComponent implements OnInit {
     return card.event.id;
   }
 
-  getEventRouterLink(card: CalendarCard): string[] | null {
-    return card.event.slug ? ['/calendar', card.event.slug] : null;
+  getCardLinkLabel(card: CalendarCard): string | null {
+    if (card.navigation.kind === 'external') {
+      return card.timeGroup === 'completed' ? 'Official Results' : 'Official Source';
+    }
+    return null;
   }
 
   // ── Build pipeline ──────────────────────────────────────────
 
-  private buildCards(events: CalendarEvent[], sportLookup: Map<string, Sport>): CalendarCard[] {
+  private buildCards(
+    events: CalendarEvent[],
+    sportLookup: Map<string, Sport>,
+  ): CalendarCard[] {
     return events
       .map((event) => this.toCard(event, sportLookup))
+      .filter((card): card is CalendarCard => !!card)
       .sort((a, b) => {
         const groupOrder = this.groupSortOrder(a.timeGroup) - this.groupSortOrder(b.timeGroup);
         if (groupOrder !== 0) return groupOrder;
@@ -142,10 +173,20 @@ export class CalendarComponent implements OnInit {
       });
   }
 
-  private toCard(event: CalendarEvent, sportLookup: Map<string, Sport>): CalendarCard {
+  private toCard(
+    event: CalendarEvent,
+    sportLookup: Map<string, Sport>,
+  ): CalendarCard | null {
+    void sportLookup;
     const sport = event.sport || null;
     const parentSport = sport?.parentSport || null;
     const resolvedSport = parentSport || sport;
+    const startDate = this.toDate(event.startDate);
+    const endDate = this.toDate(event.endDate || event.startDate);
+
+    if (this.isSeasonWrapperEvent(event, startDate, endDate)) {
+      return null;
+    }
 
     const sportName = resolvedSport?.name || 'Sport';
     const sportSlug = resolvedSport?.slug || sport?.slug || 'unknown';
@@ -157,7 +198,6 @@ export class CalendarComponent implements OnInit {
     });
 
     const timeGroup = this.getTimeGroup(event);
-    const startDate = this.toDate(event.startDate);
 
     return {
       event,
@@ -168,9 +208,13 @@ export class CalendarComponent implements OnInit {
       sportSlug,
       pictogramUrl,
       importanceClass: this.getImportanceClass(event.importance),
+      importanceLabel: this.getImportanceLabel(event.importance),
       sortValue: startDate?.getTime() || Number.MAX_SAFE_INTEGER,
       locationLabel: this.getLocationLabel(event.location, event.country),
-      categoryLabel: event.category || this.getTypeLabel(event.type) || '',
+      categoryLabel: this.getCategoryLabel(event),
+      typeLabel: this.getTypeLabel(event.type, event.category) || '',
+      summaryLabel: this.getSummaryLabel(event),
+      navigation: this.payload.getCalendarEventNavigation(event),
     };
   }
 
@@ -182,12 +226,9 @@ export class CalendarComponent implements OnInit {
 
     if (!start || !end) return 'later';
 
-    // Completed
-    if (end < today || event.status === 'completed') return 'completed';
+    if (this.isCompletedEvent(event, end, today)) return 'completed';
 
-    // Live — currently happening
-    if (start <= now && end >= today && event.status === 'live') return 'live';
-    if (start <= now && end >= today) return 'live';
+    if (this.isLiveEvent(event, start, end, now, today)) return 'live';
 
     // Today
     const endOfToday = new Date(today);
@@ -199,10 +240,9 @@ export class CalendarComponent implements OnInit {
     endOfWeek.setDate(endOfWeek.getDate() + 7);
     if (start < endOfWeek) return 'thisWeek';
 
-    // This month (within 30 days)
-    const endOfMonth = new Date(today);
-    endOfMonth.setDate(endOfMonth.getDate() + 30);
-    if (start < endOfMonth) return 'thisMonth';
+    if (start.getFullYear() === today.getFullYear() && start.getMonth() === today.getMonth()) {
+      return 'thisMonth';
+    }
 
     return 'later';
   }
@@ -215,8 +255,8 @@ export class CalendarComponent implements OnInit {
 
     if (!start || !end) return 'TBC';
 
-    if (event.status === 'completed' || end < today) return 'Completed';
-    if (event.status === 'live' || (start <= now && end >= today)) return 'LIVE';
+    if (this.isCompletedEvent(event, end, today)) return 'Completed';
+    if (this.isLiveEvent(event, start, end, now, today)) return 'LIVE';
 
     const daysAway = Math.ceil((start.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     if (daysAway === 0) return 'Today';
@@ -243,26 +283,134 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  private getTypeLabel(type?: string): string {
-    switch (type) {
-      case 'world-championship':
-        return 'World Championship';
+  private getImportanceLabel(importance?: string): string {
+    switch (importance) {
+      case 'core':
+        return 'Core';
+      case 'high':
+        return 'High';
+      case 'watch':
+        return 'Watch';
+      default:
+        return 'Build-up';
+    }
+  }
+
+  private getSummaryLabel(event: CalendarEvent): string | null {
+    return event.summary || null;
+  }
+
+  private isCompletedEvent(event: CalendarEvent, end: Date, today: Date): boolean {
+    if (end < today) return true;
+    if ((event.status || '').toLowerCase() !== 'completed') return false;
+    return end < today;
+  }
+
+  private isLiveEvent(
+    event: CalendarEvent,
+    start: Date,
+    end: Date,
+    now: Date,
+    today: Date,
+  ): boolean {
+    if (this.isSeasonWrapperEvent(event, start, end)) return false;
+
+    const status = (event.status || '').toLowerCase();
+    if (status === 'cancelled' || status === 'postponed') {
+      return false;
+    }
+
+    return start <= now && end >= today;
+  }
+
+  private isSeasonWrapperEvent(
+    event: CalendarEvent,
+    start?: Date | null,
+    end?: Date | null,
+  ): boolean {
+    if (!start || !end) return false;
+
+    const durationDays = Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+    if (durationDays < 45) return false;
+
+    const location = (event.location || '').toLowerCase();
+    const country = (event.country || '').toLowerCase();
+    const isMultiVenue = location.includes('multiple') || location.includes('various') || country === 'multiple';
+
+    return isMultiVenue && !event.externalUrl;
+  }
+
+  private getTypeLabel(type?: string, category?: string): string {
+    const normalizedType = this.normalizeCalendarTypeValue(type);
+
+    switch (normalizedType) {
+      case 'world championship':
+      case 'world championships':
+        return 'World';
       case 'continental':
         return 'Continental';
       case 'qualification':
-        return 'Olympic Qualification';
+      case 'qualifier':
+      case 'qualifiers':
+        return 'Qualification';
       case 'tour':
         return 'Tour';
       case 'major':
-        return 'Grand Slam';
+      case 'games':
+        return 'Games';
       case 'super':
+      case 'super series':
         return 'Super Series';
       case 'international':
         return 'International';
       case 'domestic':
         return 'Domestic';
-      default:
-        return '';
+    }
+
+    const normalizedCategory = this.normalizeCalendarTypeValue(category);
+    if (normalizedCategory.includes('world championship')) return 'World';
+    if (normalizedCategory.includes('asian games') || normalizedCategory.includes('commonwealth games')) {
+      return 'Games';
+    }
+    if (normalizedCategory.includes('qualifier')) return 'Qualification';
+
+    return '';
+  }
+
+  private getCategoryLabel(event: CalendarEvent): string {
+    const category = (event.category || '').trim();
+    const qualificationContext = this.normalizeCalendarTypeValue(event.qualificationContext);
+
+    if (qualificationContext === 'la 2028 qualifier') {
+      if (!category) return 'LA28 Qualifier';
+      if (this.normalizeCalendarTypeValue(category).includes('qualifier')) return category;
+      return `${category} · LA28 Qualifier`;
+    }
+
+    return category;
+  }
+
+  private normalizeCalendarTypeValue(value?: string | null): string {
+    return (value || '')
+      .toLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private ensureValidSportFilter(): void {
+    const activeFilter = this.activeSportFilter();
+    if (activeFilter === 'all') return;
+
+    const validSlugs = new Set(this.sportFilters().map((sport) => sport.slug));
+    if (!validSlugs.has(activeFilter)) {
+      this.activeSportFilter.set('all');
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { sport: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
     }
   }
 

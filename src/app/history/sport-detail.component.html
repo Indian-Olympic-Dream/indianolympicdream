@@ -288,26 +288,32 @@
                 </div>
 
                 <ng-template #currentEventCard let-card>
-                    <a class="current-event-card" [routerLink]="getCurrentCalendarEventRouterLink(card)"
-                        [class.no-link]="!card.event.slug" [class.completed]="card.timeGroup === 'completed'"
+                    <article class="current-event-card" [class.completed]="card.timeGroup === 'completed'"
+                        [class.has-action]="card.navigation.kind === 'external'"
                         [class.has-image]="!!getCurrentCalendarEventImageUrl(card.event)"
                         [ngClass]="card.importanceClass">
                         <div class="current-event-card-shell">
                             <div class="current-event-copy">
                                 <div class="current-event-title-wrap">
-                                    <img *ngIf="card.pictogramUrl" [src]="card.pictogramUrl" [alt]="sport()?.name"
-                                        class="current-event-pictogram">
+                                    <span class="current-event-pictogram-badge" *ngIf="card.pictogramUrl">
+                                        <img [src]="card.pictogramUrl" [alt]="sport()?.name"
+                                            class="current-event-pictogram">
+                                    </span>
                                     <div class="current-event-title-block">
                                         <div class="current-event-title">{{ card.event.title }}</div>
                                         <div class="current-event-meta"
-                                            *ngIf="card.categoryLabel || card.locationLabel">
-                                            <span *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
-                                            <span *ngIf="card.locationLabel">{{ card.locationLabel }}</span>
+                                            *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
+                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+                                            <span class="current-event-location" *ngIf="card.locationLabel">
+                                                <mat-icon>location_on</mat-icon>
+                                                <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <p class="current-event-summary">{{ getLa28EventSynopsis(card.event) }}</p>
+                                <p class="current-event-summary" *ngIf="getLa28EventSynopsis(card.event) as synopsis">{{ synopsis }}</p>
 
                                 <div class="current-event-india"
                                     *ngIf="getCurrentCalendarParticipantsLabel(card.event) as participants">
@@ -326,6 +332,16 @@
                                             {{ getLa28EventImportanceLabel(card.event) }}
                                         </span>
                                     </div>
+                                    <a class="current-event-action"
+                                        *ngIf="card.navigation.kind === 'external' && getCurrentCalendarEventLinkLabel(card) as linkLabel"
+                                        [href]="card.navigation.href"
+                                        [attr.target]="card.navigation.target"
+                                        [attr.rel]="card.navigation.rel">
+                                        <span class="current-event-action-copy">{{ linkLabel }}</span>
+                                        <span class="current-event-action-icon">
+                                            <mat-icon>north_east</mat-icon>
+                                        </span>
+                                    </a>
                                 </div>
 
                                 <div class="current-event-visual"
@@ -334,7 +350,7 @@
                                 </div>
                             </div>
                         </div>
-                    </a>
+                    </article>
                 </ng-template>
 
                 <div class="current-calendar-groups">
@@ -468,6 +484,7 @@
 
     <!-- Olympic Moments in This Sport -->
     <section class="golden-moments" *ngIf="activeView() === 'legacy' && legacyLoaded() && goldenMoments().length > 0">
+        <h2>Olympic Moments</h2>
         <div class="moments-carousel">
             <article class="moment-card" *ngFor="let moment of goldenMoments()"
                 [class.moment-gold]="moment.type === 'gold' || !moment.type"
