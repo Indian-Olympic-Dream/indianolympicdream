@@ -2896,6 +2896,7 @@ $font-mono: 'JetBrains Mono', monospace;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                gap: 12px;
                 padding: 12px 16px;
                 background: rgba(255, 255, 255, 0.02);
                 border-radius: 12px;
@@ -2905,20 +2906,40 @@ $font-mono: 'JetBrains Mono', monospace;
                     background: rgba(255, 255, 255, 0.05);
                 }
 
-                &.medalist {
+                &.result-gold {
                     border-left: 3px solid $gold-color;
                     background: rgba(255, 215, 0, 0.03);
+                }
 
-                    &.silver {
-                        border-left-color: $silver-color;
-                    }
+                &.result-silver {
+                    border-left: 3px solid $silver-color;
+                    background: rgba(192, 192, 192, 0.05);
+                }
 
-                    &.bronze {
-                        border-left-color: $bronze-color;
-                    }
+                &.result-bronze {
+                    border-left: 3px solid $bronze-color;
+                    background: rgba(205, 127, 50, 0.06);
+                }
+
+                &.result-top-eight {
+                    border-left: 3px solid rgba(129, 212, 250, 0.9);
+                    background: rgba(129, 212, 250, 0.05);
+                }
+
+                &.result-reserve {
+                    border-left: 3px solid rgba(234, 221, 255, 0.34);
+                }
+
+                &.result-dns,
+                &.result-dnf,
+                &.result-dq {
+                    border-left: 3px solid rgba(255, 186, 120, 0.4);
+                    background: rgba(255, 186, 120, 0.04);
                 }
 
                 .athlete-info {
+                    min-width: 0;
+
                     .name {
                         font-weight: 500;
                         font-size: 0.95rem;
@@ -2932,8 +2953,67 @@ $font-mono: 'JetBrains Mono', monospace;
                     }
                 }
 
-                .medal-emoji {
-                    font-size: 1.2rem;
+                .athlete-result-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 10px;
+                    border-radius: 999px;
+                    flex-shrink: 0;
+                    font-family: $font-mono;
+                    font-size: 0.7rem;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(255, 255, 255, 0.05);
+                    color: $text-secondary;
+                }
+
+                .athlete-result-emoji {
+                    font-size: 0.95rem;
+                    line-height: 1;
+                }
+
+                .athlete-result-copy {
+                    line-height: 1;
+                }
+
+                .athlete-result-badge.result-gold {
+                    border-color: rgba(255, 215, 0, 0.28);
+                    background: rgba(255, 215, 0, 0.1);
+                    color: $gold-color;
+                }
+
+                .athlete-result-badge.result-silver {
+                    border-color: rgba(192, 192, 192, 0.28);
+                    background: rgba(192, 192, 192, 0.1);
+                    color: $silver-color;
+                }
+
+                .athlete-result-badge.result-bronze {
+                    border-color: rgba(205, 127, 50, 0.32);
+                    background: rgba(205, 127, 50, 0.1);
+                    color: $bronze-color;
+                }
+
+                .athlete-result-badge.result-top-eight {
+                    border-color: rgba(129, 212, 250, 0.28);
+                    background: rgba(129, 212, 250, 0.1);
+                    color: #81d4fa;
+                }
+
+                .athlete-result-badge.result-reserve {
+                    border-color: rgba(234, 221, 255, 0.22);
+                    background: rgba(234, 221, 255, 0.08);
+                    color: $primary-accent;
+                }
+
+                .athlete-result-badge.result-dns,
+                .athlete-result-badge.result-dnf,
+                .athlete-result-badge.result-dq {
+                    border-color: rgba(255, 186, 120, 0.26);
+                    background: rgba(255, 186, 120, 0.08);
+                    color: #ffc98f;
                 }
             }
         }

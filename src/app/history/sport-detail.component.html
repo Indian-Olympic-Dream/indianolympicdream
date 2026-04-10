@@ -697,15 +697,18 @@
                                     <h4>Women's Events</h4>
                                 </div>
                                 <div class="athletes-grid">
-                                    <div class="athlete-row" *ngFor="let athlete of discipline.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-row" *ngFor="let athlete of discipline.womenAthletes"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
                                         <div class="athlete-info">
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                            {{ getMedalEmoji(athlete.result) }}
+                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                            [ngClass]="getParticipationResultClass(athlete.result)">
+                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                                {{ medalEmoji }}
+                                            </span>
+                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -718,15 +721,18 @@
                                     <h4>Men's Events</h4>
                                 </div>
                                 <div class="athletes-grid">
-                                    <div class="athlete-row" *ngFor="let athlete of discipline.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-row" *ngFor="let athlete of discipline.menAthletes"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
                                         <div class="athlete-info">
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                            {{ getMedalEmoji(athlete.result) }}
+                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                            [ngClass]="getParticipationResultClass(athlete.result)">
+                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                                {{ medalEmoji }}
+                                            </span>
+                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -739,15 +745,18 @@
                                     <h4>Mixed Events</h4>
                                 </div>
                                 <div class="athletes-grid">
-                                    <div class="athlete-row" *ngFor="let athlete of discipline.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                    <div class="athlete-row" *ngFor="let athlete of discipline.mixedAthletes"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
                                         <div class="athlete-info">
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                            {{ getMedalEmoji(athlete.result) }}
+                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                            [ngClass]="getParticipationResultClass(athlete.result)">
+                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                                {{ medalEmoji }}
+                                            </span>
+                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -763,15 +772,18 @@
                                 <h4>Women's Events</h4>
                             </div>
                             <div class="athletes-grid">
-                                <div class="athlete-row" *ngFor="let athlete of detailGroup.womenAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-row" *ngFor="let athlete of detailGroup.womenAthletes"
+                                    [ngClass]="getParticipationResultClass(athlete.result)">
                                     <div class="athlete-info">
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                        {{ getMedalEmoji(athlete.result) }}
+                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
+                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            {{ medalEmoji }}
+                                        </span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -784,15 +796,18 @@
                                 <h4>Men's Events</h4>
                             </div>
                             <div class="athletes-grid">
-                                <div class="athlete-row" *ngFor="let athlete of detailGroup.menAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-row" *ngFor="let athlete of detailGroup.menAthletes"
+                                    [ngClass]="getParticipationResultClass(athlete.result)">
                                     <div class="athlete-info">
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                        {{ getMedalEmoji(athlete.result) }}
+                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
+                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            {{ medalEmoji }}
+                                        </span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -805,15 +820,18 @@
                                 <h4>Mixed Events</h4>
                             </div>
                             <div class="athletes-grid">
-                                <div class="athlete-row" *ngFor="let athlete of detailGroup.mixedAthletes" [ngClass]="{'medalist': athlete.result !== 'participated', 
-                                                 'silver': athlete.result === 'silver',
-                                                 'bronze': athlete.result === 'bronze'}">
+                                <div class="athlete-row" *ngFor="let athlete of detailGroup.mixedAthletes"
+                                    [ngClass]="getParticipationResultClass(athlete.result)">
                                     <div class="athlete-info">
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="medal-emoji" *ngIf="athlete.result !== 'participated'">
-                                        {{ getMedalEmoji(athlete.result) }}
+                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        [ngClass]="getParticipationResultClass(athlete.result)">
+                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            {{ medalEmoji }}
+                                        </span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
                                     </div>
                                 </div>
                             </div>

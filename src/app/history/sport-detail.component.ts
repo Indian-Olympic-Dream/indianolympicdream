@@ -406,7 +406,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             // Add athlete to group
             let athleteEntry = group.athletes.find(a => a.name === athleteName);
             if (!athleteEntry) {
-                athleteEntry = { name: athleteName, events: [], result: 'participated', gender };
+                athleteEntry = { name: athleteName, events: [], result: result || 'participated', gender };
                 group.athletes.push(athleteEntry);
 
                 // Add to gender specific list
@@ -415,14 +415,12 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
                 else group.mixedAthletes.push(athleteEntry);
             }
             athleteEntry.events.push(eventName);
-            if (['gold', 'silver', 'bronze'].includes(result)) {
-                athleteEntry.result = this.getBetterResult(athleteEntry.result, result);
-            }
+            athleteEntry.result = this.getBetterResult(athleteEntry.result, result || 'participated');
 
             // Add athlete to discipline group
             let disciplineAthlete = disciplineGroup.athletes.find(a => a.name === athleteName);
             if (!disciplineAthlete) {
-                disciplineAthlete = { name: athleteName, events: [], result: 'participated', gender };
+                disciplineAthlete = { name: athleteName, events: [], result: result || 'participated', gender };
                 disciplineGroup.athletes.push(disciplineAthlete);
 
                 if (gender === 'men') disciplineGroup.menAthletes.push(disciplineAthlete);
@@ -430,9 +428,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
                 else disciplineGroup.mixedAthletes.push(disciplineAthlete);
             }
             disciplineAthlete.events.push(eventName);
-            if (['gold', 'silver', 'bronze'].includes(result)) {
-                disciplineAthlete.result = this.getBetterResult(disciplineAthlete.result, result);
-            }
+            disciplineAthlete.result = this.getBetterResult(disciplineAthlete.result, result || 'participated');
 
             // Count medals — deduplicate by event+result (team sports = 1 medal per event)
             if (['gold', 'silver', 'bronze'].includes(result)) {
@@ -2344,9 +2340,19 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     }
 
     getBetterResult(current: string, incoming: string): string {
-        const order = { gold: 0, silver: 1, bronze: 2, participated: 3 };
-        const currentRank = order[current as keyof typeof order] ?? 3;
-        const incomingRank = order[incoming as keyof typeof order] ?? 3;
+        const order = {
+            gold: 0,
+            silver: 1,
+            bronze: 2,
+            '4th-8th': 3,
+            participated: 4,
+            reserve: 5,
+            dns: 6,
+            dnf: 7,
+            dq: 8,
+        };
+        const currentRank = order[current as keyof typeof order] ?? 4;
+        const incomingRank = order[incoming as keyof typeof order] ?? 4;
         return incomingRank < currentRank ? incoming : current;
     }
 
@@ -2356,6 +2362,56 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             case 'silver': return '🥈';
             case 'bronze': return '🥉';
             default: return '';
+        }
+    }
+
+    hasParticipationResultBadge(result: string): boolean {
+        return !!result && result !== 'participated';
+    }
+
+    getParticipationResultLabel(result: string): string {
+        switch (result) {
+            case 'gold':
+                return 'Gold';
+            case 'silver':
+                return 'Silver';
+            case 'bronze':
+                return 'Bronze';
+            case '4th-8th':
+                return 'Top 8';
+            case 'reserve':
+                return 'Reserve';
+            case 'dns':
+                return 'DNS';
+            case 'dnf':
+                return 'DNF';
+            case 'dq':
+                return 'DQ';
+            default:
+                return '';
+        }
+    }
+
+    getParticipationResultClass(result: string): string {
+        switch (result) {
+            case 'gold':
+                return 'result-gold';
+            case 'silver':
+                return 'result-silver';
+            case 'bronze':
+                return 'result-bronze';
+            case '4th-8th':
+                return 'result-top-eight';
+            case 'reserve':
+                return 'result-reserve';
+            case 'dns':
+                return 'result-dns';
+            case 'dnf':
+                return 'result-dnf';
+            case 'dq':
+                return 'result-dq';
+            default:
+                return '';
         }
     }
 
