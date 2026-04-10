@@ -54,7 +54,7 @@
         </div>
     </nav>
 
-    <nav class="detail-view-tabs" *ngIf="sport()" [class.is-loading]="loading()"
+    <nav class="detail-view-tabs" *ngIf="sport() && !usesUnifiedCurrentLayout()" [class.is-loading]="loading()"
         [class.single-tab]="isLegacyOnlySport()">
         <button type="button" class="detail-tab" *ngIf="!isLegacyOnlySport()" [class.active]="isActiveView('current')"
             [disabled]="loading()" (click)="setActiveView('current')">
@@ -72,7 +72,8 @@
         </button>
     </nav>
 
-    <header class="premium-hero current-hero" *ngIf="sport() && activeView() === 'current'">
+    <header class="premium-hero current-hero" *ngIf="sport() && showCurrentHero()"
+        [class.unified-current-hero]="usesUnifiedCurrentLayout()">
         <div class="hero-bg-accent"></div>
 
         <div class="hero-grid">
@@ -91,11 +92,10 @@
                 <div class="hero-stage-copy current-hero-stage-copy">
                     <p class="hero-kicker">Current</p>
                     <h1>{{ sport()?.name }}</h1>
-                    <p class="hero-tagline">{{ currentHeroDescription() }}</p>
                 </div>
             </div>
 
-            <div class="hero-stats-card current-snapshot-card">
+            <div class="hero-stats-card current-snapshot-card" [class.unified-summary-card]="usesUnifiedCurrentLayout()">
                 <section class="hero-discipline-filter in-card" *ngIf="hasHeroDisciplineFilters()">
                     <div class="hero-discipline-filter-label">Sub-disciplines</div>
                     <div class="hero-discipline-filter-row">
@@ -112,37 +112,127 @@
                     </div>
                 </section>
 
-                <div class="stats-header">Live Snapshot</div>
+                <div class="stats-header">{{ currentHeroCardHeader() }}</div>
 
-                <div class="current-snapshot-main" *ngIf="currentHeroNextCheckpoint() as checkpoint">
-                    <span class="current-snapshot-label">Next up</span>
-                    <div class="current-snapshot-title">{{ checkpoint.label }}</div>
-                    <div class="current-snapshot-meta">
-                        <span>{{ checkpoint.dateLabel }}</span>
-                        <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
-                    </div>
-                </div>
+                <ng-container *ngIf="usesUnifiedCurrentLayout(); else fullCurrentHeroSnapshot">
+                    <ng-container *ngIf="heroActiveAthletePreviews().length > 0; else noActiveAthletesYet">
+                        <div class="hero-active-athlete-list">
+                            <div class="hero-active-athlete-card" *ngFor="let athlete of heroActiveAthletePreviews()">
+                                <img *ngIf="athlete.photoUrl; else heroAthleteFallback" [src]="athlete.photoUrl"
+                                    [alt]="athlete.fullName" class="hero-active-athlete-photo">
+                                <ng-template #heroAthleteFallback>
+                                    <div class="hero-active-athlete-fallback">{{ athlete.initial }}</div>
+                                </ng-template>
+                                <div class="hero-active-athlete-copy">
+                                    <div class="hero-active-athlete-name">{{ athlete.fullName }}</div>
+                                    <div class="hero-active-athlete-meta" *ngIf="athlete.meta">{{ athlete.meta }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
 
-                <div class="current-snapshot-focus" *ngIf="currentHeroFocusItems().length > 0">
-                    <span class="current-snapshot-focus-label">In focus</span>
-                    <div class="current-snapshot-focus-list">
-                        <span class="current-snapshot-focus-chip" *ngFor="let item of currentHeroFocusItems()">{{ item
-                            }}</span>
-                    </div>
-                </div>
+                    <ng-template #noActiveAthletesYet>
+                        <div class="hero-active-athlete-empty">
+                            <div class="hero-active-athlete-empty-title">No active athletes tracked yet</div>
+                            <p>We have not added current athlete tracking for this sport yet.</p>
+                        </div>
+                    </ng-template>
 
-                <div class="current-snapshot-stats">
-                    <div class="current-snapshot-stat">
-                        <span class="snapshot-stat-label">{{ currentHeroActiveAthletesStat().label }}</span>
-                        <span class="snapshot-stat-value">{{ currentHeroActiveAthletesStat().value }}</span>
-                        <span class="snapshot-stat-note">{{ currentHeroActiveAthletesStat().note }}</span>
+                    <div class="current-snapshot-context" *ngIf="lightCurrentContextNote() as note">
+                        <p>{{ note }}</p>
                     </div>
-                    <div class="current-snapshot-stat">
-                        <span class="snapshot-stat-label">{{ currentHeroActivityStat().label }}</span>
-                        <span class="snapshot-stat-value">{{ currentHeroActivityStat().value }}</span>
-                        <span class="snapshot-stat-note">{{ currentHeroActivityStat().note }}</span>
+
+                    <div class="hero-summary-subheader">Performance Summary</div>
+
+                    <div class="legacy-snapshot-group legacy-snapshot-overview">
+                        <div class="legacy-snapshot-stat">
+                            <span class="legacy-snapshot-label">Olympic debut</span>
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' : legacyOlympicDebutLabel() }}</span>
+                        </div>
+                        <div class="legacy-snapshot-stat">
+                            <span class="legacy-snapshot-label">Total editions</span>
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' : heroPerformanceSummary().editionCount
+                                }}</span>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="legacy-snapshot-group legacy-snapshot-medals">
+                        <span class="legacy-snapshot-label">Medals</span>
+                        <div class="legacy-medals-row">
+                            <div class="legacy-medal-stat gold">
+                                <span class="legacy-medal-value">{{ loading() ? '—' :
+                                    heroPerformanceSummary().medalCount.gold }}</span>
+                                <span class="legacy-medal-label">Gold</span>
+                            </div>
+                            <div class="legacy-medal-stat silver">
+                                <span class="legacy-medal-value">{{ loading() ? '—' :
+                                    heroPerformanceSummary().medalCount.silver }}</span>
+                                <span class="legacy-medal-label">Silver</span>
+                            </div>
+                            <div class="legacy-medal-stat bronze">
+                                <span class="legacy-medal-value">{{ loading() ? '—' :
+                                    heroPerformanceSummary().medalCount.bronze }}</span>
+                                <span class="legacy-medal-label">Bronze</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="legacy-snapshot-group legacy-snapshot-overview legacy-snapshot-foot">
+                        <div class="legacy-snapshot-stat">
+                            <span class="legacy-snapshot-label">Athletes</span>
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' : heroPerformanceSummary().athleteCount
+                                }}</span>
+                        </div>
+                        <div class="legacy-snapshot-stat">
+                            <span class="legacy-snapshot-label">Participations</span>
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' :
+                                heroPerformanceSummary().participationCount }}</span>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <ng-template #fullCurrentHeroSnapshot>
+                    <div class="current-snapshot-main"
+                        *ngIf="supportsFullCurrentCoverage() && currentHeroPrimaryCheckpoint() as checkpoint">
+                        <span class="current-snapshot-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
+                        <div class="current-snapshot-title">{{ checkpoint.label }}</div>
+                        <div class="current-snapshot-meta">
+                            <span>{{ checkpoint.dateLabel }}</span>
+                            <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                        </div>
+                    </div>
+
+                    <div class="current-snapshot-secondary"
+                        *ngIf="supportsFullCurrentCoverage() && currentHeroSecondaryCheckpoint() as checkpoint">
+                        <span class="current-snapshot-secondary-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
+                        <div class="current-snapshot-secondary-title">{{ checkpoint.label }}</div>
+                        <div class="current-snapshot-secondary-meta">
+                            <span>{{ checkpoint.dateLabel }}</span>
+                            <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                        </div>
+                    </div>
+
+                    <div class="current-snapshot-focus" *ngIf="currentHeroFocusItems().length > 0">
+                        <span class="current-snapshot-focus-label">In focus</span>
+                        <div class="current-snapshot-focus-list">
+                            <span class="current-snapshot-focus-chip" *ngFor="let item of currentHeroFocusItems()">{{ item
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <div class="current-snapshot-stats">
+                        <div class="current-snapshot-stat">
+                            <span class="snapshot-stat-label">{{ currentHeroActiveAthletesStat().label }}</span>
+                            <span class="snapshot-stat-value">{{ currentHeroActiveAthletesStat().value }}</span>
+                            <span class="snapshot-stat-note">{{ currentHeroActiveAthletesStat().note }}</span>
+                        </div>
+                        <div class="current-snapshot-stat">
+                            <span class="snapshot-stat-label">{{ currentHeroActivityStat().label }}</span>
+                            <span class="snapshot-stat-value">{{ currentHeroActivityStat().value }}</span>
+                            <span class="snapshot-stat-note">{{ currentHeroActivityStat().note }}</span>
+                        </div>
+                    </div>
+                </ng-template>
             </div>
         </div>
     </header>
@@ -169,7 +259,6 @@
                     </span>
                     <p class="hero-kicker">Legacy</p>
                     <h1>{{ sport()?.name }}</h1>
-                    <p class="hero-tagline">{{ getLegacySubtitle() }}</p>
                 </div>
             </div>
 
@@ -243,7 +332,7 @@
 
     <!-- Toggle Full History Button -->
     <div class="history-toggle"
-        *ngIf="activeView() === 'legacy' && focusedEditionSlug() && legacyLoaded() && legacyEditionSummaries().length > 1">
+        *ngIf="showLegacyArchiveSections() && focusedEditionSlug() && legacyLoaded() && legacyEditionSummaries().length > 1">
         <button mat-stroked-button (click)="toggleFullHistory()">
             <mat-icon>{{ showFullHistory() ? 'filter_list' : 'history' }}</mat-icon>
             {{ showFullHistory() ? 'Show This Edition Only' : 'View Full Olympic History (' +
@@ -252,7 +341,8 @@
         </button>
     </div>
 
-    <section class="current-cycle-shell" *ngIf="activeView() === 'current' && !loading() && hasRoadToLa28Content()">
+    <section class="current-cycle-shell"
+        *ngIf="activeView() === 'current' && !usesUnifiedCurrentLayout() && !loading() && hasRoadToLa28Content()">
         <div class="current-content-switcher" *ngIf="hasCurrentCalendar() && hasCurrentAthletes()">
             <button type="button" class="current-content-switch" [class.active]="isActiveCurrentContentView('calendar')"
                 [attr.aria-pressed]="isActiveCurrentContentView('calendar')"
@@ -476,17 +566,18 @@
         </div>
     </section>
 
-    <section class="current-empty-state" *ngIf="activeView() === 'current' && !loading() && !hasRoadToLa28Content()">
+    <section class="current-empty-state"
+        *ngIf="activeView() === 'current' && !usesUnifiedCurrentLayout() && !loading() && !hasRoadToLa28Content()">
         <mat-icon>event_busy</mat-icon>
         <h2>Current view is still being assembled</h2>
         <p>We have not added enough live calendar and athlete tracking for this sport yet.</p>
     </section>
 
     <!-- Olympic Moments in This Sport -->
-    <section class="golden-moments" *ngIf="activeView() === 'legacy' && legacyLoaded() && goldenMoments().length > 0">
+    <section class="golden-moments" *ngIf="showLegacyArchiveSections() && legacyLoaded() && goldenMoments().length > 0">
         <h2>Olympic Moments</h2>
         <div class="moments-carousel">
-            <article class="moment-card" *ngFor="let moment of goldenMoments()"
+            <article class="moment-card" *ngFor="let moment of sortedGoldenMoments()"
                 [class.moment-gold]="moment.type === 'gold' || !moment.type"
                 [class.moment-silver]="moment.type === 'silver'" [class.moment-bronze]="moment.type === 'bronze'"
                 [class.moment-heartbreak]="moment.type === 'heartbreak'">
@@ -510,19 +601,22 @@
     </section>
 
     <!-- Timeline of Editions -->
-    <section class="legacy-loading-state" *ngIf="activeView() === 'legacy' && legacyLoading()">
+    <section class="legacy-loading-state" *ngIf="showLegacyArchiveSections() && legacyLoading()">
         <mat-spinner diameter="36"></mat-spinner>
         <p>Loading Olympic archive...</p>
     </section>
 
-    <section class="legacy-error-state" *ngIf="activeView() === 'legacy' && !legacyLoading() && legacyError()">
+    <section class="legacy-error-state" *ngIf="showLegacyArchiveSections() && !legacyLoading() && legacyError()">
         <mat-icon>error_outline</mat-icon>
         <h2>Legacy archive unavailable</h2>
         <p>{{ legacyError() }}</p>
     </section>
 
     <section class="edition-timeline"
-        *ngIf="activeView() === 'legacy' && legacyLoaded() && displayedEditions().length > 0">
+        *ngIf="showLegacyArchiveSections() && legacyLoaded() && displayedEditions().length > 0">
+        <div class="edition-archive-header">
+            <h2>Olympic Editions</h2>
+        </div>
         <article class="edition-card" *ngFor="let group of displayedEditions()">
             <!-- Edition Header -->
             <header class="edition-header">
@@ -731,7 +825,7 @@
     </section>
 
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="activeView() === 'legacy' && legacyLoaded() && displayedEditions().length === 0">
+    <div class="empty-state" *ngIf="showLegacyArchiveSections() && legacyLoaded() && displayedEditions().length === 0">
         <mat-icon>sports_off</mat-icon>
         <h2>No Participation Found</h2>
         <p>India did not participate in this sport during the selected editions.</p>

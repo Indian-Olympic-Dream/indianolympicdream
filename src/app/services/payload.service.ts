@@ -22,6 +22,12 @@ export interface Sport {
   currentHeroImage?: { url: string } | null;
   legacyHeroImage?: { url: string } | null;
   description?: string;
+  currentFocusAthletes?: {
+    id: string;
+    fullName: string;
+    slug: string;
+    photo?: { url: string } | null;
+  }[];
   indiaTier?: IndiaTier | null;
   olympicStatus?: SportLifecycle | null;
   parentSport?: Sport | null;
@@ -250,6 +256,7 @@ const SPORTS_QUERY = gql`
         heroImage { url }
         currentHeroImage { url }
         legacyHeroImage { url }
+        currentFocusAthletes { id fullName slug photo { url } }
         parentSport { id name slug indiaTier olympicStatus pictogram { url } heroImage { url } currentHeroImage { url } legacyHeroImage { url } }
       }
     }
@@ -272,6 +279,7 @@ const SPORT_BY_SLUG_QUERY = gql`
         heroImage { url }
         currentHeroImage { url }
         legacyHeroImage { url }
+        currentFocusAthletes { id fullName slug photo { url } }
         parentSport { id name slug indiaTier olympicStatus pictogram { url } heroImage { url } currentHeroImage { url } legacyHeroImage { url } }
       }
     }

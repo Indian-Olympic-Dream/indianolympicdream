@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, QueryList, ViewChild, ViewChildren, inject, signal, computed } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, QueryList, ViewChild, ViewChildren, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -111,6 +111,7 @@ interface La28TimelineItem {
 }
 
 interface CurrentCheckpointItem {
+    eyebrow?: string;
     label: string;
     dateLabel: string;
     sortValue: number;
@@ -151,6 +152,7 @@ interface CurrentDisciplineSummary {
     pathwayCount: number;
     eventCount: number;
     contenderCount: number;
+    athleteCount: number;
     totalSignals: number;
 }
 
@@ -160,6 +162,14 @@ interface CurrentDisciplineNavItem {
     slug: string;
     pictogramUrl: string | null;
     isOverview?: boolean;
+}
+
+interface HeroAthletePreview {
+    id: string;
+    fullName: string;
+    photoUrl: string | null;
+    meta?: string;
+    initial: string;
 }
 
 interface HeroDisciplineFilterItem {
@@ -203,6 +213,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
+    private platformId = inject(PLATFORM_ID);
     private sportsById = signal<Map<string, Sport>>(new Map());
     private lastLoadedSportSlug: string | null = null;
     private resolvedCurrentHeroImageUrl = signal<string | null>(null);
@@ -244,6 +255,15 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     sportSwitchExpanded = signal(false);
 
     isLegacyOnlySport = computed(() => this.resolveSportLifecycle(this.sport()) === 'discontinued');
+    usesUnifiedCurrentLayout = computed(() =>
+        !this.isLegacyOnlySport() && !this.supportsFullCurrentCoverage()
+    );
+    showCurrentHero = computed(() =>
+        !this.isLegacyOnlySport() && (this.activeView() === 'current' || this.usesUnifiedCurrentLayout())
+    );
+    showLegacyArchiveSections = computed(() =>
+        this.activeView() === 'legacy' || this.usesUnifiedCurrentLayout()
+    );
 
     hasSubDisciplineView = computed(() => {
         const selectedSport = this.sport();
@@ -316,9 +336,16 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     activeDisciplineId = computed(() => {
         const selected = this.selectedDisciplineId();
         if (selected === 'all') return 'all';
-        const exists =
-            this.displayedDisciplineSummary().some(discipline => discipline.id === selected) ||
-            this.currentDisciplineNavItems().some(discipline => discipline.id === selected);
+
+        const existsInCurrent = this.currentDisciplineNavItems().some(discipline => discipline.id === selected);
+        const existsInLegacy = this.displayedDisciplineSummary().some(discipline => discipline.id === selected);
+        const existsInUnified = this.unifiedHeroDisciplineItems().some(discipline => discipline.id === selected);
+
+        const exists = this.usesUnifiedCurrentLayout()
+            ? existsInUnified
+            : this.activeView() === 'legacy'
+                ? existsInLegacy
+                : existsInCurrent;
         return exists ? selected : 'all';
     });
 
@@ -670,10 +697,12 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
                     pathwayCount: 0,
                     eventCount: 0,
                     contenderCount: 0,
+                    athleteCount: 0,
                     totalSignals: 0,
                 },
             ])
         );
+        const athleteIdsByDiscipline = new Map<string, Set<string>>();
 
         const trackDiscipline = (rawSport: Sport | null | undefined, kind: 'pathway' | 'event' | 'contender') => {
             const resolvedSport = this.resolveSportWithCatalog(rawSport || null);
@@ -689,9 +718,33 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             row.totalSignals += 1;
         };
 
+        const trackAthleteDiscipline = (rawSport: Sport | null | undefined, athleteId?: string | null) => {
+            const resolvedSport = this.resolveSportWithCatalog(rawSport || null);
+            if (!resolvedSport?.id) return;
+            if (this.getParentSportId(resolvedSport) !== selectedSport.id) return;
+
+            const row = summary.get(resolvedSport.id);
+            if (!row) return;
+
+            const disciplineAthletes = athleteIdsByDiscipline.get(resolvedSport.id) || new Set<string>();
+            athleteIdsByDiscipline.set(resolvedSport.id, disciplineAthletes);
+            const identity = athleteId || `${resolvedSport.id}-${disciplineAthletes.size}`;
+            if (disciplineAthletes.has(identity)) return;
+
+            disciplineAthletes.add(identity);
+            row.athleteCount += 1;
+            row.totalSignals += 1;
+        };
+
         this.la28QualificationPathways().forEach(pathway => trackDiscipline(pathway.sport || null, 'pathway'));
         this.la28CalendarEvents().forEach(event => trackDiscipline(event.sport || null, 'event'));
         this.la28ContenderUnits().forEach(unit => trackDiscipline(unit.sport || null, 'contender'));
+        this.activeAthletes().forEach(athlete =>
+            (athlete.sports || []).forEach(rawSport => trackAthleteDiscipline(rawSport || null, athlete.id))
+        );
+        this.la28ContenderUnits().forEach(unit =>
+            (unit.athletes || []).forEach(athlete => trackAthleteDiscipline(unit.sport || null, athlete?.id))
+        );
 
         return Array.from(summary.values())
             .filter(row => row.totalSignals > 0)
@@ -711,12 +764,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         if (childDisciplines.length === 0) return [];
 
         const summaryById = new Map(this.currentDisciplineSummary().map(row => [row.id, row]));
-        const legacyParticipationById = new Map(
-            this.displayedDisciplineSummary().map(row => [row.id, row.athleteEntries])
-        );
         const filteredChildDisciplines = childDisciplines.filter(discipline => {
-            const legacyParticipationCount = legacyParticipationById.get(discipline.id) || 0;
-            return legacyParticipationCount > 0 || summaryById.has(discipline.id);
+            return summaryById.has(discipline.id);
         });
 
         if (filteredChildDisciplines.length === 0) return [];
@@ -741,10 +790,10 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
                         slug: discipline.slug,
                         pictogramUrl:
                             this.payload.getSportPictogramUrl({
-                            sport: discipline,
-                            parentSport: selectedSport,
-                            includePlaceholderFallback: false,
-                        }) || null,
+                                sport: discipline,
+                                parentSport: selectedSport,
+                                includePlaceholderFallback: false,
+                            }) || null,
                     };
                 })
                 .sort((a, b) => a.name.localeCompare(b.name)),
@@ -781,7 +830,28 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         ];
     });
 
+    unifiedHeroDisciplineItems = computed<HeroDisciplineFilterItem[]>(() => {
+        const currentItems = this.currentHeroDisciplineItems();
+        const legacyItems = this.legacyHeroDisciplineItems();
+        if (legacyItems.length === 0) return currentItems;
+        if (currentItems.length === 0) return legacyItems;
+
+        const merged = new Map<string, HeroDisciplineFilterItem>();
+        const addItem = (item: HeroDisciplineFilterItem) => {
+            if (merged.has(item.id)) return;
+            merged.set(item.id, item);
+        };
+
+        legacyItems.forEach(addItem);
+        currentItems.forEach(addItem);
+
+        return Array.from(merged.values());
+    });
+
     heroDisciplineItems = computed<HeroDisciplineFilterItem[]>(() => {
+        if (this.usesUnifiedCurrentLayout()) {
+            return this.unifiedHeroDisciplineItems();
+        }
         if (this.activeView() === 'current') {
             return this.currentHeroDisciplineItems();
         }
@@ -855,20 +925,19 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return FULL_CURRENT_COVERAGE_SLUGS.has(rootSlug);
     });
 
-    visibleCurrentCalendarCards = computed<CurrentCalendarCard[]>(() =>
-        {
-            if (!this.supportsFullCurrentCoverage()) return [];
+    visibleCurrentCalendarCards = computed<CurrentCalendarCard[]>(() => {
+        if (!this.supportsFullCurrentCoverage()) return [];
 
-            const selectedSport = this.sport();
-            const activeDisciplineId = this.activeDisciplineId();
-            const cards = this.currentCalendarCards();
+        const selectedSport = this.sport();
+        const activeDisciplineId = this.activeDisciplineId();
+        const cards = this.currentCalendarCards();
 
-            if (!selectedSport || activeDisciplineId === 'all' || !this.hasSubDisciplineView()) {
-                return cards;
-            }
-
-            return cards.filter(card => card.disciplineId === activeDisciplineId);
+        if (!selectedSport || activeDisciplineId === 'all' || !this.hasSubDisciplineView()) {
+            return cards;
         }
+
+        return cards.filter(card => card.disciplineId === activeDisciplineId);
+    }
     );
 
     currentCalendarFilterOptions = computed(() => ([
@@ -952,6 +1021,16 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         const upcoming = this.visibleCurrentCalendarCards().filter(card => card.timeGroup !== 'completed');
         return upcoming[0] || null;
     });
+
+    liveCurrentEvent = computed<CurrentCalendarCard | null>(() =>
+        this.visibleCurrentCalendarCards().find(card => card.timeGroup === 'live') || null
+    );
+
+    nextUpcomingCurrentEvent = computed<CurrentCalendarCard | null>(() =>
+        this.visibleCurrentCalendarCards().find(card =>
+            card.timeGroup !== 'completed' && card.timeGroup !== 'live'
+        ) || null
+    );
 
     hasRoadToLa28Content = computed(() =>
         this.hasCurrentDisciplineSummary() ||
@@ -1190,21 +1269,56 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return `${sportName}'s live front page.`;
     });
 
-    currentHeroNextCheckpoint = computed<CurrentCheckpointItem | null>(() => {
-        const nextEvent = this.nextCurrentEvent();
-        if (nextEvent) {
-            return {
-                label: nextEvent.event.title,
-                dateLabel: nextEvent.dateLabel,
-                sortValue: nextEvent.sortValue,
-                note: nextEvent.locationLabel || nextEvent.relativeLabel,
-            };
+    currentHeroPrimaryCheckpoint = computed<CurrentCheckpointItem | null>(() => {
+        const liveEvent = this.liveCurrentEvent();
+        if (liveEvent) {
+            return this.toCurrentCheckpointItem(liveEvent, 'Live now');
         }
 
-        return this.nextProgrammeMilestone();
+        const nextEvent = this.nextUpcomingCurrentEvent() || this.nextCurrentEvent();
+        if (nextEvent) {
+            return this.toCurrentCheckpointItem(nextEvent, 'Next up');
+        }
+
+        const milestone = this.nextProgrammeMilestone();
+        return milestone ? { ...milestone, eyebrow: 'Next up' } : null;
+    });
+
+    currentHeroSecondaryCheckpoint = computed<CurrentCheckpointItem | null>(() => {
+        if (!this.liveCurrentEvent()) return null;
+
+        const nextEvent = this.nextUpcomingCurrentEvent();
+        if (nextEvent) {
+            return this.toCurrentCheckpointItem(nextEvent, 'Next up');
+        }
+
+        const milestone = this.nextProgrammeMilestone();
+        return milestone ? { ...milestone, eyebrow: 'Next up' } : null;
     });
 
     currentHeroFocusItems = computed<string[]>(() => {
+        const selectedSport = this.sport();
+        const selectedDisciplineId = this.activeDisciplineId();
+        const shouldFilterByDiscipline =
+            !!selectedSport && selectedDisciplineId !== 'all' && this.hasSubDisciplineView();
+        const activeAthletesById = new Map(
+            [...this.baseRoadToLa28Athletes(), ...this.activeAthletes()].map(athlete => [athlete.id, athlete])
+        );
+        const editorialNames = (this.sport()?.currentFocusAthletes || [])
+            .filter(athlete => {
+                if (!athlete?.fullName) return false;
+                if (!shouldFilterByDiscipline || !selectedSport) return true;
+                const activeAthlete = athlete.id ? activeAthletesById.get(athlete.id) : null;
+                if (!activeAthlete) return false;
+                return this.athleteMatchesDisciplineFilter(activeAthlete, selectedSport, selectedDisciplineId);
+            })
+            .map(athlete => athlete?.fullName)
+            .filter((name): name is string => !!name);
+
+        if (editorialNames.length > 0) {
+            return Array.from(new Set(editorialNames)).slice(0, 6);
+        }
+
         const unitNames = this.filteredCurrentContenderUnits()
             .map(unit => unit.displayName)
             .filter((name): name is string => !!name);
@@ -1248,7 +1362,108 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         note: 'tracked now',
     }));
 
+    sortedGoldenMoments = computed<GoldenMoment[]>(() => {
+        const typeOrder: Record<GoldenMoment['type'], number> = {
+            gold: 0,
+            silver: 1,
+            bronze: 2,
+            heartbreak: 3,
+        };
+
+        return [...this.goldenMoments()].sort((a, b) => {
+            const typeDelta = typeOrder[a.type] - typeOrder[b.type];
+            if (typeDelta !== 0) return typeDelta;
+            return b.year - a.year;
+        });
+    });
+
+    currentHeroCardHeader = computed(() =>
+        this.supportsFullCurrentCoverage() ? 'Live Snapshot' : 'Active Athletes'
+    );
+
+    heroActiveAthletePreviews = computed<HeroAthletePreview[]>(() => {
+        const selectedSport = this.sport();
+        const selectedDisciplineId = this.activeDisciplineId();
+        const shouldFilterByDiscipline =
+            !!selectedSport && selectedDisciplineId !== 'all' && this.hasSubDisciplineView();
+        const activeById = new Map(this.roadToLa28Athletes().map(athlete => [athlete.id, athlete]));
+        const allActiveById = new Map(this.activeAthletes().map(athlete => [athlete.id, athlete]));
+        const toPreview = (
+            id: string,
+            fullName: string,
+            photoUrl: string | null,
+            meta?: string
+        ): HeroAthletePreview => ({
+            id,
+            fullName,
+            photoUrl,
+            meta,
+            initial: fullName.trim().charAt(0).toUpperCase() || 'A',
+        });
+
+        const editorialFocus = (this.sport()?.currentFocusAthletes || [])
+            .filter(athlete => {
+                if (!athlete?.id || !athlete.fullName) return false;
+                if (!shouldFilterByDiscipline || !selectedSport) return true;
+                const activeAthlete = activeById.get(athlete.id) || allActiveById.get(athlete.id);
+                if (!activeAthlete) return false;
+                return this.athleteMatchesDisciplineFilter(activeAthlete, selectedSport, selectedDisciplineId);
+            })
+            .map(athlete => {
+                if (!athlete?.id || !athlete.fullName) return null;
+                const activeAthlete = activeById.get(athlete.id) || allActiveById.get(athlete.id);
+                return toPreview(
+                    athlete.id,
+                    athlete.fullName,
+                    activeAthlete ? this.getActiveAthleteImageUrl(activeAthlete) : this.payload.getMediaUrl(athlete.photo || null),
+                    activeAthlete ? this.getRoadToLa28AthleteMeta(activeAthlete) : undefined
+                );
+            })
+            .filter((athlete): athlete is HeroAthletePreview => !!athlete);
+
+        if (editorialFocus.length > 0) {
+            return editorialFocus.slice(0, 4);
+        }
+
+        return this.roadToLa28Athletes()
+            .slice(0, 4)
+            .map(athlete =>
+                toPreview(
+                    athlete.id,
+                    athlete.fullName,
+                    this.getActiveAthleteImageUrl(athlete),
+                    this.getRoadToLa28AthleteMeta(athlete)
+                )
+            );
+    });
+
+    lightCurrentContextNote = computed(() => {
+        if (!this.usesUnifiedCurrentLayout()) return null;
+
+        const cycleNote = this.currentCycleContextNote();
+        if (cycleNote) return cycleNote;
+
+        const athleteCount = this.roadToLa28Athletes().length;
+        if (athleteCount > 0) {
+            const sportName = this.sport()?.name || 'This sport';
+            return `Tracking ${athleteCount} active athletes in ${sportName} right now.`;
+        }
+
+        return null;
+    });
+
     heroPerformanceSummary = computed(() => {
+        const selectedDiscipline = this.activeDisciplineId();
+        if (this.hasSubDisciplineView() && selectedDiscipline !== 'all') {
+            const medals = this.totalMedals();
+            return {
+                editionCount: this.displayedEditions().length,
+                athleteCount: this.displayedAthletesCount(),
+                participationCount: this.displayedParticipationsCount(),
+                medalCount: medals,
+            };
+        }
+
         const summary = this.legacySummary();
         if (summary) {
             return summary;
@@ -1448,6 +1663,10 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     }
 
     getSportSwitchQueryParams(): { view: SportDetailView; edition?: string } | null {
+        if (this.usesUnifiedCurrentLayout()) {
+            return { view: 'current' };
+        }
+
         const focusedEditionSlug = this.focusedEditionSlug();
         if (this.activeView() === 'legacy' && focusedEditionSlug && !this.showFullHistory()) {
             return { view: 'legacy', edition: focusedEditionSlug };
@@ -1509,7 +1728,15 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     }
 
     private scheduleActiveSportScroll(): void {
-        requestAnimationFrame(() => this.scrollActiveSportIntoView());
+        if (!isPlatformBrowser(this.platformId)) return;
+
+        const raf = globalThis.requestAnimationFrame?.bind(globalThis);
+        if (raf) {
+            raf(() => this.scrollActiveSportIntoView());
+            return;
+        }
+
+        setTimeout(() => this.scrollActiveSportIntoView(), 0);
     }
 
     private scrollActiveSportIntoView(): void {
@@ -2146,8 +2373,6 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     }
 
     getLa28EventImportanceLabel(event: CalendarEvent): string {
-        if (this.isLiveCalendarEvent(event)) return 'Live';
-
         switch (event.importance) {
             case 'core':
                 return 'Core';
@@ -2318,7 +2543,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             locationLabel: this.getCurrentCalendarLocationLabel(event.location, event.country),
             categoryLabel: this.getCurrentCalendarCategoryLabel(event),
             typeLabel: this.getCurrentCalendarTypeLabel(event.type, event.category) || '',
-            importanceClass: this.getCurrentCalendarImportanceClass(event.importance, this.isLiveCalendarEvent(event)),
+            importanceClass: this.getCurrentCalendarImportanceClass(event.importance),
             pictogramUrl:
                 this.payload.getSportPictogramUrl({
                     sport,
@@ -2413,9 +2638,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return months <= 1 ? 'Next month' : `In ${months} months`;
     }
 
-    private getCurrentCalendarImportanceClass(importance?: string | null, isLive = false): string {
-        if (isLive) return 'importance-live';
-
+    private getCurrentCalendarImportanceClass(importance?: string | null): string {
         switch (importance) {
             case 'core':
                 return 'importance-core';
@@ -2493,6 +2716,16 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         }
 
         return category;
+    }
+
+    private toCurrentCheckpointItem(card: CurrentCalendarCard, eyebrow: string): CurrentCheckpointItem {
+        return {
+            eyebrow,
+            label: card.event.title,
+            dateLabel: card.dateLabel,
+            sortValue: card.sortValue,
+            note: card.locationLabel || card.relativeLabel,
+        };
     }
 
     private normalizeCurrentCalendarTypeValue(value?: string | null): string {

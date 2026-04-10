@@ -76,6 +76,10 @@ $font-mono: 'JetBrains Mono', monospace;
     &::-webkit-scrollbar {
         display: none;
     }
+
+    @media (max-width: 900px) {
+        padding-right: 12px;
+    }
 }
 
 .sport-switch-chip {
@@ -200,6 +204,7 @@ $font-mono: 'JetBrains Mono', monospace;
 
 .sport-switch-more-trigger {
     cursor: pointer;
+    order: 999;
 
     .sport-switch-more-icon-frame {
         mat-icon {
@@ -218,7 +223,7 @@ $font-mono: 'JetBrains Mono', monospace;
     background: rgba(255, 255, 255, 0.025);
 }
 
-.sport-switch-overflow-group + .sport-switch-overflow-group {
+.sport-switch-overflow-group+.sport-switch-overflow-group {
     margin-top: 14px;
     padding-top: 14px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -248,7 +253,7 @@ $font-mono: 'JetBrains Mono', monospace;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     border: 1px solid rgba(255, 255, 255, 0.05);
     overflow: hidden;
-    margin-bottom: 24px;
+    margin-bottom: 4px;
 
     .hero-kicker {
         margin: 0;
@@ -801,7 +806,7 @@ $font-mono: 'JetBrains Mono', monospace;
         z-index: 3;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0px;
         padding: 24px;
         text-align: left;
 
@@ -838,7 +843,7 @@ $font-mono: 'JetBrains Mono', monospace;
 
         .edition-badge {
             align-self: flex-start;
-            margin-bottom: 2px;
+            margin-bottom: 0;
         }
     }
 
@@ -872,6 +877,10 @@ $font-mono: 'JetBrains Mono', monospace;
 }
 
 .premium-hero.current-hero {
+    &.unified-current-hero {
+        margin-bottom: 18px;
+    }
+
     .current-hero-stage {
         border-radius: 24px 0 0 24px;
 
@@ -887,10 +896,200 @@ $font-mono: 'JetBrains Mono', monospace;
     }
 
     .current-snapshot-card {
+        text-align: left;
+
+        &.unified-summary-card {
+            .hero-active-athlete-list {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .hero-active-athlete-empty {
+                @include glass-card;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                padding: 14px;
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.025);
+                text-align: left;
+
+                p {
+                    margin: 0;
+                    color: $text-secondary;
+                    font-size: 0.84rem;
+                    line-height: 1.5;
+                }
+            }
+
+            .hero-active-athlete-empty-title {
+                font-size: 0.94rem;
+                font-weight: 650;
+                color: $text-primary;
+            }
+
+            .hero-active-athlete-card {
+                @include glass-card;
+                display: grid;
+                grid-template-columns: 56px minmax(0, 1fr);
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+                padding: 12px;
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .hero-active-athlete-photo,
+            .hero-active-athlete-fallback {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                flex-shrink: 0;
+            }
+
+            .hero-active-athlete-photo {
+                object-fit: cover;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            .hero-active-athlete-fallback {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                color: $text-primary;
+                font-size: 1rem;
+                font-weight: 700;
+            }
+
+            .hero-active-athlete-copy {
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .hero-active-athlete-name {
+                font-size: 0.96rem;
+                font-weight: 650;
+                color: $text-primary;
+                line-height: 1.25;
+            }
+
+            .hero-active-athlete-meta {
+                font-size: 0.8rem;
+                line-height: 1.45;
+                color: rgba(255, 255, 255, 0.68);
+            }
+
+            .hero-summary-subheader {
+                margin-top: 14px;
+                padding-top: 14px;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+                font-family: $font-mono;
+                font-size: 0.72rem;
+                letter-spacing: 0.9px;
+                text-transform: uppercase;
+                color: $primary-accent;
+            }
+
+            .legacy-snapshot-label {
+                font-family: $font-mono;
+                font-size: 0.72rem;
+                letter-spacing: 0.9px;
+                text-transform: uppercase;
+                color: $primary-accent;
+            }
+
+            .legacy-snapshot-group+.legacy-snapshot-group {
+                margin-top: 14px;
+                padding-top: 14px;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            .legacy-snapshot-overview {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .legacy-snapshot-stat {
+                @include glass-card;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                padding: 12px;
+                border-radius: 14px;
+                background: rgba(255, 255, 255, 0.03);
+                min-width: 0;
+            }
+
+            .legacy-snapshot-value {
+                font-size: 1.12rem;
+                font-weight: 700;
+                color: $text-primary;
+                line-height: 1.25;
+            }
+
+            .legacy-snapshot-medals {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .legacy-medals-row {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .legacy-medal-stat {
+                @include glass-card;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding: 12px 10px;
+                border-radius: 14px;
+                background: rgba(255, 255, 255, 0.03);
+                min-width: 0;
+            }
+
+            .legacy-medal-value {
+                font-size: 1.35rem;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .legacy-medal-label {
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: $text-muted;
+            }
+
+            .legacy-medal-stat.gold .legacy-medal-value {
+                color: $gold-color;
+            }
+
+            .legacy-medal-stat.silver .legacy-medal-value {
+                color: $silver-color;
+            }
+
+            .legacy-medal-stat.bronze .legacy-medal-value {
+                color: $bronze-color;
+            }
+        }
+
         .current-snapshot-main {
             @include glass-card;
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
             gap: 6px;
             padding: 14px 16px;
             border-radius: 16px;
@@ -898,7 +1097,15 @@ $font-mono: 'JetBrains Mono', monospace;
             border: 1px solid rgba(234, 221, 255, 0.16);
         }
 
+        .current-snapshot-secondary {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 0 2px;
+        }
+
         .current-snapshot-label,
+        .current-snapshot-secondary-label,
         .current-snapshot-focus-label,
         .snapshot-stat-label {
             font-family: $font-mono;
@@ -914,12 +1121,42 @@ $font-mono: 'JetBrains Mono', monospace;
             color: $text-primary;
         }
 
+        .current-snapshot-secondary-title {
+            font-size: 0.88rem;
+            font-weight: 550;
+            color: rgba(255, 255, 255, 0.88);
+            line-height: 1.35;
+        }
+
         .current-snapshot-meta {
             display: flex;
             flex-wrap: wrap;
+            justify-content: flex-start;
             gap: 8px;
             font-size: 0.82rem;
             color: $text-secondary;
+        }
+
+        .current-snapshot-secondary-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 8px;
+            font-size: 0.76rem;
+            color: $text-muted;
+        }
+
+        .current-snapshot-context {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+            p {
+                margin: 0;
+                color: $text-secondary;
+                font-size: 0.88rem;
+                line-height: 1.55;
+            }
         }
 
         .current-snapshot-focus {
@@ -931,6 +1168,7 @@ $font-mono: 'JetBrains Mono', monospace;
         .current-snapshot-focus-list {
             display: flex;
             flex-wrap: wrap;
+            justify-content: flex-start;
             gap: 8px;
             margin-top: 10px;
         }
@@ -1496,7 +1734,8 @@ $font-mono: 'JetBrains Mono', monospace;
         overflow-x: auto;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+        padding: 4px 0 6px;
+        min-height: 54px;
         margin-bottom: 18px;
 
         &::-webkit-scrollbar {
@@ -1519,10 +1758,12 @@ $font-mono: 'JetBrains Mono', monospace;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
         transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
-        &:hover {
-            color: $text-primary;
-            border-color: rgba(255, 255, 255, 0.16);
-            transform: translateY(-1px);
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                color: $text-primary;
+                border-color: rgba(255, 255, 255, 0.16);
+                transform: translateY(-1px);
+            }
         }
 
         &.active {
@@ -1827,7 +2068,7 @@ $font-mono: 'JetBrains Mono', monospace;
 
     .current-event-location {
         display: inline-flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 5px;
         min-width: 0;
 
@@ -1845,6 +2086,11 @@ $font-mono: 'JetBrains Mono', monospace;
             overflow-wrap: anywhere;
             word-break: break-word;
             white-space: normal;
+        }
+
+        @media (max-width: 640px) {
+            flex-basis: 100%;
+            align-items: flex-start;
         }
     }
 
@@ -2347,6 +2593,14 @@ $font-mono: 'JetBrains Mono', monospace;
     h2 {
         @include section-title;
     }
+
+    .edition-archive-header {
+        margin-bottom: 14px;
+
+        h2 {
+            margin-bottom: 0;
+        }
+    }
 }
 
 .edition-card {
@@ -2688,7 +2942,7 @@ $font-mono: 'JetBrains Mono', monospace;
 
 // Golden Moments Carousel
 .golden-moments {
-    margin-bottom: 32px;
+    margin-bottom: 0px;
 
     h2 {
         @include section-title;
@@ -2699,7 +2953,7 @@ $font-mono: 'JetBrains Mono', monospace;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 16px;
-        padding-bottom: 24px;
+        // padding-bottom: 24px;
     }
 
     .moment-card {
@@ -2709,33 +2963,57 @@ $font-mono: 'JetBrains Mono', monospace;
         flex-direction: column;
         gap: 6px;
         transition: all 0.3s ease;
-        
+
         &.moment-gold {
             border-color: rgba(255, 215, 0, 0.18);
             background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $bg-card 100%);
-            .moment-year { color: $gold-color; }
-            .moment-location { color: rgba(255, 215, 0, 0.85); }
+
+            .moment-year {
+                color: $gold-color;
+            }
+
+            .moment-location {
+                color: rgba(255, 215, 0, 0.85);
+            }
         }
-        
+
         &.moment-silver {
             border-color: rgba(200, 200, 200, 0.22);
             background: linear-gradient(135deg, rgba(200, 200, 200, 0.09) 0%, $bg-card 100%);
-            .moment-year { color: $silver-color; }
-            .moment-location { color: rgba(200, 200, 200, 0.85); }
+
+            .moment-year {
+                color: $silver-color;
+            }
+
+            .moment-location {
+                color: rgba(200, 200, 200, 0.85);
+            }
         }
-        
+
         &.moment-bronze {
             border-color: rgba(205, 127, 50, 0.25);
             background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, $bg-card 100%);
-            .moment-year { color: $bronze-color; }
-            .moment-location { color: rgba(205, 127, 50, 0.85); }
+
+            .moment-year {
+                color: $bronze-color;
+            }
+
+            .moment-location {
+                color: rgba(205, 127, 50, 0.85);
+            }
         }
-        
+
         &.moment-heartbreak {
             border-color: rgba(84, 161, 255, 0.2);
             background: linear-gradient(135deg, rgba(84, 161, 255, 0.06) 0%, $bg-card 100%);
-            .moment-year { color: #9fccff; }
-            .moment-location { color: rgba(84, 161, 255, 0.85); }
+
+            .moment-year {
+                color: #9fccff;
+            }
+
+            .moment-location {
+                color: rgba(84, 161, 255, 0.85);
+            }
         }
     }
 
