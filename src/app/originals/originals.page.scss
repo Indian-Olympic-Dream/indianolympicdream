@@ -151,12 +151,39 @@
 }
 
 .sport-filter-more-icon-frame {
-  mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-    color: inherit;
+  .sport-filter-all-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    color: rgba(255, 255, 255, 0.82);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+    transform: scale(1.02);
+    transition: color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+
+    .all-icon-lines {
+      stroke: currentColor;
+      stroke-width: 1.55;
+      stroke-linecap: round;
+      opacity: 0.42;
+    }
+
+    .all-icon-nodes {
+      fill: currentColor;
+    }
   }
+}
+
+.sport-filter-chip:hover .sport-filter-all-icon {
+  color: rgba(255, 255, 255, 0.92);
+  transform: scale(1.06);
+}
+
+.sport-filter-chip.active .sport-filter-all-icon {
+  color: var(--org-accent-soft);
+  transform: scale(1.1);
+  filter:
+    drop-shadow(0 0 0.5px rgba(241, 212, 90, 0.55))
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.24));
 }
 
 .sport-filter-label {
