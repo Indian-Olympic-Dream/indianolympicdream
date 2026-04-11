@@ -2423,6 +2423,9 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
 
     getCurrentCalendarEventLinkLabel(card: CurrentCalendarCard): string | null {
         if (card.navigation.kind === 'external') {
+            if (card.event.whereToWatch?.url) {
+                return (card.event.whereToWatch.label || '').trim() || (card.timeGroup === 'completed' ? 'Watch Replay' : 'Where to Watch');
+            }
             return card.timeGroup === 'completed' ? 'Official Results' : 'Official Source';
         }
         return null;

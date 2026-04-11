@@ -88,6 +88,18 @@
           Open official event page
         </a>
       </section>
+
+      <section class="glass-card" *ngIf="event.whereToWatch?.url">
+        <p class="section-kicker">Where to watch</p>
+        <h2>{{ event.whereToWatch?.label || 'Watch this event' }}</h2>
+        <p *ngIf="event.whereToWatch?.note; else watchFallback">{{ event.whereToWatch?.note }}</p>
+        <ng-template #watchFallback>
+          <p>Use this editorial watch link when we know the live stream, platform, or official broadcast destination.</p>
+        </ng-template>
+        <a class="inline-link" [href]="event.whereToWatch?.url" target="_blank" rel="noopener noreferrer">
+          {{ event.whereToWatch?.label || 'Open watch destination' }}
+        </a>
+      </section>
     </div>
 
     <section class="participants-panel glass-card" *ngIf="participants().length > 0">

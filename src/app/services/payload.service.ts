@@ -128,6 +128,11 @@ export interface CalendarEvent {
   qualificationContext?: string;
   indianParticipants?: CalendarEventParticipant[];
   externalUrl?: string;
+  whereToWatch?: {
+    url?: string;
+    label?: string;
+    note?: string;
+  } | null;
   notes?: string;
 }
 
@@ -516,6 +521,11 @@ const CALENDAR_EVENTS_QUERY = gql`
       hubKey
       qualificationContext
       externalUrl
+      whereToWatch {
+        url
+        label
+        note
+      }
       notes
       indianParticipants {
         id
@@ -568,6 +578,11 @@ const CALENDAR_EVENT_BY_SLUG_QUERY = gql`
         hubKey
         qualificationContext
         externalUrl
+        whereToWatch {
+          url
+          label
+          note
+        }
         notes
         edition {
           id
@@ -827,7 +842,7 @@ export class PayloadService {
   ): CalendarEventNavigation {
     const experience = this.getCalendarEventExperience(event, options);
     const slug = event?.slug ? ['/calendar', event.slug] : null;
-    const href = event?.externalUrl || null;
+    const href = event?.whereToWatch?.url || event?.externalUrl || null;
 
     if (experience === 'external_only') {
       if (href) {
