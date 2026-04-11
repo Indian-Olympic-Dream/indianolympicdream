@@ -116,6 +116,8 @@ interface CurrentCheckpointItem {
     dateLabel: string;
     sortValue: number;
     note?: string;
+    navigation?: CalendarEventNavigation;
+    actionLabel?: string | null;
 }
 
 interface CurrentSnapshotStat {
@@ -2431,6 +2433,11 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
         return null;
     }
 
+    getCurrentCheckpointLinkLabel(checkpoint: CurrentCheckpointItem | null | undefined): string | null {
+        if (!checkpoint || checkpoint.navigation?.kind !== 'external') return null;
+        return checkpoint.actionLabel || 'Open link';
+    }
+
     getLa28EventImportanceLabel(event: CalendarEvent): string {
         switch (event.importance) {
             case 'core':
@@ -2784,6 +2791,8 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
             dateLabel: card.dateLabel,
             sortValue: card.sortValue,
             note: card.locationLabel || card.relativeLabel,
+            navigation: card.navigation,
+            actionLabel: this.getCurrentCalendarEventLinkLabel(card),
         };
     }
 

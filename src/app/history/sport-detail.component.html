@@ -194,21 +194,53 @@
                 <ng-template #fullCurrentHeroSnapshot>
                     <div class="current-snapshot-main"
                         *ngIf="supportsFullCurrentCoverage() && currentHeroPrimaryCheckpoint() as checkpoint">
-                        <span class="current-snapshot-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
-                        <div class="current-snapshot-title">{{ checkpoint.label }}</div>
-                        <div class="current-snapshot-meta">
-                            <span>{{ checkpoint.dateLabel }}</span>
-                            <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                        <div class="current-snapshot-head">
+                            <div class="current-snapshot-copy">
+                                <span class="current-snapshot-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
+                                <div class="current-snapshot-title">{{ checkpoint.label }}</div>
+                                <div class="current-snapshot-meta">
+                                    <span>{{ checkpoint.dateLabel }}</span>
+                                    <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                                </div>
+                            </div>
+                            <a class="current-snapshot-action"
+                                *ngIf="checkpoint.navigation?.kind === 'external' && getCurrentCheckpointLinkLabel(checkpoint) as linkLabel"
+                                [href]="checkpoint.navigation?.href"
+                                [attr.target]="checkpoint.navigation?.target"
+                                [attr.rel]="checkpoint.navigation?.rel"
+                                [attr.aria-label]="linkLabel"
+                                [attr.title]="linkLabel">
+                                <span class="current-snapshot-action-copy">{{ linkLabel }}</span>
+                                <span class="current-snapshot-action-icon">
+                                    <mat-icon>north_east</mat-icon>
+                                </span>
+                            </a>
                         </div>
                     </div>
 
                     <div class="current-snapshot-secondary"
                         *ngIf="supportsFullCurrentCoverage() && currentHeroSecondaryCheckpoint() as checkpoint">
-                        <span class="current-snapshot-secondary-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
-                        <div class="current-snapshot-secondary-title">{{ checkpoint.label }}</div>
-                        <div class="current-snapshot-secondary-meta">
-                            <span>{{ checkpoint.dateLabel }}</span>
-                            <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                        <div class="current-snapshot-head">
+                            <div class="current-snapshot-copy">
+                                <span class="current-snapshot-secondary-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
+                                <div class="current-snapshot-secondary-title">{{ checkpoint.label }}</div>
+                                <div class="current-snapshot-secondary-meta">
+                                    <span>{{ checkpoint.dateLabel }}</span>
+                                    <span *ngIf="checkpoint.note">{{ checkpoint.note }}</span>
+                                </div>
+                            </div>
+                            <a class="current-snapshot-action current-snapshot-action-secondary"
+                                *ngIf="checkpoint.navigation?.kind === 'external' && getCurrentCheckpointLinkLabel(checkpoint) as linkLabel"
+                                [href]="checkpoint.navigation?.href"
+                                [attr.target]="checkpoint.navigation?.target"
+                                [attr.rel]="checkpoint.navigation?.rel"
+                                [attr.aria-label]="linkLabel"
+                                [attr.title]="linkLabel">
+                                <span class="current-snapshot-action-copy">{{ linkLabel }}</span>
+                                <span class="current-snapshot-action-icon">
+                                    <mat-icon>north_east</mat-icon>
+                                </span>
+                            </a>
                         </div>
                     </div>
 
@@ -391,19 +423,38 @@
                                     </span>
                                     <div class="current-event-title-block">
                                         <div class="current-event-title">{{ card.event.title }}</div>
-                                        <div class="current-event-meta"
-                                            *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
-                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
-                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
-                                            <span class="current-event-location" *ngIf="card.locationLabel">
-                                                <mat-icon>location_on</mat-icon>
-                                                <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
 
-                                <p class="current-event-summary" *ngIf="getLa28EventSynopsis(card.event) as synopsis">{{ synopsis }}</p>
+                                <div class="current-event-context-block"
+                                    *ngIf="getLa28EventSynopsis(card.event) as synopsis; else eventMetaOnly">
+                                    <p class="current-event-summary">{{ synopsis }}</p>
+                                    <div class="current-event-meta"
+                                        *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
+                                        <div class="current-event-chip-row" *ngIf="card.typeLabel || card.categoryLabel">
+                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+                                        </div>
+                                        <span class="current-event-location" *ngIf="card.locationLabel">
+                                            <mat-icon>location_on</mat-icon>
+                                            <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <ng-template #eventMetaOnly>
+                                    <div class="current-event-meta"
+                                        *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
+                                        <div class="current-event-chip-row" *ngIf="card.typeLabel || card.categoryLabel">
+                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+                                        </div>
+                                        <span class="current-event-location" *ngIf="card.locationLabel">
+                                            <mat-icon>location_on</mat-icon>
+                                            <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+                                        </span>
+                                    </div>
+                                </ng-template>
 
                                 <div class="current-event-india"
                                     *ngIf="getCurrentCalendarParticipantsLabel(card.event) as participants">
