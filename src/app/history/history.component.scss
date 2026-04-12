@@ -914,58 +914,184 @@ $accent-gold: #d4af37;
 
 }
 
-// Golden Moments Carousel
-.golden-moments {
+// Olympic Moments
+.moment-sections {
   padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 
-  h2 {
-    font-family: 'Geist Sans', -apple-system, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: $text-secondary;
-    margin: 0 0 12px;
+  .moment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    &.section-gold .moments-header h2 {
+      color: rgba(255, 215, 0, 0.92);
+    }
+
+    &.section-silver .moments-header h2 {
+      color: rgba(224, 224, 224, 0.9);
+    }
+
+    &.section-bronze .moments-header h2 {
+      color: rgba(205, 127, 50, 0.92);
+    }
+
+    &.section-heartbreak .moments-header h2 {
+      color: rgba(159, 204, 255, 0.92);
+    }
+  }
+
+  .moments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    h2 {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    .moments-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: $text-secondary;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
   }
 
   .moments-carousel {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
 
-    &::-webkit-scrollbar {
-      display: none;
+  .moment-section.section-carousel {
+    .moments-carousel {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 6px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .moment-card {
+      flex: 0 0 260px;
+      scroll-snap-align: start;
+    }
+  }
+
+  .moment-section.section-static {
+    .moments-carousel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .moment-card {
+      flex: 0 0 260px;
+      max-width: 260px;
     }
   }
 
   .moment-card {
-    flex: 0 0 260px;
-    scroll-snap-align: start;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $card-bg 100%);
     border-radius: 12px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, background 0.2s ease;
+
+    &.moment-gold {
+      border-color: rgba(255, 215, 0, 0.18);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #ffd700;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(255, 215, 0, 0.85);
+      }
+    }
+
+    &.moment-silver {
+      border-color: rgba(200, 200, 200, 0.22);
+      background: linear-gradient(135deg, rgba(200, 200, 200, 0.09) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #d7d7d7;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(220, 220, 220, 0.85);
+      }
+    }
+
+    &.moment-bronze {
+      border-color: rgba(205, 127, 50, 0.25);
+      background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #cd7f32;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(205, 127, 50, 0.9);
+      }
+    }
+
+    &.moment-heartbreak {
+      border-color: rgba(84, 161, 255, 0.2);
+      background: linear-gradient(135deg, rgba(84, 161, 255, 0.06) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #9fccff;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(159, 204, 255, 0.9);
+      }
+    }
 
     .moment-year {
       font-family: 'Geist Sans', -apple-system, sans-serif;
       font-size: 2rem;
       font-weight: 200;
       line-height: 1;
-      background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
 
     .moment-location {
       font-family: 'Geist Mono', monospace;
       font-size: 10px;
-      color: $accent-gold;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -1006,6 +1132,32 @@ $accent-gold: #d4af37;
 
       &:hover {
         opacity: 0.8;
+      }
+    }
+
+    .moment-link {
+      margin-top: auto;
+      padding-top: 10px;
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: $text-primary;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+
+      &:hover {
+        opacity: 0.82;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .moment-sections {
+    .moment-section.section-static {
+      .moment-card {
+        flex-basis: 100%;
+        max-width: 90%;
       }
     }
   }

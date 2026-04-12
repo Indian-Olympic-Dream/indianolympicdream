@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
@@ -51,6 +51,12 @@ interface EditionCard {
   colors?: { primary?: string; secondary?: string; accent?: string };
 }
 
+interface MomentSection {
+  type: GoldenMoment['type'];
+  title: string;
+  moments: GoldenMoment[];
+}
+
 @Component({
   selector: 'app-history',
   standalone: true,
@@ -66,6 +72,8 @@ interface EditionCard {
 })
 export class HistoryComponent implements OnInit {
   private payload = inject(PayloadService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   // Signals for reactive state
   loading = signal(true);
@@ -88,6 +96,37 @@ export class HistoryComponent implements OnInit {
 
   // Golden Moments - Loaded dynamically
   goldenMoments = signal<GoldenMoment[]>([]);
+
+  filteredGoldenMoments = computed<GoldenMoment[]>(() => {
+    const era = this.selectedEra();
+
+    const moments = era === 'all'
+      ? this.goldenMoments()
+      : this.goldenMoments().filter((moment) => {
+          const selectedEra = this.eras.find(e => e.label === era);
+          if (!selectedEra) return true;
+          return moment.year >= selectedEra.startYear && moment.year <= selectedEra.endYear;
+        });
+
+    return [...moments].sort((a, b) => b.year - a.year);
+  });
+
+  goldenMomentSections = computed<MomentSection[]>(() => {
+    const sectionMeta: Array<{ type: GoldenMoment['type']; title: string }> = [
+      { type: 'gold', title: 'Golden Moments' },
+      { type: 'silver', title: 'Silver Moments' },
+      { type: 'bronze', title: 'Bronze Moments' },
+      { type: 'heartbreak', title: 'Heartbreak Moments' },
+    ];
+
+    return sectionMeta
+      .map(({ type, title }) => ({
+        type,
+        title,
+        moments: this.filteredGoldenMoments().filter((moment) => (moment.type || 'gold') === type),
+      }))
+      .filter((section) => section.moments.length > 0);
+  });
 
   // Computed: filtered participations by era (medal participations only)
   filteredParticipations = computed(() => {
@@ -207,6 +246,10 @@ export class HistoryComponent implements OnInit {
   });
 
   ngOnInit() {
+    this.route.queryParamMap.subscribe((params) => {
+      this.selectedEra.set(this.resolveEraFromQueryParam(params.get('era')));
+    });
+
     this.loadData();
   }
 
@@ -240,6 +283,15 @@ export class HistoryComponent implements OnInit {
 
   onEraFilter(era: string) {
     this.selectedEra.set(era);
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        era: era === 'all' ? null : this.getEraQueryValue(era),
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   getEraYearRange(era: Era): string {
@@ -345,6 +397,32 @@ export class HistoryComponent implements OnInit {
         if (b.participationCount !== a.participationCount) return b.participationCount - a.participationCount;
         return a.name.localeCompare(b.name);
       });
+  }
+
+  private getEraQueryValue(era: string): string {
+    if (era === 'all') return 'all';
+
+    return era
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  private resolveEraFromQueryParam(value: string | null): string {
+    if (!value || value === 'all') return 'all';
+
+    const matchedEra = this.eras.find((era) => {
+      const candidates = [
+        era.label,
+        era.shortLabel,
+        this.getEraQueryValue(era.label),
+        this.getEraQueryValue(era.shortLabel),
+      ];
+
+      return candidates.includes(value);
+    });
+
+    return matchedEra?.label || 'all';
   }
 
   private getSportTier(sport: SportBreakdown): number {

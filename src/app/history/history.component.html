@@ -135,20 +135,40 @@
             </div>
         </section>
 
-        <!-- Golden Moments Carousel (only on All Time) -->
-        <section class="golden-moments" *ngIf="selectedEra() === 'all'">
-            <h2>🏆 India's Golden Moments</h2>
-            <div class="moments-carousel">
-                <div *ngFor="let moment of goldenMoments()" class="moment-card">
-                    <div class="moment-year">{{ moment.year }}</div>
-                    <div class="moment-location">{{ moment.city }}</div>
-                    <div class="moment-content">
-                        <div class="moment-athlete">{{ moment.athlete }}</div>
-                        <div class="moment-event">{{ moment.event }}</div>
-                        <p class="moment-story">{{ moment.description }}</p>
-                    </div>
+        <section class="moment-sections" *ngIf="goldenMomentSections().length > 0">
+            <section class="moment-section" *ngFor="let section of goldenMomentSections()"
+                [class.section-gold]="section.type === 'gold'" [class.section-silver]="section.type === 'silver'"
+                [class.section-bronze]="section.type === 'bronze'"
+                [class.section-heartbreak]="section.type === 'heartbreak'"
+                [class.section-carousel]="section.moments.length >= 3"
+                [class.section-static]="section.moments.length < 3">
+                <div class="moments-header">
+                    <h2>{{ section.title }}</h2>
+                    <span class="moments-count">{{ section.moments.length }}</span>
                 </div>
-            </div>
+                <div class="moments-carousel">
+                    <article *ngFor="let moment of section.moments" class="moment-card"
+                        [class.moment-gold]="section.type === 'gold'" [class.moment-silver]="section.type === 'silver'"
+                        [class.moment-bronze]="section.type === 'bronze'"
+                        [class.moment-heartbreak]="section.type === 'heartbreak'">
+                        <div class="moment-year">{{ moment.year }}</div>
+                        <div class="moment-location">{{ moment.city }}</div>
+                        <div class="moment-content">
+                            <div class="moment-athlete">{{ moment.athlete }}</div>
+                            <div class="moment-event">{{ moment.event }}</div>
+                            <p class="moment-story">{{ moment.description }}</p>
+                        </div>
+                        <a class="moment-link" *ngIf="moment.linkedStory?.slug"
+                            [routerLink]="['/stories', moment.linkedStory?.slug]">
+                            Read story
+                        </a>
+                        <a class="moment-link" *ngIf="!moment.linkedStory?.slug && moment.externalLink"
+                            [href]="moment.externalLink" target="_blank" rel="noopener">
+                            Read more
+                        </a>
+                    </article>
+                </div>
+            </section>
         </section>
     </ng-container>
 </div>
