@@ -10,6 +10,7 @@ import { catchError } from 'rxjs/operators';
 import {
   ContenderUnit as PayloadContenderUnit,
   PayloadService,
+  Sport,
 } from '../services/payload.service';
 import {
   IndiaTier,
@@ -132,6 +133,7 @@ export class AthletesComponent implements OnInit {
   contenderUnits = signal<PayloadContenderUnit[]>([]);
   failedContenderImages = signal<Set<string>>(new Set());
   failedRetiredPhotos = signal<Set<string>>(new Set());
+  allSportsCatalog = signal<Sport[]>([]);
   cmsContenderUnits = computed<PayloadContenderUnit[]>(() => this.contenderUnits());
   selectedTab = signal<AthleteTab>('medal_hopeful');
   selectedSport = signal<string>('all');
@@ -227,6 +229,21 @@ export class AthletesComponent implements OnInit {
         }
       });
     });
+
+    // Third source: full sports catalog (ensures all sports have pictograms even if not in contender/retired data)
+    this.allSportsCatalog().forEach((sport) => {
+      const name = sport.parentSport?.name || sport.name;
+      if (name && !pictogramMap.has(name)) {
+        const url = this.payload.getSportPictogramUrl({
+          sport,
+          includePlaceholderFallback: false,
+        });
+        if (url) {
+          pictogramMap.set(name, url);
+        }
+      }
+    });
+
     return pictogramMap;
   });
 
@@ -488,9 +505,11 @@ export class AthletesComponent implements OnInit {
           sportsByCategory: { team: [], individual: [], medalists: [] },
         },
       }))),
+      sportsCatalog: this.payload.getSports().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ contenders, retiredCount }) => {
+      next: ({ contenders, retiredCount, sportsCatalog }) => {
         this.contenderUnits.set(contenders.docs);
+        this.allSportsCatalog.set(sportsCatalog);
         this.retiredTabCount.set(retiredCount.totalRetired || retiredCount.totalDocs || 0);
         this.ensureSelectedSportIsAvailable();
         if (this.selectedTab() === 'retired') {
