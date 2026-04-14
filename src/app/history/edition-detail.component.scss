@@ -39,7 +39,7 @@ $font-mono: 'JetBrains Mono', monospace;
     min-height: 100vh;
     background: $bg-dark;
     color: $text-primary;
-    padding-bottom: 60px;
+    padding-bottom: 0px;
 }
 
 .edition-container {
@@ -68,35 +68,168 @@ $font-mono: 'JetBrains Mono', monospace;
     }
 }
 
+// 0. Navigation Rail
+.edition-nav-rail {
+    display: flex;
+    padding-top: 4px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-rail-back {
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background: rgba(40, 40, 40, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: $text-secondary;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        padding: 0;
+        cursor: pointer;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+    }
+
+    .edition-nav-scroll {
+        display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .edition-nav-chip {
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 16px 0 6px;
+        background: rgba(40, 40, 40, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+
+            .edition-nav-city {
+                color: white;
+            }
+        }
+
+        &.active,
+        &[aria-current="page"] {
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.4);
+
+            .edition-nav-year {
+                background: $gold-color;
+                color: #000;
+            }
+
+            .edition-nav-city {
+                color: $gold-color;
+                opacity: 1;
+            }
+        }
+
+        .edition-nav-year {
+            font-family: $font-mono;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0 10px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            margin-right: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .edition-nav-city {
+            font-family: $font-primary;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: $text-secondary;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+    }
+}
+
 // 1. Cinematic Hero Header
 .cinematic-hero {
     position: relative;
-    margin: 0 -20px 48px; // Break out of container padding (no negative top)
+    margin: 0 0 48px 0; // Contained as a distinct card with correct spacing
     min-height: 420px;
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
-    background-color: #1a1a2e; // Fallback
+    background-color: #1a1a2e;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    flex-direction: row; // Space-between layout for desktop
+    justify-content: space-between;
+    align-items: flex-end;
     overflow: hidden;
-    border-radius: 0 0 24px 24px;
+    border-radius: 24px; // Full card rounding
+    padding: 40px; // Unified padding
 
     @media (max-width: 900px) {
-        min-height: 360px;
-        margin: 0 -20px 32px;
+        min-height: 480px; // Pin content to bottom, show image above
+        flex-direction: column;
+        justify-content: flex-end; // Pin everything to the bottom
+        align-items: flex-start;
+        gap: 24px; // Reduced from 32px
+        padding: 24px;
+        border-radius: 16px;
     }
 
     @media (max-width: 600px) {
-        min-height: 280px;
-        border-radius: 0 0 16px 16px;
+        min-height: 420px;
     }
 
     @media (max-width: 480px) {
-        margin: 0 -12px 24px;
-        min-height: 260px;
-        border-radius: 0 0 12px 12px;
+        min-height: 380px;
+        border-radius: 12px;
+        padding: 16px; // Tighter padding
+        margin-bottom: 24px;
+        gap: 16px;
     }
 
     // Cinematic gradient overlay (bottom-heavy for text readability)
@@ -121,51 +254,11 @@ $font-mono: 'JetBrains Mono', monospace;
         z-index: 1;
     }
 
-    // Back button
-    .hero-back-btn {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        z-index: 3;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: white;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
-        mat-icon {
-            font-size: 22px;
-        }
-
-        @media (max-width: 480px) {
-            top: 12px;
-            left: 12px;
-            width: 36px;
-            height: 36px;
-
-            mat-icon {
-                font-size: 18px;
-            }
-        }
-    }
-
     // Logo emblem (top-right, glass background)
     .hero-emblem {
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 24px;
+        right: 24px;
         z-index: 3;
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
@@ -181,6 +274,8 @@ $font-mono: 'JetBrains Mono', monospace;
         }
 
         @media (max-width: 600px) {
+            top: 16px;
+            right: 16px;
             padding: 6px;
 
             img {
@@ -190,18 +285,20 @@ $font-mono: 'JetBrains Mono', monospace;
         }
     }
 
-    // Content pinned to bottom
+    // Content container inside hero
     .hero-content {
         position: relative;
         z-index: 2;
-        padding: 0 40px 32px;
+        flex: 1;
+        padding-right: 24px;
 
-        @media (max-width: 600px) {
-            padding: 0 20px 20px;
-        }
-
-        @media (max-width: 480px) {
-            padding: 0 16px 16px;
+        @media (max-width: 900px) {
+            flex: none;
+            padding-right: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; // Ensure inner content also packs bottom
         }
     }
 
@@ -218,7 +315,7 @@ $font-mono: 'JetBrains Mono', monospace;
         font-size: 0.85rem;
         font-weight: 600;
         letter-spacing: 3px;
-        color: rgba(255, 255, 255, 0.8);
+        color: $gold-color;
         text-transform: uppercase;
     }
 
@@ -241,16 +338,17 @@ $font-mono: 'JetBrains Mono', monospace;
         letter-spacing: -1px;
 
         @media (max-width: 900px) {
-            font-size: 3.5rem;
+            font-size: 4rem;
         }
 
         @media (max-width: 600px) {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
         }
 
-        @media (max-width: 420px) {
+        @media (max-width: 480px) {
             font-size: 2rem;
             letter-spacing: 0;
+            margin-bottom: 4px;
         }
     }
 
@@ -260,147 +358,349 @@ $font-mono: 'JetBrains Mono', monospace;
         font-style: italic;
         font-size: 1.1rem;
         color: rgba(255, 255, 255, 0.85);
-        margin: 0 0 20px;
+        margin: 0;
         opacity: 0.9;
         text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 
         @media (max-width: 600px) {
             font-size: 0.95rem;
-            margin-bottom: 14px;
         }
 
-        @media (max-width: 420px) {
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-        }
-    }
-
-    // Glass stats bar
-    .hero-stats-bar {
-        display: flex;
-        align-items: stretch;
-        gap: 16px;
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 12px 20px;
-        max-width: fit-content;
-
-        @media (max-width: 600px) {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-            max-width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-        }
-
-        @media (max-width: 420px) {
-            padding: 8px 12px;
-            gap: 6px;
-        }
-    }
-
-    // Stats section (INDIA / GAMES)
-    .stats-section {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .stats-section-label {
-        font-family: $font-mono;
-        font-size: 0.6rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        color: rgba(255, 255, 255, 0.35);
-        text-transform: uppercase;
-    }
-
-    .stats-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    // Medal pills
-    .medal-pill {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.08);
-
-        .emoji {
-            font-size: 1rem;
-        }
-
-        .num {
-            font-family: $font-primary;
-            font-weight: 700;
-            font-size: 1rem;
-            color: white;
-        }
-    }
-
-    .no-medals-label {
-        font-family: $font-mono;
-        font-size: 0.8rem;
-        color: $text-muted;
-        letter-spacing: 0.5px;
-    }
-
-    // Divider
-    .stats-divider {
-        width: 1px;
-        align-self: stretch;
-        background: rgba(255, 255, 255, 0.15);
-
-        @media (max-width: 600px) {
-            width: 100%;
-            height: 1px;
-        }
-    }
-
-    // Stat items
-    .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-
-        &.rank {
-            margin-left: 4px;
-            padding-left: 12px;
-            border-left: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .stat-icon {
+        @media (max-width: 480px) {
             font-size: 0.85rem;
         }
+    }
 
-        .stat-value {
-            font-family: $font-primary;
+    // Integrated Edition Highlights Bar
+    .edition-highlights-bar {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: stretch;
+        gap: 32px;
+        min-width: 320px; // Prevent squishing on desktop
+        flex-shrink: 0;
+
+        @media (max-width: 900px) {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 20px;
+        }
+
+        @media (max-width: 480px) {
+            gap: 16px;
+            min-width: 100%;
+        }
+
+        .stats-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .stats-section-label {
+            font-family: $font-mono;
+            font-size: 0.65rem;
             font-weight: 700;
-            font-size: 0.95rem;
-            color: white;
+            letter-spacing: 1.5px;
+            color: $text-muted;
+            text-transform: uppercase;
+        }
 
-            @media (max-width: 420px) {
-                font-size: 0.8rem;
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .medal-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            .emoji {
+                font-size: 1rem;
+            }
+
+            .num {
+                font-family: $font-primary;
+                font-weight: 700;
+                font-size: 1rem;
+                color: white;
+            }
+
+            &.gold {
+                border-color: rgba(255, 215, 0, 0.15);
+            }
+
+            &.silver {
+                border-color: rgba(192, 192, 192, 0.15);
+            }
+
+            &.bronze {
+                border-color: rgba(205, 127, 50, 0.15);
             }
         }
 
-        .stat-label {
+        .no-medals-label {
             font-family: $font-mono;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: $text-muted;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
 
-            @media (max-width: 420px) {
-                font-size: 0.6rem;
+        .stats-divider {
+            width: 1px;
+            height: auto;
+            background: rgba(255, 255, 255, 0.15);
+
+            @media (max-width: 900px) {
+                width: 100%;
+                height: 1px;
+            }
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            &.rank {
+                padding-left: 12px;
+                border-left: 1px solid rgba(255, 255, 255, 0.12);
+
+                @media (max-width: 900px) {
+                    border-left: none;
+                    padding-left: 0;
+                }
+            }
+
+            .stat-value {
+                font-family: $font-primary;
+                font-weight: 700;
+                font-size: 1rem;
+                color: white;
+            }
+
+            .stat-label {
+                font-family: $font-mono;
+                font-size: 0.7rem;
+                color: $text-muted;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+    }
+}
+
+// End Cinematic Hero
+
+// Shared Layout Utility
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-top: 12px;
+
+    h2 {
+        @include section-title;
+        margin: 0;
+        font-size: 1.4rem;
+        letter-spacing: -0.01em;
+    }
+
+    .header-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 24px;
+        padding: 0 10px;
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        border-radius: 999px;
+        color: $gold-color;
+        font-family: $font-mono;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+    }
+}
+
+.edition-moments {
+    // margin-bottom: 48px;
+
+    .moments-carousel {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 24px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .moment-card {
+        flex: 0 0 260px;
+        max-width: 260px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        background: rgba(255, 255, 255, 0.04);
+        transition: border-color 0.2s ease, background 0.2s ease;
+        text-decoration: none;
+
+        @media (min-width: 768px) {
+            flex: 0 0 340px;
+            max-width: 340px;
+        }
+
+        &.moment-gold {
+            border-color: rgba(255, 215, 0, 0.18);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #ffd700;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(255, 215, 0, 0.85);
+            }
+        }
+
+        &.moment-silver {
+            border-color: rgba(200, 200, 200, 0.22);
+            background: linear-gradient(135deg, rgba(200, 200, 200, 0.09) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #d7d7d7;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(220, 220, 220, 0.85);
+            }
+        }
+
+        &.moment-bronze {
+            border-color: rgba(205, 127, 50, 0.25);
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #cd7f32;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(205, 127, 50, 0.9);
+            }
+        }
+
+        &.moment-heartbreak {
+            border-color: rgba(84, 161, 255, 0.2);
+            background: linear-gradient(135deg, rgba(84, 161, 255, 0.06) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #9fccff;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(159, 204, 255, 0.9);
+            }
+        }
+
+        .moment-year {
+            font-family: $font-primary;
+            font-size: 2rem;
+            font-weight: 200;
+            line-height: 1;
+        }
+
+        .moment-location {
+            font-family: $font-mono;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .moment-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+
+            .moment-athlete {
+                font-family: $font-primary;
+                font-size: 14px;
+                font-weight: 600;
+                color: $text-primary;
+                margin-bottom: 2px;
+            }
+
+            .moment-event {
+                font-family: $font-mono;
+                font-size: 10px;
+                color: $text-muted;
+                margin-bottom: 8px;
+            }
+
+            .moment-story {
+                font-family: $font-primary;
+                font-size: 12px;
+                color: $text-secondary;
+                line-height: 1.4;
+                margin: 0;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                line-clamp: 4;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+
+        .olympedia-link {
+            font-family: $font-primary;
+            font-size: 10px;
+            color: $gold-color;
+            text-decoration: none;
+            margin-top: 8px;
+
+            &:hover {
+                opacity: 0.8;
+            }
+        }
+
+        .moment-link {
+            margin-top: auto;
+            padding-top: 10px;
+            font-family: $font-primary;
+            font-size: 10px;
+            font-weight: 600;
+            color: $text-primary;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+
+            &:hover {
+                opacity: 0.82;
             }
         }
     }
@@ -409,10 +709,6 @@ $font-mono: 'JetBrains Mono', monospace;
 // 3. Sports Grid
 .sports-grid-section {
     margin-bottom: 48px;
-
-    h2 {
-        @include section-title;
-    }
 }
 
 .sports-grid {
@@ -426,7 +722,7 @@ $font-mono: 'JetBrains Mono', monospace;
     }
 
     @media (max-width: 480px) {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
     }
 }

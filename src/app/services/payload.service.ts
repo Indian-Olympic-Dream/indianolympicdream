@@ -725,6 +725,39 @@ const GOLDEN_MOMENTS_QUERY = gql`
   }
 `;
 
+const GOLDEN_MOMENTS_BY_FILTER_QUERY = gql`
+  query GetGoldenMomentsByFilter($where: GoldenMoment_where, $limit: Int) {
+    GoldenMoments(where: $where, limit: $limit, sort: "year") {
+      docs {
+        id
+        title
+        type
+        description
+        year
+        city
+        event
+        sport {
+          id
+          name
+          slug
+          parentSport { id name slug }
+        }
+        athlete
+        placement
+        media {
+          url
+          alt
+          credits
+        }
+        linkedStory {
+          slug
+        }
+        externalLink
+      }
+    }
+  }
+`;
+
 const PRODUCTS_QUERY = gql`
   query GetProducts($limit: Int) {
     Products(limit: $limit) {
@@ -1178,6 +1211,14 @@ export class PayloadService {
   getGoldenMoments(): Observable<GoldenMoment[]> {
     return this.apollo.query<{ GoldenMoments: { docs: GoldenMoment[] } }>({
       query: GOLDEN_MOMENTS_QUERY,
+    }).pipe(map(result => result.data.GoldenMoments.docs));
+  }
+
+  getGoldenMomentsByYear(year: number): Observable<GoldenMoment[]> {
+    return this.apollo.query<{ GoldenMoments: { docs: GoldenMoment[] } }>({
+      query: GOLDEN_MOMENTS_BY_FILTER_QUERY,
+      variables: { where: { year: { equals: year } }, limit: 50 },
+      fetchPolicy: 'network-only',
     }).pipe(map(result => result.data.GoldenMoments.docs));
   }
 

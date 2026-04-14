@@ -1,4 +1,22 @@
 <div class="edition-container" *ngIf="edition()">
+
+    <!-- Edition Navigation Rail -->
+    <nav class="edition-nav-rail" *ngIf="editionNavItems().length > 0" aria-label="Olympic Editions">
+        <button class="nav-rail-back" routerLink="/history" aria-label="Go back to History">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="edition-nav-scroll">
+            <a class="edition-nav-chip" *ngFor="let ed of editionNavItems()" [routerLink]="['/history', ed.slug]"
+                [class.active]="ed.slug === edition()?.slug"
+                [attr.aria-current]="ed.slug === edition()?.slug ? 'page' : null"
+                [attr.title]="ed.city + ' ' + ed.year">
+                <span class="edition-nav-year">{{ ed.year }}</span>
+                <span class="edition-nav-city">{{ ed.city }}</span>
+            </a>
+        </div>
+    </nav>
+
     <!-- Cinematic Hero -->
     <div class="cinematic-hero" [style.background-image]="getHeroImageUrl()
             ? 'url(' + getHeroImageUrl() + ')'
@@ -9,17 +27,11 @@
         <div class="hero-overlay"></div>
         <div class="hero-vignette"></div>
 
-        <!-- Back button -->
-        <button class="hero-back-btn" routerLink="/history">
-            <mat-icon>arrow_back</mat-icon>
-        </button>
-
         <!-- Logo emblem (if available) -->
         <div class="hero-emblem" *ngIf="getLogoUrl()">
             <img [src]="getLogoUrl()" [alt]="edition()?.name + ' emblem'" />
         </div>
 
-        <!-- Hero content pinned to bottom -->
         <div class="hero-content">
             <!-- Year + dates -->
             <div class="hero-date-line">
@@ -34,62 +46,95 @@
 
             <!-- Tagline (no quotes) -->
             <p class="hero-tagline" *ngIf="edition()?.tagline">{{ edition()?.tagline }}</p>
+        </div>
 
-            <!-- Glass stats bar -->
-            <div class="hero-stats-bar">
-                <!-- India's performance -->
-                <div class="stats-section">
-                    <span class="stats-section-label">INDIA</span>
-                    <div class="stats-row">
-                        <div class="medal-pill gold" *ngIf="goldCount() > 0">
-                            <span class="emoji">🥇</span>
-                            <span class="num">{{ goldCount() }}</span>
-                        </div>
-                        <div class="medal-pill silver" *ngIf="silverCount() > 0">
-                            <span class="emoji">🥈</span>
-                            <span class="num">{{ silverCount() }}</span>
-                        </div>
-                        <div class="medal-pill bronze" *ngIf="bronzeCount() > 0">
-                            <span class="emoji">🥉</span>
-                            <span class="num">{{ bronzeCount() }}</span>
-                        </div>
-                        <span class="no-medals-label" *ngIf="goldCount() + silverCount() + bronzeCount() === 0">
-                            No medals
-                        </span>
-                        <div class="stat-item rank" *ngIf="edition()?.globalStats?.indiaRank">
-                            <span class="stat-value">#{{ edition()?.globalStats?.indiaRank }}</span>
-                            <span class="stat-label">Rank</span>
-                        </div>
+        <!-- Edition Stats Highlights (Floats on Desktop, Flows on Mobile) -->
+        <div class="edition-highlights-bar">
+            <!-- India's performance -->
+            <div class="stats-section">
+                <span class="stats-section-label">INDIA</span>
+                <div class="stats-row">
+                    <div class="medal-pill gold" *ngIf="goldCount() > 0">
+                        <span class="emoji">🥇</span>
+                        <span class="num">{{ goldCount() }}</span>
+                    </div>
+                    <div class="medal-pill silver" *ngIf="silverCount() > 0">
+                        <span class="emoji">🥈</span>
+                        <span class="num">{{ silverCount() }}</span>
+                    </div>
+                    <div class="medal-pill bronze" *ngIf="bronzeCount() > 0">
+                        <span class="emoji">🥉</span>
+                        <span class="num">{{ bronzeCount() }}</span>
+                    </div>
+                    <span class="no-medals-label" *ngIf="goldCount() + silverCount() + bronzeCount() === 0">
+                        No medals
+                    </span>
+                    <div class="stat-item rank" *ngIf="edition()?.globalStats?.indiaRank">
+                        <span class="stat-value">#{{ edition()?.globalStats?.indiaRank }}</span>
+                        <span class="stat-label">Rank</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="stats-divider"></div>
+            <div class="stats-divider"></div>
 
-                <!-- Global stats -->
-                <div class="stats-section">
-                    <span class="stats-section-label">GAMES</span>
-                    <div class="stats-row">
-                        <div class="stat-item" *ngIf="edition()?.globalStats?.totalNations">
-                            <span class="stat-value">{{ edition()?.globalStats?.totalNations }}</span>
-                            <span class="stat-label">Nations</span>
-                        </div>
-                        <div class="stat-item" *ngIf="edition()?.globalStats?.totalAthletes">
-                            <span class="stat-value">{{ edition()?.globalStats?.totalAthletes | number }}</span>
-                            <span class="stat-label">Athletes</span>
-                        </div>
-                        <div class="stat-item" *ngIf="edition()?.globalStats?.totalEvents">
-                            <span class="stat-value">{{ edition()?.globalStats?.totalEvents }}</span>
-                            <span class="stat-label">Events</span>
-                        </div>
+            <!-- Global stats -->
+            <div class="stats-section">
+                <span class="stats-section-label">GAMES</span>
+                <div class="stats-row">
+                    <div class="stat-item" *ngIf="edition()?.globalStats?.totalNations">
+                        <span class="stat-value">{{ edition()?.globalStats?.totalNations }}</span>
+                        <span class="stat-label">Nations</span>
+                    </div>
+                    <div class="stat-item" *ngIf="edition()?.globalStats?.totalAthletes">
+                        <span class="stat-value">{{ edition()?.globalStats?.totalAthletes | number }}</span>
+                        <span class="stat-label">Athletes</span>
+                    </div>
+                    <div class="stat-item" *ngIf="edition()?.globalStats?.totalEvents">
+                        <span class="stat-value">{{ edition()?.globalStats?.totalEvents }}</span>
+                        <span class="stat-label">Events</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Edition Highlights -->
+    <section class="edition-moments" *ngIf="sortedMoments().length > 0">
+        <div class="section-header">
+            <h2>Edition Moments</h2>
+            <span class="header-count">{{ sortedMoments().length }}</span>
+        </div>
+        <div class="moments-carousel">
+            <article *ngFor="let moment of sortedMoments()" class="moment-card"
+                [class.moment-gold]="moment.type === 'gold'" [class.moment-silver]="moment.type === 'silver'"
+                [class.moment-bronze]="moment.type === 'bronze'"
+                [class.moment-heartbreak]="moment.type === 'heartbreak'">
+                <div class="moment-year">{{ moment.year }}</div>
+                <div class="moment-location">{{ moment.city }}</div>
+                <div class="moment-content">
+                    <div class="moment-athlete">{{ moment.athlete }}</div>
+                    <div class="moment-event">{{ moment.event }}</div>
+                    <p class="moment-story">{{ moment.description }}</p>
+                </div>
+                <a class="moment-link" *ngIf="moment.linkedStory?.slug"
+                    [routerLink]="['/stories', moment.linkedStory?.slug]">
+                    Read story
+                </a>
+                <a class="moment-link" *ngIf="!moment.linkedStory?.slug && moment.externalLink"
+                    [href]="moment.externalLink" target="_blank" rel="noopener">
+                    Read more
+                </a>
+            </article>
+        </div>
+    </section>
+
     <!-- Sports Grid (Clickable) -->
     <section class="sports-grid-section">
-        <h2>Sports Contested</h2>
+        <div class="section-header">
+            <h2>Sports Contested</h2>
+            <span class="header-count">{{ sportGroups().length }}</span>
+        </div>
         <div class="sports-grid">
             <a *ngFor="let group of sportGroups()" class="sport-card"
                 [routerLink]="['/history/sport', getSportSlug(group.sport)]"

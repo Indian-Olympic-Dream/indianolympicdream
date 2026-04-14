@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { PayloadService, Edition, OlympicParticipation, Athlete, Event } from '../services/payload.service';
+import { PayloadService, Edition, OlympicParticipation, Athlete, Event, GoldenMoment, MomentType } from '../services/payload.service';
 import { environment } from '../../environments/environment';
 
 interface SportGroup {
@@ -46,6 +46,8 @@ export class EditionDetailComponent implements OnInit {
 
   edition = signal<Edition | null>(null);
   participations = signal<OlympicParticipation[]>([]);
+  allEditions = signal<Edition[]>([]);
+  goldenMoments = signal<GoldenMoment[]>([]);
   loading = signal(true);
 
   // Get sport slug for routing
@@ -99,6 +101,27 @@ export class EditionDetailComponent implements OnInit {
   goldCount = computed(() => this.groupedMedals().filter(m => m.result === 'gold').length);
   silverCount = computed(() => this.groupedMedals().filter(m => m.result === 'silver').length);
   bronzeCount = computed(() => this.groupedMedals().filter(m => m.result === 'bronze').length);
+
+  // Edition nav items for the navigation rail
+  editionNavItems = computed(() => {
+    return this.allEditions()
+      .filter(e => e.year && e.year < 2028)
+      .sort((a, b) => (b.year || 0) - (a.year || 0));
+  });
+
+  // Flat list of moments sorted by type: Gold -> Silver -> Bronze -> Heartbreak
+  sortedMoments = computed(() => {
+    const tierOrder: Record<MomentType, number> = {
+      'gold': 0,
+      'silver': 1,
+      'bronze': 2,
+      'heartbreak': 3
+    };
+
+    return [...this.goldenMoments()].sort((a, b) => {
+      return (tierOrder[a.type || 'gold'] ?? 99) - (tierOrder[b.type || 'gold'] ?? 99);
+    });
+  });
 
   // Computed: Group by Sport
   // Group by Sport with Athlete De-duplication
@@ -194,10 +217,17 @@ export class EditionDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    const slug = this.route.snapshot.paramMap.get('slug');
-    if (slug) {
-      this.loadEdition(slug);
-    }
+    this.route.paramMap.subscribe(params => {
+      const slug = params.get('slug');
+      if (slug) {
+        this.loadEdition(slug);
+      }
+    });
+
+    // Load all editions for navigation rail
+    this.payload.getEditions().subscribe(editions => {
+      this.allEditions.set(editions);
+    });
   }
 
   loadEdition(slug: string) {
@@ -205,6 +235,9 @@ export class EditionDetailComponent implements OnInit {
       this.edition.set(edition);
       if (edition) {
         this.loadParticipations(edition.id);
+        if (edition.year) {
+          this.loadEditionMoments(edition.year);
+        }
       } else {
         this.loading.set(false);
       }
@@ -215,6 +248,12 @@ export class EditionDetailComponent implements OnInit {
     this.payload.getParticipations({ editionId }).subscribe(participations => {
       this.participations.set(participations);
       this.loading.set(false);
+    });
+  }
+
+  loadEditionMoments(year: number) {
+    this.payload.getGoldenMomentsByYear(year).subscribe(moments => {
+      this.goldenMoments.set(moments);
     });
   }
 
