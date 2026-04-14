@@ -10,7 +10,8 @@
   </a>
 
   <nav class="desktop-nav hidden-mobile">
-    <a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link">
+    <a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: true }">
       <img class="nav-icon nav-icon-premium" src="assets/icons/legacy.svg" alt="" aria-hidden="true">
       <span class="nav-label">Legacy</span>
     </a>

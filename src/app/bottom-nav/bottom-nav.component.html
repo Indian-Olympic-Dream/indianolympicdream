@@ -8,7 +8,8 @@
     </a>
   </div>
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/history" routerLinkActive="active-link">
+    <a class="nav-link" routerLink="/history" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: true }">
       <span class="nav-icon-col">
         <img class="nav-inline-image nav-premium-icon" src="assets/icons/legacy.svg" alt="" aria-hidden="true">
       </span>
