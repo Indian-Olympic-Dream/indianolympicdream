@@ -34,9 +34,8 @@
         </div>
 
         <div class="sport-medal-badge" *ngIf="sport.medalCount.total > 0">
-          <span *ngIf="sport.medalCount.gold > 0">🥇{{ sport.medalCount.gold }}</span>
-          <span *ngIf="sport.medalCount.silver > 0">🥈{{ sport.medalCount.silver }}</span>
-          <span *ngIf="sport.medalCount.bronze > 0">🥉{{ sport.medalCount.bronze }}</span>
+          <img src="assets/images/icons/medal.png" alt="Medal" class="medal-icon">
+          <span>{{ sport.medalCount.total }}</span>
         </div>
 
         <div class="sport-medal-badge near-badge" *ngIf="sport.medalCount.total === 0 && sport.fourthPlaceCount > 0">

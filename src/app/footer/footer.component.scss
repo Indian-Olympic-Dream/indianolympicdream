@@ -195,7 +195,7 @@ $border-color: rgba(255, 255, 255, 0.08);
 // Responsive
 @media (max-width: 768px) {
     .app-footer {
-        padding: 40px 20px 100px;
+        padding: 40px 20px 100px 0px;
 
         .footer-content {
             grid-template-columns: auto 1fr;
@@ -228,6 +228,7 @@ $border-color: rgba(255, 255, 255, 0.08);
     .footer-links,
     .footer-connect {
         // Left align in columns
+        margin-left: 20px;
         align-items: flex-start;
         text-align: left;
     }

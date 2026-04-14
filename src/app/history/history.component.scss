@@ -715,6 +715,12 @@ $accent-gold: #d4af37;
         line-height: 1;
         padding: 2px 4px;
         white-space: nowrap;
+
+        .medal-icon {
+          width: 10px;
+          height: 10px;
+          object-fit: contain;
+        }
       }
 
       .sport-meta-badge {

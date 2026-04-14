@@ -1,8 +1,8 @@
 <div class="history-container">
     <!-- Header with proper spacing from toolbar -->
     <header class="history-header">
-        <!-- <h1>Indian Olympic Legacy</h1> -->
-        <p class="subtitle">41 Medals, 22 Sports and 1038 Olympians Across 26 Editions</p>
+        <!-- <h1>India's Olympic Legacy</h1> -->
+        <p class="subtitle">41 Medals, 22 Sports and 1036 Olympians Across 26 Editions</p>
     </header>
 
     <!-- Loading State -->
@@ -75,8 +75,7 @@
                     <div class="sports-scroll">
                         <a *ngFor="let sport of sportsBreakdown()" class="sport-card"
                             [routerLink]="['/history/sport', sport.slug]" [queryParams]="{ view: 'legacy' }"
-                            [class.has-gold]="sport.gold > 0"
-                            [class.has-silver]="sport.gold === 0 && sport.silver > 0"
+                            [class.has-gold]="sport.gold > 0" [class.has-silver]="sport.gold === 0 && sport.silver > 0"
                             [class.has-bronze]="sport.gold === 0 && sport.silver === 0 && sport.bronze > 0"
                             [class.is-discontinued]="sport.olympicStatus === 'discontinued'">
 
@@ -85,9 +84,8 @@
                             </div>
 
                             <div class="sport-medal-badge" *ngIf="sport.total > 0">
-                                <span *ngIf="sport.gold > 0">🥇{{ sport.gold }}</span>
-                                <span *ngIf="sport.silver > 0">🥈{{ sport.silver }}</span>
-                                <span *ngIf="sport.bronze > 0">🥉{{ sport.bronze }}</span>
+                                <img src="assets/images/icons/medal.png" alt="Medal" class="medal-icon">
+                                <span>{{ sport.total }}</span>
                             </div>
 
                             <div class="sport-icon">
