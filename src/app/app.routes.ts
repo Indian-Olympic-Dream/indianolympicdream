@@ -95,8 +95,8 @@ export const routes: Routes = [
   {
     path: "**",
     loadComponent: () =>
-      import("./pagenotfound/pagenotfound.component").then(
-        (m) => m.PagenotfoundComponent,
+      import("./page-not-found/page-not-found.component").then(
+        (m) => m.PageNotFoundComponent,
       ),
     data: { animation: "NotFoundPage", order: 11 },
   },
