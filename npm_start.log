@@ -1,0 +1,227 @@
+
+> indianolympicdream@2.9.99 start
+> ng serve --proxy-config proxy.conf.js --host 0.0.0.0
+
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues. You might need to use "--disable-host-check" if that's the
+case.
+
+Component HMR has been enabled.
+If you encounter application reload issues, you can manually reload the page to bypass HMR and/or disable this feature with the `--no-hmr` command line option.
+Please consider reporting any issues you encounter here: https://github.com/angular/angular-cli/issues
+
+❯ Building...
+✔ Building...
+Browser bundles
+Initial chunk files  | Names                     |  Raw size
+styles.css           | styles                    | 359.32 kB |
+polyfills.js         | polyfills                 |  90.20 kB |
+main.js              | main                      |  74.75 kB |
+chunk-ELPZWGDI.js    | -                         |   1.39 kB |
+chunk-CZJLB7T5.js    | -                         |   1.08 kB |
+chunk-HSKOQIEM.js    | -                         | 294 bytes |
+
+                     | Initial total             | 527.03 kB
+
+Lazy chunk files     | Names                     |  Raw size
+chunk-SIJMXE3C.js    | sport-detail-component    | 485.34 kB |
+chunk-LK53CUUK.js    | calendar-component        | 144.92 kB |
+chunk-PQAKVIWR.js    | athletes-component        | 137.76 kB |
+chunk-WTIJBOZI.js    | stories-routes            | 136.38 kB |
+chunk-3NAJCO4J.js    | history-component         | 118.60 kB |
+chunk-7C2UH3FI.js    | edition-detail-component  |  99.81 kB |
+chunk-NDJNJP5N.js    | originals-component       |  96.83 kB |
+chunk-G6BRGHLQ.js    | sports-component          |  49.84 kB |
+chunk-DMFENE37.js    | calendar-detail-component |  45.84 kB |
+chunk-4OLQRMGP.js    | -                         |  21.09 kB |
+chunk-S3RKJFQM.js    | server-error-component    |   6.13 kB |
+chunk-YZIAPOZU.js    | page-not-found-component  |   4.14 kB |
+chunk-FKCTGULU.js    | -                         |   2.73 kB |
+chunk-BXXVV34S.js    | -                         |   2.56 kB |
+chunk-OU7G3HML.js    | history-routes            | 994 bytes |
+
+
+Server bundles
+Initial chunk files  | Names                     |  Raw size
+polyfills.server.mjs | polyfills.server          | 567.35 kB |
+main.server.mjs      | main.server               |  76.08 kB |
+chunk-55TURDK2.mjs   | -                         |   1.42 kB |
+chunk-XZXRA2IB.mjs   | -                         |   1.11 kB |
+server.mjs           | server                    |   1.07 kB |
+chunk-XAFFQG4T.mjs   | -                         | 329 bytes |
+
+Lazy chunk files     | Names                     |  Raw size
+chunk-R3DUSKU2.mjs   | sport-detail-component    | 485.37 kB |
+chunk-EVY4YBCK.mjs   | calendar-component        | 144.96 kB |
+chunk-RE64KVV4.mjs   | athletes-component        | 137.80 kB |
+chunk-KQB64BPC.mjs   | stories-routes            | 136.41 kB |
+chunk-OO7VOKUZ.mjs   | history-component         | 118.63 kB |
+chunk-G6BWH7GP.mjs   | edition-detail-component  |  99.84 kB |
+chunk-KPK2UPNT.mjs   | originals-component       |  96.87 kB |
+chunk-QQ22VNOR.mjs   | sports-component          |  49.88 kB |
+chunk-FVTAFBA5.mjs   | calendar-detail-component |  45.87 kB |
+chunk-RV6QYCU6.mjs   | -                         |  21.13 kB |
+chunk-FTG27W3P.mjs   | server-error-component    |   6.17 kB |
+chunk-MYKZ3RFI.mjs   | page-not-found-component  |   4.18 kB |
+chunk-D5UG2CW3.mjs   | -                         |   2.76 kB |
+chunk-TFUL5VKU.mjs   | -                         |   2.59 kB |
+chunk-LJDKEPAL.mjs   | history-routes            |   1.03 kB |
+
+Application bundle generation complete. [21.240 seconds]
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/history/sport-detail.component.scss:2884:19:
+[37m      2884 │             color: [32m[37mlighten($bronze-color, 6%);
+           ╵                    [32m^[0m
+
+
+  Global built-in functions are deprecated and will be removed in Dart Sass 3.0.0.
+  Use color.adjust instead.
+
+  More info and automated migrator: [4mhttps://sass-lang.com/d/import[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mDeprecation[0m [1m[35m[plugin angular-sass][0m
+
+    src/app/history/sport-detail.component.scss:2884:19:
+[37m      2884 │             color: [32m[37mlighten($bronze-color, 6%);
+           ╵                    [32m^[0m
+
+
+  lighten() is deprecated. Suggestions:
+
+  color.scale($color, $lightness: 12%)
+  color.adjust($color, $lightness: 6%)
+
+  More info: [4mhttps://sass-lang.com/d/color-functions[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mAngular Material themes should be created from a map containing the keys "color", "typography", and "density". The color value should be a map containing the palette values for "primary", "accent", and "warn". See https://material.angular.dev/guide/theming for more information.[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles/theme-manager.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 324:3   private-legacy-get-theme()
+  node_modules/@angular/material/core/theming/_theming.scss 164:11  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5    private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3        theme()
+  src/styles/components/_tab-theme.scss 5:5                         tab-theme()
+  src/styles/theme-manager.scss 15:3                                @content
+  src/styles/theme.scss 51:3                                        theme-exports()
+  src/styles/theme-manager.scss 9:1                                 root stylesheet
+
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mAngular Material themes should be created from a map containing the keys "color", "typography", and "density". The color value should be a map containing the palette values for "primary", "accent", and "warn". See https://material.angular.dev/guide/theming for more information.[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles/theme-manager.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 324:3   private-legacy-get-theme()
+  node_modules/@angular/material/core/theming/_theming.scss 164:11  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5    private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3        theme()
+  src/styles/components/_tab-theme.scss 5:5                         tab-theme()
+  src/styles/theme-manager.scss 24:5                                @content
+  src/styles/theme.scss 51:3                                        theme-exports()
+  src/styles/theme-manager.scss 9:1                                 root stylesheet
+
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe same color styles are generated multiple times. Read more about how style duplication can be avoided in a dedicated guide. https://v18.material.angular.dev/guide/duplicate-theming-styles[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles/theme-manager.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 182:7  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5   private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3       theme()
+  src/styles/components/_tab-theme.scss 5:5                        tab-theme()
+  src/styles/theme-manager.scss 24:5                               @content
+  src/styles/theme.scss 51:3                                       theme-exports()
+  src/styles/theme-manager.scss 9:1                                root stylesheet
+
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mAngular Material themes should be created from a map containing the keys "color", "typography", and "density". The color value should be a map containing the palette values for "primary", "accent", and "warn". See https://material.angular.dev/guide/theming for more information.[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:2:8:
+[37m      2 │ @import [32m'src/styles.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 324:3   private-legacy-get-theme()
+  node_modules/@angular/material/core/theming/_theming.scss 164:11  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5    private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3        theme()
+  src/styles/components/_tab-theme.scss 5:5                         tab-theme()
+  src/styles/theme-manager.scss 15:3                                @content
+  src/styles/theme.scss 51:3                                        theme-exports()
+  src/styles/theme-manager.scss 9:1                                 @use
+  src/styles.scss 2:1                                               root stylesheet
+
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mAngular Material themes should be created from a map containing the keys "color", "typography", and "density". The color value should be a map containing the palette values for "primary", "accent", and "warn". See https://material.angular.dev/guide/theming for more information.[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:2:8:
+[37m      2 │ @import [32m'src/styles.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 324:3   private-legacy-get-theme()
+  node_modules/@angular/material/core/theming/_theming.scss 164:11  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5    private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3        theme()
+  src/styles/components/_tab-theme.scss 5:5                         tab-theme()
+  src/styles/theme-manager.scss 24:5                                @content
+  src/styles/theme.scss 51:3                                        theme-exports()
+  src/styles/theme-manager.scss 9:1                                 @use
+  src/styles.scss 2:1                                               root stylesheet
+
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe same color styles are generated multiple times. Read more about how style duplication can be avoided in a dedicated guide. https://v18.material.angular.dev/guide/duplicate-theming-styles[0m [1m[35m[plugin angular-sass][0m
+
+    angular:styles/global:styles:2:8:
+[37m      2 │ @import [32m'src/styles.scss'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  node_modules/@angular/material/core/theming/_theming.scss 182:7  -check-duplicate-theme-styles-v0()
+  node_modules/@angular/material/core/theming/_theming.scss 70:5   private-check-duplicate-theme-styles()
+  node_modules/@angular/material/tabs/_tabs-theme.scss 191:3       theme()
+  src/styles/components/_tab-theme.scss 5:5                        tab-theme()
+  src/styles/theme-manager.scss 24:5                               @content
+  src/styles/theme.scss 51:3                                       theme-exports()
+  src/styles/theme-manager.scss 9:1                                @use
+  src/styles.scss 2:1                                              root stylesheet
+
+
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+  ➜  Network: http://192.168.0.2:4200/
+1:13:41 PM [vite] http proxy error: /api/graphql
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:13:42 PM [vite] http proxy error: /api/graphql
+AggregateError [ETIMEDOUT]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:13:42 PM [vite] http proxy error: /api/graphql
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+1:13:42 PM [vite] http proxy error: /api/graphql
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
