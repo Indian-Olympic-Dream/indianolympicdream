@@ -4,11 +4,12 @@ import {
   OnDestroy,
   inject,
   ElementRef,
+  PLATFORM_ID,
   Renderer2,
   ViewChild,
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
-import { CommonModule, DatePipe } from "@angular/common";
+import { CommonModule, DatePipe, DOCUMENT, isPlatformBrowser } from "@angular/common";
 import { Title, Meta } from "@angular/platform-browser";
 import { StoriesService, Story } from "../stories.service";
 import { Observable, Subscription } from "rxjs";
@@ -23,6 +24,7 @@ import { ScrollTrackingService } from "../../shared/services/scroll-tracking.ser
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { EmbedBlockComponent } from "src/app/story-blocks/embed-block/embed-block.component";
+import { SeoService } from "../../shared/services/seo.service";
 @Component({
   selector: "app-story-details",
   standalone: true,
@@ -49,10 +51,13 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
   private storiesService = inject(StoriesService);
   private renderer = inject(Renderer2);
   private el = inject(ElementRef);
+  private document = inject(DOCUMENT);
+  private platformId = inject(PLATFORM_ID);
   private scrollTrackingService = inject(ScrollTrackingService);
   private snackBar = inject(MatSnackBar);
   private titleService = inject(Title);
   private metaService = inject(Meta);
+  private seoService = inject(SeoService);
 
   story$: Observable<Story>;
   private currentStory: Story;
@@ -106,15 +111,16 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
     this.metaService.updateTag({ property: "og:type", content: "article" });
     this.metaService.updateTag({
       property: "og:url",
-      content: window.location.href,
+      content: this.currentAbsoluteUrl(),
     });
+    this.metaService.updateTag({ name: "twitter:title", content: title });
+    this.metaService.updateTag({ name: "twitter:description", content: description });
+    this.metaService.updateTag({ name: "twitter:card", content: "summary_large_image" });
 
     if (story.socialImage?.sizes?.card?.url) {
-      const imageUrl = new URL(
-        story.socialImage.sizes.card.url,
-        window.location.origin,
-      ).href;
+      const imageUrl = this.seoService.absoluteUrl(story.socialImage.sizes.card.url);
       this.metaService.updateTag({ property: "og:image", content: imageUrl });
+      this.metaService.updateTag({ name: "twitter:image", content: imageUrl });
     }
   }
 
@@ -132,16 +138,16 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
     const shareData = {
       title: this.currentStory.metaTitle || this.currentStory.title,
       text: this.currentStory.metaDescription,
-      url: window.location.href,
+      url: this.currentAbsoluteUrl(),
     };
 
-    if (navigator.share) {
+    if (isPlatformBrowser(this.platformId) && navigator.share) {
       navigator
         .share(shareData)
         .catch((error) => console.error("Error sharing:", error));
-    } else if (navigator.clipboard) {
+    } else if (isPlatformBrowser(this.platformId) && navigator.clipboard) {
       navigator.clipboard
-        .writeText(window.location.href)
+        .writeText(this.currentAbsoluteUrl())
         .then(() => {
           this.snackBar.open("Link copied to clipboard!", "Close", {
             duration: 3000,
@@ -156,12 +162,13 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
   }
 
   private legacyCopyLink(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
     const textArea = this.renderer.createElement("textarea");
-    textArea.value = window.location.href;
-    this.renderer.appendChild(document.body, textArea);
+    textArea.value = this.currentAbsoluteUrl();
+    this.renderer.appendChild(this.document.body, textArea);
     textArea.select();
     document.execCommand("copy");
-    this.renderer.removeChild(document.body, textArea);
+    this.renderer.removeChild(this.document.body, textArea);
     this.snackBar.open("Link copied to clipboard!", "Close", {
       duration: 3000,
     });
@@ -175,5 +182,9 @@ export class StoryDetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  private currentAbsoluteUrl(): string {
+    return this.seoService.absoluteUrl(this.router.url || "/stories");
   }
 }

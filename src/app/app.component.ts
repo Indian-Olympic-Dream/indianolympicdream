@@ -27,6 +27,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LoaderService } from "./shared/components/loader/loader.service";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
+import { SeoService } from "./shared/services/seo.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
 import { FooterComponent } from "./footer/footer.component";
 
@@ -71,12 +72,14 @@ export class AppComponent {
     public overlayContainer: OverlayContainer,
     private loaderService: LoaderService,
     private scrollTrackingService: ScrollTrackingService,
+    private seoService: SeoService,
   ) {
     this.loaderService.loaderState.subscribe((state) => {
       this.loading = state.show;
     });
     this.loadThemePreference();
     this.swupdateservice.checkForUpdates();
+    this.seoService.init();
     this.router.events.subscribe((event: RouterEvent) => {
       this.navigationInterceptor(event);
     });
