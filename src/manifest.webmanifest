@@ -44,6 +44,12 @@
       "purpose": "any maskable"
     },
     {
+      "src": "assets/images/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "assets/images/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
@@ -53,7 +59,7 @@
       "src": "assets/images/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
