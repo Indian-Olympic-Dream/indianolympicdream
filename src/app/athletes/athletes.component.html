@@ -20,8 +20,7 @@
         </button>
 
         <button class="tab-btn" type="button" [class.active]="selectedTab() === 'outside_chance'"
-          (click)="setTab('outside_chance')" title="Outside chance athletes and teams"
-          aria-label="Outside chance tab">
+          (click)="setTab('outside_chance')" title="Outside chance athletes and teams" aria-label="Outside chance tab">
           <span class="tab-btn-label">Outside Chance</span>
           <span class="tab-btn-count">{{ getTabCount('outside_chance') }}</span>
         </button>
@@ -48,7 +47,7 @@
             <path d="m21 21-4.3-4.3" />
           </svg>
           <input id="athlete-search" type="text" class="search-input"
-            [placeholder]="selectedTab() === 'retired' ? 'Search retired athletes by name, sport, event…' : 'Search contenders by name, sport, event, roster…'"
+            [placeholder]="selectedTab() === 'retired' ? 'Search retired athletes by name, sport, event…' : 'Search contenders by name, sport, event…'"
             [ngModel]="searchQuery()" (ngModelChange)="setSearchQuery($event)" />
         </label>
 
@@ -57,34 +56,61 @@
             *ngFor="let option of sportToolbarOptions(); trackBy: trackBySportOption"
             [class.active]="isSportOptionActive(option)" (click)="setSportFilter(option.value)"
             [attr.title]="option.label + ' (' + option.count + ')'" [attr.aria-label]="option.label">
-            <span class="sport-pill-media" [class.sport-pill-media-category]="option.showLabel">
-              <ng-container *ngIf="option.showLabel; else compactSportOption">
-                <span class="sport-pill-cluster" *ngIf="option.pictograms?.length; else categoryOptionFallback">
-                  <span class="sport-pill-icon sport-pill-icon-mini"
-                    *ngFor="let pictogram of option.pictograms | slice: 0 : 3">
-                    <img [src]="pictogram" [alt]="option.label + ' sport pictogram'"
+            <ng-container *ngIf="option.value === 'all'; else defaultSportPill">
+              <span class="sport-pill-media sport-pill-media-all">
+                <span class="sport-pill-icon sport-pill-all-badge">
+                  <svg class="sport-pill-all-icon" viewBox="0 0 32 32" aria-hidden="true">
+                    <g class="all-icon-lines">
+                      <line x1="16" y1="16" x2="16" y2="8.5" />
+                      <line x1="16" y1="16" x2="24.2" y2="12.2" />
+                      <line x1="16" y1="16" x2="22.2" y2="24" />
+                      <line x1="16" y1="16" x2="9.8" y2="24" />
+                      <line x1="16" y1="16" x2="7.8" y2="12.2" />
+                    </g>
+                    <g class="all-icon-nodes">
+                      <circle cx="16" cy="16" r="2.6" />
+                      <circle cx="16" cy="7.8" r="2.1" />
+                      <circle cx="24.6" cy="12" r="2.1" />
+                      <circle cx="22.4" cy="24.2" r="2.1" />
+                      <circle cx="9.6" cy="24.2" r="2.1" />
+                      <circle cx="7.4" cy="12" r="2.1" />
+                    </g>
+                  </svg>
+                  <!-- <span class="sport-pill-all-count">{{ option.count }}</span> -->
+                </span>
+              </span>
+            </ng-container>
+
+            <ng-template #defaultSportPill>
+              <span class="sport-pill-media" [class.sport-pill-media-category]="option.showLabel">
+                <ng-container *ngIf="option.showLabel; else compactSportOption">
+                  <span class="sport-pill-cluster" *ngIf="option.pictograms?.length; else categoryOptionFallback">
+                    <span class="sport-pill-icon sport-pill-icon-mini"
+                      *ngFor="let pictogram of option.pictograms | slice: 0 : 3">
+                      <img [src]="pictogram" [alt]="option.label + ' sport pictogram'"
+                        (error)="$any($event.target).parentElement.style.display='none'">
+                    </span>
+                  </span>
+                  <ng-template #categoryOptionFallback>
+                    <span class="sport-pill-icon sport-pill-category-fallback">
+                      <mat-icon>{{ getSportOptionFallbackIcon(option) }}</mat-icon>
+                    </span>
+                  </ng-template>
+                  <span class="sport-pill-label">{{ option.label }}</span>
+                  <span class="sport-pill-count sport-pill-count-inline">{{ option.count }}</span>
+                </ng-container>
+
+                <ng-template #compactSportOption>
+                  <span class="sport-pill-icon" *ngIf="option.pictogram">
+                    <img [src]="option.pictogram" [alt]="option.label"
                       (error)="$any($event.target).parentElement.style.display='none'">
                   </span>
-                </span>
-                <ng-template #categoryOptionFallback>
-                  <span class="sport-pill-icon sport-pill-category-fallback">
-                    <mat-icon>{{ getSportOptionFallbackIcon(option) }}</mat-icon>
-                  </span>
+                  <span class="sport-pill-icon sport-pill-fallback" *ngIf="!option.pictogram">{{ option.label.charAt(0)
+                    }}</span>
+                  <span class="sport-pill-count">{{ option.count }}</span>
                 </ng-template>
-                <span class="sport-pill-label">{{ option.label }}</span>
-                <span class="sport-pill-count sport-pill-count-inline">{{ option.count }}</span>
-              </ng-container>
-
-              <ng-template #compactSportOption>
-                <span class="sport-pill-icon" *ngIf="option.pictogram">
-                  <img [src]="option.pictogram" [alt]="option.label"
-                    (error)="$any($event.target).parentElement.style.display='none'">
-                </span>
-                <span class="sport-pill-icon sport-pill-fallback" *ngIf="!option.pictogram">{{ option.label.charAt(0)
-                  }}</span>
-                <span class="sport-pill-count">{{ option.count }}</span>
-              </ng-template>
-            </span>
+              </span>
+            </ng-template>
           </button>
         </div>
 
@@ -116,8 +142,7 @@
 
       <section class="cards-grid contender-grid"
         *ngIf="selectedTab() !== 'retired' && displayedContenderUnits().length > 0"
-        [class.mode-medal]="selectedTab() === 'medal_hopeful'"
-        [class.mode-outside]="selectedTab() === 'outside_chance'"
+        [class.mode-medal]="selectedTab() === 'medal_hopeful'" [class.mode-outside]="selectedTab() === 'outside_chance'"
         [class.mode-qualification]="selectedTab() === 'qualification_watch'">
         <article class="card contender-card" *ngFor="let unit of displayedContenderUnits(); trackBy: trackByContenderId"
           [class.is-team]="unit.type === 'team' || unit.type === 'event_team'">
@@ -240,19 +265,18 @@
         </button>
       </div>
 
-      <div class="empty-state"
-        *ngIf="selectedTab() !== 'retired' && displayedContenderUnits().length === 0">
+      <div class="empty-state" *ngIf="selectedTab() !== 'retired' && displayedContenderUnits().length === 0">
         <p *ngIf="searchQuery().trim() || selectedSport() !== 'all'; else noContenderData">
           No contenders match your search or selected sport.
         </p>
         <ng-template #noContenderData>
           <p>No {{
             selectedTab() === 'medal_hopeful'
-              ? 'medal hope'
-              : selectedTab() === 'outside_chance'
-                ? 'outside chance'
-                : 'qualification'
-          }} athletes available.</p>
+            ? 'medal hope'
+            : selectedTab() === 'outside_chance'
+            ? 'outside chance'
+            : 'qualification'
+            }} athletes available.</p>
         </ng-template>
       </div>
 

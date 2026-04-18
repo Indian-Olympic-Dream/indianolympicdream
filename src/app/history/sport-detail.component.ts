@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, DestroyRef, ElementRef, OnInit, QueryList, ViewChild, ViewChildren, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, Location, isPlatformBrowser } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -214,6 +214,7 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
     private payload = inject(PayloadService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
+    private location = inject(Location);
     private destroyRef = inject(DestroyRef);
     private platformId = inject(PLATFORM_ID);
     private sportsById = signal<Map<string, Sport>>(new Map());
@@ -1650,6 +1651,15 @@ export class SportDetailComponent implements OnInit, AfterViewInit {
 
     isActiveView(view: SportDetailView): boolean {
         return this.activeView() === view;
+    }
+
+    navigateBack(): void {
+        if (isPlatformBrowser(this.platformId) && window.history.length > 1) {
+            this.location.back();
+            return;
+        }
+
+        void this.router.navigate(['/history']);
     }
 
     onCurrentHeroImageError(): void {

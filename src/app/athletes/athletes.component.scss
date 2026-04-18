@@ -211,6 +211,66 @@
   transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
 }
 
+.sport-pill-media.sport-pill-media-all {
+  gap: 0;
+}
+
+.sport-pill-all-badge {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: visible;
+  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.sport-pill:hover .sport-pill-all-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sport-pill.active .sport-pill-all-badge {
+  background: rgba(var(--ath-accent-rgb), 0.14);
+  border-color: rgba(var(--ath-accent-rgb), 0.52);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(var(--ath-accent-rgb), 0.16);
+}
+
+.sport-pill-all-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  transition: color 0.16s ease, transform 0.16s ease, filter 0.16s ease;
+
+  .all-icon-lines {
+    stroke: currentColor;
+    stroke-width: 1.55;
+    stroke-linecap: round;
+    opacity: 0.42;
+  }
+
+  .all-icon-nodes {
+    fill: currentColor;
+  }
+}
+
+.sport-pill:hover .sport-pill-all-icon {
+  color: rgba(255, 255, 255, 0.92);
+  transform: scale(1.05);
+}
+
+.sport-pill.active .sport-pill-all-icon {
+  color: var(--ath-accent-contrast);
+  transform: scale(1.06);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+}
+
 .sport-pill-media {
   display: flex;
   flex-direction: column;
@@ -402,13 +462,33 @@
   animation: card-rise 0.5s cubic-bezier(0.2, 0.75, 0.32, 1) forwards;
 }
 
-.card:nth-child(2) { animation-delay: 0.03s; }
-.card:nth-child(3) { animation-delay: 0.06s; }
-.card:nth-child(4) { animation-delay: 0.09s; }
-.card:nth-child(5) { animation-delay: 0.12s; }
-.card:nth-child(6) { animation-delay: 0.15s; }
-.card:nth-child(7) { animation-delay: 0.18s; }
-.card:nth-child(8) { animation-delay: 0.21s; }
+.card:nth-child(2) {
+  animation-delay: 0.03s;
+}
+
+.card:nth-child(3) {
+  animation-delay: 0.06s;
+}
+
+.card:nth-child(4) {
+  animation-delay: 0.09s;
+}
+
+.card:nth-child(5) {
+  animation-delay: 0.12s;
+}
+
+.card:nth-child(6) {
+  animation-delay: 0.15s;
+}
+
+.card:nth-child(7) {
+  animation-delay: 0.18s;
+}
+
+.card:nth-child(8) {
+  animation-delay: 0.21s;
+}
 
 .contender-card {
   position: relative;
@@ -418,12 +498,10 @@
   overflow: hidden;
   background:
     linear-gradient(165deg, rgba(16, 18, 24, 0.94) 0%, rgba(8, 9, 13, 0.98) 100%) padding-box,
-    linear-gradient(
-      142deg,
+    linear-gradient(142deg,
       rgba(var(--ath-accent-rgb), 0.82) 0%,
       rgba(255, 255, 255, 0.22) 44%,
-      rgba(var(--ath-accent-rgb), 0.24) 100%
-    ) border-box;
+      rgba(var(--ath-accent-rgb), 0.24) 100%) border-box;
   box-shadow:
     0 20px 34px rgba(0, 0, 0, 0.42),
     0 0 0 1px rgba(var(--ath-accent-rgb), 0.12) inset;
@@ -452,13 +530,11 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(
-    118deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    transparent 30%,
-    transparent 70%,
-    rgba(var(--ath-accent-rgb), 0.12) 100%
-  );
+  background: linear-gradient(118deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(var(--ath-accent-rgb), 0.12) 100%);
   opacity: 0.28;
 }
 
@@ -481,12 +557,10 @@
 .contender-card.is-team {
   background:
     linear-gradient(165deg, rgba(16, 18, 24, 0.9) 0%, rgba(8, 9, 13, 0.98) 100%) padding-box,
-    linear-gradient(
-      142deg,
+    linear-gradient(142deg,
       rgba(var(--ath-accent-rgb), 0.92) 0%,
       rgba(255, 255, 255, 0.26) 44%,
-      rgba(var(--ath-accent-rgb), 0.34) 100%
-    ) border-box;
+      rgba(var(--ath-accent-rgb), 0.34) 100%) border-box;
 }
 
 .contender-card.is-team::before {
@@ -1073,6 +1147,16 @@
 
   .sport-pill-count {
     font-size: 8px;
+  }
+
+  .sport-pill-all-badge {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sport-pill-all-icon {
+    width: 17px;
+    height: 17px;
   }
 
   .sport-pill-count-inline {

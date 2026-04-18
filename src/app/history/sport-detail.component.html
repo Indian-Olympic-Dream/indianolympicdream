@@ -1,5 +1,14 @@
 <div class="sport-history-container">
-    <nav class="sport-switch-toolbar" *ngIf="sportSwitchItems().length > 0 || hasOverflowSportSwitchItems()" aria-label="Sports">
+    <nav class="sport-switch-toolbar" *ngIf="sport()" aria-label="Sports">
+        <button type="button" class="sport-switch-chip sport-switch-back m-t-4" (click)="navigateBack()"
+            aria-label="Go back" title="Go back">
+            <span class="sport-switch-circle">
+                <span class="sport-switch-icon-frame sport-switch-back-icon-frame">
+                    <mat-icon>arrow_back</mat-icon>
+                </span>
+            </span>
+        </button>
+
         <div class="sport-switch-bar" #sportSwitchBar>
             <a class="sport-switch-chip" *ngFor="let item of sportSwitchItems(); trackBy: trackSportSwitchItem"
                 #sportSwitchLink [routerLink]="['/history/sport', item.slug]"
@@ -41,8 +50,8 @@
                         [attr.aria-label]="item.name" [attr.title]="item.name">
                         <span class="sport-switch-circle">
                             <span class="sport-switch-icon-frame">
-                                <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" alt="" class="sport-switch-icon"
-                                    width="36" height="36">
+                                <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" alt=""
+                                    class="sport-switch-icon" width="36" height="36">
                                 <span *ngIf="!item.pictogramUrl" class="sport-switch-fallback">{{ item.name.charAt(0)
                                     }}</span>
                             </span>
@@ -60,7 +69,8 @@
             [disabled]="loading()" (click)="setActiveView('current')">
             <span class="tab-copy">
                 <span class="tab-label">Current</span>
-                <span class="tab-description">{{ supportsFullCurrentCoverage() ? 'Active Calendar and Athletes' : 'Active Athletes' }}</span>
+                <span class="tab-description">{{ supportsFullCurrentCoverage() ? 'Active Calendar and Athletes' :
+                    'Active Athletes' }}</span>
             </span>
         </button>
         <button type="button" class="detail-tab" [class.active]="isActiveView('legacy')" [disabled]="loading()"
@@ -95,14 +105,14 @@
                 </div>
             </div>
 
-            <div class="hero-stats-card current-snapshot-card" [class.unified-summary-card]="usesUnifiedCurrentLayout()">
+            <div class="hero-stats-card current-snapshot-card"
+                [class.unified-summary-card]="usesUnifiedCurrentLayout()">
                 <section class="hero-discipline-filter in-card" *ngIf="hasHeroDisciplineFilters()">
                     <div class="hero-discipline-filter-label">Sub-disciplines</div>
                     <div class="hero-discipline-filter-row">
                         <button type="button" class="hero-discipline-chip"
                             *ngFor="let item of heroDisciplineItems(); trackBy: trackHeroDisciplineItem"
-                            [class.active]="activeDisciplineId() === item.id"
-                            (click)="setDisciplineFilter(item.id)">
+                            [class.active]="activeDisciplineId() === item.id" (click)="setDisciplineFilter(item.id)">
                             <div class="hero-discipline-chip-name">
                                 <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" [alt]="item.name"
                                     class="hero-discipline-chip-icon">
@@ -151,7 +161,8 @@
                         </div>
                         <div class="legacy-snapshot-stat">
                             <span class="legacy-snapshot-label">Total editions</span>
-                            <span class="legacy-snapshot-value">{{ loading() ? '—' : heroPerformanceSummary().editionCount
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' :
+                                heroPerformanceSummary().editionCount
                                 }}</span>
                         </div>
                     </div>
@@ -180,7 +191,8 @@
                     <div class="legacy-snapshot-group legacy-snapshot-overview legacy-snapshot-foot">
                         <div class="legacy-snapshot-stat">
                             <span class="legacy-snapshot-label">Athletes</span>
-                            <span class="legacy-snapshot-value">{{ loading() ? '—' : heroPerformanceSummary().athleteCount
+                            <span class="legacy-snapshot-value">{{ loading() ? '—' :
+                                heroPerformanceSummary().athleteCount
                                 }}</span>
                         </div>
                         <div class="legacy-snapshot-stat">
@@ -205,10 +217,8 @@
                             </div>
                             <a class="current-snapshot-action"
                                 *ngIf="checkpoint.navigation?.kind === 'external' && getCurrentCheckpointLinkLabel(checkpoint) as linkLabel"
-                                [href]="checkpoint.navigation?.href"
-                                [attr.target]="checkpoint.navigation?.target"
-                                [attr.rel]="checkpoint.navigation?.rel"
-                                [attr.aria-label]="linkLabel"
+                                [href]="checkpoint.navigation?.href" [attr.target]="checkpoint.navigation?.target"
+                                [attr.rel]="checkpoint.navigation?.rel" [attr.aria-label]="linkLabel"
                                 [attr.title]="linkLabel">
                                 <span class="current-snapshot-action-copy">{{ linkLabel }}</span>
                                 <span class="current-snapshot-action-icon">
@@ -222,7 +232,8 @@
                         *ngIf="supportsFullCurrentCoverage() && currentHeroSecondaryCheckpoint() as checkpoint">
                         <div class="current-snapshot-head">
                             <div class="current-snapshot-copy">
-                                <span class="current-snapshot-secondary-label">{{ checkpoint.eyebrow || 'Next up' }}</span>
+                                <span class="current-snapshot-secondary-label">{{ checkpoint.eyebrow || 'Next up'
+                                    }}</span>
                                 <div class="current-snapshot-secondary-title">{{ checkpoint.label }}</div>
                                 <div class="current-snapshot-secondary-meta">
                                     <span>{{ checkpoint.dateLabel }}</span>
@@ -231,10 +242,8 @@
                             </div>
                             <a class="current-snapshot-action current-snapshot-action-secondary"
                                 *ngIf="checkpoint.navigation?.kind === 'external' && getCurrentCheckpointLinkLabel(checkpoint) as linkLabel"
-                                [href]="checkpoint.navigation?.href"
-                                [attr.target]="checkpoint.navigation?.target"
-                                [attr.rel]="checkpoint.navigation?.rel"
-                                [attr.aria-label]="linkLabel"
+                                [href]="checkpoint.navigation?.href" [attr.target]="checkpoint.navigation?.target"
+                                [attr.rel]="checkpoint.navigation?.rel" [attr.aria-label]="linkLabel"
                                 [attr.title]="linkLabel">
                                 <span class="current-snapshot-action-copy">{{ linkLabel }}</span>
                                 <span class="current-snapshot-action-icon">
@@ -247,7 +256,8 @@
                     <div class="current-snapshot-focus" *ngIf="currentHeroFocusItems().length > 0">
                         <span class="current-snapshot-focus-label">In focus</span>
                         <div class="current-snapshot-focus-list">
-                            <span class="current-snapshot-focus-chip" *ngFor="let item of currentHeroFocusItems()">{{ item
+                            <span class="current-snapshot-focus-chip" *ngFor="let item of currentHeroFocusItems()">{{
+                                item
                                 }}</span>
                         </div>
                     </div>
@@ -300,8 +310,7 @@
                     <div class="hero-discipline-filter-row">
                         <button type="button" class="hero-discipline-chip"
                             *ngFor="let item of heroDisciplineItems(); trackBy: trackHeroDisciplineItem"
-                            [class.active]="activeDisciplineId() === item.id"
-                            (click)="setDisciplineFilter(item.id)">
+                            [class.active]="activeDisciplineId() === item.id" (click)="setDisciplineFilter(item.id)">
                             <div class="hero-discipline-chip-name">
                                 <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" [alt]="item.name"
                                     class="hero-discipline-chip-icon">
@@ -431,9 +440,12 @@
                                     <p class="current-event-summary">{{ synopsis }}</p>
                                     <div class="current-event-meta"
                                         *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
-                                        <div class="current-event-chip-row" *ngIf="card.typeLabel || card.categoryLabel">
-                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
-                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+                                        <div class="current-event-chip-row"
+                                            *ngIf="card.typeLabel || card.categoryLabel">
+                                            <span class="current-event-category current-event-type"
+                                                *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{
+                                                card.categoryLabel }}</span>
                                         </div>
                                         <span class="current-event-location" *ngIf="card.locationLabel">
                                             <mat-icon>location_on</mat-icon>
@@ -445,9 +457,12 @@
                                 <ng-template #eventMetaOnly>
                                     <div class="current-event-meta"
                                         *ngIf="card.categoryLabel || card.typeLabel || card.locationLabel">
-                                        <div class="current-event-chip-row" *ngIf="card.typeLabel || card.categoryLabel">
-                                            <span class="current-event-category current-event-type" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
-                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+                                        <div class="current-event-chip-row"
+                                            *ngIf="card.typeLabel || card.categoryLabel">
+                                            <span class="current-event-category current-event-type"
+                                                *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+                                            <span class="current-event-category" *ngIf="card.categoryLabel">{{
+                                                card.categoryLabel }}</span>
                                         </div>
                                         <span class="current-event-location" *ngIf="card.locationLabel">
                                             <mat-icon>location_on</mat-icon>
@@ -475,8 +490,7 @@
                                     </div>
                                     <a class="current-event-action"
                                         *ngIf="card.navigation.kind === 'external' && getCurrentCalendarEventLinkLabel(card) as linkLabel"
-                                        [href]="card.navigation.href"
-                                        [attr.target]="card.navigation.target"
+                                        [href]="card.navigation.href" [attr.target]="card.navigation.target"
                                         [attr.rel]="card.navigation.rel">
                                         <span class="current-event-action-copy">{{ linkLabel }}</span>
                                         <span class="current-event-action-icon">
@@ -754,12 +768,15 @@
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        <div class="athlete-result-badge"
+                                            *ngIf="hasParticipationResultBadge(athlete.result)"
                                             [ngClass]="getParticipationResultClass(athlete.result)">
-                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            <span class="athlete-result-emoji"
+                                                *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                                 {{ medalEmoji }}
                                             </span>
-                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                            <span class="athlete-result-copy">{{
+                                                getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -778,12 +795,15 @@
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        <div class="athlete-result-badge"
+                                            *ngIf="hasParticipationResultBadge(athlete.result)"
                                             [ngClass]="getParticipationResultClass(athlete.result)">
-                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            <span class="athlete-result-emoji"
+                                                *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                                 {{ medalEmoji }}
                                             </span>
-                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                            <span class="athlete-result-copy">{{
+                                                getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -802,12 +822,15 @@
                                             <div class="name">{{ athlete.name }}</div>
                                             <div class="events">{{ athlete.events.join(', ') }}</div>
                                         </div>
-                                        <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                        <div class="athlete-result-badge"
+                                            *ngIf="hasParticipationResultBadge(athlete.result)"
                                             [ngClass]="getParticipationResultClass(athlete.result)">
-                                            <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                            <span class="athlete-result-emoji"
+                                                *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                                 {{ medalEmoji }}
                                             </span>
-                                            <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                            <span class="athlete-result-copy">{{
+                                                getParticipationResultLabel(athlete.result) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -829,12 +852,15 @@
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                    <div class="athlete-result-badge"
+                                        *ngIf="hasParticipationResultBadge(athlete.result)"
                                         [ngClass]="getParticipationResultClass(athlete.result)">
-                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                        <span class="athlete-result-emoji"
+                                            *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                             {{ medalEmoji }}
                                         </span>
-                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result)
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -853,12 +879,15 @@
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                    <div class="athlete-result-badge"
+                                        *ngIf="hasParticipationResultBadge(athlete.result)"
                                         [ngClass]="getParticipationResultClass(athlete.result)">
-                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                        <span class="athlete-result-emoji"
+                                            *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                             {{ medalEmoji }}
                                         </span>
-                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result)
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -877,12 +906,15 @@
                                         <div class="name">{{ athlete.name }}</div>
                                         <div class="events">{{ athlete.events.join(', ') }}</div>
                                     </div>
-                                    <div class="athlete-result-badge" *ngIf="hasParticipationResultBadge(athlete.result)"
+                                    <div class="athlete-result-badge"
+                                        *ngIf="hasParticipationResultBadge(athlete.result)"
                                         [ngClass]="getParticipationResultClass(athlete.result)">
-                                        <span class="athlete-result-emoji" *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
+                                        <span class="athlete-result-emoji"
+                                            *ngIf="getMedalEmoji(athlete.result) as medalEmoji">
                                             {{ medalEmoji }}
                                         </span>
-                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result) }}</span>
+                                        <span class="athlete-result-copy">{{ getParticipationResultLabel(athlete.result)
+                                            }}</span>
                                     </div>
                                 </div>
                             </div>

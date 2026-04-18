@@ -42,6 +42,10 @@ $font-mono: 'JetBrains Mono', monospace;
     padding-bottom: 60px;
 }
 
+.m-t-4 {
+    margin-top: 4px;
+}
+
 .sport-history-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -59,6 +63,9 @@ $font-mono: 'JetBrains Mono', monospace;
 }
 
 .sport-switch-toolbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     min-height: 84px;
     margin-bottom: 12px;
 }
@@ -66,6 +73,7 @@ $font-mono: 'JetBrains Mono', monospace;
 .sport-switch-bar {
     display: flex;
     gap: 10px;
+    flex: 1;
     overflow-x: auto;
     padding: 2px 2px 6px;
     scrollbar-width: none;
@@ -207,6 +215,19 @@ $font-mono: 'JetBrains Mono', monospace;
     order: 999;
 
     .sport-switch-more-icon-frame {
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            color: inherit;
+        }
+    }
+}
+
+.sport-switch-back {
+    cursor: pointer;
+
+    .sport-switch-back-icon-frame {
         mat-icon {
             font-size: 20px;
             width: 20px;

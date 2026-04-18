@@ -251,19 +251,31 @@ export class AthletesComponent implements OnInit {
     {
       const options = this.currentSportOptions();
       const pictogramMap = this.sportPictogramByName();
+      const selectedTab = this.selectedTab();
 
-      if (this.selectedTab() !== 'retired') {
-        return options.map((option) => ({
+      const allOption: SportToolbarOption = {
+        value: 'all',
+        label: 'All',
+        count: selectedTab === 'retired'
+          ? this.retiredTabCount()
+          : this.getContenderPoolForTab(selectedTab).length,
+        pictogram: null,
+        showLabel: true,
+        fallbackIcon: 'apps',
+      };
+
+      if (selectedTab !== 'retired') {
+        return [allOption, ...options.map((option) => ({
           value: option.value,
           label: option.label,
           count: option.count,
           pictogram: pictogramMap.get(option.value) || null,
-        }));
+        }))];
       }
 
       const categoryPictograms = this.buildRetiredCategoryPictograms(this.retiredCategorySports(), pictogramMap);
 
-      return options.map((option) => {
+      return [allOption, ...options.map((option) => {
         if (option.value === 'team' || option.value === 'individual' || option.value === 'medalists') {
           const pictograms =
             option.value === 'team'
@@ -293,7 +305,7 @@ export class AthletesComponent implements OnInit {
           count: option.count,
           pictogram: pictogramMap.get(option.value) || null,
         };
-      });
+      })];
     },
   );
 
@@ -443,6 +455,10 @@ export class AthletesComponent implements OnInit {
 
   isSportOptionActive(option: SportToolbarOption): boolean {
     const selectedSport = this.selectedSport();
+
+    if (option.value === 'all') {
+      return selectedSport === 'all';
+    }
 
     if (this.selectedTab() !== 'retired') {
       return selectedSport === option.value;
