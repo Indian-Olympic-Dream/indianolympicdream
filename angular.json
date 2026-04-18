@@ -29,7 +29,12 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              "src/.well-known"
+              "src/.well-known",
+              {
+                "glob": "50x.html",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles/theme-manager.scss",
@@ -114,7 +119,12 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              "src/.well-known"
+              "src/.well-known",
+              {
+                "glob": "50x.html",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles/theme-manager.scss",

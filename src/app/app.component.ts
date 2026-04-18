@@ -114,6 +114,24 @@ export class AppComponent {
     }
     if (event instanceof NavigationError) {
       this.loading = false;
+      if (isPlatformBrowser(this.platformId) && event.url !== "/internal-error") {
+        const errorMessage =
+          event.error instanceof Error
+            ? event.error.message
+            : typeof event.error === "string"
+              ? event.error
+              : "Route navigation failed.";
+        void this.router.navigateByUrl("/internal-error", {
+          replaceUrl: true,
+          state: {
+            kind: "navigation",
+            route: event.url || this.router.url,
+            sourceUrl: event.url || this.router.url,
+            message: errorMessage,
+            stack: event.error instanceof Error ? event.error.stack : undefined,
+          },
+        });
+      }
     }
   }
 
