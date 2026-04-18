@@ -1,41 +1,44 @@
 <div class="sport-history-container">
     <nav class="sport-switch-toolbar" *ngIf="sport()" aria-label="Sports">
-        <button type="button" class="sport-switch-chip sport-switch-back m-t-4" (click)="navigateBack()"
-            aria-label="Go back" title="Go back">
-            <span class="sport-switch-circle">
-                <span class="sport-switch-icon-frame sport-switch-back-icon-frame">
-                    <mat-icon>arrow_back</mat-icon>
-                </span>
-            </span>
-        </button>
-
-        <div class="sport-switch-bar" #sportSwitchBar>
-            <a class="sport-switch-chip" *ngFor="let item of sportSwitchItems(); trackBy: trackSportSwitchItem"
-                #sportSwitchLink [routerLink]="['/history/sport', item.slug]"
-                [queryParams]="getSportSwitchQueryParams()" [attr.data-sport-slug]="item.slug"
-                [class.active]="activeSportSwitchSlug() === item.slug"
-                [attr.aria-current]="activeSportSwitchSlug() === item.slug ? 'page' : null"
-                [attr.aria-label]="item.name" [attr.title]="item.name">
+        <div class="sport-switch-rail">
+            <button type="button" class="sport-switch-chip sport-switch-back m-t-4" (click)="navigateBack()"
+                aria-label="Go back" title="Go back">
                 <span class="sport-switch-circle">
-                    <span class="sport-switch-icon-frame">
-                        <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" alt="" class="sport-switch-icon"
-                            width="36" height="36">
-                        <span *ngIf="!item.pictogramUrl" class="sport-switch-fallback">{{ item.name.charAt(0) }}</span>
+                    <span class="sport-switch-icon-frame sport-switch-back-icon-frame">
+                        <mat-icon>arrow_back</mat-icon>
                     </span>
                 </span>
-                <span class="sport-switch-caption">{{ item.name }}</span>
-            </a>
-
-            <button type="button" class="sport-switch-chip sport-switch-more-trigger"
-                *ngIf="hasOverflowSportSwitchItems()" [class.active]="isSportSwitchExpanded()"
-                [attr.aria-expanded]="isSportSwitchExpanded()" (click)="toggleSportSwitchExpanded()">
-                <span class="sport-switch-circle">
-                    <span class="sport-switch-icon-frame sport-switch-more-icon-frame">
-                        <mat-icon>more_horiz</mat-icon>
-                    </span>
-                </span>
-                <span class="sport-switch-caption">More</span>
             </button>
+
+            <div class="sport-switch-bar" #sportSwitchBar>
+                <a class="sport-switch-chip" *ngFor="let item of sportSwitchItems(); trackBy: trackSportSwitchItem"
+                    #sportSwitchLink [routerLink]="['/history/sport', item.slug]"
+                    [queryParams]="getSportSwitchQueryParams()" [attr.data-sport-slug]="item.slug"
+                    [class.active]="activeSportSwitchSlug() === item.slug"
+                    [attr.aria-current]="activeSportSwitchSlug() === item.slug ? 'page' : null"
+                    [attr.aria-label]="item.name" [attr.title]="item.name">
+                    <span class="sport-switch-circle">
+                        <span class="sport-switch-icon-frame">
+                            <img *ngIf="item.pictogramUrl" [src]="item.pictogramUrl" alt="" class="sport-switch-icon"
+                                width="36" height="36">
+                            <span *ngIf="!item.pictogramUrl" class="sport-switch-fallback">{{ item.name.charAt(0)
+                                }}</span>
+                        </span>
+                    </span>
+                    <span class="sport-switch-caption">{{ item.name }}</span>
+                </a>
+
+                <button type="button" class="sport-switch-chip sport-switch-more-trigger"
+                    *ngIf="hasOverflowSportSwitchItems()" [class.active]="isSportSwitchExpanded()"
+                    [attr.aria-expanded]="isSportSwitchExpanded()" (click)="toggleSportSwitchExpanded()">
+                    <span class="sport-switch-circle">
+                        <span class="sport-switch-icon-frame sport-switch-more-icon-frame">
+                            <mat-icon>more_horiz</mat-icon>
+                        </span>
+                    </span>
+                    <span class="sport-switch-caption">More</span>
+                </button>
+            </div>
         </div>
 
         <div class="sport-switch-overflow" *ngIf="isSportSwitchExpanded() && overflowSportSwitchGroups().length > 0">

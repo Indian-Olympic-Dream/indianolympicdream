@@ -63,11 +63,14 @@ $font-mono: 'JetBrains Mono', monospace;
 }
 
 .sport-switch-toolbar {
+    margin-bottom: 12px;
+}
+
+.sport-switch-rail {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     min-height: 84px;
-    margin-bottom: 12px;
 }
 
 .sport-switch-bar {
