@@ -1,6 +1,6 @@
 {
   "name": "indianolympicdream",
-  "version": "2.9.99",
+  "version": "3.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.js --host 0.0.0.0",

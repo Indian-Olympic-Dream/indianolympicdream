@@ -66,7 +66,7 @@
         </div>
     </nav>
 
-    <nav class="detail-view-tabs" *ngIf="sport() && !usesUnifiedCurrentLayout()" [class.is-loading]="loading()"
+    <nav class="detail-view-tabs" *ngIf="sport() && !loading() && !usesUnifiedCurrentLayout()"
         [class.single-tab]="isLegacyOnlySport()">
         <button type="button" class="detail-tab" *ngIf="!isLegacyOnlySport()" [class.active]="isActiveView('current')"
             [disabled]="loading()" (click)="setActiveView('current')">
@@ -85,7 +85,7 @@
         </button>
     </nav>
 
-    <header class="premium-hero current-hero" *ngIf="sport() && showCurrentHero()"
+    <header class="premium-hero current-hero" *ngIf="sport() && !loading() && showCurrentHero()"
         [class.unified-current-hero]="usesUnifiedCurrentLayout()">
         <div class="hero-bg-accent"></div>
 
@@ -282,7 +282,7 @@
         </div>
     </header>
 
-    <header class="premium-hero legacy-hero" *ngIf="sport() && activeView() === 'legacy'">
+    <header class="premium-hero legacy-hero" *ngIf="sport() && !loading() && activeView() === 'legacy'">
         <div class="hero-bg-accent"></div>
 
         <div class="hero-grid">
