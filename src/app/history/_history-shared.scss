@@ -1,0 +1,38 @@
+// ============================================
+// SHARED HISTORY MODULE STYLES
+// ============================================
+@use '../../styles/variables' as var;
+@use '../../styles/mixins' as util;
+
+// Re-export specific local needs if any, otherwise map to globals
+
+// Fonts - DEPRECATED, Use var.$font-primary
+$font-primary: var.$font-primary;
+$font-mono: var.$font-mono;
+
+// Glassmorphism Card Mixin (Wrapper for global)
+@mixin glass-card {
+    @include util.glass-card;
+}
+
+// Medal Badge Mixin
+@mixin medal-badge($color) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba($color, 0.15);
+    color: $color;
+}
+
+// Section Title
+@mixin section-title {
+    font-family: var.$font-primary;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var.$text-primary;
+    margin: 0 0 20px;
+}

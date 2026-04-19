@@ -360,7 +360,8 @@ export class StoriesService {
           fallbackLocale: "en",
         },
         fetchPolicy: "no-cache",
+        errorPolicy: "all",
       })
-      .valueChanges.pipe(map((result) => result.data.Stories.docs[0]));
+      .valueChanges.pipe(map((result) => result.data?.Stories?.docs?.[0]));
   }
 }

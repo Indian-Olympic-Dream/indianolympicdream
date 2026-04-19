@@ -1,0 +1,50 @@
+<footer class="app-footer">
+    <div class="footer-content">
+
+        <!-- Brand Section -->
+        <div class="footer-brand">
+            <div class="brand-logo">
+                <img src="assets/images/logo.png" alt="IOD Sports" class="footer-logo-img">
+                <div class="brand-text">
+                    <span class="iod">IOD</span>
+                    <span class="sports">SPORTS</span>
+                </div>
+            </div>
+            <p class="tagline">Celebrating 100+ years of Indian Olympic Glory.</p>
+            <p class="copyright">© {{ currentYear }} Indian Olympic Dream. All rights reserved.</p>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-links">
+            <h3>Explore</h3>
+            <a routerLink="/" class="footer-link">Home</a>
+            <a routerLink="/history" class="footer-link">Legacy</a>
+            <a routerLink="/athletes" class="footer-link">Athletes</a>
+            <a routerLink="/calendar" class="footer-link">Calendar</a>
+            <a routerLink="/originals" class="footer-link">IOD Originals</a>
+        </div>
+
+        <!-- Connect & Contact -->
+        <div class="footer-connect">
+            <!-- Follow Us -->
+            <div class="social-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a *ngFor="let social of socialLinks" [href]="social.url" target="_blank" rel="noopener noreferrer"
+                        class="social-btn" [attr.aria-label]="social.name">
+                        <mat-icon>{{ social.icon }}</mat-icon>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="contact-section">
+                <h3>Contact Us</h3>
+                <a [href]="'mailto:' + contactEmail" class="contact-link">
+                    <mat-icon>mail_outline</mat-icon>
+                    {{ contactEmail }}
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>

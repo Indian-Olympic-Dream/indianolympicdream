@@ -1,0 +1,235 @@
+@use '@angular/material' as mat;
+
+// Variables matches app theme
+$dark-bg: #0a0a0f;
+$footer-bg: #050508;
+$text-primary: rgba(255, 255, 255, 0.95);
+$text-secondary: rgba(255, 255, 255, 0.6);
+$text-muted: rgba(255, 255, 255, 0.4);
+$accent-gold: #d4af37;
+$border-color: rgba(255, 255, 255, 0.08);
+
+.app-footer {
+    background: $footer-bg;
+    border-top: 1px solid $border-color;
+    padding: 60px 24px 100px; // Extra bottom padding for mobile nav
+    margin-top: auto;
+    width: 100%;
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr;
+        grid-template-areas: "brand links connect";
+        gap: 40px;
+    }
+}
+
+// Brand Section
+.footer-brand {
+    grid-area: brand;
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+
+        .footer-logo-img {
+            width: 40px;
+            height: 40px;
+            filter: grayscale(100%) opacity(0.8); // Muted logo
+            transition: all 0.3s ease;
+        }
+
+        .brand-text {
+            font-family: 'Geist Sans', -apple-system, sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+
+            .iod {
+                color: $text-secondary;
+            }
+
+            .sports {
+                margin-left: 4px;
+                color: $accent-gold;
+            }
+        }
+
+        &:hover .footer-logo-img {
+            filter: none;
+            opacity: 1;
+        }
+    }
+
+    .tagline {
+        font-family: 'Geist Mono', monospace;
+        font-size: 12px;
+        color: $text-muted;
+        margin-bottom: 24px;
+        max-width: 240px;
+        line-height: 1.5;
+    }
+
+    .copyright {
+        font-family: 'Geist Sans', sans-serif;
+        font-size: 12px;
+        color: $text-muted;
+        opacity: 0.5;
+    }
+}
+
+// Links Sections
+.footer-links {
+    grid-area: links;
+}
+
+.footer-connect {
+    grid-area: connect;
+}
+
+.footer-links,
+.social-section,
+.contact-section {
+    h3 {
+        font-family: 'Geist Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-primary;
+        margin: 0 0 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .footer-link {
+        font-family: 'Geist Sans', sans-serif;
+        font-size: 14px;
+        color: $text-secondary;
+        text-decoration: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: $accent-gold;
+            transform: translateX(4px);
+        }
+    }
+}
+
+// Connect Section
+.footer-connect {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap; // Allow wrapping if space is tight
+    max-width: 100%; // Ensure it doesn't overflow container
+
+    .social-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $text-secondary;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+        &:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: $accent-gold;
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+    }
+}
+
+.contact-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $text-secondary;
+    text-decoration: none;
+    font-size: 14px;
+    font-family: 'Geist Mono', monospace;
+    transition: color 0.2s ease;
+
+    // Safety for small screens
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: $accent-gold;
+    }
+
+    &:hover {
+        color: $text-primary;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .app-footer {
+        padding: 40px 20px 100px 0px;
+
+        .footer-content {
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "brand brand"
+                "links connect";
+            gap: 24px;
+            row-gap: 40px;
+        }
+    }
+
+    .footer-brand {
+        text-align: center;
+
+        // Keep brand center aligned
+        .brand-logo {
+            justify-content: center;
+        }
+
+        .tagline {
+            margin: 0 auto 24px;
+            text-align: center;
+        }
+
+        .copyright {
+            text-align: center;
+        }
+    }
+
+    .footer-links,
+    .footer-connect {
+        // Left align in columns
+        margin-left: 20px;
+        align-items: flex-start;
+        text-align: left;
+    }
+}

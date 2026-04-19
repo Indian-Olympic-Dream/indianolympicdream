@@ -1,0 +1,70 @@
+name: Deploy Frontend (Angular)
+
+on:
+  push:
+    branches:
+      - develop    # → UAT (Pi 4 B)
+      # - master   # → Prod (Pi 5) — uncomment when ready
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'uat'
+        type: choice
+        options:
+          - uat
+          - production
+
+jobs:
+  deploy-uat:
+    name: Deploy to UAT (Pi 4 B)
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'uat')
+    runs-on: [self-hosted, uat]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build for production
+        run: npm run build
+
+      - name: Deploy to Nginx
+        run: |
+          sudo rsync -a --delete dist/indianolympicdream/browser/ /var/www/iod-frontend/
+          sudo chown -R www-data:www-data /var/www/iod-frontend/
+          sudo nginx -t && sudo systemctl reload nginx
+
+      - name: Verify deployment
+        run: |
+          sleep 2
+          curl -sf http://localhost/ > /dev/null && echo "✅ Frontend is live" || echo "❌ Frontend check failed"
+
+  # Uncomment when ready for production
+  # deploy-prod:
+  #   name: Deploy to Production (Pi 5)
+  #   if: github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+  #   runs-on: [self-hosted, production]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #         cache: 'npm'
+  #     - run: npm ci --legacy-peer-deps
+  #     - run: npm run build
+  #     - run: |
+  #         sudo rsync -a --delete dist/indianolympicdream/browser/ /var/www/iod-frontend/
+  #         sudo chown -R www-data:www-data /var/www/iod-frontend/
+  #         sudo nginx -t && sudo systemctl reload nginx

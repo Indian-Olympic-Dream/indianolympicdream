@@ -3,7 +3,6 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatIconModule } from "@angular/material/icon";
-import { MatButtonModule } from "@angular/material/button";
 
 @Component({
   selector: "app-bottom-nav",
@@ -13,9 +12,9 @@ import { MatButtonModule } from "@angular/material/button";
     RouterModule,
     MatToolbarModule,
     MatIconModule,
-    MatButtonModule,
   ],
   templateUrl: "./bottom-nav.component.html",
   styleUrl: "./bottom-nav.component.scss",
 })
-export class BottomNavComponent {}
+export class BottomNavComponent {
+}

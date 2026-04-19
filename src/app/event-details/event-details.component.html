@@ -1,7 +1,7 @@
 <div class="event-details-container">
   <div class="event-details-header">
     <div class="sport-title">
-      <img class="pictogram-button-image" src="assets/images/pictograms/icons/{{data?.sportname}}.png"
+      <img class="pictogram-button-image" [src]="sportPictogramUrl"
         alt="{{data.sportname}} pictogram" />
       <div>{{data?.sportname}}</div>
     </div>
@@ -12,8 +12,6 @@
   <ul class="event-list">
     <li class="event-list-item" *ngFor="let event of data.events">
       <div class="event-list-title">
-        <!-- <img class="pictogram-button-image" src="assets/images/pictograms/icons/{{data.sportname}}.png"
-          alt="{{data.sportname}} pictogram" /> -->
         <span class="event-name">{{ event?.eventname }}</span>
       </div>
       <div class="event-list-content">

@@ -1,0 +1,1243 @@
+@use '@angular/material' as mat;
+
+// Premium Design Variables
+$gold-gradient: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+$silver-gradient: linear-gradient(135deg, #E8E8E8 0%, #A8A8A8 100%);
+$bronze-gradient: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+$dark-bg: #0a0a0f;
+$card-bg: rgba(255, 255, 255, 0.04);
+$card-border: rgba(255, 255, 255, 0.08);
+$text-primary: rgba(255, 255, 255, 0.95);
+$text-secondary: rgba(255, 255, 255, 0.6);
+$text-muted: rgba(255, 255, 255, 0.4);
+$accent-gold: #d4af37;
+
+// Container - with proper top spacing
+.history-container {
+  min-height: 100vh;
+  background: $dark-bg;
+  overflow-x: hidden;
+}
+
+// Header Section - minimal top padding since main-content has toolbar offset
+.history-header {
+  text-align: center;
+  padding: 16px 24px 24px; // Reduced top padding - toolbar offset is in main-content
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.08) 0%, transparent 100%);
+  position: relative;
+
+  .flag-accent {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 4px;
+    background: linear-gradient(90deg, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .header-logo {
+    height: 64px;
+    width: 64px;
+    height: auto;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+  }
+
+  h1 {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+
+    // Gold Gradient for "Indian Olympic Dream"
+    background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .brand-suffix {
+      font-size: 1.5rem;
+      letter-spacing: 4px;
+      color: #fff; // White
+      -webkit-text-fill-color: #fff;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.9;
+    }
+  }
+
+  .subtitle {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: $text-muted;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+  }
+}
+
+// Era Filter with year ranges + desktop quick links
+.era-toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.era-filter {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .era-btn {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    background: $card-bg;
+    border: 1px solid $card-border;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    .era-label {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: $text-secondary;
+    }
+
+    .era-years {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      color: $text-muted;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    &.active {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: $accent-gold;
+
+      .era-label {
+        color: $accent-gold;
+      }
+
+      .era-years {
+        color: $accent-gold;
+        opacity: 0.8;
+      }
+    }
+
+    // LA 2028 Button - Special styling
+    &.la2028-btn {
+      flex-direction: column; // Match era-btn direction
+      gap: 4px;
+      padding: 10px 16px; // Match standard era-btn padding
+      background: $card-bg;
+      // border: 1px solid rgba(212, 175, 55, 0.5); // Subtle gold border
+      text-decoration: none;
+
+      .la2028-icon {
+        width: 42px; // Smaller to fit context
+        height: 42px;
+        border-radius: 50%;
+        filter: drop-shadow(0px 0px 4px rgba(212, 175, 55, 1));
+        // animation: goldPulse 1s infinite; // Blinking primary color
+      }
+
+      .era-label {
+        color: $accent-gold;
+        font-weight: 600;
+        font-size: 12px; // Match era-btn font size
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+
+        .la2028-icon {
+          animation: none; // Stop pulse on hover
+          filter: drop-shadow(0px 0px 8px rgba(212, 175, 55, 0.8));
+        }
+      }
+    }
+  }
+}
+
+.history-quick-links {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.quick-link {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid $card-border;
+  background: $card-bg;
+  color: $text-secondary;
+  text-decoration: none;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: $text-primary;
+  }
+
+  &.active {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: $accent-gold;
+    color: $accent-gold;
+  }
+}
+
+@keyframes goldPulse {
+  0% {
+    filter: drop-shadow(0px 0px 4px rgba(212, 175, 55, 0.4));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0px 0px 12px rgba(212, 175, 55, 1));
+    transform: scale(1.1);
+  }
+
+  100% {
+    filter: drop-shadow(0px 0px 4px rgba(212, 175, 55, 0.4));
+    transform: scale(1);
+  }
+}
+
+// LA 2028 Section wrapper
+.la2028-section {
+  padding: 0 24px 24px;
+}
+
+// LA 2028 Hero Card
+.la2028-hero {
+  background: linear-gradient(135deg,
+      rgba(29, 78, 216, 0.15) 0%,
+      rgba(212, 175, 55, 0.1) 100%);
+  border: 1px solid rgba(29, 78, 216, 0.3);
+  border-radius: 16px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: $accent-gold;
+    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.2);
+  }
+
+  .hero-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .hero-title {
+    font-family: 'Geist Sans', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+    background: linear-gradient(135deg, #60a5fa, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+    color: $text-secondary;
+    margin: 0 0 24px;
+    font-style: italic;
+  }
+
+  .hero-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .countdown-days {
+      font-size: 3rem;
+      font-weight: 200;
+      color: $accent-gold;
+      line-height: 1;
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+  }
+
+  .hero-cta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $text-secondary;
+    font-size: 13px;
+
+    mat-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+}
+
+// Medals Card with Sports Inside
+.medals-card {
+  background: $card-bg;
+  border: 1px solid $card-border;
+  border-radius: 16px;
+  padding: 24px;
+
+  .medals-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .total-medals {
+    text-align: left;
+
+    .total-number {
+      font-family: 'Geist Sans', sans-serif;
+      font-size: 4rem;
+      font-weight: 200;
+      line-height: 1;
+      display: block;
+      background: linear-gradient(180deg, #FFD700 0%, #B8860B 50%, #8B6914 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .total-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: $text-muted;
+    }
+  }
+
+  .medal-breakdown {
+    display: flex;
+    gap: 24px;
+
+    .medal-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+
+      .medal-icon {
+        font-size: 24px;
+      }
+
+      .medal-count {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: $text-primary;
+      }
+    }
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid $card-border;
+    border-bottom: 1px solid $card-border;
+    margin-bottom: 20px;
+
+    .stat-pill {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+
+      .pill-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $text-primary;
+      }
+
+      .pill-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: $text-muted;
+      }
+    }
+  }
+
+  .sports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+}
+
+// Desktop/Mobile visibility helpers
+.desktop-only {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+.mobile-only {
+  display: none !important;
+
+  @media (max-width: 768px) {
+    display: block !important;
+  }
+}
+
+// Sports Carousel (Mobile)
+.sports-carousel {
+  padding: 0 24px 24px;
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0 0 12px;
+  }
+
+  .carousel-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sport-chip {
+      flex-shrink: 0;
+      min-width: 120px;
+    }
+  }
+}
+
+// Medal Hero - simplified layout (keeping for backward compatibility)
+// Medal Hero - Integrated Dashboard
+.medal-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 24px;
+  margin: 0 24px 24px;
+  background: $card-bg;
+  border-radius: 16px;
+  border: 1px solid $card-border;
+
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 3fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  // LEFT PANEL: Stats
+  .hero-left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%; // Fill available space
+
+    .medal-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 12px;
+
+      &.olympian-only {
+        justify-content: center;
+
+        .stat-pill {
+          flex: 0 0 auto;
+          min-width: 116px;
+        }
+      }
+
+      .stat-pill {
+        flex: 1; // Even distribution
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid $card-border;
+
+        .pill-value {
+          color: $accent-gold;
+          font-weight: 600;
+          font-size: 16px;
+          font-family: 'Geist Sans', sans-serif;
+        }
+
+        .pill-label {
+          font-size: 9px;
+          color: $text-muted;
+          text-transform: uppercase;
+          font-family: 'Geist Mono', monospace;
+        }
+      }
+    }
+
+  }
+
+  .hero-right-panel {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    --rail-card-width: 156px;
+    --rail-card-height: 108px;
+
+    .rail-block {
+      min-width: 0;
+    }
+
+    .rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+
+      h2 {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: $text-secondary;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .rail-count {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        color: $accent-gold;
+        border: 1px solid rgba(212, 175, 55, 0.35);
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 999px;
+        padding: 2px 8px;
+        line-height: 1.3;
+      }
+    }
+
+    .sports-scroll,
+    .editions-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 8px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .sport-card {
+      position: relative;
+      box-sizing: border-box;
+      flex: 0 0 var(--rail-card-width);
+      width: var(--rail-card-width);
+      scroll-snap-align: start;
+      color: inherit;
+      text-decoration: none;
+      border-radius: 12px;
+      border: 1px solid $card-border;
+      background: rgba(255, 255, 255, 0.02);
+      min-height: var(--rail-card-height);
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-align: center;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        text-decoration: none;
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      &.has-gold {
+        border-color: rgba(255, 215, 0, 0.42);
+      }
+
+      &.has-silver {
+        border-color: rgba(192, 192, 192, 0.42);
+      }
+
+      &.has-bronze {
+        border-color: rgba(205, 127, 50, 0.45);
+      }
+
+      &.is-discontinued {
+        border-color: rgba(201, 143, 108, 0.36);
+        background: rgba(201, 143, 108, 0.05);
+      }
+
+      h3 {
+        margin: 0;
+        color: #f1d45a;
+        font-size: 0.8rem;
+        line-height: 1.15;
+        font-weight: 600;
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.55rem;
+        color: rgba(255, 255, 255, 0.68);
+        font-family: 'Geist Mono', monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+
+      .sport-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .pictogram-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: invert(1);
+        }
+
+        .fallback-emoji {
+          font-size: 1.2rem;
+        }
+      }
+
+      .sport-medal-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.52rem;
+        line-height: 1;
+        padding: 2px 4px;
+        white-space: nowrap;
+
+        .medal-icon {
+          width: 10px;
+          height: 10px;
+          object-fit: contain;
+        }
+      }
+
+      .sport-meta-badge {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.52rem;
+        line-height: 1;
+        padding: 2px 4px;
+        white-space: nowrap;
+      }
+
+      &.is-discontinued .lifecycle-badge {
+        background: rgba(201, 143, 108, 0.16);
+        color: #efc5a9;
+        border-color: rgba(201, 143, 108, 0.4);
+      }
+
+      &.has-gold .sport-medal-badge {
+        background: rgba(255, 215, 0, 0.12);
+        color: #ffde6e;
+        border-color: rgba(255, 215, 0, 0.35);
+      }
+
+      &.has-silver .sport-medal-badge {
+        background: rgba(192, 192, 192, 0.12);
+        color: #e2e2e2;
+        border-color: rgba(192, 192, 192, 0.35);
+      }
+
+      &.has-bronze .sport-medal-badge {
+        background: rgba(205, 127, 50, 0.16);
+        color: #dfa271;
+        border-color: rgba(205, 127, 50, 0.36);
+      }
+    }
+
+    .edition-card {
+      box-sizing: border-box;
+      flex: 0 0 var(--rail-card-width);
+      width: var(--rail-card-width);
+      scroll-snap-align: start;
+      background: $card-bg;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 6px;
+      min-height: var(--rail-card-height);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      &.has-gold {
+        background: rgba(255, 215, 0, 0.06);
+      }
+
+      &.has-silver {
+        background: rgba(192, 192, 192, 0.055);
+      }
+
+      &.has-bronze {
+        background: rgba(205, 127, 50, 0.065);
+      }
+
+      &.no-medals {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.015);
+
+        .edition-city,
+        .edition-stats .athlete-count,
+        .edition-no-medals {
+          color: rgba(255, 255, 255, 0.48);
+        }
+      }
+
+      .edition-year {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #fff;
+        line-height: 1;
+      }
+
+      .edition-city {
+        font-family: 'Geist Mono', monospace;
+        font-size: 10px;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+
+      .edition-stats {
+        margin-top: 6px;
+
+        .athlete-count {
+          font-family: 'Geist Sans', -apple-system, sans-serif;
+          font-size: 10px;
+          color: $text-secondary;
+        }
+      }
+
+      .edition-medals {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 6px;
+
+        .medal {
+          font-size: 12px;
+        }
+      }
+
+      .edition-no-medals {
+        font-family: 'Geist Mono', monospace;
+        font-size: 10px;
+        color: $text-muted;
+        margin-top: 6px;
+      }
+    }
+  }
+
+  // Preserve Total Medals styling
+  .total-medals {
+    text-align: center;
+
+    .total-number {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 4rem;
+      font-weight: 200;
+      line-height: 1;
+      display: block;
+      background: linear-gradient(180deg, #FFD700 0%, #B8860B 50%, #8B6914 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .total-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      color: $text-muted;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: block;
+      margin-top: 4px;
+    }
+  }
+
+  // Preserve Medal Breakdown styling
+  .medal-breakdown {
+    display: flex;
+    justify-content: space-between; // Space out on mobile
+    gap: 16px;
+
+    .medal-item {
+      text-align: center;
+      flex: 1;
+
+      .medal-icon {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .medal-count {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: $text-primary;
+        display: block;
+      }
+
+      .medal-type {
+        font-family: 'Geist Mono', monospace;
+        font-size: 9px;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+
+  }
+
+}
+
+// Olympic Moments
+.moment-sections {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  .moment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    &.section-gold .moments-header h2 {
+      color: rgba(255, 215, 0, 0.92);
+    }
+
+    &.section-silver .moments-header h2 {
+      color: rgba(224, 224, 224, 0.9);
+    }
+
+    &.section-bronze .moments-header h2 {
+      color: rgba(205, 127, 50, 0.92);
+    }
+
+    &.section-heartbreak .moments-header h2 {
+      color: rgba(159, 204, 255, 0.92);
+    }
+  }
+
+  .moments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    h2 {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+
+    .moments-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: $text-secondary;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  .moments-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .moment-section.section-carousel {
+    .moments-carousel {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 6px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .moment-card {
+      flex: 0 0 260px;
+      scroll-snap-align: start;
+    }
+  }
+
+  .moment-section.section-static {
+    .moments-carousel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .moment-card {
+      flex: 0 0 260px;
+      max-width: 260px;
+    }
+  }
+
+  .moment-card {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, background 0.2s ease;
+
+    &.moment-gold {
+      border-color: rgba(255, 215, 0, 0.18);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #ffd700;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(255, 215, 0, 0.85);
+      }
+    }
+
+    &.moment-silver {
+      border-color: rgba(200, 200, 200, 0.22);
+      background: linear-gradient(135deg, rgba(200, 200, 200, 0.09) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #d7d7d7;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(220, 220, 220, 0.85);
+      }
+    }
+
+    &.moment-bronze {
+      border-color: rgba(205, 127, 50, 0.25);
+      background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #cd7f32;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(205, 127, 50, 0.9);
+      }
+    }
+
+    &.moment-heartbreak {
+      border-color: rgba(84, 161, 255, 0.2);
+      background: linear-gradient(135deg, rgba(84, 161, 255, 0.06) 0%, $card-bg 100%);
+
+      .moment-year {
+        color: #9fccff;
+      }
+
+      .moment-location,
+      .moment-type {
+        color: rgba(159, 204, 255, 0.9);
+      }
+    }
+
+    .moment-year {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 2rem;
+      font-weight: 200;
+      line-height: 1;
+    }
+
+    .moment-location {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .moment-content {
+      flex: 1;
+
+      .moment-athlete {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: $text-primary;
+        margin-bottom: 2px;
+      }
+
+      .moment-event {
+        font-family: 'Geist Mono', monospace;
+        font-size: 10px;
+        color: $text-muted;
+        margin-bottom: 8px;
+      }
+
+      .moment-story {
+        font-family: 'Geist Sans', -apple-system, sans-serif;
+        font-size: 12px;
+        color: $text-secondary;
+        line-height: 1.4;
+        margin: 0;
+      }
+    }
+
+    .olympedia-link {
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 10px;
+      color: $accent-gold;
+      text-decoration: none;
+      margin-top: 8px;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    .moment-link {
+      margin-top: auto;
+      padding-top: 10px;
+      font-family: 'Geist Sans', -apple-system, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: $text-primary;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+
+      &:hover {
+        opacity: 0.82;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .moment-sections {
+    .moment-section.section-static {
+      .moment-card {
+        flex-basis: 100%;
+        max-width: 90%;
+      }
+    }
+  }
+}
+
+// Loading State
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+@media screen and (min-width: 1100px) {
+  .history-quick-links {
+    display: flex;
+  }
+}
+
+// Responsive Design
+@media screen and (max-width: 768px) {
+  .medal-hero {
+    flex-direction: column;
+    gap: 24px;
+    margin: 0 16px 16px;
+    padding: 24px;
+
+    .medal-overview {
+      align-items: center;
+      text-align: center;
+    }
+
+    .total-medals {
+      text-align: center;
+
+      .total-number {
+        font-size: 3.5rem;
+      }
+    }
+
+    .hero-stats {
+      justify-content: center;
+    }
+
+    .medal-breakdown {
+      justify-content: center;
+      gap: 24px;
+    }
+  }
+
+  .history-header {
+    padding: 24px 16px 16px;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .era-toolbar {
+    padding: 12px 16px;
+  }
+
+  .golden-moments {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .medal-hero .hero-right-panel {
+    --rail-card-width: 146px;
+    --rail-card-height: 102px;
+  }
+
+  .medal-hero .hero-left-panel .hero-stats.olympian-only .stat-pill {
+    align-items: center;
+    text-align: center;
+  }
+}

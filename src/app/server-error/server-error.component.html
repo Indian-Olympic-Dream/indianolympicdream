@@ -1,0 +1,46 @@
+<section class="error-shell">
+  <article class="error-panel">
+    <div class="error-header">
+      <p class="error-kicker">Unable To Load</p>
+      <span class="error-code">500</span>
+    </div>
+
+    <div class="error-copy">
+      <h1 class="error-title">We could not load this page.</h1>
+      <p class="error-description">
+        Please try again in a moment, or return to a stable section of the app while we recover.
+      </p>
+      <p class="error-summary">{{ errorSummary() }}</p>
+    </div>
+
+    <div class="error-context" *ngIf="errorState() as state">
+      <div class="error-context-row">
+        <span class="error-context-label">Page</span>
+        <span class="error-context-value">{{ state.route || 'unknown' }}</span>
+      </div>
+      <div class="error-context-row" *ngIf="state.statusCode">
+        <span class="error-context-label">Status</span>
+        <span class="error-context-value">{{ state.statusCode }}<ng-container *ngIf="state.statusText"> {{ state.statusText }}</ng-container></span>
+      </div>
+      <div class="error-context-row" *ngIf="state.sourceUrl">
+        <span class="error-context-label">Request</span>
+        <span class="error-context-value">{{ state.sourceUrl }}</span>
+      </div>
+      <details class="error-details" *ngIf="state.message">
+        <summary>More details</summary>
+        <p>{{ state.message }}</p>
+      </details>
+    </div>
+
+    <div class="error-actions">
+      <button mat-flat-button type="button" class="error-cta error-cta-primary" (click)="retry()">
+        <mat-icon>refresh</mat-icon>
+        Try Again
+      </button>
+      <a mat-stroked-button routerLink="/" class="error-cta">
+        <mat-icon>home</mat-icon>
+        Go Home
+      </a>
+    </div>
+  </article>
+</section>

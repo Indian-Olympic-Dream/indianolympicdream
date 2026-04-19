@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { interval } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -6,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providedIn: 'root'
 })
 export class SwupdateService {
+  private platformId = inject(PLATFORM_ID);
 
   constructor(public updates: SwUpdate, public snackBar: MatSnackBar) {
     // If updates are enabled
@@ -35,7 +37,11 @@ export class SwupdateService {
         'Update',
         { horizontalPosition: 'left' }
       );
-      snackBarRef.onAction().subscribe(() => document.location.reload());
+      snackBarRef.onAction().subscribe(() => {
+        if (isPlatformBrowser(this.platformId)) {
+          document.location.reload();
+        }
+      });
     }
   }
 }

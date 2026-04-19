@@ -1,45 +1,372 @@
-<div class="calendar-wrapper">
-  <ng-container *ngIf="totalRecords > 0">
-    <!-- Add (scroll)="onScroll($event)" once more data is available-->
-    <div class="cards-container">
-      <mat-card *ngFor="let element of dataSource.data" class="calendar-card mat-elevation-z4">
-        <mat-card-content>
-          <div class="card-item">
-            <span class="label">Event:</span>
-            <span class="value event-name-value" title="{{ element.name }}">{{ element.name }}</span>
-          </div>
-          <div class="card-item">
-            <span class="label">Sport:</span>
-            <span class="value">{{ element.sportname }}</span>
-          </div>
-          <div class="card-item">
-            <span class="label">Start Date:</span>
-            <span class="value">{{ element.startdate }}</span>
-          </div>
-          <div class="card-item">
-            <span class="label">End Date:</span>
-            <span class="value">{{ element.enddate }}</span>
-          </div>
-          <div class="card-item">
-            <span class="label">Venue:</span>
-            <span class="value">{{ element.venue }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-      <div *ngIf="isLoading" class="loading-spinner">
-        <mat-spinner diameter="50"></mat-spinner>
+<section class="calendar-shell">
+  <!-- Header -->
+  <header class="calendar-header">
+    <div class="header-top">
+      <div class="header-text">
+        <p class="eyebrow">IOD Calendar · 2026</p>
+        <h1>What's On</h1>
+      </div>
+      <div class="header-live-dot" *ngIf="liveCards().length > 0">
+        <span class="pulse-dot"></span>
+        <span class="live-count">{{ liveCards().length }} Live</span>
       </div>
     </div>
-  </ng-container>
-  <div class="LA2028-container">
-    <div *ngIf="totalRecords === 0" class="no-data-message">
-      Qualification pathway will be released by respective sports federations for each of the 18 sports. This page will
-      be updated as and when the official pathway is released.
-    </div>
-    <button *ngIf="totalRecords === 0" mat-fab extended color="primary" class="view-all-button"
-      (click)="onOlympicsChange('2020')">
-      <mat-icon>calendar_month</mat-icon>
-      See Tokyo 2020 Calendar
+  </header>
+
+  <!-- Sport filter chips -->
+  <nav class="sport-filter-bar" *ngIf="!loading() && sportFilters().length > 1">
+    <button class="sport-chip" [class.active]="activeSportFilter() === 'all'"
+      (click)="setSportFilter('all')">
+      <span class="sport-chip-circle">
+        <span class="sport-chip-icon-frame">
+          <svg class="sport-chip-all-icon" viewBox="0 0 32 32" aria-hidden="true">
+            <g class="all-icon-lines">
+              <line x1="16" y1="16" x2="16" y2="8.5" />
+              <line x1="16" y1="16" x2="24.2" y2="12.2" />
+              <line x1="16" y1="16" x2="22.2" y2="24" />
+              <line x1="16" y1="16" x2="9.8" y2="24" />
+              <line x1="16" y1="16" x2="7.8" y2="12.2" />
+            </g>
+            <g class="all-icon-nodes">
+              <circle cx="16" cy="16" r="2.6" />
+              <circle cx="16" cy="7.8" r="2.1" />
+              <circle cx="24.6" cy="12" r="2.1" />
+              <circle cx="22.4" cy="24.2" r="2.1" />
+              <circle cx="9.6" cy="24.2" r="2.1" />
+              <circle cx="7.4" cy="12" r="2.1" />
+            </g>
+          </svg>
+        </span>
+        <span class="sport-chip-count">{{ totalUpcomingCount() }}</span>
+      </span>
+      <span class="sport-chip-caption">All</span>
     </button>
+    <button class="sport-chip" *ngFor="let sport of sportFilters()"
+      [class.active]="activeSportFilter() === sport.slug"
+      (click)="setSportFilter(sport.slug)">
+      <span class="sport-chip-circle">
+        <span class="sport-chip-icon-frame">
+          <img *ngIf="sport.pictogramUrl" [src]="sport.pictogramUrl" [alt]="sport.name" class="sport-chip-icon">
+          <span *ngIf="!sport.pictogramUrl" class="sport-chip-fallback">{{ sport.name.charAt(0) }}</span>
+        </span>
+        <span class="sport-chip-count">{{ sport.count }}</span>
+      </span>
+      <span class="sport-chip-caption">{{ sport.name }}</span>
+    </button>
+  </nav>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading calendar events…</p>
   </div>
-</div>
+
+  <ng-container *ngIf="!loading()">
+
+    <!-- ═══ LIVE ═══ -->
+    <section class="time-group live-group" *ngIf="liveCards().length > 0">
+      <header class="group-header">
+        <div class="group-label-row">
+          <span class="pulse-dot"></span>
+          <h2>Happening Now</h2>
+        </div>
+        <span class="group-count">{{ liveCards().length }}</span>
+      </header>
+
+      <div class="events-grid">
+        <article class="event-card live-card" *ngFor="let card of liveCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <span class="card-pictogram-badge" *ngIf="card.pictogramUrl">
+                <img [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              </span>
+              <span class="card-sport-name">{{ card.sportName }}</span>
+              <span class="card-type-pill" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <span class="live-badge">
+              <span class="live-dot"></span>
+              LIVE
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.summaryLabel">{{ card.summaryLabel }}</p>
+          <div class="card-context-row" *ngIf="card.categoryLabel">
+            <span class="card-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+          </div>
+          <div class="card-venue" *ngIf="card.locationLabel">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ card.locationLabel }}</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <div class="card-footer-meta">
+              <a class="card-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+                [href]="card.navigation.href"
+                [attr.target]="card.navigation.target"
+                [attr.rel]="card.navigation.rel">
+                <span class="card-action-copy">{{ linkLabel }}</span>
+                <span class="card-action-icon">
+                  <mat-icon>north_east</mat-icon>
+                </span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ TODAY ═══ -->
+    <section class="time-group" *ngIf="todayCards().length > 0">
+      <header class="group-header">
+        <h2>Today</h2>
+        <span class="group-count">{{ todayCards().length }}</span>
+      </header>
+      <div class="events-grid">
+        <article class="event-card" *ngFor="let card of todayCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <span class="card-pictogram-badge" *ngIf="card.pictogramUrl">
+                <img [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              </span>
+              <span class="card-sport-name">{{ card.sportName }}</span>
+              <span class="card-type-pill" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <span class="importance-chip" [class]="card.importanceClass">
+              {{ card.importanceLabel }}
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.summaryLabel">{{ card.summaryLabel }}</p>
+          <div class="card-context-row" *ngIf="card.categoryLabel">
+            <span class="card-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+          </div>
+          <div class="card-venue" *ngIf="card.locationLabel">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ card.locationLabel }}</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <div class="card-footer-meta">
+              <a class="card-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+                [href]="card.navigation.href"
+                [attr.target]="card.navigation.target"
+                [attr.rel]="card.navigation.rel">
+                <span class="card-action-copy">{{ linkLabel }}</span>
+                <span class="card-action-icon">
+                  <mat-icon>north_east</mat-icon>
+                </span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ THIS WEEK ═══ -->
+    <section class="time-group" *ngIf="thisWeekCards().length > 0">
+      <header class="group-header">
+        <h2>This Week</h2>
+        <span class="group-count">{{ thisWeekCards().length }}</span>
+      </header>
+      <div class="events-grid">
+        <article class="event-card" *ngFor="let card of thisWeekCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="card-accent" [class]="card.importanceClass"></div>
+          <div class="card-sport-row">
+            <div class="card-sport-identity">
+              <span class="card-pictogram-badge" *ngIf="card.pictogramUrl">
+                <img [src]="card.pictogramUrl" [alt]="card.sportName" class="card-pictogram">
+              </span>
+              <span class="card-sport-name">{{ card.sportName }}</span>
+              <span class="card-type-pill" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <span class="importance-chip" [class]="card.importanceClass">
+              {{ card.importanceLabel }}
+            </span>
+          </div>
+          <h3 class="card-title">{{ card.event.title }}</h3>
+          <p class="card-meta" *ngIf="card.summaryLabel">{{ card.summaryLabel }}</p>
+          <div class="card-context-row" *ngIf="card.categoryLabel">
+            <span class="card-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+          </div>
+          <div class="card-venue" *ngIf="card.locationLabel">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ card.locationLabel }}</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-date">{{ card.dateLabel }}</span>
+            <div class="card-footer-meta">
+              <a class="card-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+                [href]="card.navigation.href"
+                [attr.target]="card.navigation.target"
+                [attr.rel]="card.navigation.rel">
+                <span class="card-action-copy">{{ linkLabel }}</span>
+                <span class="card-action-icon">
+                  <mat-icon>north_east</mat-icon>
+                </span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ THIS MONTH ═══ -->
+    <section class="time-group" *ngIf="thisMonthCards().length > 0">
+      <header class="group-header">
+        <h2>This Month</h2>
+        <span class="group-count">{{ thisMonthCards().length }}</span>
+      </header>
+      <div class="events-list">
+        <article class="event-row" *ngFor="let card of thisMonthCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="row-accent" [class]="card.importanceClass"></div>
+          <div class="row-sport">
+            <span class="row-sport-badge" *ngIf="card.pictogramUrl">
+              <img [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram">
+            </span>
+          </div>
+          <div class="row-content">
+            <div class="row-title-meta" *ngIf="card.sportName || card.typeLabel">
+              <span class="row-sport-label">{{ card.sportName }}</span>
+              <span class="row-context-chip row-type-chip" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <h3>{{ card.event.title }}</h3>
+            <div class="row-category-row" *ngIf="card.categoryLabel">
+              <span class="row-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+            </div>
+            <div class="row-venue" *ngIf="card.locationLabel">
+              <mat-icon>location_on</mat-icon>
+              <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+            </div>
+          </div>
+          <div class="row-time">
+            <span class="relative-label">{{ card.relativeLabel }}</span>
+            <small>{{ card.dateLabel }}</small>
+            <a class="row-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+              [href]="card.navigation.href"
+              [attr.target]="card.navigation.target"
+              [attr.rel]="card.navigation.rel">
+              <span class="card-action-copy">{{ linkLabel }}</span>
+              <span class="card-action-icon">
+                <mat-icon>north_east</mat-icon>
+              </span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ LATER ═══ -->
+    <section class="time-group" *ngIf="laterCards().length > 0">
+      <header class="group-header">
+        <h2>Coming Up</h2>
+        <span class="group-count">{{ laterCards().length }}</span>
+      </header>
+      <div class="events-list">
+        <article class="event-row compact" *ngFor="let card of laterCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="row-accent" [class]="card.importanceClass"></div>
+          <div class="row-sport">
+            <span class="row-sport-badge" *ngIf="card.pictogramUrl">
+              <img [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram">
+            </span>
+          </div>
+          <div class="row-content">
+            <div class="row-title-meta" *ngIf="card.sportName || card.typeLabel">
+              <span class="row-sport-label">{{ card.sportName }}</span>
+              <span class="row-context-chip row-type-chip" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <h3>{{ card.event.title }}</h3>
+            <div class="row-category-row" *ngIf="card.categoryLabel">
+              <span class="row-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+            </div>
+            <div class="row-venue" *ngIf="card.locationLabel">
+              <mat-icon>location_on</mat-icon>
+              <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+            </div>
+          </div>
+          <div class="row-time">
+            <span class="relative-label">{{ card.relativeLabel }}</span>
+            <small>{{ card.dateLabel }}</small>
+            <a class="row-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+              [href]="card.navigation.href"
+              [attr.target]="card.navigation.target"
+              [attr.rel]="card.navigation.rel">
+              <span class="card-action-copy">{{ linkLabel }}</span>
+              <span class="card-action-icon">
+                <mat-icon>north_east</mat-icon>
+              </span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ EMPTY STATE ═══ -->
+    <section class="empty-state" *ngIf="hasNoUpcoming()">
+      <mat-icon>event_busy</mat-icon>
+      <h2>No upcoming events</h2>
+      <p *ngIf="activeSportFilter() !== 'all'">Try switching the sport filter or check completed events below.</p>
+      <p *ngIf="activeSportFilter() === 'all'">This calendar view is quiet right now. Check completed events below.</p>
+    </section>
+
+    <!-- ═══ COMPLETED ═══ -->
+    <section class="completed-section" *ngIf="completedCards().length > 0">
+      <button class="completed-toggle" type="button" (click)="toggleCompleted()">
+        <div class="toggle-left">
+          <mat-icon>{{ showCompleted() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span>Completed Events</span>
+        </div>
+        <span class="toggle-count">{{ completedCards().length }}</span>
+      </button>
+
+      <div class="completed-list" *ngIf="showCompleted()">
+        <article class="event-row completed-row" *ngFor="let card of completedCards(); trackBy: trackByCard"
+          [class.has-action]="card.navigation.kind === 'external'">
+          <div class="row-accent" [class]="card.importanceClass"></div>
+          <div class="row-sport">
+            <span class="row-sport-badge" *ngIf="card.pictogramUrl">
+              <img [src]="card.pictogramUrl" [alt]="card.sportName" class="row-pictogram dimmed">
+            </span>
+          </div>
+          <div class="row-content">
+            <div class="row-title-meta" *ngIf="card.sportName || card.typeLabel">
+              <span class="row-sport-label">{{ card.sportName }}</span>
+              <span class="row-context-chip row-type-chip" *ngIf="card.typeLabel">{{ card.typeLabel }}</span>
+            </div>
+            <h3>{{ card.event.title }}</h3>
+            <p *ngIf="card.summaryLabel" class="row-summary" [attr.title]="card.summaryLabel">
+              {{ card.summaryLabel }}
+            </p>
+            <div class="row-category-row" *ngIf="card.categoryLabel">
+              <span class="row-context-chip" *ngIf="card.categoryLabel">{{ card.categoryLabel }}</span>
+            </div>
+            <div class="row-venue" *ngIf="card.locationLabel">
+              <mat-icon>location_on</mat-icon>
+              <span [attr.title]="card.locationLabel">{{ card.locationLabel }}</span>
+            </div>
+          </div>
+          <div class="row-time">
+            <span class="completed-label">Done</span>
+            <small>{{ card.dateLabel }}</small>
+            <a class="row-action-button" *ngIf="card.navigation.kind === 'external' && getCardLinkLabel(card) as linkLabel"
+              [href]="card.navigation.href"
+              [attr.target]="card.navigation.target"
+              [attr.rel]="card.navigation.rel">
+              <span class="card-action-copy">{{ linkLabel }}</span>
+              <span class="card-action-icon">
+                <mat-icon>north_east</mat-icon>
+              </span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </ng-container>
+</section>

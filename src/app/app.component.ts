@@ -1,4 +1,5 @@
-import { Component, HostBinding, OnInit } from "@angular/core";
+import { Component, HostBinding, PLATFORM_ID, inject } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
 import { SwupdateService } from "./swupdate.service";
 import { OverlayContainer } from "@angular/cdk/overlay";
 import {
@@ -24,10 +25,11 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { LoaderService } from "./shared/components/loader/loader.service";
-import { BreakpointObserver } from "@angular/cdk/layout";
 import { LayoutModule } from "@angular/cdk/layout";
 import { ScrollTrackingService } from "./shared/services/scroll-tracking.service";
+import { SeoService } from "./shared/services/seo.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
+import { FooterComponent } from "./footer/footer.component";
 
 @Component({
   selector: "app-root",
@@ -50,29 +52,18 @@ import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
     MatProgressSpinnerModule,
     LayoutModule,
     BottomNavComponent,
+    FooterComponent,
   ],
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   public isOlympicsMenuOpen = false;
   public loading: boolean = false;
-  public isLightTheme = false;
+  isLightTheme = false;
   @HostBinding("class") componentCssClass;
   selectedtheme: string;
   currentTheme = "dark-theme";
   currentSport: string = "";
-  logoTextTop = "Indian";
-  logoTextBottom = "Dream";
-  olympicOptions = [
-    {
-      id: "2020",
-      name: "Tokyo 2020",
-      logo: "assets/images/olympics/tokyo2020_no_bg.png",
-    },
-    { id: "2028", name: "LA 2028", logo: "assets/images/olympics/la2028.png" },
-  ];
-
-  selectedOlympics = this.olympicOptions[1].id;
-  selectedOlympicsLogo: string = this.olympicOptions[1].logo;
+  private platformId = inject(PLATFORM_ID);
 
   constructor(
     public router: Router,
@@ -80,37 +71,20 @@ export class AppComponent implements OnInit {
     private swupdateservice: SwupdateService,
     public overlayContainer: OverlayContainer,
     private loaderService: LoaderService,
-    private breakpointObserver: BreakpointObserver,
     private scrollTrackingService: ScrollTrackingService,
+    private seoService: SeoService,
   ) {
     this.loaderService.loaderState.subscribe((state) => {
       this.loading = state.show;
     });
     this.loadThemePreference();
     this.swupdateservice.checkForUpdates();
+    this.seoService.init();
     this.router.events.subscribe((event: RouterEvent) => {
       this.navigationInterceptor(event);
     });
 
-    this.route.queryParams.subscribe((params) => {
-      this.selectedOlympics = params["edition"] || "2028";
-      this.updateSelectedOlympicsLogo();
-    });
-
-    this.breakpointObserver
-      .observe(["(max-width: 399px)"])
-      .subscribe((result) => {
-        if (result.matches) {
-          this.logoTextTop = "I";
-          this.logoTextBottom = "D";
-        } else {
-          this.logoTextTop = "Indian";
-          this.logoTextBottom = "Dream";
-        }
-      });
   }
-
-  ngOnInit() {}
 
   onContentScroll(event: Event): void {
     const element = event.target as HTMLElement;
@@ -143,16 +117,31 @@ export class AppComponent implements OnInit {
     }
     if (event instanceof NavigationError) {
       this.loading = false;
+      if (isPlatformBrowser(this.platformId) && event.url !== "/internal-error") {
+        const errorMessage =
+          event.error instanceof Error
+            ? event.error.message
+            : typeof event.error === "string"
+              ? event.error
+              : "Route navigation failed.";
+        void this.router.navigateByUrl("/internal-error", {
+          replaceUrl: true,
+          state: {
+            kind: "navigation",
+            route: event.url || this.router.url,
+            sourceUrl: event.url || this.router.url,
+            message: errorMessage,
+            stack: event.error instanceof Error ? event.error.stack : undefined,
+          },
+        });
+      }
     }
   }
 
   isActivePath(): boolean {
     const url = this.router.url;
-    return url.startsWith("/sports/") || url === "/" || url === "/home";
-  }
 
-  isScheduleActive(): boolean {
-    return this.router.url.startsWith("/schedule");
+    return url === "/" || url === "/home";
   }
 
   isStoriesActive(): boolean {
@@ -160,6 +149,7 @@ export class AppComponent implements OnInit {
   }
 
   loadThemePreference() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const savedTheme = localStorage.getItem("selectedTheme");
     this.currentTheme = savedTheme || "dark-theme";
 
@@ -176,6 +166,7 @@ export class AppComponent implements OnInit {
   }
 
   onSetTheme() {
+    if (!isPlatformBrowser(this.platformId)) return;
     this.currentTheme =
       this.currentTheme === "default-theme" ? "dark-theme" : "default-theme";
     localStorage.setItem("selectedTheme", this.currentTheme);
@@ -193,6 +184,7 @@ export class AppComponent implements OnInit {
   }
 
   private updateThemeColorMetaTag() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const themeColorMetaTag = document.querySelector(
       'meta[name="theme-color"]',
     );
@@ -205,23 +197,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  onOlympicsChange(selection: string) {
-    this.selectedOlympics = selection;
-    this.updateSelectedOlympicsLogo();
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { edition: selection },
-      queryParamsHandling: "merge",
-    });
-  }
-  private updateSelectedOlympicsLogo(): void {
-    const selected = this.olympicOptions.find(
-      (option) => option.id === this.selectedOlympics,
-    );
-    this.selectedOlympicsLogo = selected
-      ? selected.logo
-      : this.olympicOptions[0].logo;
-  }
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
   }

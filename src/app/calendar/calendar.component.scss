@@ -1,93 +1,1208 @@
-@use '@angular/material' as mat;
-
-.calendar-wrapper {
-  margin: 8px 12px 24px 12px;
+:host {
+  display: block;
 }
 
-@media (min-width: 960px) {
-  .calendar-wrapper {
-    margin: 8px 24px 24px 24px;
-    max-width: 100%;
-  }
+// ─── Design Tokens ─────────────────────────────────────────
+$bg-primary: #06070a;
+$bg-card: rgba(13, 13, 13, 0.96);
+$bg-card-hover: rgba(19, 19, 19, 0.98);
+$border-subtle: rgba(255, 255, 255, 0.08);
+$border-hover: rgba(255, 255, 255, 0.14);
+$text-primary: rgba(255, 255, 255, 0.94);
+$text-secondary: rgba(255, 255, 255, 0.62);
+$text-tertiary: rgba(255, 255, 255, 0.42);
+$gold: #f3c85c;
+$gold-bg: rgba(243, 200, 92, 0.12);
+$gold-border: rgba(243, 200, 92, 0.28);
+$blue: #7eb0ff;
+$blue-bg: rgba(126, 176, 255, 0.1);
+$blue-border: rgba(126, 176, 255, 0.22);
+$silver: rgba(255, 255, 255, 0.88);
+$silver-bg: rgba(255, 255, 255, 0.08);
+$silver-border: rgba(255, 255, 255, 0.14);
+$lilac: #eaddff;
+$lilac-bg: rgba(234, 221, 255, 0.08);
+$lilac-border: rgba(234, 221, 255, 0.18);
+$live-red: #f87171;
+$live-red-bg: rgba(248, 113, 113, 0.12);
+$live-red-border: rgba(248, 113, 113, 0.32);
+
+// ─── Shell ─────────────────────────────────────────────────
+.calendar-shell {
+  min-height: 100vh;
+  padding: 20px 14px 40px;
+  color: $text-primary;
+  background:
+    radial-gradient(900px 400px at 0% -10%, rgba(212, 175, 55, 0.1), transparent 58%),
+    radial-gradient(740px 400px at 100% 0%, rgba(67, 116, 196, 0.06), transparent 60%),
+    $bg-primary;
 }
 
-.cards-container {
+// ─── Header ────────────────────────────────────────────────
+.calendar-header {
+  margin-bottom: 20px;
+}
+
+.header-top {
   display: flex;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
-  justify-content: center;
-  padding: 16px 0;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
 }
 
-.calendar-card {
-  flex: 1 1 calc(100% - 32px); /* Default to full width minus gap for mobile */
-  max-width: calc(100% - 32px);
-  @include mat.elevation(4);
-  background-color: var(--mat-toolbar-container-background-color);
-  color: var(--color-text);
-  font-family: 'Geist Sans', sans-serif;
-  border-radius: 8px; /* Slightly rounded corners */
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;/* Subtle shadow for depth */
-  &:hover {
-    transform: translateY(-3px); /* Subtle lift effect on hover */
-    box-shadow: gray 0px 0.1px 4px 2px; /* Enhanced shadow on hover */
-  }
-  .card-item {
-    display: flex;
-    flex-direction: row; /* Always display horizontally */
-    align-items: start; /* Align text nicely */
-    padding: 4px 24px;
-    flex-wrap: wrap; /* Allow items to wrap if content is too long */
-    justify-content: space-between; /* Distribute space between label and value */
-
-    .label {
-      font-weight: 500; /* Slightly bolder label */
-      margin-right: 8px; /* Space between label and value */
-      color: var(--color-text-secondary);
-      min-width: 90px; /* Give labels a minimum width for alignment */
-    }
-
-    .value {
-      word-break: break-word;
-      flex-grow: 1; /* Allow value to take remaining space */
-      text-align: right; /* Align value to the right */
-      color: var(--color-text);
-    }
-
-    .event-name-value {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: calc(100% - 100px); /* Adjust based on label width + margin */
-    }
-  }
+.eyebrow {
+  margin: 0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(247, 222, 160, 0.72);
 }
 
-@media (min-width: 600px) {
-  .calendar-card {
-    flex: 1 1 calc(50% - 32px); /* Two cards per row on medium screens */
-    max-width: calc(50% - 32px);
-  }
+.calendar-header h1 {
+  margin: 8px 0 0;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
 }
 
-@media (min-width: 960px) {
-  .calendar-card {
-    flex: 1 1 calc(33.333% - 32px); /* Three cards per row on large screens */
-    max-width: calc(33.333% - 32px);
-  }
-}
-
-.loading-spinner {
+.header-live-dot {
   display: flex;
-  justify-content: center;
-  padding: 20px;
-  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: $live-red-bg;
+  border: 1px solid $live-red-border;
+  flex-shrink: 0;
+  animation: liveGlow 2s ease-in-out infinite;
 }
-.LA2028-container {
+
+.live-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $live-red;
+  letter-spacing: 0.02em;
+}
+
+// ─── Pulse Dot ─────────────────────────────────────────────
+.pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $live-red;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: $live-red;
+    opacity: 0;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes liveGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 16px 2px rgba(248, 113, 113, 0.14);
+  }
+}
+
+// ─── Sport Filter Bar ──────────────────────────────────────
+.sport-filter-bar {
+  display: flex;
+  gap: 10px;
+  padding: 2px 2px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: center;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: 12px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sport-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $text-secondary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    color: $text-primary;
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    color: $text-primary;
+  }
+}
+
+.sport-chip-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+  .sport-chip:hover & {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .sport-chip.active & {
+    background: rgba(255, 215, 0, 0.08);
+    border-color: rgba(255, 215, 0, 0.34);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 0 0 2px rgba(255, 215, 0, 0.14),
+      0 10px 24px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.sport-chip-icon-frame {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+
+  @media (max-width: 640px) {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+.sport-chip-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) invert(0.88);
+  opacity: 0.96;
+  transform: scale(1.1);
+  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+
+  .sport-chip.active & {
+    filter: brightness(0) saturate(100%) invert(85%) sepia(54%) saturate(642%) hue-rotate(358deg) brightness(101%) contrast(103%);
+    opacity: 1;
+    transform: scale(1.16);
+  }
+}
+
+.sport-chip-fallback {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: inherit;
+  line-height: 1;
+}
+
+.sport-chip-all-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+  transform: scale(1.02);
+  transition: color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+
+  .all-icon-lines {
+    stroke: currentColor;
+    stroke-width: 1.55;
+    stroke-linecap: round;
+    opacity: 0.42;
+  }
+
+  .all-icon-nodes {
+    fill: currentColor;
+  }
+
+  .sport-chip:hover & {
+    color: rgba(255, 255, 255, 0.92);
+    transform: scale(1.06);
+  }
+
+  .sport-chip.active & {
+    color: $gold;
+    transform: scale(1.1);
+    filter:
+      drop-shadow(0 0 0.5px rgba(255, 215, 0, 0.55)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.24));
+  }
+}
+
+.sport-chip-caption {
+  display: -webkit-box;
+  min-height: 14px;
+  max-width: 72px;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-align: center;
+  font-size: 0.43rem;
+  line-height: 1.02;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: inherit;
+  word-break: break-word;
+  opacity: 0.92;
+
+  @media (min-width: 900px) {
+    font-size: 0.5rem;
+    line-height: 1.06;
+    max-width: 78px;
+  }
+}
+
+.sport-chip-count {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 20, 0.98), rgba(8, 8, 8, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 16px rgba(0, 0, 0, 0.26);
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: -0.02em;
+
+  .sport-chip.active & {
+    color: $gold;
+    border-color: rgba(255, 215, 0, 0.28);
+    background:
+      linear-gradient(180deg, rgba(31, 24, 9, 0.98), rgba(16, 13, 5, 0.96));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(255, 215, 0, 0.1),
+      0 8px 16px rgba(0, 0, 0, 0.26);
+  }
+}
+
+// ─── Loading ───────────────────────────────────────────────
+.loading-state {
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 14px;
+  color: $text-secondary;
+  font-size: 0.88rem;
+}
+
+// ─── Time Group Sections ───────────────────────────────────
+.time-group {
+  margin-bottom: 24px;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.group-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-header h2 {
+  margin: 0;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.group-count {
+  color: $text-tertiary;
+  font-size: 0.82rem;
+  font-family: 'Geist Mono', monospace;
+}
+
+// ─── Event Cards (Grid — for Live, Today, This Week) ──────
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.event-card {
+  display: block;
+  position: relative;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
+  background:
+    linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+    $bg-card;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 14px 28px rgba(0, 0, 0, 0.16);
+  transition: all 0.22s ease;
+
+  &.has-action:hover {
+    border-color: $border-hover;
+    background:
+      linear-gradient(180deg, rgba(24, 24, 24, 0.98), rgba(13, 13, 13, 0.94)),
+      $bg-card-hover;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 20px 34px rgba(0, 0, 0, 0.22);
+    transform: translateY(-2px);
+  }
+
+  cursor: default;
+
+  &[data-hub='asian-games-2026'] {
+    background:
+      radial-gradient(circle at top right, rgba(126, 176, 255, 0.08), transparent 40%),
+      linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+      $bg-card;
+    border-color: rgba(126, 176, 255, 0.16);
+  }
+
+  &[data-hub='commonwealth-games-2026'] {
+    background:
+      radial-gradient(circle at top right, rgba(243, 200, 92, 0.09), transparent 42%),
+      linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+      $bg-card;
+    border-color: rgba(243, 200, 92, 0.16);
+  }
+}
+
+// Accent bar — top border color based on importance
+.card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+
+  &.importance-core {
+    background: linear-gradient(90deg, $gold, rgba(243, 200, 92, 0.3));
+  }
+
+  &.importance-high {
+    background: linear-gradient(90deg, $blue, rgba(126, 176, 255, 0.3));
+  }
+
+  &.importance-watch {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.18));
+  }
+
+  &.importance-context {
+    background: linear-gradient(90deg, rgba(234, 221, 255, 0.96), rgba(234, 221, 255, 0.18));
+  }
+}
+
+.live-card {
+  border-color: rgba(248, 113, 113, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(248, 113, 113, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+    $bg-card;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 16px 30px rgba(0, 0, 0, 0.18);
+
+  .card-accent {
+    background: linear-gradient(90deg, rgba(248, 113, 113, 0.94), rgba(248, 113, 113, 0.18)) !important;
+    height: 3px;
+  }
+}
+
+.card-sport-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.card-sport-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card-pictogram-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.card-pictogram {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(0.88);
+  flex-shrink: 0;
+}
+
+.card-sport-name {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.card-type-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.card-games-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.event-card[data-hub='asian-games-2026'] .card-games-pill,
+.event-row[data-hub='asian-games-2026'] .row-games-pill {
+  background: rgba(126, 176, 255, 0.12);
+  border-color: rgba(126, 176, 255, 0.24);
+  color: rgba(196, 220, 255, 0.96);
+}
+
+.event-card[data-hub='commonwealth-games-2026'] .card-games-pill,
+.event-row[data-hub='commonwealth-games-2026'] .row-games-pill {
+  background: rgba(243, 200, 92, 0.12);
+  border-color: rgba(243, 200, 92, 0.26);
+  color: rgba(247, 222, 160, 0.96);
+}
+
+// Live badge
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  color: $live-red;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $live-red;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+// Importance chip
+.importance-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+
+  &.importance-core {
+    background: $gold-bg;
+    color: $gold;
+    border: 1px solid $gold-border;
+  }
+
+  &.importance-high {
+    background: $blue-bg;
+    color: $blue;
+    border: 1px solid $blue-border;
+  }
+
+  &.importance-watch {
+    background: $silver-bg;
+    color: $silver;
+    border: 1px solid $silver-border;
+  }
+
+  &.importance-context {
+    background: $lilac-bg;
+    color: $lilac;
+    border: 1px solid $lilac-border;
+  }
+}
+
+.card-title {
+  margin: 0;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.card-meta {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-context-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.card-venue {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 10px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  font-family: 'Geist Mono', monospace;
+
+  mat-icon {
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
+    color: rgba(243, 200, 92, 0.82);
+    flex-shrink: 0;
+  }
+
+  span {
+    min-width: 0;
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+.card-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.card-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-action-button,
+.row-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(247, 222, 160, 0.16);
+  background:
+    linear-gradient(180deg, rgba(24, 22, 16, 0.98), rgba(12, 11, 9, 0.96));
+  color: rgba(247, 222, 160, 0.94);
+  text-decoration: none;
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 18px rgba(0, 0, 0, 0.2);
+
+  .card-action-copy {
+    white-space: nowrap;
+  }
+
+  .card-action-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(247, 222, 160, 0.12);
+    border: 1px solid rgba(247, 222, 160, 0.16);
+    flex-shrink: 0;
+  }
+
+  mat-icon {
+    width: 13px;
+    height: 13px;
+    font-size: 13px;
+  }
+
+  &:hover {
+    background:
+      linear-gradient(180deg, rgba(31, 28, 20, 0.98), rgba(16, 14, 10, 0.96));
+    border-color: rgba(247, 222, 160, 0.26);
+    transform: translateY(-1px);
+  }
+}
+
+.card-context-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-family: 'Geist Sans', -apple-system, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+.card-cycle-chip,
+.row-cycle-chip {
+  background: rgba(243, 200, 92, 0.12);
+  border-color: rgba(243, 200, 92, 0.24);
+  color: rgba(247, 222, 160, 0.96);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.card-date,
+.card-location {
+  font-size: 0.78rem;
+  color: $text-secondary;
+}
+
+.card-date {
+  font-weight: 500;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.card-location {
+  text-align: right;
+  opacity: 0.82;
+  max-width: 44%;
+}
+
+// ─── Event Rows (for This Month & Later) ──────────────────
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid $border-subtle;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(10, 10, 10, 0.94)),
+    rgba(0, 0, 0, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 14px 28px rgba(0, 0, 0, 0.14);
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 3px 40px minmax(0, 1fr) auto;
+  gap: 0 12px;
+  align-items: center;
+  padding: 14px 16px 14px 0;
+  background:
+    linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+    $bg-card;
+  text-decoration: none;
+  color: inherit;
+  cursor: default;
+  transition: background 0.18s ease, transform 0.18s ease;
+
+  &.has-action:hover {
+    background:
+      linear-gradient(180deg, rgba(24, 24, 24, 0.98), rgba(13, 13, 13, 0.94)),
+      $bg-card-hover;
+    transform: translateY(-1px);
+  }
+
+  &+.event-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  &[data-hub='asian-games-2026'] {
+    background:
+      linear-gradient(90deg, rgba(126, 176, 255, 0.08), transparent 28%),
+      linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+      $bg-card;
+  }
+
+  &[data-hub='commonwealth-games-2026'] {
+    background:
+      linear-gradient(90deg, rgba(243, 200, 92, 0.08), transparent 28%),
+      linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(11, 11, 11, 0.94)),
+      $bg-card;
+  }
+}
+
+.row-accent {
+  width: 3px;
+  height: 100%;
+  min-height: 38px;
+
+  &.importance-core {
+    background: $gold;
+  }
+
+  &.importance-high {
+    background: $blue;
+  }
+
+  &.importance-watch {
+    background: rgba(255, 255, 255, 0.94);
+  }
+
+  &.importance-context {
+    background: rgba(234, 221, 255, 0.96);
+  }
+}
+
+.row-sport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-sport-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.row-pictogram {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(0.86);
+
+  &.dimmed {
+    opacity: 0.4;
+  }
+}
+
+.row-content {
+  min-width: 0;
+
+  .row-title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+
+  .row-sport-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.46);
+  }
+
+  .row-context-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.66rem;
+    font-weight: 500;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .row-type-chip {
+    background: rgba(255, 255, 255, 0.025);
+    border-color: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .row-games-pill {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .row-category-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  h3 {
+    margin: 0;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  p {
+    margin: 3px 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    display: block;
+    overflow: visible;
+  }
+
+}
+
+.row-venue {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 7px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    color: rgba(243, 200, 92, 0.82);
+    flex-shrink: 0;
+  }
+
+  span {
+    min-width: 0;
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+.row-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  text-align: right;
+  flex-shrink: 0;
+  justify-self: end;
+  min-width: 132px;
+}
+
+.relative-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.row-time small {
+  font-size: 0.72rem;
+  color: $text-tertiary;
+  display: block;
+}
+
+// ─── Empty State ───────────────────────────────────────────
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 20px;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: $text-primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.88rem;
+    max-width: 320px;
+  }
+}
+
+// ─── Completed Section ─────────────────────────────────────
+.completed-section {
+  margin-top: 32px;
+  border-radius: 16px;
+  border: 1px solid $border-subtle;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98), rgba(10, 10, 10, 0.94)),
+    $bg-card;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 14px 28px rgba(0, 0, 0, 0.14);
+}
+
+.completed-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: $bg-card-hover;
+  }
+}
+
+.toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $text-tertiary;
+  }
+
+  span {
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    font-size: 0.94rem;
+    font-weight: 600;
+  }
+}
+
+.toggle-count {
+  color: $text-tertiary;
+  font-size: 0.82rem;
+  font-family: 'Geist Mono', monospace;
+}
+
+.completed-list {
+  border-top: 1px solid $border-subtle;
+}
+
+.completed-row {
+  padding: 12px 16px 12px 0 !important;
+
+  .row-content h3 {
+    color: $text-secondary;
+  }
+}
+
+.completed-label {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: $text-tertiary;
+}
+
+// ─── Desktop ───────────────────────────────────────────────
+@media (min-width: 900px) {
+  .calendar-shell {
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+  }
+
+  .events-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .live-group .events-grid {
+    grid-template-columns: 1fr; // Live events stay full-width for emphasis
+  }
+}
+
+@media (min-width: 1200px) {
+  .events-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// ─── Small Mobile ──────────────────────────────────────────
+@media (max-width: 420px) {
+  .event-card {
+    padding: 14px 14px 12px;
+  }
+
+  .card-title {
+    font-size: 0.96rem;
+  }
+
+  .card-footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-location {
+    text-align: left;
+  }
+
+  .card-action-button,
+  .row-action-button {
+    font-size: 0.69rem;
+    padding: 6px 8px 6px 11px;
+  }
+
+  .event-row {
+    grid-template-columns: 3px 32px minmax(0, 1fr) auto;
+    gap: 0 8px;
+    padding: 12px 12px 12px 0;
+  }
+
+  .row-time {
+    min-width: 100px;
+  }
+
+  .row-content {
+    .row-title-meta {
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+
+    .row-sport-label {
+      flex: 0 0 auto;
+      font-size: 0.62rem;
+    }
+
+    .row-context-chip {
+      padding: 3px 8px;
+      font-size: 0.62rem;
+    }
+
+    .row-type-chip {
+      flex: 0 0 auto;
+    }
+  }
 }

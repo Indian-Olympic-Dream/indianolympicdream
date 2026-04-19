@@ -1,0 +1,146 @@
+<section class="calendar-detail-shell">
+  <div *ngIf="loading()" class="loading-state">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading() && event() as event; else missingState">
+    <header class="detail-hero" [style.background-image]="heroBackground()">
+      <a class="back-link" routerLink="/calendar">Back to calendar</a>
+
+      <div class="hero-topline">
+        <span class="hero-chip hero-chip-sport">
+          <img *ngIf="sportPictogramUrl()" [src]="sportPictogramUrl()" [alt]="sportName()">
+          <span>{{ sportName() }}</span>
+        </span>
+        <span class="hero-chip">{{ scopeLabel() }}</span>
+        <span class="hero-chip hero-chip-accent">{{ importanceLabel() }}</span>
+      </div>
+
+      <div class="hero-copy">
+        <p class="hero-status">{{ statusLabel() }}</p>
+        <h1>{{ event.title }}</h1>
+        <p class="hero-summary" *ngIf="event.summary">{{ event.summary }}</p>
+      </div>
+
+      <div class="hero-meta-grid">
+        <article class="meta-card">
+          <span class="meta-label">Dates</span>
+          <strong>{{ dateLabel() }}</strong>
+        </article>
+
+        <article class="meta-card">
+          <span class="meta-label">Location</span>
+          <strong>{{ locationLabel() }}</strong>
+        </article>
+
+        <article class="meta-card" *ngIf="event.edition">
+          <span class="meta-label">Cycle</span>
+          <strong>{{ event.edition.name }}</strong>
+        </article>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <section class="glass-card" *ngIf="event.qualificationContext">
+        <p class="section-kicker">Road to {{ event.edition?.city || 'LA 2028' }}</p>
+        <h2>Why this event matters</h2>
+        <p>{{ event.qualificationContext }}</p>
+      </section>
+
+      <section class="glass-card" *ngIf="event.notes">
+        <p class="section-kicker">IOD note</p>
+        <h2>Context</h2>
+        <p>{{ event.notes }}</p>
+      </section>
+
+      <section class="glass-card" *ngIf="event.edition">
+        <p class="section-kicker">Edition anchor</p>
+        <h2>{{ event.edition.name }}</h2>
+        <p>
+          This event is mapped into the {{ event.edition.city }} {{ event.edition.year }} cycle so
+          we can connect qualification context, event hubs, and athlete tracking more clearly.
+        </p>
+        <a
+          class="inline-link"
+          *ngIf="event.edition.slug"
+          [routerLink]="['/history', event.edition.slug]">
+          View edition history
+        </a>
+      </section>
+
+      <section class="glass-card" *ngIf="sportSlug()">
+        <p class="section-kicker">Sport context</p>
+        <h2>{{ sportName() }}</h2>
+        <p>
+          This event should eventually sit inside the broader current-context sport page, alongside
+          contenders, qualification pathways, and the India-facing event roadmap.
+        </p>
+        <a class="inline-link" [routerLink]="['/history/sport', sportSlug()]" [queryParams]="{ view: 'current' }">
+          Open sport page
+        </a>
+      </section>
+
+      <section class="glass-card" *ngIf="event.externalUrl">
+        <p class="section-kicker">Official source</p>
+        <h2>Go deeper</h2>
+        <p>Use the federation or organiser page for live draws, entry lists, and official event information.</p>
+        <a class="inline-link" [href]="event.externalUrl" target="_blank" rel="noopener noreferrer">
+          Open official event page
+        </a>
+      </section>
+
+      <section class="glass-card" *ngIf="event.whereToWatch?.url">
+        <p class="section-kicker">Where to watch</p>
+        <h2>{{ event.whereToWatch?.label || 'Watch this event' }}</h2>
+        <p *ngIf="event.whereToWatch?.note; else watchFallback">{{ event.whereToWatch?.note }}</p>
+        <ng-template #watchFallback>
+          <p>Use this editorial watch link when we know the live stream, platform, or official broadcast destination.</p>
+        </ng-template>
+        <a class="inline-link" [href]="event.whereToWatch?.url" target="_blank" rel="noopener noreferrer">
+          {{ event.whereToWatch?.label || 'Open watch destination' }}
+        </a>
+      </section>
+    </div>
+
+    <section class="participants-panel glass-card" *ngIf="participants().length > 0">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">India watchlist</p>
+          <h2>Indian athletes to track</h2>
+        </div>
+        <span class="participant-count">{{ participants().length }}</span>
+      </div>
+
+      <div class="participant-grid">
+        <article
+          class="participant-card"
+          *ngFor="let participant of participants(); trackBy: trackByParticipant">
+          <div class="participant-avatar">
+            <img
+              *ngIf="participant.photo?.url; else participantInitials"
+              [src]="getParticipantImageUrl(participant)"
+              [alt]="participant.fullName">
+            <ng-template #participantInitials>{{ getParticipantInitials(participant.fullName) }}</ng-template>
+          </div>
+
+          <div class="participant-copy">
+            <h3>{{ participant.fullName }}</h3>
+            <p>Follow support for individual athletes is planned next, so this is the first layer of that event context.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <ng-template #missingState>
+    <section class="missing-state" *ngIf="!loading()">
+      <p class="section-kicker">Calendar event not found</p>
+      <h1>This event detail page is not ready yet</h1>
+      <p>
+        The list view can still carry prototype or draft events, but the detail route only works for
+        CMS-backed calendar entries with a slug.
+      </p>
+      <a class="inline-link" routerLink="/calendar">Return to calendar</a>
+    </section>
+  </ng-template>
+</section>

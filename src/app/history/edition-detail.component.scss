@@ -1,0 +1,1046 @@
+@use '@angular/material' as mat;
+
+// Modern Dark Theme Variables
+$bg-dark: #0a0a0a;
+$bg-card: rgba(255, 255, 255, 0.03);
+$bg-card-hover: rgba(255, 255, 255, 0.06);
+$primary-accent: #eaddff;
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-muted: rgba(255, 255, 255, 0.5);
+$gold-color: #FFD700;
+$silver-color: #C0C0C0;
+$bronze-color: #CD7F32;
+$font-primary: 'Inter', sans-serif;
+$font-mono: 'JetBrains Mono', monospace;
+
+// Mixins
+@mixin glass-card {
+    background: $bg-card;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+@mixin section-title {
+    font-family: $font-primary;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    background: linear-gradient(90deg, #fff, #aaa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+:host {
+    display: block;
+    min-height: 100vh;
+    background: $bg-dark;
+    color: $text-primary;
+    padding-bottom: 0px;
+}
+
+.edition-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-top: 16px; // Space below toolbar
+    animation: fadeIn 0.6s ease-out;
+
+    @media (max-width: 480px) {
+        padding: 12px;
+        padding-top: 8px;
+    }
+}
+
+// Edition transition animation
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 0. Navigation Rail
+.edition-nav-rail {
+    display: flex;
+    padding-top: 4px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-rail-back {
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background: rgba(40, 40, 40, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: $text-secondary;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+        padding: 0;
+        cursor: pointer;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+    }
+
+    .edition-nav-scroll {
+        display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .edition-nav-chip {
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 16px 0 6px;
+        background: rgba(40, 40, 40, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+
+            .edition-nav-city {
+                color: white;
+            }
+        }
+
+        &.active,
+        &[aria-current="page"] {
+            background: rgba(212, 175, 55, 0.12);
+            border-color: rgba(212, 175, 55, 0.4);
+
+            .edition-nav-year {
+                background: $gold-color;
+                color: #000;
+            }
+
+            .edition-nav-city {
+                color: $gold-color;
+                opacity: 1;
+            }
+        }
+
+        .edition-nav-year {
+            font-family: $font-mono;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0 10px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            margin-right: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .edition-nav-city {
+            font-family: $font-primary;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: $text-secondary;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+    }
+}
+
+// 1. Cinematic Hero Header
+.cinematic-hero {
+    position: relative;
+    margin: 0 0 48px 0; // Contained as a distinct card with correct spacing
+    min-height: 420px;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-color: #1a1a2e;
+    display: flex;
+    flex-direction: row; // Space-between layout for desktop
+    justify-content: space-between;
+    align-items: flex-end;
+    overflow: hidden;
+    border-radius: 24px; // Full card rounding
+    padding: 40px; // Unified padding
+
+    @media (max-width: 900px) {
+        min-height: 480px; // Pin content to bottom, show image above
+        flex-direction: column;
+        justify-content: flex-end; // Pin everything to the bottom
+        align-items: flex-start;
+        gap: 24px; // Reduced from 32px
+        padding: 24px;
+        border-radius: 16px;
+    }
+
+    @media (max-width: 600px) {
+        min-height: 420px;
+    }
+
+    @media (max-width: 480px) {
+        min-height: 380px;
+        border-radius: 12px;
+        padding: 16px; // Tighter padding
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    // Cinematic gradient overlay (bottom-heavy for text readability)
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.05) 0%,
+                rgba(0, 0, 0, 0.15) 30%,
+                rgba(0, 0, 0, 0.6) 65%,
+                rgba(10, 10, 10, 0.95) 100%);
+        z-index: 1;
+    }
+
+    // Vignette for cinematic depth
+    .hero-vignette {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center,
+                transparent 50%,
+                rgba(0, 0, 0, 0.4) 100%);
+        z-index: 1;
+    }
+
+    // Logo emblem (top-right, glass background)
+    .hero-emblem {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        z-index: 3;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 8px;
+
+        img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        @media (max-width: 600px) {
+            top: 16px;
+            right: 16px;
+            padding: 6px;
+
+            img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    }
+
+    // Content container inside hero
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        padding-right: 24px;
+
+        @media (max-width: 900px) {
+            flex: none;
+            padding-right: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; // Ensure inner content also packs bottom
+        }
+    }
+
+    // Year + dates line
+    .hero-date-line {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 4px;
+    }
+
+    .hero-year {
+        font-family: $font-mono;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: $gold-color;
+        text-transform: uppercase;
+    }
+
+    .hero-dates {
+        font-family: $font-mono;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 0.5px;
+    }
+
+    // City name - massive cinematic display
+    .hero-city {
+        font-family: $font-primary;
+        font-size: 5rem;
+        font-weight: 800;
+        color: $gold-color;
+        line-height: 1;
+        margin: 0 0 8px;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        letter-spacing: -1px;
+
+        @media (max-width: 900px) {
+            font-size: 4rem;
+        }
+
+        @media (max-width: 600px) {
+            font-size: 2.8rem;
+        }
+
+        @media (max-width: 480px) {
+            font-size: 2rem;
+            letter-spacing: 0;
+            margin-bottom: 4px;
+        }
+    }
+
+    // Tagline - elegant italic
+    .hero-tagline {
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-style: italic;
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0;
+        opacity: 0.9;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+
+        @media (max-width: 600px) {
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 480px) {
+            font-size: 0.85rem;
+        }
+    }
+
+    // Integrated Edition Highlights Bar
+    .edition-highlights-bar {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: stretch;
+        gap: 32px;
+        min-width: 320px; // Prevent squishing on desktop
+        flex-shrink: 0;
+
+        @media (max-width: 900px) {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 20px;
+        }
+
+        @media (max-width: 480px) {
+            gap: 16px;
+            min-width: 100%;
+        }
+
+        .stats-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .stats-section-label {
+            font-family: $font-mono;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: $text-muted;
+            text-transform: uppercase;
+        }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .medal-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            .emoji {
+                font-size: 1rem;
+            }
+
+            .num {
+                font-family: $font-primary;
+                font-weight: 700;
+                font-size: 1rem;
+                color: white;
+            }
+
+            &.gold {
+                border-color: rgba(255, 215, 0, 0.15);
+            }
+
+            &.silver {
+                border-color: rgba(192, 192, 192, 0.15);
+            }
+
+            &.bronze {
+                border-color: rgba(205, 127, 50, 0.15);
+            }
+        }
+
+        .no-medals-label {
+            font-family: $font-mono;
+            font-size: 0.8rem;
+            color: $text-muted;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-divider {
+            width: 1px;
+            height: auto;
+            background: rgba(255, 255, 255, 0.15);
+
+            @media (max-width: 900px) {
+                width: 100%;
+                height: 1px;
+            }
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            &.rank {
+                padding-left: 12px;
+                border-left: 1px solid rgba(255, 255, 255, 0.12);
+
+                @media (max-width: 900px) {
+                    border-left: none;
+                    padding-left: 0;
+                }
+            }
+
+            .stat-value {
+                font-family: $font-primary;
+                font-weight: 700;
+                font-size: 1rem;
+                color: white;
+            }
+
+            .stat-label {
+                font-family: $font-mono;
+                font-size: 0.7rem;
+                color: $text-muted;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+    }
+}
+
+// End Cinematic Hero
+
+// Shared Layout Utility
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-top: 12px;
+
+    h2 {
+        @include section-title;
+        margin: 0;
+        font-size: 1.4rem;
+        letter-spacing: -0.01em;
+    }
+
+    .header-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 24px;
+        padding: 0 10px;
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        border-radius: 999px;
+        color: $gold-color;
+        font-family: $font-mono;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+    }
+}
+
+.edition-moments {
+    // margin-bottom: 48px;
+
+    .moments-carousel {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 24px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .moment-card {
+        flex: 0 0 260px;
+        max-width: 260px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+        background: rgba(255, 255, 255, 0.04);
+        transition: border-color 0.2s ease, background 0.2s ease;
+        text-decoration: none;
+
+        @media (min-width: 768px) {
+            flex: 0 0 340px;
+            max-width: 340px;
+        }
+
+        &.moment-gold {
+            border-color: rgba(255, 215, 0, 0.18);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #ffd700;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(255, 215, 0, 0.85);
+            }
+        }
+
+        &.moment-silver {
+            border-color: rgba(200, 200, 200, 0.22);
+            background: linear-gradient(135deg, rgba(200, 200, 200, 0.09) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #d7d7d7;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(220, 220, 220, 0.85);
+            }
+        }
+
+        &.moment-bronze {
+            border-color: rgba(205, 127, 50, 0.25);
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #cd7f32;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(205, 127, 50, 0.9);
+            }
+        }
+
+        &.moment-heartbreak {
+            border-color: rgba(84, 161, 255, 0.2);
+            background: linear-gradient(135deg, rgba(84, 161, 255, 0.06) 0%, $bg-card 100%);
+
+            .moment-year {
+                color: #9fccff;
+            }
+
+            .moment-location,
+            .moment-type {
+                color: rgba(159, 204, 255, 0.9);
+            }
+        }
+
+        .moment-year {
+            font-family: $font-primary;
+            font-size: 2rem;
+            font-weight: 200;
+            line-height: 1;
+        }
+
+        .moment-location {
+            font-family: $font-mono;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .moment-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+
+            .moment-athlete {
+                font-family: $font-primary;
+                font-size: 14px;
+                font-weight: 600;
+                color: $text-primary;
+                margin-bottom: 2px;
+            }
+
+            .moment-event {
+                font-family: $font-mono;
+                font-size: 10px;
+                color: $text-muted;
+                margin-bottom: 8px;
+            }
+
+            .moment-story {
+                font-family: $font-primary;
+                font-size: 12px;
+                color: $text-secondary;
+                line-height: 1.4;
+                margin: 0;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                line-clamp: 4;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+
+        .olympedia-link {
+            font-family: $font-primary;
+            font-size: 10px;
+            color: $gold-color;
+            text-decoration: none;
+            margin-top: 8px;
+
+            &:hover {
+                opacity: 0.8;
+            }
+        }
+
+        .moment-link {
+            margin-top: auto;
+            padding-top: 10px;
+            font-family: $font-primary;
+            font-size: 10px;
+            font-weight: 600;
+            color: $text-primary;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+
+            &:hover {
+                opacity: 0.82;
+            }
+        }
+    }
+}
+
+// 3. Sports Grid
+.sports-grid-section {
+    margin-bottom: 48px;
+}
+
+.sports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+
+    @media (max-width: 600px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+.sport-card {
+    @include glass-card;
+    padding: 20px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        background: $bg-card-hover;
+        transform: translateY(-2px);
+    }
+
+    &.has-gold {
+        border-color: rgba(255, 215, 0, 0.4);
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.08);
+    }
+
+    &.has-silver {
+        border-color: rgba(192, 192, 192, 0.4);
+        box-shadow: 0 4px 20px rgba(192, 192, 192, 0.08);
+    }
+
+    &.has-bronze {
+        border-color: rgba(205, 127, 50, 0.4);
+        box-shadow: 0 4px 20px rgba(205, 127, 50, 0.08);
+    }
+
+    &.expanded {
+        grid-column: span 2;
+        background: rgba(255, 255, 255, 0.08);
+
+        @media (max-width: 600px) {
+            grid-column: span 2;
+        }
+    }
+
+    // Header layout
+    .sport-card-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center; // Center content
+        gap: 12px;
+        text-align: center;
+
+        .sport-icon {
+            font-size: 2.5rem;
+            height: 60px;
+            width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .pictogram-img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                // Native icons are Blue. Invert(1) makes them Yellow (Gold style).
+                // Matching Sports Details page style.
+                filter: invert(1);
+            }
+        }
+
+        .sport-info {
+            h3 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            p {
+                margin: 4px 0 0;
+                font-size: 0.8rem;
+                color: $text-muted;
+            }
+        }
+
+        .sport-medal-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 215, 0, 0.1);
+            color: $gold-color;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+    }
+
+    // Expanded Mini List (Athletes)
+    .sport-details {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        animation: slideDown 0.3s ease;
+
+        .mini-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            padding: 6px 0;
+            color: $text-secondary;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &.medalist {
+                color: white;
+                font-weight: 500;
+                background: rgba(255, 255, 255, 0.02);
+                padding-left: 8px;
+                padding-right: 8px;
+                border-radius: 6px;
+            }
+
+            .athlete-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+
+                .name {
+                    font-weight: 500;
+                }
+
+                .events {
+                    font-size: 0.75rem;
+                    color: $text-muted;
+                    font-family: $font-mono;
+                }
+            }
+
+            .result {
+                font-size: 1rem;
+            }
+        }
+    }
+}
+
+// 4. Medal Winners Grid
+.medals-section {
+    margin-bottom: 48px;
+
+    h2 {
+        @include section-title;
+    }
+}
+
+.medals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.medal-card {
+    @include glass-card;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-left: 4px solid transparent;
+
+    &.gold {
+        border-left-color: $gold-color;
+    }
+
+    &.silver {
+        border-left-color: $silver-color;
+    }
+
+    &.bronze {
+        border-left-color: $bronze-color;
+    }
+
+    .medal-emoji {
+        font-size: 2.5rem;
+    }
+
+    .medal-info {
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: $text-primary;
+            margin: 0;
+        }
+
+        .event-name {
+            margin: 4px 0 0;
+            font-size: 0.85rem;
+            color: $text-secondary;
+            font-family: $font-mono;
+        }
+
+        .team-count {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: $text-muted;
+        }
+    }
+
+    &.team {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    }
+}
+
+// 5. Narrative Layout
+// ... (same as before)
+.narrative-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    align-items: start;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.story-section {
+    @include glass-card;
+    padding: 32px;
+
+    h2 {
+        margin-top: 0;
+    }
+
+    p {
+        font-family: 'Georgia', serif;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.9);
+    }
+}
+
+.context-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.firsts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .first-item {
+        @include glass-card;
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        font-size: 0.9rem;
+        line-height: 1.5;
+
+        .first-icon {
+            font-size: 1.2rem;
+        }
+    }
+}
+
+.context-section .context-content {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: $text-secondary;
+    line-height: 1.6;
+}
+
+.boycott-card {
+    background: rgba(255, 87, 87, 0.1);
+    border: 1px solid rgba(255, 87, 87, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    color: #ff8a8a;
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        height: 0;
+    }
+
+    to {
+        opacity: 1;
+        height: auto;
+    }
+}
+
+.loading-state {
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

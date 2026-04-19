@@ -15,19 +15,26 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/indianolympicdream",
             "index": "src/index.html",
-            "main": "src/main.ts",
+            "browser": "src/main.ts",
+            "server": "src/main.server.ts",
             "polyfills": [
-              "src/polyfills.ts"
+              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/.well-known",
+              {
+                "glob": "50x.html",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles/theme-manager.scss",
@@ -39,11 +46,10 @@
                 "node_modules"
               ]
             },
-            "optimization": false,
-            "sourceMap": false,
-            "namedChunks": false,
-            "vendorChunk": true,
-            "buildOptimizer": false
+            "ssr": {
+              "entry": "server.ts"
+            },
+            "prerender": false
           },
           "configurations": {
             "production": {
@@ -69,19 +75,19 @@
                   "maximumWarning": "6kb"
                 }
               ],
-              "serviceWorker": true
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "indianolympicdream:build",
             "proxyConfig": "proxy.conf.js"
           },
           "configurations": {
@@ -103,45 +109,28 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/manifest.webmanifest"
+              "src/manifest.webmanifest",
+              "src/.well-known",
+              {
+                "glob": "50x.html",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "src/styles/theme-manager.scss",
               "src/styles.scss"
             ],
             "scripts": []
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json",
-              "e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "indianolympicdream:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "indianolympicdream:serve:production"
-            }
           }
         }
       }

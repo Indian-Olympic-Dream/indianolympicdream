@@ -2,21 +2,51 @@ import { Routes } from "@angular/router";
 
 export const routes: Routes = [
   {
-    path: "home",
+    path: "",
     loadComponent: () =>
-      import("./home/home.component").then((m) => m.HomeComponent),
-    data: { animation: "HomePage", order: 2 },
-    // resolve: {
-    //   allsportsdata: AllSportsResolverService // This resolver would also need to be provided differently if used with standalone components, typically in the route's providers array or globally.
-    // }
+      import("./sports/sports.component").then((m) => m.SportsComponent),
+    data: {
+      animation: "HomePage",
+      order: 1,
+    },
   },
   {
-    path: "sports/:sportname",
+    path: "home",
+    redirectTo: "",
+    pathMatch: "full",
+  },
+  {
+    path: "sports",
+    redirectTo: "",
+    pathMatch: "full",
+  },
+  {
+    path: "history",
+    loadChildren: () =>
+      import("./history/history.routes").then((m) => m.HISTORY_ROUTES),
+    data: { animation: "HistoryPage", order: 2 },
+  },
+  {
+    path: "calendar/:slug",
     loadComponent: () =>
-      import("./sport-details/sport-details.component").then(
-        (m) => m.SportDetailsComponent,
+      import("./calendar/calendar-detail.component").then(
+        (m) => m.CalendarDetailComponent,
       ),
-    data: { animation: "SportDetailsPage", order: 1 },
+    data: {
+      animation: "CalendarDetailPage",
+      order: 3,
+      transitionType: "bottom-to-top",
+    },
+  },
+  {
+    path: "calendar",
+    loadComponent: () =>
+      import("./calendar/calendar.component").then((m) => m.CalendarComponent),
+    data: {
+      animation: "CalendarPage",
+      order: 3,
+      transitionType: "bottom-to-top",
+    },
   },
   {
     path: "athletes",
@@ -29,36 +59,6 @@ export const routes: Routes = [
     },
   },
   {
-    path: "calendar",
-    loadComponent: () =>
-      import("./calendar/calendar.component").then((m) => m.CalendarComponent),
-    data: {
-      animation: "CalendarPage",
-      order: 4,
-      transitionType: "bottom-to-top",
-    },
-  },
-  {
-    path: "schedule",
-    loadComponent: () =>
-      import("./schedule/schedule.component").then((m) => m.ScheduleComponent),
-    data: {
-      animation: "SchedulePage",
-      order: 5,
-      transitionType: "bottom-to-top",
-    },
-  },
-  {
-    path: "explore",
-    loadComponent: () =>
-      import("./explore/explore.component").then((m) => m.ExploreComponent),
-    data: {
-      animation: "ExplorePage",
-      order: 6,
-      transitionType: "bottom-to-top",
-    },
-  },
-  {
     path: "originals",
     loadComponent: () =>
       import("./originals/originals.component").then(
@@ -66,7 +66,7 @@ export const routes: Routes = [
       ),
     data: {
       animation: "OriginalsPage",
-      order: 7,
+      order: 5,
       transitionType: "bottom-to-top",
     },
   },
@@ -76,21 +76,14 @@ export const routes: Routes = [
       import("./stories/stories.routes").then((m) => m.STORIES_ROUTES),
     data: {
       animation: "StoriesPage",
-      order: 8,
+      order: 6,
       transitionType: "bottom-to-top",
     },
   },
   {
-    path: "about",
-    loadComponent: () =>
-      import("./about/about.component").then((m) => m.AboutComponent),
-    data: { animation: "AboutPage", order: 8, transitionType: "bottom-to-top" },
+    path: "sport/:sportname",
+    redirectTo: "history/sport/:sportname",
   },
-  // {
-  //   path: 'feedback',
-  //   loadComponent: () => import('./feedback/feedback.component').then(m => m.FeedbackComponent),
-  //   data: { animation: 'FeedbackPage', order: 10, transitionType: 'bottom-to-top' }
-  // },
   {
     path: "internal-error",
     loadComponent: () =>
@@ -99,7 +92,6 @@ export const routes: Routes = [
       ),
     data: { animation: "InternalErrorPage", order: 10 },
   },
-  { path: "", redirectTo: "/home?edition=2028", pathMatch: "full" },
   {
     path: "**",
     loadComponent: () =>
