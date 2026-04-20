@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import packageJson from '../../../package.json';
 
 @Component({
     selector: 'app-footer',
@@ -14,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class FooterComponent {
     currentYear = new Date().getFullYear();
     contactEmail = 'contact@iodsports.com';
+    releaseLabel = `V${packageJson.version}`;
 
     socialLinks = [
         { name: 'Instagram', icon: 'photo_camera', url: 'https://www.instagram.com/iod_sports' },

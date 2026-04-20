@@ -1,4 +1,4 @@
-import { Component, HostBinding, PLATFORM_ID, inject } from "@angular/core";
+import { Component, ElementRef, HostBinding, PLATFORM_ID, ViewChild, inject } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { SwupdateService } from "./swupdate.service";
 import { OverlayContainer } from "@angular/cdk/overlay";
@@ -58,8 +58,10 @@ import { FooterComponent } from "./footer/footer.component";
 export class AppComponent {
   public isOlympicsMenuOpen = false;
   public loading: boolean = false;
+  public isNavigating: boolean = false;
   isLightTheme = false;
   @HostBinding("class") componentCssClass;
+  @ViewChild("mainContent") private mainContent?: ElementRef<HTMLElement>;
   selectedtheme: string;
   currentTheme = "dark-theme";
   currentSport: string = "";
@@ -104,18 +106,23 @@ export class AppComponent {
 
   navigationInterceptor(event: RouterEvent): void {
     if (event instanceof NavigationStart) {
+      this.isNavigating = true;
       this.loading = true;
+      this.resetMainContentScroll();
     }
     if (event instanceof NavigationEnd) {
+      this.isNavigating = false;
       this.loading = false;
       const childRoute = this.route.firstChild;
       const sportname = childRoute?.snapshot.paramMap.get("sportname");
       this.currentSport = sportname || "";
     }
     if (event instanceof NavigationCancel) {
+      this.isNavigating = false;
       this.loading = false;
     }
     if (event instanceof NavigationError) {
+      this.isNavigating = false;
       this.loading = false;
       if (isPlatformBrowser(this.platformId) && event.url !== "/internal-error") {
         const errorMessage =
@@ -199,5 +206,16 @@ export class AppComponent {
 
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData;
+  }
+
+  private resetMainContentScroll(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const scrollHost = this.mainContent?.nativeElement;
+    if (!scrollHost) return;
+
+    scrollHost.scrollTop = 0;
+    scrollHost.scrollLeft = 0;
+    this.scrollTrackingService.updateProgress(0);
   }
 }

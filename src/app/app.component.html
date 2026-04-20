@@ -32,7 +32,7 @@
 </mat-toolbar>
 
 <!-- Main Content (No Sidenav) -->
-<div class="main-content" (scroll)="onContentScroll($event)">
+<div #mainContent class="main-content" (scroll)="onContentScroll($event)">
 
 
   <div [@routeAnimations]="prepareRoute(outlet)" class="router-outlet-container">
@@ -40,7 +40,7 @@
   </div>
 
   <!-- Global Footer -->
-  <app-footer></app-footer>
+  <app-footer *ngIf="!isNavigating"></app-footer>
 </div>
 
 <!-- Mobile Bottom Nav -->
