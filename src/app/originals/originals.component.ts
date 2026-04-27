@@ -390,7 +390,9 @@ export class OriginalsComponent implements OnInit {
       });
     });
 
-    return [...dedupe.values()];
+    return [...dedupe.values()].sort(
+      (a, b) => this.getDateWeight(b.publishedDate) - this.getDateWeight(a.publishedDate),
+    );
   }
 
   private getTypeCount(filter: OriginalsTypeFilter): number {
