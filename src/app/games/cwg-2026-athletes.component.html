@@ -1,0 +1,133 @@
+<main class="athletes-page">
+  <!-- Hero Card Header (Without Stat Boxes) -->
+  <header class="home-hero">
+    <div class="hero-top-bar">
+      <div class="hero-sub-branding">
+        <span class="hub-pill">IOD HUB</span>
+        <span class="dates-pill">23 July – 2 August 2026 · Glasgow</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hero-nav" aria-label="Main Glasgow 2026 Navigation">
+        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Overview</a>
+        <a routerLink="/cwg-2026/schedule" routerLinkActive="active">Schedule</a>
+        <a routerLink="/cwg-2026/athletes" routerLinkActive="active">Athletes</a>
+      </nav>
+    </div>
+
+    <div class="hero-brand">
+      <div class="logo-wrapper">
+        <img [src]="glasgowLogoUrl" alt="Glasgow 2026 Commonwealth Games Logo" class="glasgow-logo">
+      </div>
+      <div class="hero-copy">
+        <h1>India at Glasgow 2026</h1>
+        <p class="hero-subtitle">Official Contingent Roster</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="sport-nav-section" aria-label="Roster sports">
+    <nav class="sport-filter-bar" aria-label="Filter roster by sport">
+      <button *ngFor="let sport of sportNavItems(); trackBy: trackBySport" class="sport-chip" type="button"
+        [class.active]="activeSport() === sport.key" [attr.aria-pressed]="activeSport() === sport.key"
+        [attr.data-sport-key]="sport.key" (click)="setActiveSport(sport.key)">
+        <span class="sport-chip-circle">
+          <span class="sport-chip-icon-frame">
+            <svg *ngIf="sport.key === 'all'; else sportIcon" class="sport-chip-all-icon" viewBox="0 0 32 32"
+              aria-hidden="true">
+              <g class="all-icon-lines">
+                <line x1="16" y1="16" x2="16" y2="8.5" />
+                <line x1="16" y1="16" x2="24.2" y2="12.2" />
+                <line x1="16" y1="16" x2="22.2" y2="24" />
+                <line x1="16" y1="16" x2="9.8" y2="24" />
+                <line x1="16" y1="16" x2="7.8" y2="12.2" />
+              </g>
+              <g class="all-icon-nodes">
+                <circle cx="16" cy="16" r="2.6" />
+                <circle cx="16" cy="7.8" r="2.1" />
+                <circle cx="24.6" cy="12" r="2.1" />
+                <circle cx="22.4" cy="24.2" r="2.1" />
+                <circle cx="9.6" cy="24.2" r="2.1" />
+                <circle cx="7.4" cy="12" r="2.1" />
+              </g>
+            </svg>
+            <ng-template #sportIcon>
+              <img *ngIf="sport.pictogramUrl as pictogram; else sportInitials" [src]="pictogram"
+                [alt]="sport.label + ' pictogram'" class="sport-chip-icon">
+              <ng-template #sportInitials>
+                <span class="sport-chip-fallback">{{ getInitials(sport.label) }}</span>
+              </ng-template>
+            </ng-template>
+          </span>
+          <span class="sport-chip-count">{{ sport.count }}</span>
+        </span>
+        <span class="sport-chip-caption">{{ sport.label }}</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- <section class="roster-tools" aria-label="Roster tools">
+    <div class="roster-meta">
+      <p>{{ isLoading() ? 'Loading roster...' : filteredRows().length + ' athletes shown' }}</p>
+    </div>
+    <label class="search-box">
+      <span>Search</span>
+      <input type="search" [value]="searchTerm()" (input)="setSearch($any($event.target).value)"
+        placeholder="Athlete, event, sport">
+    </label>
+  </section> -->
+
+  <section class="athlete-grid" aria-label="Commonwealth Games India athletes">
+    <article *ngFor="let row of filteredRows(); trackBy: trackByParticipation" class="athlete-row"
+      [class.watch]="row.watchList?.isTenToWatch">
+      <span class="athlete-photo">
+        <img *ngIf="getAthleteImageUrl(row) as photo; else athleteFallback" [src]="photo" [alt]="getAthleteName(row)">
+        <ng-template #athleteFallback>
+          <img *ngIf="getSportPictogramUrl(row) as pictogram; else athleteInitials" [src]="pictogram"
+            [alt]="getSportName(row)" class="athlete-photo-pictogram">
+          <ng-template #athleteInitials>{{ getInitials(getAthleteName(row)) }}</ng-template>
+        </ng-template>
+      </span>
+
+      <div class="athlete-main">
+        <div class="athlete-title">
+          <strong>{{ getAthleteName(row) }}</strong>
+          <span class="watch-badge" *ngIf="row.watchList?.isTenToWatch">✨ #{{ row.watchList?.rank }} IOD WATCH</span>
+        </div>
+        <p class="athlete-event">{{ row.eventName || row.eventBucket || getSportName(row) }}</p>
+        <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch">
+          <a *ngIf="row.watchList?.shortUrl as shortUrl" class="yt-button card-yt" [href]="shortUrl" target="_blank"
+            rel="noopener" aria-label="Watch {{ getAthleteName(row) }} short on YouTube">
+            <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+            </svg>
+            Watch Short
+          </a>
+          <span *ngIf="!row.watchList?.shortUrl" class="yt-button disabled-yt">
+            Short Soon
+          </span>
+        </div>
+      </div>
+
+      <div class="sport-cell">
+        <span class="sport-icon">
+          <img *ngIf="getSportPictogramUrl(row) as pictogram; else sportFallback" [src]="pictogram"
+            [alt]="getSportName(row)">
+          <ng-template #sportFallback>{{ getInitials(getSportName(row)) }}</ng-template>
+        </span>
+        <div class="sport-meta">
+          <span class="sport-name">{{ getSportName(row) }}</span>
+          <span class="context-tag" [class.para]="row.competitionStream === 'para' || row.isPara">{{
+            getCompetitionContext(row) }}</span>
+        </div>
+      </div>
+    </article>
+
+    <p class="empty-state" *ngIf="isLoading()">Loading roster from Payload...</p>
+    <p class="empty-state" *ngIf="!isLoading() && hasLoadError()">Roster data is unavailable. Check the Payload server
+      and try again.</p>
+    <p class="empty-state" *ngIf="!isLoading() && !hasLoadError() && !filteredRows().length">No roster rows match this
+      view.</p>
+  </section>
+</main>

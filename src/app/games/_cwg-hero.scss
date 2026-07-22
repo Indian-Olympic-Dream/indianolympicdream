@@ -1,0 +1,239 @@
+@import "../../styles/variables";
+
+.home-hero {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+  padding: 24px 28px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(217, 180, 65, 0.04)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(12px) !important;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+.hero-top-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.hero-sub-branding {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.hub-pill {
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  background: rgba(217, 180, 65, 0.18) !important;
+  border: 1px solid rgba(217, 180, 65, 0.4) !important;
+  color: $gold !important;
+  font-size: 0.65rem !important;
+  font-weight: 900 !important;
+  font-family: "Geist Mono", monospace !important;
+  letter-spacing: 0.05em !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.dates-pill {
+  color: $muted !important;
+  font-size: 0.86rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.hero-nav {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  margin: 0 !important;
+
+  a {
+    padding: 6px 16px !important;
+    border-radius: 999px !important;
+    color: $muted !important;
+    text-decoration: none !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    &.active {
+      color: $gold !important;
+      background: rgba(217, 180, 65, 0.18) !important;
+      border: 1px solid rgba(217, 180, 65, 0.35) !important;
+      font-weight: 900 !important;
+    }
+  }
+}
+
+.hero-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 24px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.logo-wrapper {
+  flex: 0 0 78px !important;
+  width: 78px !important;
+  height: 78px !important;
+  min-width: 78px !important;
+  max-width: 78px !important;
+  min-height: 78px !important;
+  max-height: 78px !important;
+  padding: 9px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 14px !important;
+  display: grid !important;
+  place-items: center !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.15) !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+.glasgow-logo {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.hero-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  h1 {
+    font-size: clamp(1.75rem, 4.2vw, 2.5rem) !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+    color: #ffffff !important;
+    line-height: 1.1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .hero-subtitle {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.92rem !important;
+    font-weight: 500 !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-hero {
+    padding: 16px 16px !important;
+    gap: 16px !important;
+
+    .logo-wrapper {
+      flex: 0 0 66px !important;
+      width: 66px !important;
+      height: 66px !important;
+      min-width: 66px !important;
+      max-width: 66px !important;
+      min-height: 66px !important;
+      max-height: 66px !important;
+      padding: 7px !important;
+      border-radius: 13px !important;
+    }
+
+    .hero-copy {
+      gap: 4px !important;
+
+      h1 {
+        font-size: 1.55rem !important;
+        line-height: 1.15 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .hero-subtitle {
+        font-size: 0.86rem !important;
+        line-height: 1.3 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
+  }
+
+  .hero-top-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .hero-nav {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+
+    a {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 8px 0 !important;
+      font-size: 0.78rem !important;
+    }
+  }
+
+  .hero-brand {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+}

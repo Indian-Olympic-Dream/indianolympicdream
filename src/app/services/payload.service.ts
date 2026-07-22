@@ -4,6 +4,7 @@ import { Apollo, gql } from 'apollo-angular';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { IndiaTier, SportLifecycle } from '../models/india-tier';
+import type { CwgGamesParticipation, PayloadListResponse } from '../games/cwg-2026.types';
 
 /**
  * PayloadService - GraphQL client for Payload CMS
@@ -963,6 +964,29 @@ export class PayloadService {
     }
     return path;
   }
+
+  // ============ GAMES HUBS ============
+
+  getGamesHubSchedule<T = unknown>(gamesKey: string): Observable<T> {
+    const params = new HttpParams().set('gamesKey', gamesKey);
+    return this.http.get<T>(`${environment.payload_url}/api/games-schedule/hub`, { params });
+  }
+
+  getGamesParticipations(
+    gamesKey: string,
+    options?: { limit?: number; page?: number },
+  ): Observable<PayloadListResponse<CwgGamesParticipation>> {
+    const params = new HttpParams()
+      .set('gamesKey', gamesKey)
+      .set('limit', String(options?.limit || 200))
+      .set('page', String(options?.page || 1));
+
+    return this.http.get<PayloadListResponse<CwgGamesParticipation>>(
+      `${environment.payload_url}/api/games-participations/hub`,
+      { params },
+    );
+  }
+
   // ============ SPORTS ============
 
   getSports(options?: { parentOnly?: boolean; discipline?: boolean }): Observable<Sport[]> {

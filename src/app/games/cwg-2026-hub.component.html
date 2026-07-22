@@ -1,0 +1,138 @@
+<section class="schedule-shell">
+  <!-- Hero Card Header (Without Stat Boxes) -->
+  <header class="home-hero">
+    <div class="hero-top-bar">
+      <div class="hero-sub-branding">
+        <span class="hub-pill">IOD HUB</span>
+        <span class="dates-pill">23 July – 2 August 2026 · Glasgow</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hero-nav" aria-label="Main Glasgow 2026 Navigation">
+        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Overview</a>
+        <a routerLink="/cwg-2026/schedule" routerLinkActive="active">Schedule</a>
+        <a routerLink="/cwg-2026/athletes" routerLinkActive="active">Athletes</a>
+      </nav>
+    </div>
+
+    <div class="hero-brand">
+      <div class="logo-wrapper">
+        <img [src]="glasgowLogoUrl" alt="Glasgow 2026 Commonwealth Games Logo" class="glasgow-logo">
+      </div>
+      <div class="hero-copy">
+        <h1>India at Glasgow 2026</h1>
+        <p class="hero-subtitle">Schedule Matrix</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Centered Stream Filter Pills Bar -->
+  <div class="stream-tabs-bar">
+    <nav class="stream-tabs" aria-label="Filter schedule matrix">
+      <button *ngFor="let stream of streamTabs(); trackBy: trackByStream" type="button"
+        [class.active]="activeStream() === stream.key" [class.para]="stream.key === 'para'"
+        (click)="setActiveStream(stream.key)">
+        <span>{{ stream.label }}</span>
+        <span class="count-badge">{{ stream.rows }}</span>
+      </button>
+    </nav>
+  </div>
+
+  <main class="matrix-content">
+    <section class="matrix-card" aria-label="India schedule matrix">
+      <div class="matrix-scroll">
+        <div class="schedule-grid" [style.--date-count]="dateColumns().length">
+          <div class="corner-cell">Sport</div>
+
+          <div class="date-head" *ngFor="let date of dateColumns(); trackBy: trackByDate">
+            <span>{{ date.dayLabel }}</span>
+            <strong>{{ date.dateLabel }}</strong>
+          </div>
+
+          <ng-container *ngFor="let sport of matrixRows(); trackBy: trackBySport">
+            <div class="sport-head" [class.para]="sport.stream === 'para'">
+              <span class="sport-icon">
+                <img *ngIf="getSportPictogramUrl(sport) as icon; else sportFallback" [src]="icon" [alt]="sport.name">
+                <ng-template #sportFallback>{{ getSportInitials(sport.name) }}</ng-template>
+              </span>
+              <span class="sport-copy">
+                <strong>{{ sport.name }}</strong>
+              </span>
+            </div>
+
+            <button class="date-cell" *ngFor="let cell of sport.cells; trackBy: trackByCell" type="button"
+              [class.active]="cell.sessionCount > 0" [class.medal]="cell.goldMedalsOnOffer > 0"
+              [class.selected]="selectedCellKey() === cell.key" [disabled]="cell.sessionCount === 0"
+              (click)="selectCell(cell)" [attr.aria-label]="
+                cell.sessionCount
+                  ? cell.sportName + ' on ' + cell.dateLabel + ': ' + cell.sessionCount + ' entries, ' + cell.goldMedalsOnOffer + ' gold medals on offer'
+                  : cell.sportName + ' on ' + cell.dateLabel + ': no mapped India entries'
+              ">
+              <span class="cell-content">
+                <img *ngIf="cell.goldMedalsOnOffer > 0" class="medal-icon" [src]="medalIconUrl"
+                  alt="Gold medals on offer">
+                <ng-container *ngIf="getCellLabel(cell); else emptyDot">{{ getCellLabel(cell) }}</ng-container>
+                <ng-template #emptyDot><span class="empty-dot">·</span></ng-template>
+              </span>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-items">
+          <span class="legend-item"><i class="legend-dot active-dot"></i> India Event Session</span>
+          <span class="legend-item"><img class="legend-medal" [src]="medalIconUrl" alt="">Medal Session</span>
+        </div>
+        <span class="legend-hint">✨ Click active cell for session details &amp; status</span>
+      </div>
+    </section>
+  </main>
+
+  <div class="cell-dialog" *ngIf="selectedCell() as cell" role="presentation" (click)="closeCellDialog()">
+    <aside class="detail-panel" role="dialog" aria-modal="true" [attr.aria-labelledby]="'cell-dialog-title'"
+      (click)="$event.stopPropagation()">
+      <header class="detail-header">
+        <div class="detail-title">
+          <span class="sport-icon dialog-sport-icon">
+            <img *ngIf="getCellPictogramUrl(cell) as icon; else dialogSportFallback" [src]="icon"
+              [alt]="cell.sportName">
+            <ng-template #dialogSportFallback>{{ getSportInitials(cell.sportName) }}</ng-template>
+          </span>
+          <div>
+            <p class="eyebrow">{{ cell.dayLabel }} {{ cell.dateLabel }}</p>
+            <h2 id="cell-dialog-title">{{ cell.sportName }}</h2>
+            <div class="detail-stats">
+              <span class="stat-chip">{{ cell.sessionCount }} entries</span>
+              <span class="stat-chip gold-chip" *ngIf="cell.goldMedalsOnOffer > 0">
+                <img [src]="medalIconUrl" alt=""> {{ cell.goldMedalsOnOffer }} golds
+              </span>
+              <span class="stat-chip">{{ cell.firstTimeLabel }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="dialog-close" type="button" aria-label="Close details" (click)="closeCellDialog()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+
+      <div class="session-list">
+        <article *ngFor="let row of cell.rows; trackBy: trackByScheduleRow"
+          [class.gold-session]="row.goldMedalEvents?.length">
+          <div class="session-meta">
+            <time>{{ row.timeLabel }}</time>
+            <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
+              [title]="getSessionCertaintyTooltip(row)">
+              <img [src]="medalIconUrl" alt="" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
+              {{ getSessionBadge(row) }}
+            </span>
+          </div>
+          <strong>{{ row.event }}</strong>
+          <p *ngIf="row.athletes && row.athletes !== 'India'">{{ row.athletes }}</p>
+          <small><span *ngIf="row.venue">📍 {{ row.venue }}</span></small>
+        </article>
+      </div>
+    </aside>
+  </div>
+</section>
