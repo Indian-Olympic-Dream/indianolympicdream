@@ -1,0 +1,126 @@
+$bg: #0a0a0f;
+$line: rgba(255, 255, 255, 0.1);
+$text: rgba(255, 255, 255, 0.94);
+$muted: rgba(255, 255, 255, 0.58);
+$gold: #d4af37;
+$gold-soft: rgba(212, 175, 55, 0.14);
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: $bg;
+  color: $text;
+}
+
+.cwg-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(212, 175, 55, 0.06), transparent 260px),
+    $bg;
+}
+
+.cwg-subpage-header {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 16px 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.subpage-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.compact-logo-wrapper {
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  background: #ffffff; /* Crisp white background for black logo text */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+
+  .glasgow-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.brand-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+}
+
+.hub-pill {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(217, 180, 65, 0.2);
+  border: 1px solid rgba(217, 180, 65, 0.4);
+  color: $gold;
+  font-size: 0.6rem;
+  font-weight: 900;
+  font-family: "Geist Mono", monospace;
+  letter-spacing: 0.05em;
+  width: fit-content;
+}
+
+.subpage-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid $line;
+  border-radius: 999px;
+
+  a {
+    padding: 6px 16px;
+    border-radius: 999px;
+    color: $muted;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &.active {
+      color: $gold;
+      background: rgba(212, 175, 55, 0.18);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      font-weight: 900;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .cwg-subpage-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .subpage-nav {
+    width: 100%;
+    justify-content: space-around;
+  }
+}

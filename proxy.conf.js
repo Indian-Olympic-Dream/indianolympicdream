@@ -19,6 +19,26 @@ const PROXY_CONFIG = {
     secure: false,
     changeOrigin: true,
   },
+  "/api/games-schedule": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
+  "/api/games-participations": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
+  "/api/users": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
+  "/api/subscriptions": {
+    target: "http://localhost:3000",
+    secure: false,
+    changeOrigin: true,
+  },
   "/api": {
     target: "https://iodsports.com",
     secure: true,

@@ -1,0 +1,225 @@
+<main class="cwg-home">
+  <!-- Hero Branding Header with Integrated Nav -->
+  <header class="home-hero">
+    <div class="hero-top-bar">
+      <div class="hero-sub-branding">
+        <span class="hub-pill">IOD HUB</span>
+        <span class="dates-pill">23 July – 2 August 2026 · Glasgow</span>
+      </div>
+
+      <!-- Integrated 3 Top Nav Links -->
+      <nav class="hero-nav" aria-label="CWG 2026 Navigation">
+        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
+        <a routerLink="/cwg-2026/schedule" routerLinkActive="active">Schedule</a>
+        <a routerLink="/cwg-2026/athletes" routerLinkActive="active">Athletes</a>
+      </nav>
+    </div>
+
+    <div class="hero-brand">
+      <div class="logo-wrapper">
+        <img [src]="glasgowLogoUrl" alt="Glasgow 2026 Commonwealth Games Logo" class="glasgow-logo">
+      </div>
+      <div class="hero-copy">
+        <h1>India at Glasgow 2026</h1>
+        <p class="hero-subtitle">IOD Official Contingent Tracker & Interactive Event Schedule</p>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-box">
+        <strong>{{ summary().athletes }}</strong>
+        <span>Athletes ({{ summary().ableAthletes }} Able · {{ summary().paraAthletes }} Para)</span>
+      </div>
+      <div class="stat-box">
+        <strong>{{ summary().sports }}</strong>
+        <span>Sports ({{ summary().ableSports }} Able · {{ summary().paraSports }} Para)</span>
+      </div>
+      <div class="stat-box">
+        <strong>{{ summary().scheduleEntries }}</strong>
+        <span>Schedule Sessions (Heats & Quals + Medal Rounds)</span>
+      </div>
+      <div class="stat-box gold">
+        <strong>{{ summary().golds }}</strong>
+        <span>Gold Medals On Offer</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Core Answer Grid -->
+  <section class="answer-grid">
+    <!-- Coming up for India -->
+    <article class="answer-card next-answer" *ngIf="nextIndiaSession() as next; else scheduleState">
+      <div class="question-row">
+        <p class="question">Coming up for India</p>
+        <span class="importance-chip" [ngClass]="getSessionImportanceClass(next)"
+          [title]="getSessionCertaintyTooltip(next)">
+          <i class="pulse-dot" *ngIf="isSessionLive(next)"></i>
+          {{ getSessionBadge(next) }}
+        </span>
+      </div>
+
+      <!-- Up Next / Live Hero Block -->
+      <div class="hero-session-block">
+        <div class="next-sport">
+          <span class="sport-icon" *ngIf="getSchedulePictogramUrl(next) as pictogram">
+            <img [src]="pictogram" [alt]="next.sport">
+          </span>
+          <span>{{ next.sport }}</span>
+        </div>
+
+        <h2>{{ next.event }}</h2>
+        <p class="athlete-line" *ngIf="next.athletes && next.athletes !== 'India'">{{ next.athletes }}</p>
+
+        <div class="time-block">
+          <span>{{ next.dayLabel }} {{ next.dateLabel }}</span>
+          <strong>{{ next.timeLabel }}</strong>
+        </div>
+      </div>
+
+      <!-- Date-Based Schedule Navigator -->
+      <div class="upcoming-navigator" *ngIf="upcomingDateGroups().length">
+        <div class="navigator-header">
+          <span class="queue-label">Upcoming Schedule by Date</span>
+          <!-- <a class="text-link inline-link" routerLink="/cwg-2026/schedule">View Full Matrix →</a> -->
+        </div>
+
+        <!-- Date Filter Pills -->
+        <div class="date-pills-row">
+          <button type="button" class="date-pill" [class.active]="selectedDateKey() === 'all'"
+            (click)="setSelectedDateKey('all')">
+            <span>Upcoming</span>
+          </button>
+          <button *ngFor="let group of upcomingDateGroups()" type="button" class="date-pill"
+            [class.active]="selectedDateKey() === group.dateKey" (click)="setSelectedDateKey(group.dateKey)">
+            <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
+            <small class="pill-count">({{ group.sessionCount }})</small>
+            <span *ngIf="group.goldCount > 0" class="pill-gold-badge" title="{{ group.goldCount }} Gold Medal Events">
+              <img [src]="medalIconUrl" alt="Gold medal icon" class="pill-medal-icon">
+              <small class="gold-count">{{ group.goldCount }}</small>
+            </span>
+          </button>
+        </div>
+
+        <!-- Dynamic Date Session List -->
+        <div class="date-sessions-list">
+          <article *ngFor="let row of filteredUpcomingSessions(); trackBy: trackBySession" class="date-session-item">
+            <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+              <img [src]="pictogram" [alt]="row.sport">
+            </span>
+            <div class="session-details">
+              <div class="session-header-line">
+                <span class="sport-name">{{ row.sport }}</span>
+                <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
+                  [title]="getSessionCertaintyTooltip(row)">
+                  {{ getSessionBadge(row) }}
+                </span>
+              </div>
+              <strong>{{ row.event }}</strong>
+              <small class="athlete-name" *ngIf="row.athletes && row.athletes !== 'India'">{{ row.athletes }}</small>
+            </div>
+            <div class="session-time">
+              <span>{{ row.dayLabel }} {{ row.dateLabel }}</span>
+              <strong>{{ row.timeLabel }}</strong>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <a class="text-link" routerLink="/cwg-2026/schedule">Open full schedule →</a>
+    </article>
+
+    <ng-template #scheduleState>
+      <article class="answer-card next-answer loading-card">
+        <div class="question-row">
+          <p class="question">Coming up for India</p>
+        </div>
+        <div class="skeleton-block" *ngIf="isScheduleLoading()">
+          <p class="loading-text">Loading schedule from CMS…</p>
+        </div>
+        <div class="error-block" *ngIf="hasScheduleError()">
+          <p>Unable to load schedule data.</p>
+        </div>
+      </article>
+    </ng-template>
+  </section>
+
+  <!-- 10 to Watch Rail -->
+  <section class="watch-strip" aria-label="IOD 10 to Watch">
+    <header class="section-header">
+      <div>
+        <p class="eyebrow">IOD Shorts</p>
+        <h2>10 to Watch</h2>
+      </div>
+      <span>{{ releasedShortsCount() }} shorts out · {{ scheduledShortsCount() }} coming soon</span>
+    </header>
+
+    <div class="watch-rail">
+      <article class="watch-tile" *ngFor="let story of watchRailStories(); trackBy: trackByWatchStory">
+        <div class="tile-poster" [class.no-poster]="!story.posterUrl">
+          <img *ngIf="story.posterUrl" [src]="story.posterUrl" [alt]="getWatchTitle(story)">
+          <div class="poster-fallback" *ngIf="!story.posterUrl">
+            <span>#{{ story.rank }}</span>
+          </div>
+        </div>
+        <div class="tile-copy">
+          <strong>{{ getWatchTitle(story) }}</strong>
+          <small>{{ getWatchTiming(story) }}</small>
+        </div>
+
+        <div class="tile-action">
+          <a *ngIf="story.shortUrl" class="yt-button rail-yt" [href]="story.shortUrl" target="_blank" rel="noopener"
+            aria-label="Watch {{ getWatchTitle(story) }} short on YouTube">
+            <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+            </svg>
+            Watch Short
+          </a>
+          <span *ngIf="!story.shortUrl" class="yt-button disabled-yt">
+            Short soon
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Gold Medal Finals for India (Replaces redundant "This Week for India") -->
+  <section class="gold-finals-strip">
+    <header class="section-header">
+      <div>
+        <p class="eyebrow">Glasgow 2026 Finals</p>
+        <h2>Gold Medal Finals for India</h2>
+      </div>
+      <a routerLink="/cwg-2026/schedule">Full Schedule →</a>
+    </header>
+
+    <div class="gold-finals-grid">
+      <article class="gold-final-card" *ngFor="let row of goldMedalSessions(); trackBy: trackBySession">
+        <div class="card-header-row">
+          <div class="card-sport-line">
+            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+              <img [src]="pictogram" [alt]="row.sport">
+            </span>
+            <span class="sport-name">{{ row.sport }}</span>
+          </div>
+          <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)" [title]="getSessionCertaintyTooltip(row)">
+            <img [src]="medalIconUrl" alt="Gold medal icon" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
+            {{ getSessionBadge(row) }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <h3 class="event-title">{{ row.event }}</h3>
+          <p class="card-athletes" *ngIf="row.athletes && row.athletes !== 'India'">
+            <span class="athlete-label">Contenders:</span> {{ row.athletes }}
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <time class="time-tag">📅 {{ row.dayLabel }} {{ row.dateLabel }} · {{ row.timeLabel }}</time>
+          <span class="venue-tag" *ngIf="row.venue">📍 {{ row.venue }}</span>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

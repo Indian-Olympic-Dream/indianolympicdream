@@ -1,0 +1,584 @@
+$panel: rgba(255, 255, 255, 0.04);
+$panel-strong: rgba(255, 255, 255, 0.075);
+$line: rgba(255, 255, 255, 0.1);
+$line-strong: rgba(255, 255, 255, 0.18);
+$text: rgba(255, 255, 255, 0.94);
+$muted: rgba(255, 255, 255, 0.6);
+$gold: #d4af37;
+$gold-soft: rgba(212, 175, 55, 0.14);
+$blue: #8ecbff;
+
+@import "./cwg-hero";
+
+:host {
+  display: block;
+}
+
+.athletes-page {
+  box-sizing: border-box;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px 14px 64px;
+  color: $text;
+  font-family: "Geist Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+h2 {
+  max-width: 760px;
+  font-size: clamp(2rem, 6vw, 3.45rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.eyebrow {
+  color: rgba(247, 222, 160, 0.84);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.page-heading {
+  display: grid;
+  gap: 8px;
+  padding: 18px 0 14px;
+}
+
+.sport-nav-section {
+  min-width: 0;
+  padding: 2px 0 12px;
+}
+
+.sport-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  scrollbar-width: none;
+}
+
+.sport-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sport-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 0;
+  color: $muted;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.sport-chip:hover {
+  color: $text;
+}
+
+.sport-chip:focus-visible {
+  border-radius: 10px;
+  outline: 2px solid rgba(212, 175, 55, 0.45);
+  outline-offset: 2px;
+}
+
+.sport-chip.active {
+  color: $text;
+}
+
+.sport-chip-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sport-chip:hover .sport-chip-circle {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sport-chip.active .sport-chip-circle {
+  border-color: rgba(255, 215, 0, 0.34);
+  background: rgba(255, 215, 0, 0.08);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.14);
+}
+
+.sport-chip-icon-frame {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.sport-chip-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) invert(0.88);
+  opacity: 0.96;
+  transform: scale(1.1);
+}
+
+.sport-chip.active .sport-chip-icon {
+  filter: brightness(0) saturate(100%) invert(85%) sepia(54%) saturate(642%) hue-rotate(358deg) brightness(101%) contrast(103%);
+  opacity: 1;
+  transform: scale(1.16);
+}
+
+.sport-chip-fallback {
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sport-chip-all-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.all-icon-lines {
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  opacity: 0.42;
+}
+
+.all-icon-nodes {
+  fill: currentColor;
+}
+
+.sport-chip:hover .sport-chip-all-icon {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.sport-chip.active .sport-chip-all-icon {
+  color: $gold;
+}
+
+.sport-chip-caption {
+  display: -webkit-box;
+  min-height: 14px;
+  max-width: 72px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: inherit;
+  font-size: 0.43rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.02;
+  text-align: center;
+  word-break: break-word;
+  opacity: 0.92;
+}
+
+.sport-chip-count {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  min-width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(8, 8, 8, 0.96);
+  padding: 0 6px;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sport-chip.active .sport-chip-count {
+  border-color: rgba(255, 215, 0, 0.28);
+  color: $gold;
+  background: rgba(16, 13, 5, 0.96);
+}
+
+.roster-tools {
+  display: grid;
+  gap: 10px;
+  align-items: end;
+  padding: 12px 0;
+}
+
+.roster-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: $muted;
+  font-size: 0.78rem;
+}
+
+.search-box {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.search-box span {
+  color: $muted;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+input {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  border: 1px solid $line-strong;
+  border-radius: 7px;
+  color: $text;
+  background: rgba(0, 0, 0, 0.24);
+  padding: 0 11px;
+}
+
+.athlete-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .athlete-grid {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 14px;
+  }
+}
+
+.athlete-row {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 14px 16px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.16);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.athlete-row.watch {
+  border-left: 3px solid $gold;
+  border-color: rgba(212, 175, 55, 0.28);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+
+  &:hover {
+    border-color: rgba(212, 175, 55, 0.42);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  }
+
+  .athlete-photo {
+    border-color: rgba(212, 175, 55, 0.45);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.12);
+  }
+}
+
+.athlete-photo,
+.sport-icon {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid $line-strong;
+  color: $blue;
+  background: $panel-strong;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.athlete-photo {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+
+.athlete-photo img,
+.sport-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.athlete-photo-pictogram {
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.5;
+}
+
+.athlete-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.athlete-title {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.athlete-title strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.watch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  border-radius: 999px;
+  color: $gold;
+  background: rgba(212, 175, 55, 0.1);
+  padding: 2px 8px;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.athlete-event {
+  color: $muted;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.athlete-action {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.yt-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 800;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+
+  .yt-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+  }
+
+  &.card-yt {
+    padding: 3px 9px;
+    background: rgba(255, 0, 0, 0.14);
+    border: 1px solid rgba(255, 0, 0, 0.35);
+    color: #ff6666;
+    font-size: 0.68rem;
+
+    &:hover {
+      background: #ff0000;
+      border-color: #ff0000;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(255, 0, 0, 0.4);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.disabled-yt {
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.64rem;
+    cursor: default;
+  }
+}
+
+.sport-cell {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding-left: 12px;
+}
+
+.sport-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sport-icon img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  filter: brightness(0) invert(0.9);
+}
+
+.sport-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sport-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.context-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: $muted;
+
+  &.para {
+    color: $blue;
+  }
+}
+
+.empty-state {
+  border: 1px solid $line;
+  border-radius: 8px;
+  color: $muted;
+  background: $panel;
+  padding: 18px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .athlete-row {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .athlete-photo {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .athlete-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .athlete-title strong {
+    font-size: 0.94rem;
+  }
+
+  .watch-badge {
+    padding: 1px 6px;
+    font-size: 0.58rem;
+  }
+
+  .athlete-event {
+    font-size: 0.76rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sport-cell {
+    flex: 0 0 auto;
+    border-left: 0;
+    padding-left: 0;
+    gap: 6px;
+  }
+
+  .sport-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border-radius: 8px;
+  }
+
+  .sport-meta {
+    display: none;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 640px) {
+  .sport-meta {
+    display: flex;
+  }
+
+  .sport-name {
+    font-size: 0.74rem;
+  }
+}
+
+@media (min-width: 760px) {
+  .roster-tools {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  }
+}
+
+

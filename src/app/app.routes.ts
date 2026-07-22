@@ -27,6 +27,46 @@ export const routes: Routes = [
     data: { animation: "HistoryPage", order: 2 },
   },
   {
+    path: "games/commonwealth-games-2026",
+    redirectTo: "cwg-2026/schedule",
+    pathMatch: "full",
+  },
+  {
+    path: "cwg-2026",
+    loadComponent: () =>
+      import("./games/cwg-2026-shell.component").then(
+        (m) => m.Cwg2026ShellComponent,
+      ),
+    data: {
+      animation: "GamesHubPage",
+      order: 3,
+      transitionType: "bottom-to-top",
+    },
+    children: [
+      {
+        path: "",
+        loadComponent: () =>
+          import("./games/cwg-2026-home.component").then(
+            (m) => m.Cwg2026HomeComponent,
+          ),
+      },
+      {
+        path: "schedule",
+        loadComponent: () =>
+          import("./games/cwg-2026-hub.component").then(
+            (m) => m.Cwg2026HubComponent,
+          ),
+      },
+      {
+        path: "athletes",
+        loadComponent: () =>
+          import("./games/cwg-2026-athletes.component").then(
+            (m) => m.Cwg2026AthletesComponent,
+          ),
+      },
+    ],
+  },
+  {
     path: "calendar/:slug",
     loadComponent: () =>
       import("./calendar/calendar-detail.component").then(
