@@ -119,20 +119,61 @@
 
       <div class="session-list">
         <article *ngFor="let row of cell.rows; trackBy: trackByScheduleRow"
-          [class.gold-session]="row.goldMedalEvents?.length">
+          [class.gold-session]="row.goldMedalEvents?.length" [class.boxing-session]="hasBoxingDraw(row)">
           <div class="session-meta">
-            <time>{{ row.timeLabel }}</time>
-            <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
-              [title]="getSessionCertaintyTooltip(row)">
-              <img [src]="medalIconUrl" alt="" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
-              {{ getSessionBadge(row) }}
-            </span>
+            <div class="session-time-status">
+              <time>{{ row.timeLabel }}</time>
+              <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
+                [title]="getSessionCertaintyTooltip(row)">
+                <img [src]="medalIconUrl" alt="" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
+                {{ getSessionBadge(row) }}
+              </span>
+            </div>
+            <button class="draw-button" *ngIf="getRoadToMedalImageUrl(row)" type="button"
+              (click)="openRoadToMedal(row)" title="Open Road To Medal graphic">
+              Road To Medal
+            </button>
           </div>
-          <strong>{{ row.event }}</strong>
-          <p *ngIf="row.athletes && row.athletes !== 'India'">{{ row.athletes }}</p>
-          <small><span *ngIf="row.venue">📍 {{ row.venue }}</span></small>
+          <strong class="session-title">{{ getScheduleEventTitle(row) }}</strong>
+
+          <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
+            <div class="matchup-line">
+              <span class="corner-chip">IND</span>
+              <span class="match-name india-name">{{ getBoxingIndiaLabel(row) }}</span>
+              <span class="versus">vs</span>
+              <span class="match-name opponent-name">{{ opponent }}</span>
+            </div>
+          </div>
+
+          <p *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{ row.athletes }}</p>
+          <small class="session-submeta">
+            <span *ngIf="row.venue">📍 {{ row.venue }}</span>
+            <span *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</span>
+          </small>
         </article>
       </div>
     </aside>
+  </div>
+
+  <div class="road-medal-dialog" *ngIf="selectedRoadToMedalRow() as roadRow" role="presentation"
+    (click)="closeRoadToMedal()">
+    <section class="road-medal-panel" role="dialog" aria-modal="true"
+      [attr.aria-labelledby]="'road-medal-dialog-title'" (click)="$event.stopPropagation()">
+      <header class="road-medal-header">
+        <div>
+          <p class="eyebrow">Boxing Draw</p>
+          <h2 id="road-medal-dialog-title">{{ getRoadToMedalTitle(roadRow) }}</h2>
+        </div>
+
+        <button class="dialog-close" type="button" aria-label="Close Road To Medal graphic"
+          (click)="closeRoadToMedal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+
+      <div class="road-medal-image-frame">
+        <img [src]="getRoadToMedalImageUrl(roadRow)" [alt]="getRoadToMedalTitle(roadRow) + ' Road To Medal graphic'">
+      </div>
+    </section>
   </div>
 </section>

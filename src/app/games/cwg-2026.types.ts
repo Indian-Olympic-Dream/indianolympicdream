@@ -31,7 +31,75 @@ export interface CwgScheduleRow {
   isEliminated?: boolean;
   badgeOverride?: string;
   goldMedalEvents?: string[];
+  notes?: string;
+  result?: CwgScheduleResult;
 }
+
+export interface CwgScheduleResult {
+  boxingDraw?: CwgBoxingDrawResult;
+}
+
+export interface CwgBoxingDrawCompetitor {
+  competitorCode?: string;
+  countryCode?: string;
+  displayName?: string;
+  shortName?: string;
+  printName?: string;
+}
+
+export interface CwgBoxingDrawResult {
+  eventId?: string;
+  eventSlug?: string;
+  eventDescription?: string;
+  boutId?: string;
+  boutNumber?: string | number;
+  roundId?: string;
+  roundName?: string;
+  indiaName?: string;
+  indiaCountryCode?: string;
+  indiaCorner?: string;
+  opponentStatus?: string;
+  confirmedOpponent?: CwgBoxingDrawCompetitor;
+  possibleOpponents?: CwgBoxingDrawCompetitor[];
+  roadToMedalEnabled?: boolean;
+  drawRoute?: string;
+  sourceAuthority?: string;
+  sourcePayloadStatus?: string;
+}
+
+const toTitleCaseName = (value?: string | null): string =>
+  (value || "")
+    .toLowerCase()
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase())
+    .replace(/\bMc([a-z])/g, (_, letter: string) => `Mc${letter.toUpperCase()}`)
+    .trim();
+
+export const getBoxingDraw = (row: CwgScheduleRow): CwgBoxingDrawResult | null =>
+  row.result?.boxingDraw || null;
+
+export const getBoxingCompetitorName = (competitor?: CwgBoxingDrawCompetitor | null): string =>
+  toTitleCaseName(competitor?.displayName || competitor?.printName || competitor?.shortName);
+
+export const getBoxingCompetitorLabel = (competitor?: CwgBoxingDrawCompetitor | null): string => {
+  const name = getBoxingCompetitorName(competitor);
+  if (!name) return "";
+  return competitor?.countryCode ? `${name} (${competitor.countryCode})` : name;
+};
+
+export const getBoxingOpponentLabel = (row: CwgScheduleRow): string => {
+  const draw = getBoxingDraw(row);
+  if (!draw) return "";
+
+  if (draw.confirmedOpponent) return getBoxingCompetitorLabel(draw.confirmedOpponent);
+
+  return "Opponent TBC";
+};
+
+export const getBoxingEventTitle = (row: CwgScheduleRow): string => {
+  const draw = getBoxingDraw(row);
+  if (!draw) return row.event;
+  return [draw.eventDescription, draw.roundName].filter(Boolean).join(" - ") || row.event;
+};
 
 export interface CwgWatchList {
   isTenToWatch?: boolean;

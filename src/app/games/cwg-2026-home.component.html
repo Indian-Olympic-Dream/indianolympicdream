@@ -67,8 +67,19 @@
           <span>{{ next.sport }}</span>
         </div>
 
-        <h2>{{ next.event }}</h2>
-        <p class="athlete-line" *ngIf="next.athletes && next.athletes !== 'India'">{{ next.athletes }}</p>
+        <h2>{{ getScheduleEventTitle(next) }}</h2>
+
+        <div class="matchup-strip hero-matchup-strip" *ngIf="getBoxingOpponentLabel(next) as opponent">
+          <div class="matchup-line">
+            <span class="corner-chip">IND</span>
+            <span class="match-name india-name">{{ getBoxingIndiaLabel(next) }}</span>
+            <span class="versus">vs</span>
+            <span class="match-name opponent-name">{{ opponent }}</span>
+          </div>
+          <small *ngIf="getBoxingBoutMeta(next)">{{ getBoxingBoutMeta(next) }}</small>
+        </div>
+
+        <p class="athlete-line" *ngIf="!hasBoxingDraw(next) && next.athletes && next.athletes !== 'India'">{{ next.athletes }}</p>
 
         <div class="time-block">
           <span>{{ next.dayLabel }} {{ next.dateLabel }}</span>
@@ -102,7 +113,8 @@
 
         <!-- Dynamic Date Session List -->
         <div class="date-sessions-list">
-          <article *ngFor="let row of filteredUpcomingSessions(); trackBy: trackBySession" class="date-session-item">
+          <article *ngFor="let row of filteredUpcomingSessions(); trackBy: trackBySession" class="date-session-item"
+            [class.boxing-session]="hasBoxingDraw(row)">
             <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
               <img [src]="pictogram" [alt]="row.sport">
             </span>
@@ -114,8 +126,15 @@
                   {{ getSessionBadge(row) }}
                 </span>
               </div>
-              <strong>{{ row.event }}</strong>
-              <small class="athlete-name" *ngIf="row.athletes && row.athletes !== 'India'">{{ row.athletes }}</small>
+              <strong>{{ getScheduleEventTitle(row) }}</strong>
+              <div class="matchup-mini-line" *ngIf="getBoxingOpponentLabel(row) as opponent">
+                <span>IND</span>
+                <strong>{{ getBoxingIndiaLabel(row) }}</strong>
+                <i>vs</i>
+                <strong>{{ opponent }}</strong>
+              </div>
+              <small class="boxing-meta" *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</small>
+              <small class="athlete-name" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{ row.athletes }}</small>
             </div>
             <div class="session-time">
               <span>{{ row.dayLabel }} {{ row.dateLabel }}</span>
@@ -194,7 +213,8 @@
     </header>
 
     <div class="gold-finals-grid">
-      <article class="gold-final-card" *ngFor="let row of goldMedalSessions(); trackBy: trackBySession">
+      <article class="gold-final-card" *ngFor="let row of goldMedalSessions(); trackBy: trackBySession"
+        [class.boxing-session]="hasBoxingDraw(row)">
         <div class="card-header-row">
           <div class="card-sport-line">
             <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
@@ -209,8 +229,17 @@
         </div>
 
         <div class="card-body">
-          <h3 class="event-title">{{ row.event }}</h3>
-          <p class="card-athletes" *ngIf="row.athletes && row.athletes !== 'India'">
+          <h3 class="event-title">{{ getScheduleEventTitle(row) }}</h3>
+          <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
+            <div class="matchup-line">
+              <span class="corner-chip">IND</span>
+              <span class="match-name india-name">{{ getBoxingIndiaLabel(row) }}</span>
+              <span class="versus">vs</span>
+              <span class="match-name opponent-name">{{ opponent }}</span>
+            </div>
+            <small *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</small>
+          </div>
+          <p class="card-athletes" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">
             <span class="athlete-label">Contenders:</span> {{ row.athletes }}
           </p>
         </div>

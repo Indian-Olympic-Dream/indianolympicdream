@@ -7,6 +7,10 @@ import {
   CwgGamesParticipation,
   CwgScheduleData,
   CwgScheduleRow,
+  getBoxingCompetitorName,
+  getBoxingDraw,
+  getBoxingEventTitle,
+  getBoxingOpponentLabel as resolveBoxingOpponentLabel,
   getParticipationAthleteName,
   getParticipationSport,
   getParticipationSportName,
@@ -321,6 +325,47 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       [...lookup.entries()].find(([key]) => sportName.includes(key) || key.includes(sportName))?.[1] ||
       null
     );
+  }
+
+  getScheduleEventTitle(row: CwgScheduleRow): string {
+    return getBoxingEventTitle(row);
+  }
+
+  hasBoxingDraw(row: CwgScheduleRow): boolean {
+    return Boolean(getBoxingDraw(row));
+  }
+
+  getBoxingIndiaLabel(row: CwgScheduleRow): string {
+    const draw = getBoxingDraw(row);
+    if (!draw) return "";
+
+    const athleteName = row.athletes?.split(";")[0]?.trim();
+    if (athleteName && athleteName !== "India") return athleteName;
+
+    return getBoxingCompetitorName({
+      displayName: draw.indiaName,
+      countryCode: draw.indiaCountryCode,
+    });
+  }
+
+  getBoxingOpponentLabel(row: CwgScheduleRow): string {
+    return resolveBoxingOpponentLabel(row);
+  }
+
+  getBoxingBoutMeta(row: CwgScheduleRow): string {
+    const draw = getBoxingDraw(row);
+    if (!draw) return "";
+
+    const parts = [
+      draw.boutNumber ? `Bout ${draw.boutNumber}` : "",
+      draw.opponentStatus === "confirmed"
+        ? "Opponent confirmed"
+        : draw.opponentStatus
+          ? "Opponent from draw path"
+          : "",
+    ].filter(Boolean);
+
+    return parts.join(" · ");
   }
 
   getSessionBadge(row: CwgScheduleRow): string {
