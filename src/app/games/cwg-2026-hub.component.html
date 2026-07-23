@@ -171,8 +171,13 @@
         </button>
       </header>
 
-      <div class="road-medal-image-frame">
-        <img [src]="getRoadToMedalImageUrl(roadRow)" [alt]="getRoadToMedalTitle(roadRow) + ' Road To Medal graphic'">
+      <div class="road-medal-image-frame" [class.loading]="!isRoadToMedalImageLoaded()">
+        <div class="road-medal-loader" *ngIf="!isRoadToMedalImageLoaded()">
+          <span></span>
+          Loading Road To Medal
+        </div>
+        <img [class.loaded]="isRoadToMedalImageLoaded()" [src]="getRoadToMedalImageUrl(roadRow)"
+          [alt]="getRoadToMedalTitle(roadRow) + ' Road To Medal graphic'" (load)="markRoadToMedalImageLoaded()">
       </div>
     </section>
   </div>

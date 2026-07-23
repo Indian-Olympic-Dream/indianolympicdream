@@ -12,6 +12,7 @@ import {
   getBoxingDraw,
   getBoxingEventTitle,
   getBoxingOpponentLabel as resolveBoxingOpponentLabel,
+  getRoadToMedalImageUrl as resolveRoadToMedalImageUrl,
 } from "./cwg-2026.types";
 
 type CompetitionStream = CwgCompetitionStream;
@@ -72,6 +73,7 @@ export class Cwg2026HubComponent implements OnInit {
   readonly activeStream = signal<CompetitionStream>("all");
   readonly selectedCellKey = signal<string | null>(null);
   readonly selectedRoadToMedalRow = signal<CwgScheduleRow | null>(null);
+  readonly isRoadToMedalImageLoaded = signal(false);
   readonly sportPictograms = signal<Record<string, string>>({});
   readonly scheduleData = signal<CwgScheduleData>({
     gamesDates: "23 July–2 August 2026",
@@ -256,11 +258,7 @@ export class Cwg2026HubComponent implements OnInit {
   }
 
   getRoadToMedalImageUrl(row: CwgScheduleRow): string {
-    const draw = getBoxingDraw(row);
-    if (!draw || !this.shouldShowRoadToMedal(row)) return "";
-
-    const eventSlug = draw.eventSlug;
-    return eventSlug ? `assets/images/cwg/boxing-draws/road-to-medal/${eventSlug}.png` : "";
+    return resolveRoadToMedalImageUrl(row);
   }
 
   getRoadToMedalTitle(row: CwgScheduleRow): string {
@@ -269,24 +267,17 @@ export class Cwg2026HubComponent implements OnInit {
 
   openRoadToMedal(row: CwgScheduleRow): void {
     if (!this.getRoadToMedalImageUrl(row)) return;
+    this.isRoadToMedalImageLoaded.set(false);
     this.selectedRoadToMedalRow.set(row);
   }
 
   closeRoadToMedal(): void {
     this.selectedRoadToMedalRow.set(null);
+    this.isRoadToMedalImageLoaded.set(false);
   }
 
-  private shouldShowRoadToMedal(row: CwgScheduleRow): boolean {
-    const draw = getBoxingDraw(row);
-    if (!draw) return false;
-    if (typeof draw.roadToMedalEnabled === "boolean") return draw.roadToMedalEnabled;
-    if (row.isConditional === false) return true;
-
-    const badge = (row.badgeOverride || "").toLowerCase();
-    if (badge === "confirmed" || badge === "draw-pending") return true;
-
-    const certainty = (row.certainty || "").toLowerCase();
-    return certainty === "confirmed draw" || certainty === "opponent pending from draw path";
+  markRoadToMedalImageLoaded(): void {
+    this.isRoadToMedalImageLoaded.set(true);
   }
 
   private getPictogramUrl(slugs: string[]): string | null {

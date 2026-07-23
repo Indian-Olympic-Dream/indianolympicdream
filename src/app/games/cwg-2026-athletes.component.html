@@ -95,7 +95,7 @@
           <span class="watch-badge" *ngIf="row.watchList?.isTenToWatch">✨ #{{ row.watchList?.rank }} IOD WATCH</span>
         </div>
         <p class="athlete-event">{{ row.eventName || row.eventBucket || getSportName(row) }}</p>
-        <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch">
+        <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch || getRoadToMedalRow(row)">
           <a *ngIf="row.watchList?.shortUrl as shortUrl" class="yt-button card-yt" [href]="shortUrl" target="_blank"
             rel="noopener" aria-label="Watch {{ getAthleteName(row) }} short on YouTube">
             <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -104,9 +104,14 @@
             </svg>
             Watch Short
           </a>
-          <span *ngIf="!row.watchList?.shortUrl" class="yt-button disabled-yt">
+          <span *ngIf="row.watchList?.isTenToWatch && !row.watchList?.shortUrl" class="yt-button disabled-yt">
             Short Soon
           </span>
+          <button *ngIf="getRoadToMedalRow(row) as roadRow" class="road-medal-button" type="button"
+            (click)="openRoadToMedal(roadRow)" aria-label="Open {{ getAthleteName(row) }} Road To Medal graphic">
+            <mat-icon>emoji_events</mat-icon>
+            Road To Medal
+          </button>
         </div>
       </div>
 
@@ -130,4 +135,31 @@
     <p class="empty-state" *ngIf="!isLoading() && !hasLoadError() && !filteredRows().length">No roster rows match this
       view.</p>
   </section>
+
+  <div class="road-medal-dialog" *ngIf="selectedRoadToMedalRow() as roadRow" role="presentation"
+    (click)="closeRoadToMedal()">
+    <section class="road-medal-panel" role="dialog" aria-modal="true" aria-labelledby="athlete-road-medal-title"
+      (click)="$event.stopPropagation()">
+      <header class="road-medal-header">
+        <div>
+          <p class="eyebrow">Boxing Draw</p>
+          <h2 id="athlete-road-medal-title">{{ getRoadToMedalTitle(roadRow) }}</h2>
+        </div>
+
+        <button class="dialog-close" type="button" aria-label="Close Road To Medal graphic"
+          (click)="closeRoadToMedal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+
+      <div class="road-medal-image-frame" [class.loading]="!isRoadToMedalImageLoaded()">
+        <div class="road-medal-loader" *ngIf="!isRoadToMedalImageLoaded()">
+          <span></span>
+          Loading Road To Medal
+        </div>
+        <img [class.loaded]="isRoadToMedalImageLoaded()" [src]="getRoadToMedalImageUrl(roadRow)"
+          [alt]="getRoadToMedalTitle(roadRow) + ' Road To Medal graphic'" (load)="markRoadToMedalImageLoaded()">
+      </div>
+    </section>
+  </div>
 </main>

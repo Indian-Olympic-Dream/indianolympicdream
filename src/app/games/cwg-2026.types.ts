@@ -24,6 +24,7 @@ export interface CwgScheduleRow {
   event: string;
   stage: string;
   athletes: string;
+  athleteNames?: string[];
   certainty: string;
   venue: string;
   isMedalSession: boolean;
@@ -99,6 +100,26 @@ export const getBoxingEventTitle = (row: CwgScheduleRow): string => {
   const draw = getBoxingDraw(row);
   if (!draw) return row.event;
   return [draw.eventDescription, draw.roundName].filter(Boolean).join(" - ") || row.event;
+};
+
+export const shouldShowRoadToMedal = (row: CwgScheduleRow): boolean => {
+  const draw = getBoxingDraw(row);
+  if (!draw) return false;
+  if (typeof draw.roadToMedalEnabled === "boolean") return draw.roadToMedalEnabled;
+  if (row.isConditional === false) return true;
+
+  const badge = (row.badgeOverride || "").toLowerCase();
+  if (badge === "confirmed" || badge === "draw-pending") return true;
+
+  const certainty = (row.certainty || "").toLowerCase();
+  return certainty === "confirmed draw" || certainty === "opponent pending from draw path";
+};
+
+export const getRoadToMedalImageUrl = (row: CwgScheduleRow): string => {
+  const draw = getBoxingDraw(row);
+  if (!draw || !shouldShowRoadToMedal(row)) return "";
+
+  return draw.eventSlug ? `assets/images/cwg/boxing-draws/road-to-medal/${draw.eventSlug}.png` : "";
 };
 
 export interface CwgWatchList {
