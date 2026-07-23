@@ -108,8 +108,9 @@
             Short Soon
           </span>
           <button *ngIf="getRoadToMedalRow(row) as roadRow" class="road-medal-button" type="button"
-            (click)="openRoadToMedal(roadRow)" aria-label="Open {{ getAthleteName(row) }} Road To Medal graphic">
-            <mat-icon>emoji_events</mat-icon>
+            (click)="openRoadToMedal(roadRow)"
+            [attr.aria-label]="'Open ' + getAthleteName(row) + ' Road To Medal graphic'">
+            <mat-icon aria-hidden="true">emoji_events</mat-icon>
             Road To Medal
           </button>
         </div>
