@@ -3,7 +3,17 @@ import { Component, HostListener, OnInit, computed, inject, signal } from "@angu
 import { MatIconModule } from "@angular/material/icon";
 import { PayloadService, Sport } from "../services/payload.service";
 import { RouterLink, RouterLinkActive } from "@angular/router";
-import { CWG_2026_GAMES_KEY, CwgCompetitionStream, CwgScheduleData, CwgScheduleRow } from "./cwg-2026.types";
+import {
+  CWG_2026_GAMES_KEY,
+  CwgCompetitionStream,
+  CwgScheduleData,
+  CwgScheduleRow,
+  getBoxingCompetitorName,
+  getBoxingDraw,
+  getBoxingEventTitle,
+  getBoxingOpponentLabel as resolveBoxingOpponentLabel,
+  getRoadToMedalImageUrl as resolveRoadToMedalImageUrl,
+} from "./cwg-2026.types";
 
 type CompetitionStream = CwgCompetitionStream;
 type StreamKey = Exclude<CompetitionStream, "all">;
@@ -62,6 +72,8 @@ export class Cwg2026HubComponent implements OnInit {
   readonly medalIconUrl = "assets/images/cwg/glasgow-gold-medal.svg";
   readonly activeStream = signal<CompetitionStream>("all");
   readonly selectedCellKey = signal<string | null>(null);
+  readonly selectedRoadToMedalRow = signal<CwgScheduleRow | null>(null);
+  readonly isRoadToMedalImageLoaded = signal(false);
   readonly sportPictograms = signal<Record<string, string>>({});
   readonly scheduleData = signal<CwgScheduleData>({
     gamesDates: "23 July–2 August 2026",
@@ -158,10 +170,15 @@ export class Cwg2026HubComponent implements OnInit {
 
   closeCellDialog(): void {
     this.selectedCellKey.set(null);
+    this.selectedRoadToMedalRow.set(null);
   }
 
   @HostListener("document:keydown.escape")
   closeCellDialogOnEscape(): void {
+    if (this.selectedRoadToMedalRow()) {
+      this.closeRoadToMedal();
+      return;
+    }
     this.closeCellDialog();
   }
 
@@ -199,6 +216,69 @@ export class Cwg2026HubComponent implements OnInit {
     return this.getPictogramUrl(cell.pictogramSlugs);
   }
 
+  getScheduleEventTitle(row: CwgScheduleRow): string {
+    return getBoxingEventTitle(row);
+  }
+
+  hasBoxingDraw(row: CwgScheduleRow): boolean {
+    return Boolean(getBoxingDraw(row));
+  }
+
+  getBoxingIndiaLabel(row: CwgScheduleRow): string {
+    const draw = getBoxingDraw(row);
+    if (!draw) return "";
+
+    const athleteName = row.athletes?.split(";")[0]?.trim();
+    if (athleteName && athleteName !== "India") return athleteName;
+
+    return getBoxingCompetitorName({
+      displayName: draw.indiaName,
+      countryCode: draw.indiaCountryCode,
+    });
+  }
+
+  getBoxingOpponentLabel(row: CwgScheduleRow): string {
+    return resolveBoxingOpponentLabel(row);
+  }
+
+  getBoxingBoutMeta(row: CwgScheduleRow): string {
+    const draw = getBoxingDraw(row);
+    if (!draw) return "";
+
+    const parts = [
+      draw.boutNumber ? `Bout ${draw.boutNumber}` : "",
+      draw.opponentStatus === "confirmed"
+        ? "Opponent confirmed"
+        : draw.opponentStatus
+          ? "Opponent from draw path"
+          : "",
+    ].filter(Boolean);
+
+    return parts.join(" · ");
+  }
+
+  getRoadToMedalImageUrl(row: CwgScheduleRow): string {
+    return resolveRoadToMedalImageUrl(row);
+  }
+
+  getRoadToMedalTitle(row: CwgScheduleRow): string {
+    return getBoxingDraw(row)?.eventDescription || row.event || "Road To Medal";
+  }
+
+  openRoadToMedal(row: CwgScheduleRow): void {
+    if (!this.getRoadToMedalImageUrl(row)) return;
+    this.isRoadToMedalImageLoaded.set(false);
+    this.selectedRoadToMedalRow.set(row);
+  }
+
+  closeRoadToMedal(): void {
+    this.selectedRoadToMedalRow.set(null);
+    this.isRoadToMedalImageLoaded.set(false);
+  }
+
+  markRoadToMedalImageLoaded(): void {
+    this.isRoadToMedalImageLoaded.set(true);
+  }
 
   private getPictogramUrl(slugs: string[]): string | null {
     const index = this.sportPictograms();

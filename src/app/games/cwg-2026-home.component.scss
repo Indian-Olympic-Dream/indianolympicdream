@@ -274,6 +274,111 @@ a {
   font-size: 0.92rem;
 }
 
+.matchup-strip {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(217, 180, 65, 0.2);
+
+  small {
+    color: rgba(255, 255, 255, 0.48);
+    font-family: "Geist Mono", monospace;
+    font-size: 0.66rem;
+    font-weight: 750;
+    text-transform: uppercase;
+  }
+}
+
+.hero-matchup-strip {
+  max-width: 720px;
+}
+
+.matchup-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.match-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.86rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.opponent-name {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.corner-chip,
+.versus,
+.matchup-mini-line span,
+.matchup-mini-line i,
+.boxing-meta {
+  font-family: "Geist Mono", monospace;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.corner-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 24px;
+  border: 1px solid rgba(217, 180, 65, 0.32);
+  border-radius: 999px;
+  background: rgba(217, 180, 65, 0.14);
+  color: $gold;
+  font-size: 0.66rem;
+}
+
+.versus {
+  color: rgba(255, 255, 255, 0.36);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.matchup-mini-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.86);
+
+  span {
+    border: 1px solid rgba(217, 180, 65, 0.28);
+    border-radius: 999px;
+    padding: 2px 6px;
+    color: $gold;
+    font-size: 0.58rem;
+  }
+
+  strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.74rem;
+    line-height: 1.15;
+  }
+
+  i {
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.56rem;
+    font-style: normal;
+  }
+}
+
+.boxing-meta {
+  margin-top: 1px;
+  color: rgba(255, 255, 255, 0.42) !important;
+  font-size: 0.62rem !important;
+}
+
 .time-block {
   display: grid;
   gap: 4px;
@@ -391,17 +496,25 @@ a {
 }
 
 .date-session-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #151517;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  transition: background 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  transition: background 0.2s ease, border-color 0.2s ease;
+  overflow: visible;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #171719;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &.boxing-session {
+    border-color: rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -729,20 +842,23 @@ a {
 }
 
 .gold-final-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background: rgba(18, 26, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #151517;
+  border: 1px solid rgba(212, 175, 55, 0.42);
   border-radius: 10px;
   backdrop-filter: blur(12px);
   transition: all 0.2s ease;
+  overflow: visible;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 
   &:hover {
     transform: translateY(-2px);
-    background: rgba(22, 32, 52, 0.85);
-    border-color: rgba(217, 180, 65, 0.4);
+    background: #171613;
+    border-color: rgba(212, 175, 55, 0.55);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   }
 }
@@ -881,6 +997,18 @@ a {
     span {
       font-size: 0.68rem;
       line-height: 1.3;
+    }
+  }
+
+  .matchup-line,
+  .matchup-mini-line {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 8px;
+
+    .versus,
+    i {
+      grid-column: 1;
+      justify-self: center;
     }
   }
 }

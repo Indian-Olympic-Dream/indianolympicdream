@@ -441,7 +441,7 @@ button {
   width: min(520px, calc(100vw - 28px));
   height: 100%;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 16px;
   border-left: 1px solid $line-strong;
   background: linear-gradient(180deg, #111117, #09090d);
@@ -481,13 +481,49 @@ button {
 .session-meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+}
+
+.session-time-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 
   time {
     font-size: 0.78rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.draw-button {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(212, 175, 55, 0.12);
+  color: $gold;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(212, 175, 55, 0.64);
+    background: rgba(212, 175, 55, 0.18);
+    color: #f7d870;
   }
 }
 
@@ -581,26 +617,116 @@ button {
 
 .session-list {
   display: grid;
-  gap: 8px;
+  grid-auto-rows: max-content;
+  gap: 10px;
   align-content: start;
+  min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 2px 4px 12px 0;
 }
 
 .session-list article {
+  position: relative;
   display: grid;
-  gap: 6px;
-  border: 1px solid $line;
-  border-radius: 7px;
-  padding: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  gap: 10px;
+  min-height: 108px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: #151517;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  overflow: visible;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: #171719;
+  }
+}
+
+.session-list .boxing-session {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.session-title {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 1.02rem;
+  line-height: 1.18;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.matchup-strip {
+  display: grid;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.matchup-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px 9px;
+}
+
+.corner-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 24px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  color: $gold;
+  font-size: 0.66rem;
+}
+
+.match-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.opponent-name {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.corner-chip,
+.versus,
+.session-submeta {
+  font-family: "Geist Mono", monospace;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.versus {
+  justify-self: center;
+  color: rgba(255, 255, 255, 0.36);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.session-submeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.44) !important;
+  font-size: 0.68rem !important;
+  line-height: 1.35;
 }
 
 .session-list .gold-session {
-  border-color: rgba(212, 175, 55, 0.25);
-  background: rgba(212, 175, 55, 0.04);
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #171613;
 }
 
-.session-list span,
+.session-list p,
 .session-list small {
   color: $muted;
   font-size: 0.74rem;
@@ -610,6 +736,99 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.road-medal-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.road-medal-panel {
+  width: min(520px, 96vw);
+  max-height: min(92vh, 760px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #121216, #060608);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.72);
+  padding: 16px;
+  animation: roadMedalIn 0.2s ease-out both;
+}
+
+.road-medal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+
+  h2 {
+    margin-top: 3px;
+    color: #ffffff;
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    line-height: 1.08;
+  }
+}
+
+.road-medal-image-frame {
+  position: relative;
+  min-height: 0;
+  height: min(74dvh, 660px);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: #050506;
+
+  img {
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+
+  img.loaded {
+    opacity: 1;
+  }
+}
+
+.road-medal-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.58);
+  background:
+    radial-gradient(circle at 50% 38%, rgba(212, 175, 55, 0.12), transparent 32%),
+    #050506;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  span {
+    width: 30px;
+    height: 30px;
+    border: 2px solid rgba(212, 175, 55, 0.16);
+    border-top-color: rgba(212, 175, 55, 0.78);
+    border-radius: 50%;
+    animation: roadMedalSpin 0.72s linear infinite;
+  }
 }
 
 @keyframes detailFromRight {
@@ -627,6 +846,23 @@ button {
   }
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes roadMedalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes roadMedalSpin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -750,6 +986,36 @@ button {
     -webkit-overflow-scrolling: touch;
   }
 
+  .road-medal-dialog {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .road-medal-panel {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: calc(100dvh - 8px);
+    grid-template-rows: auto auto;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 18px 18px 0 0;
+    padding: 14px;
+    animation: detailFromBottom 0.22s ease-out both;
+  }
+
+  .road-medal-image-frame {
+    height: min(72dvh, 620px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  }
+
   .detail-header {
     gap: 10px;
     padding-bottom: 12px;
@@ -767,5 +1033,15 @@ button {
   .session-list {
     max-height: none;
     overflow-y: visible;
+  }
+
+  .matchup-line {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 8px;
+
+    .versus {
+      grid-column: 1;
+      justify-self: center;
+    }
   }
 }
