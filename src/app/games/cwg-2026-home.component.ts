@@ -1,7 +1,8 @@
 import { CommonModule } from "@angular/common";
 import { Component, NgZone, OnDestroy, OnInit, computed, inject, signal } from "@angular/core";
-import { RouterModule } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
 import { PayloadService, Sport } from "../services/payload.service";
+import { Cwg2026ResultDetailComponent } from "./cwg-2026-result-detail.component";
 import {
   CWG_2026_GAMES_KEY,
   CwgGamesParticipation,
@@ -14,6 +15,10 @@ import {
   getParticipationAthleteName,
   getParticipationSport,
   getParticipationSportName,
+  getScheduleResultBadge,
+  getScheduleResultSummary,
+  isScheduleRowLiveNow,
+  getCountryFlagEmoji,
 } from "./cwg-2026.types";
 
 interface WatchGroup {
@@ -30,6 +35,18 @@ interface ScheduleDateGroup {
   sessionCount: number;
   goldCount: number;
   rows: CwgScheduleRow[];
+}
+
+interface TimelineGroup {
+  id: string;
+  startMs: number;
+  endMs: number;
+  dayLabel: string;
+  dateLabel: string;
+  timeLabel: string;
+  rows: CwgScheduleRow[];
+  isLive: boolean;
+  hasMedal: boolean;
 }
 
 export interface WatchStory {
@@ -62,14 +79,17 @@ const DEFAULT_POSTERS: Record<number, string> = {
 @Component({
   selector: "app-cwg-2026-home",
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, Cwg2026ResultDetailComponent],
   templateUrl: "./cwg-2026-home.component.html",
   styleUrl: "./cwg-2026-home.component.scss",
 })
 export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   private readonly payload = inject(PayloadService);
+  private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
   private clockTimer?: ReturnType<typeof setInterval>;
+  private scheduleRefreshTimer?: ReturnType<typeof setInterval>;
+  private scheduleRequestInFlight = false;
 
   readonly medalIconUrl = "assets/images/cwg/glasgow-gold-medal.svg";
   readonly glasgowLogoUrl = "assets/images/cwg/glasgow-2026-logo-vertical.svg";
@@ -81,6 +101,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     rows: [],
   });
   readonly now = signal(new Date());
+  readonly selectedSessionRow = signal<CwgScheduleRow | null>(null);
+  readonly isLiveSessionsDialogOpen = signal(false);
   readonly isRosterLoading = signal(true);
   readonly hasRosterError = signal(false);
   readonly isScheduleLoading = signal(true);
@@ -88,6 +110,27 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   readonly scheduleRows = computed(() =>
     [...this.scheduleData().rows].sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
+  );
+
+  readonly activeScheduleRows = computed(() => this.scheduleRows().filter((row) => !row.isEliminated));
+
+  readonly declaredResults = computed(() =>
+    this.activeScheduleRows()
+      .filter((row) => this.isDeclaredResultRow(row))
+      .sort((a, b) => this.getSessionStartMs(b) - this.getSessionStartMs(a))
+      .map((row) => ({
+        row,
+        summary: getScheduleResultSummary(row),
+        badge: getScheduleResultBadge(row),
+      })),
+  );
+
+  readonly liveCount = computed(() => this.liveSessions().length);
+  readonly latestDeclaredResult = computed(() => this.declaredResults()[0] || null);
+  readonly latestTwoResults = computed(() =>
+    this.declaredResults()
+      .filter((item) => Boolean(item && item.row && item.row.id))
+      .slice(0, 2),
   );
 
   readonly summary = computed(() => {
@@ -185,16 +228,17 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   });
 
   readonly liveSessions = computed(() => {
-    const now = this.now().getTime();
-    return this.scheduleRows()
-      .filter((row) => this.getSessionStartMs(row) <= now && this.getSessionEndMs(row) >= now)
-      .slice(0, 3);
+    return this.activeScheduleRows()
+      .filter((row) => isScheduleRowLiveNow(row, this.now()))
+      .sort((a, b) => this.getSessionStartMs(a) - this.getSessionStartMs(b));
   });
 
   readonly upcomingSessions = computed(() => {
     const now = this.now().getTime();
-    const upcoming = this.scheduleRows().filter((row) => this.getSessionEndMs(row) >= now);
-    return (upcoming.length ? upcoming : this.scheduleRows()).slice(0, 6);
+    const upcoming = this.activeScheduleRows()
+      .filter((row) => this.isOperationalUpcomingRow(row, now))
+      .sort((a, b) => this.compareTimelineRows(a, b));
+    return (upcoming.length ? upcoming : this.activeScheduleRows()).slice(0, 6);
   });
 
   readonly headlineSessions = computed(() => {
@@ -209,12 +253,15 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   readonly upcomingDateGroups = computed<ScheduleDateGroup[]>(() => {
     const now = this.now().getTime();
-    const rows = this.scheduleRows().filter((row) => this.getSessionEndMs(row) >= now);
-    const effectiveRows = rows.length ? rows : this.scheduleRows();
-
+    const next24Hours = now + 24 * 60 * 60 * 1000;
+    const rows = this.activeScheduleRows()
+      .filter((row) => this.isOperationalUpcomingRow(row, now))
+      .filter((row) => this.getSessionStartMs(row) >= next24Hours)
+      .filter((row) => row.id !== this.nextIndiaSession()?.id)
+      .sort((a, b) => this.compareTimelineRows(a, b));
     const groupsMap = new Map<string, ScheduleDateGroup>();
 
-    for (const row of effectiveRows) {
+    for (const row of rows) {
       const key = `${row.dayLabel} ${row.dateLabel}`;
       if (!groupsMap.has(key)) {
         groupsMap.set(key, {
@@ -239,25 +286,40 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   readonly filteredUpcomingSessions = computed(() => {
     const selectedKey = this.selectedDateKey();
-    const groups = this.upcomingDateGroups();
+
+    if (selectedKey === "results") {
+      return this.declaredResults().map((item) => item.row).slice(0, 16);
+    }
+
+    if (selectedKey === "medals") {
+      return this.upcomingMedalSessions();
+    }
 
     if (selectedKey === "all" || !selectedKey) {
       const now = this.now().getTime();
-      const upcoming = this.scheduleRows().filter((row) => this.getSessionEndMs(row) >= now);
-      return (upcoming.length ? upcoming : this.scheduleRows()).slice(0, 8);
+      const next24Hours = now + 24 * 60 * 60 * 1000;
+      const upcoming = this.activeScheduleRows()
+        .filter((row) => this.isOperationalUpcomingRow(row, now))
+        .filter((row) => row.id !== this.nextIndiaSession()?.id)
+        .sort((a, b) => this.compareTimelineRows(a, b));
+      const nextDayRows = upcoming.filter((row) => this.getSessionStartMs(row) < next24Hours);
+      return (nextDayRows.length ? nextDayRows : upcoming).slice(0, 12);
     }
 
+    const groups = this.upcomingDateGroups();
     const group = groups.find((g) => g.dateKey === selectedKey);
     return group ? group.rows : [];
   });
 
-  readonly goldMedalSessions = computed(() => {
+  readonly timelineGroups = computed<TimelineGroup[]>(() => this.buildTimelineGroups(this.filteredUpcomingSessions()));
+
+  readonly upcomingMedalSessions = computed(() => {
     const now = this.now().getTime();
-    const rows = this.scheduleRows().filter(
-      (row) => row.isMedalSession || (row.goldMedalEvents && row.goldMedalEvents.length > 0)
-    );
-    const upcoming = rows.filter((row) => this.getSessionEndMs(row) >= now);
-    return (upcoming.length ? upcoming : rows).slice(0, 6);
+    return this.activeScheduleRows()
+      .filter((row) => this.isMedalRow(row))
+      .filter((row) => this.isOperationalUpcomingRow(row, now))
+      .filter((row) => row.id !== this.nextIndiaSession()?.id)
+      .sort((a, b) => this.compareTimelineRows(a, b));
   });
 
   setSelectedDateKey(key: string): void {
@@ -267,6 +329,10 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.clockTimer = setInterval(() => this.ngZone.run(() => this.now.set(new Date())), 60 * 1000);
+      this.scheduleRefreshTimer = setInterval(
+        () => this.ngZone.run(() => this.loadSchedule(false)),
+        60 * 1000,
+      );
     });
 
     this.payload.getGamesParticipations(CWG_2026_GAMES_KEY).subscribe({
@@ -282,16 +348,25 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.isScheduleLoading.set(true);
+    this.loadSchedule(true);
+  }
+
+  private loadSchedule(showLoading: boolean): void {
+    if (this.scheduleRequestInFlight) return;
+    this.scheduleRequestInFlight = true;
+    if (showLoading) this.isScheduleLoading.set(true);
+
     this.payload.getGamesHubSchedule<CwgScheduleData>(CWG_2026_GAMES_KEY).subscribe({
       next: (schedule) => {
         if (schedule?.rows?.length) {
           this.scheduleData.set(schedule);
         }
+        this.scheduleRequestInFlight = false;
         this.isScheduleLoading.set(false);
         this.hasScheduleError.set(false);
       },
       error: () => {
+        this.scheduleRequestInFlight = false;
         this.isScheduleLoading.set(false);
         this.hasScheduleError.set(true);
       },
@@ -300,6 +375,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.clockTimer) clearInterval(this.clockTimer);
+    if (this.scheduleRefreshTimer) clearInterval(this.scheduleRefreshTimer);
   }
 
   trackByWatchGroup(_: number, group: WatchGroup): string {
@@ -370,13 +446,15 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   getSessionBadge(row: CwgScheduleRow): string {
     if (this.isSessionLive(row)) return "Live";
+    if (this.isDeclaredResultRow(row)) return getScheduleResultBadge(row)?.label || "Completed";
 
     // 1. Explicit CMS Badge Override (from Payload CMS)
     if (row.badgeOverride && row.badgeOverride !== "auto") {
       if (row.badgeOverride === "confirmed") return "Confirmed";
       if (row.badgeOverride === "qual-dependent") return "Qual. Dependent";
       if (row.badgeOverride === "draw-pending") return "Draw Pending";
-      if (row.badgeOverride === "gold-medal") return "Gold Medal";
+      if (row.badgeOverride === "gold-medal") return "Medal session";
+      if (row.badgeOverride === "eliminated") return "Eliminated";
     }
 
     const eventName = (row.event || "").toLowerCase();
@@ -388,7 +466,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     }
 
     if (eventName.includes("quarter-final") || eventName.includes("semi-final")) {
-      if (eventName.includes("& final") || eventName.includes("and final")) return "Gold Medal";
+      if (eventName.includes("& final") || eventName.includes("and final")) return "Medal session";
       return "Qual. Dependent";
     }
 
@@ -421,7 +499,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       eventName.includes("f42");
 
     if (isDirectFinal && (eventName.includes("final") || row.isMedalSession)) {
-      return "Gold Medal";
+      return "Medal session";
     }
 
     // 3. Finals requiring qualification (e.g. 100m final, 400m final, Boxing gold medal final)
@@ -437,7 +515,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       ) {
         return "Qual. Dependent";
       }
-      return "Gold Medal";
+      return "Medal session";
     }
 
     if (cert.includes("draw") || cert.includes("pending")) return "Draw Pending";
@@ -454,8 +532,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     if (badge === "Confirmed") {
       return "Confirmed: Entry confirmed for this round";
     }
-    if (badge === "Gold Medal") {
-      return "Gold Medal: Direct medal decision final";
+    if (badge === "Medal session") {
+      return "Medal session: Medals will be decided in this event";
     }
     return row.certainty ? `Status: ${row.certainty}` : "Scheduled session";
   }
@@ -463,7 +541,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   getSessionImportanceClass(row: CwgScheduleRow): string {
     const badge = this.getSessionBadge(row);
     if (badge === "Live") return "importance-live";
-    if (badge === "Gold Medal") return "importance-core";
+    if (this.isDeclaredResultRow(row)) return getScheduleResultBadge(row)?.isWon ? "importance-confirmed" : "importance-context";
+    if (badge === "Medal session") return "importance-core";
     if (badge === "Confirmed") return "importance-confirmed";
     if (badge === "Draw Pending") return "importance-pending";
     if (badge === "Qual. Dependent" || badge === "Conditional") return "importance-high";
@@ -471,8 +550,31 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   isSessionLive(row: CwgScheduleRow): boolean {
-    const now = this.now().getTime();
-    return this.getSessionStartMs(row) <= now && this.getSessionEndMs(row) >= now;
+    return isScheduleRowLiveNow(row, this.now());
+  }
+
+  getHeroCountdownLabel(row: CwgScheduleRow): string {
+    if (this.isSessionLive(row)) return "LIVE";
+
+    const diffMs = this.getSessionStartMs(row) - this.now().getTime();
+    if (diffMs <= 0) return "SOON";
+
+    const totalMinutes = Math.max(1, Math.ceil(diffMs / 60000));
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) return `T-${days}d ${hours}h`;
+    if (hours > 0) return `T-${hours}h ${minutes}m`;
+    return `T-${minutes}m`;
+  }
+
+  trackByTimelineGroup(_index: number, group: TimelineGroup): string {
+    return group.id;
+  }
+
+  getTimelineOverlapLabel(_row: CwgScheduleRow, _rowIndex: number): string | null {
+    return null;
   }
 
   getSportName(participation: CwgGamesParticipation): string {
@@ -512,6 +614,100 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     const timestamp = row.istEnd ? Date.parse(row.istEnd) : NaN;
     if (Number.isFinite(timestamp)) return timestamp;
     return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
+  }
+
+  private isDeclaredResultRow(row: CwgScheduleRow): boolean {
+    return row.status === "completed" || Boolean(getScheduleResultSummary(row));
+  }
+
+  private isOperationalUpcomingRow(row: CwgScheduleRow, now: number): boolean {
+    if (row.isEliminated || this.isDeclaredResultRow(row)) return false;
+    return isScheduleRowLiveNow(row, new Date(now)) || this.getSessionEndMs(row) >= now;
+  }
+
+  private buildTimelineGroups(rows: CwgScheduleRow[]): TimelineGroup[] {
+    const sortedRows = [...rows].sort((a, b) => this.compareTimelineRows(a, b));
+    const groups: TimelineGroup[] = [];
+    const maxGroupRows = 6;
+    const startCounts = new Map<number, number>();
+
+    for (const row of sortedRows) {
+      const startMs = this.getSessionStartMs(row);
+      startCounts.set(startMs, (startCounts.get(startMs) || 0) + 1);
+    }
+
+    for (const row of sortedRows) {
+      const startMs = this.getSessionStartMs(row);
+      const endMs = this.getSessionEndMs(row);
+      const activeEndMs = endMs > startMs ? endMs : startMs;
+      const currentGroup = groups[groups.length - 1];
+      const sameStartOverflow = (startCounts.get(startMs) || 0) > maxGroupRows;
+      const groupedWindowEndMs = currentGroup ? Math.max(currentGroup.endMs, activeEndMs) : activeEndMs;
+      const sameClockStart = Boolean(currentGroup && startMs === currentGroup.startMs);
+      const canJoinCurrentGroup = Boolean(
+        currentGroup &&
+          !sameStartOverflow &&
+          currentGroup.rows.length < maxGroupRows &&
+          sameClockStart
+      );
+
+      if (canJoinCurrentGroup && currentGroup) {
+        currentGroup.rows.push(row);
+        currentGroup.rows.sort((a, b) => this.compareTimelineRows(a, b));
+        currentGroup.endMs = groupedWindowEndMs;
+        currentGroup.id = currentGroup.rows.map((item) => item.id).join("|");
+        currentGroup.timeLabel = this.formatTimelineGroupTime(currentGroup.startMs, currentGroup.endMs);
+        currentGroup.isLive = currentGroup.rows.some((item) => this.isSessionLive(item));
+        currentGroup.hasMedal = currentGroup.rows.some((item) => this.isMedalRow(item));
+        continue;
+      }
+
+      groups.push({
+        id: row.id,
+        startMs,
+        endMs: activeEndMs,
+        dayLabel: row.dayLabel,
+        dateLabel: row.dateLabel,
+        timeLabel: row.timeLabel,
+        rows: [row],
+        isLive: this.isSessionLive(row),
+        hasMedal: this.isMedalRow(row),
+      });
+    }
+
+    return groups;
+  }
+
+  private formatTimelineGroupTime(startMs: number, endMs: number): string {
+    const start = this.formatIstClock(startMs);
+    const end = this.formatIstClock(endMs);
+    return `${start}-${end} IST`;
+  }
+
+  private formatIstClock(timestamp: number): string {
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Kolkata",
+    }).format(new Date(timestamp));
+  }
+
+  private compareTimelineRows(a: CwgScheduleRow, b: CwgScheduleRow): number {
+    const startDelta = this.getSessionStartMs(a) - this.getSessionStartMs(b);
+    if (startDelta !== 0) return startDelta;
+
+    const liveDelta = Number(this.isSessionLive(b)) - Number(this.isSessionLive(a));
+    if (liveDelta !== 0) return liveDelta;
+
+    const medalDelta = Number(this.isMedalRow(b)) - Number(this.isMedalRow(a));
+    if (medalDelta !== 0) return medalDelta;
+
+    return `${a.sport}:${a.event}`.localeCompare(`${b.sport}:${b.event}`);
+  }
+
+  private isMedalRow(row: CwgScheduleRow): boolean {
+    return row.isMedalSession || Boolean(row.goldMedalEvents?.length);
   }
 
   private normalizeSportKey(value?: string | null): string {
@@ -625,5 +821,46 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       .replace(/[^a-z0-9]+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  openSessionDialog(row: CwgScheduleRow): void {
+    this.selectedSessionRow.set(row);
+  }
+
+  closeSessionDialog(): void {
+    this.selectedSessionRow.set(null);
+  }
+
+  openHeaderLivePanel(): void {
+    if (!this.liveCount()) {
+      this.navigateToResults();
+      return;
+    }
+    this.isLiveSessionsDialogOpen.set(true);
+  }
+
+  closeLiveSessionsDialog(): void {
+    this.isLiveSessionsDialogOpen.set(false);
+  }
+
+  openLiveSessionDetails(row: CwgScheduleRow): void {
+    this.closeLiveSessionsDialog();
+    this.openSessionDialog(row);
+  }
+
+  getResultSummary(row: CwgScheduleRow): string | null {
+    return getScheduleResultSummary(row);
+  }
+
+  getResultBadge(row: CwgScheduleRow): { label: string; isWon: boolean } | null {
+    return getScheduleResultBadge(row);
+  }
+
+  navigateToResults(): void {
+    this.router.navigate(["/cwg-2026/schedule"], { queryParams: { view: "results" } });
+  }
+
+  getFlag(country: string | undefined | null): string {
+    return getCountryFlagEmoji(country);
   }
 }

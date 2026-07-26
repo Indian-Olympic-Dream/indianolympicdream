@@ -108,21 +108,16 @@ button {
 .stream-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  backdrop-filter: blur(12px);
+  gap: 8px;
 
   button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 18px;
-    border: 1px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.04);
     color: $muted;
     font-size: 0.84rem;
     font-weight: 700;
@@ -161,6 +156,51 @@ button {
       font-family: "Geist Mono", monospace;
     }
   }
+
+}
+
+.result-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 6px;
+
+  .result-badge {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
+
+    &.won-badge {
+      color: #f0cc58;
+    }
+  }
+
+  .completed-tag {
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+.completed-session {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.result-summary-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4ade80;
+  margin: 4px 0 2px;
+  line-height: 1.4;
 }
 
 .matrix-content {
@@ -327,6 +367,28 @@ button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+.date-cell {
+  position: relative;
+
+  .gold-medal-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+    z-index: 2;
+  }
+
+  .cell-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 4px;
     padding: 0 9px;
     border-radius: 8px;
@@ -336,6 +398,20 @@ button {
     font-size: 0.78rem;
     font-weight: 800;
     transition: all 0.18s ease;
+
+    .cell-medal-icon {
+      width: 14px;
+      height: 14px;
+      object-fit: contain;
+      display: inline-block;
+    }
+
+    .medal-count-num {
+      font-family: "Geist Mono", monospace;
+      font-size: 0.78rem;
+      font-weight: 850;
+      color: #fef08a;
+    }
   }
 
   &:hover {
@@ -351,19 +427,53 @@ button {
 
 .date-cell.medal {
   .cell-content {
-    background: rgba(212, 175, 55, 0.1);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    color: $gold;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(212, 175, 55, 0.06) 100%);
+    border-color: rgba(245, 158, 11, 0.38);
+    color: #fef08a;
   }
 
   &:hover .cell-content {
-    background: rgba(212, 175, 55, 0.18);
-    border-color: rgba(212, 175, 55, 0.45);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.24) 0%, rgba(212, 175, 55, 0.12) 100%);
+    border-color: rgba(245, 158, 11, 0.55);
   }
+}
 
-  .medal-icon {
-    width: 14px;
-    height: 14px;
+.date-cell.cell-completed {
+  .cell-content {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.16) 0%, rgba(16, 185, 129, 0.06) 100%);
+    border-color: rgba(34, 197, 94, 0.38);
+    color: #4ade80;
+    font-weight: 800;
+  }
+}
+
+.schedule-grid.results-grid {
+  .date-cell.cell-completed .cell-content {
+    min-width: 34px;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #8df0b3;
+  }
+}
+
+.date-cell.cell-live {
+  .cell-content {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ffffff;
+    font-weight: 900;
+    animation: liveRedPulseGlow 1.6s infinite alternate ease-in-out;
+  }
+}
+
+@keyframes liveRedPulseGlow {
+  0% {
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.75);
+    border-color: #f87171;
   }
 }
 
@@ -643,6 +753,19 @@ button {
     border-color: rgba(255, 255, 255, 0.22);
     background: #171719;
   }
+
+  &.has-result-detail {
+    min-height: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+
+    &:hover {
+      background: transparent;
+      border: none;
+    }
+  }
 }
 
 .session-list .boxing-session {
@@ -877,9 +1000,8 @@ button {
   .stream-tabs {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    padding: 4px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     box-sizing: border-box;
     text-align: center;
 
@@ -975,13 +1097,14 @@ button {
   .detail-panel {
     width: 100%;
     height: auto;
-    max-height: 92vh;
+    max-height: min(80vh, 620px);
+    margin-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid $line-strong;
     border-left: 0;
-    border-radius: 14px 14px 0 0;
+    border-radius: 14px;
     box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.42);
     animation-name: detailFromBottom;
-    padding: 16px 16px calc(64px + env(safe-area-inset-bottom, 0px));
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }

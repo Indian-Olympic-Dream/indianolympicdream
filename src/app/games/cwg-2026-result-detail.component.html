@@ -1,0 +1,92 @@
+<section class="result-detail" *ngIf="hasDetailedResult" aria-label="Official result details"
+  [class.is-gold-card]="medalType === 'gold'" [class.is-silver-card]="medalType === 'silver'" [class.is-bronze-card]="medalType === 'bronze'"
+  [class.is-para-powerlifting]="isParaPowerlifting">
+  <header class="result-detail__header">
+    <div class="result-detail__title-block">
+      <div class="result-detail__timeline-meta">
+        <time class="meta-time" *ngIf="displayTime">{{ displayTime }}</time>
+      </div>
+      <h3 class="result-detail__event-title">{{ eventTitle }}</h3>
+    </div>
+    <div class="result-detail__badge-block">
+      <span class="result-detail__status-badge" [class.is-won]="isWonResult && !medalType" [class.is-lost]="isLostResult" [class.is-medal-badge]="!!medalType" [class.is-gold]="medalType === 'gold'" [class.is-silver]="medalType === 'silver'" [class.is-bronze]="medalType === 'bronze'">
+        <span class="medal-icon-wrap" *ngIf="medalType" [innerHTML]="getCwgMedalSvg(medalType, 18, 24)"></span>
+        <span>{{ summaryLabelText }}</span>
+      </span>
+    </div>
+  </header>
+
+  <div class="result-detail__match" *ngIf="competitors.length">
+    <div class="result-detail__competitor" *ngFor="let competitor of competitors"
+      [class.is-winner]="competitor.isWinner"
+      [class.is-gold-winner]="competitor.isWinner && medalType === 'gold'"
+      [class.is-silver-winner]="competitor.isWinner && medalType === 'silver'"
+      [class.is-bronze-winner]="competitor.isWinner && medalType === 'bronze'">
+      <div class="result-detail__competitor-left">
+        <span class="result-detail__flag" aria-hidden="true">
+          <ng-container *ngIf="getCompetitorFlag(competitor) as flag">
+            <span *ngIf="flag.isSvg && flag.safeSvg" [innerHTML]="flag.safeSvg"></span>
+            <span *ngIf="!flag.isSvg || !flag.safeSvg">{{ flag.textEmoji }}</span>
+          </ng-container>
+        </span>
+        <span class="result-detail__identity">
+          <small>{{ competitor.countryCode || competitor.countryName }}</small>
+          <strong>{{ competitor.name }}</strong>
+        </span>
+      </div>
+      <div class="result-detail__score-group" *ngIf="getCompetitorScoreParts(competitor) as parts">
+        <span class="result-detail__score-text">{{ parts.scoreText }}</span>
+        <span class="result-detail__rank-chip" *ngIf="parts.rankBadge"
+          [class.is-gold-chip]="parts.rankBadge.toLowerCase() === 'gold'"
+          [class.is-silver-chip]="parts.rankBadge.toLowerCase() === 'silver'"
+          [class.is-bronze-chip]="parts.rankBadge.toLowerCase() === 'bronze'">
+          {{ parts.rankBadge }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-detail__official-field" *ngIf="!competitors.length && officialIndiaEntries.length">
+    <div class="result-detail__field-row" *ngFor="let entry of officialIndiaEntries">
+      <span>
+        <small>{{ entry.organisationCode || 'IND' }}</small>
+        <strong>{{ getOfficialEntryName(entry) }}</strong>
+      </span>
+      <span class="result-detail__field-result">
+        <strong>{{ entry.result || entry.irm || 'Completed' }}</strong>
+        <small *ngIf="entry.rank">Rank {{ entry.rank }}</small>
+        <small *ngIf="entry.qualificationMark">{{ entry.qualificationMark }}</small>
+      </span>
+    </div>
+  </div>
+
+  <div class="result-detail__leaderboard" *ngIf="row.result?.leaderboard?.length">
+    <div class="result-detail__leaderboard-head">
+      <span>Rank</span>
+      <span>Athlete</span>
+      <span>Result</span>
+    </div>
+    <div class="result-detail__leaderboard-row" *ngFor="let entry of row.result?.leaderboard">
+      <strong>{{ entry.rank }}</strong>
+      <span>
+        <small>{{ entry.flagEmoji || entry.countryCode }}</small>
+        {{ entry.athleteName }}
+      </span>
+      <strong>{{ entry.resultValue || entry.qualificationTag || '—' }}</strong>
+    </div>
+  </div>
+
+  <p class="result-detail__summary" *ngIf="row.result?.summary">{{ row.result?.summary }}</p>
+
+  <footer class="result-detail__footer"
+    *ngIf="row.venue || row.result?.match?.notes || row.result?.editorNote || officialSourceUrl">
+    <span>
+      <span *ngIf="row.venue" class="result-detail__venue-chip">📍 {{ row.venue }}</span>
+      <span *ngIf="row.venue && (row.result?.match?.notes || row.result?.editorNote)"> · </span>
+      {{ row.result?.match?.notes || row.result?.editorNote }}
+    </span>
+    <a *ngIf="officialSourceUrl" [href]="officialSourceUrl" target="_blank" rel="noopener">
+      Official source
+    </a>
+  </footer>
+</section>

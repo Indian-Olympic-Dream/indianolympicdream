@@ -1,0 +1,372 @@
+:host {
+  display: block;
+}
+
+.result-detail {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(21, 21, 23, 0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  margin: 6px 0;
+  transition: all 0.2s ease;
+
+  &.is-bronze-card {
+    border: 1px solid rgba(205, 127, 50, 0.35);
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.12) 0%, rgba(18, 18, 22, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(205, 127, 50, 0.12);
+  }
+
+  &.is-gold-card {
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(18, 18, 22, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.14);
+  }
+
+  &.is-silver-card {
+    border: 1px solid rgba(203, 213, 225, 0.4);
+    background: linear-gradient(135deg, rgba(203, 213, 225, 0.12) 0%, rgba(18, 18, 22, 0.95) 100%);
+    box-shadow: 0 4px 16px rgba(203, 213, 225, 0.14);
+  }
+
+  &.is-para-powerlifting {
+    gap: 4px;
+    padding: 10px 12px;
+    margin: 4px 0;
+
+    .result-detail__header,
+    .result-detail__footer {
+      padding: 4px 0;
+    }
+
+    .result-detail__competitor {
+      padding: 5px 0;
+    }
+
+    .result-detail__summary {
+      padding: 4px 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+.result-detail__header,
+.result-detail__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.result-detail__header {
+  padding-top: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+
+  .result-detail__title-block {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+  }
+
+  .result-detail__timeline-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Geist Mono", monospace;
+
+    .meta-time {
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+  }
+
+  .result-detail__event-title {
+    margin: 0;
+    color: #f3f4f6;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+}
+
+.result-detail__badge-block {
+  flex: 0 0 auto;
+}
+
+.result-detail__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #e5e7eb;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.is-medal-badge {
+    padding: 3px 10px 3px 6px;
+
+    &.is-gold {
+      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(245, 158, 11, 0.18);
+      color: #fef08a;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    }
+
+    &.is-silver {
+      border-color: rgba(203, 213, 225, 0.6);
+      background: rgba(203, 213, 225, 0.18);
+      color: #f8fafc;
+      box-shadow: 0 0 10px rgba(203, 213, 225, 0.2);
+    }
+
+    &.is-bronze {
+      border-color: rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.07);
+      color: #e5e7eb;
+      box-shadow: none;
+    }
+  }
+
+  .medal-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  &.is-won {
+    border-color: rgba(74, 222, 128, 0.45);
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ade80;
+  }
+
+  &.is-lost {
+    border-color: rgba(248, 113, 113, 0.45);
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+  }
+}
+
+.result-detail__match,
+.result-detail__official-field {
+  display: grid;
+}
+
+.result-detail__competitor {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: nowrap;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+
+  &.is-winner {
+    .result-detail__identity strong {
+      color: #ffffff;
+    }
+  }
+
+
+}
+
+.result-detail__competitor-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.result-detail__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 20px;
+  font-size: 1.15rem;
+  line-height: 1;
+
+  svg {
+    display: block;
+    width: 24px;
+    height: 16px;
+    border-radius: 2px;
+    object-fit: cover;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.result-detail__identity,
+.result-detail__field-row > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+
+  small {
+    color: rgba(255, 255, 255, 0.44);
+    font-family: "Geist Mono", monospace;
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+.result-detail__score-group {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.result-detail__score-text {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.result-detail__rank-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  line-height: 1;
+
+  &.is-bronze-chip {
+    background: rgba(205, 127, 50, 0.16);
+    border-color: rgba(205, 127, 50, 0.38);
+    color: #f5d0b0;
+  }
+
+  &.is-silver-chip {
+    background: rgba(203, 213, 225, 0.16);
+    border-color: rgba(203, 213, 225, 0.38);
+    color: #f8fafc;
+  }
+
+  &.is-gold-chip {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.38);
+    color: #fef08a;
+  }
+}
+
+.result-detail__field-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.result-detail__field-result {
+  justify-items: end;
+}
+
+.result-detail__leaderboard {
+  display: grid;
+  padding: 4px 0 10px;
+}
+
+.result-detail__leaderboard-head,
+.result-detail__leaderboard-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) minmax(64px, auto);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.result-detail__leaderboard-head {
+  padding: 8px 0 6px;
+  color: rgba(255, 255, 255, 0.44);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.result-detail__leaderboard-row {
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.76rem;
+
+  > :last-child {
+    justify-self: end;
+    color: #f0cc58;
+    font-family: "Geist Mono", monospace;
+  }
+}
+
+.result-detail__summary {
+  margin: 0;
+  padding: 10px 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.result-detail__venue-chip {
+  color: rgba(255, 255, 255, 0.72);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.65rem;
+}
+
+.result-detail__footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.65rem;
+  line-height: 1.35;
+
+  a {
+    flex: 0 0 auto;
+    color: #f0cc58;
+    font-weight: 800;
+    text-decoration: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .result-detail__header,
+  .result-detail__footer,
+  .result-detail__competitor,
+  .result-detail__field-row {
+    padding-inline: 11px;
+  }
+
+  .result-detail__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

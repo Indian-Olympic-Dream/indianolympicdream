@@ -34,14 +34,16 @@
         <strong>{{ summary().sports }}</strong>
         <span>Sports ({{ summary().ableSports }} Able · {{ summary().paraSports }} Para)</span>
       </div>
-      <div class="stat-box">
-        <strong>{{ summary().scheduleEntries }}</strong>
-        <span>Schedule Sessions (Heats & Quals + Medal Rounds)</span>
-      </div>
       <div class="stat-box gold">
         <strong>{{ summary().golds }}</strong>
-        <span>Gold Medals On Offer</span>
+        <span>Gold medal events mapped</span>
       </div>
+      <button type="button" class="stat-box live-stat header-live-control" [class.has-live]="liveCount() > 0"
+        (click)="openHeaderLivePanel()"
+        [attr.aria-label]="liveCount() > 0 ? 'Show live sessions for India' : 'View declared results'">
+        <strong>{{ liveCount() || declaredResults().length }}</strong>
+        <span>{{ liveCount() > 0 ? 'Live now' : 'Results logged' }}</span>
+      </button>
     </div>
   </header>
 
@@ -50,55 +52,89 @@
     <!-- Coming up for India -->
     <article class="answer-card next-answer" *ngIf="nextIndiaSession() as next; else scheduleState">
       <div class="question-row">
-        <p class="question">Coming up for India</p>
-        <span class="importance-chip" [ngClass]="getSessionImportanceClass(next)"
-          [title]="getSessionCertaintyTooltip(next)">
-          <i class="pulse-dot" *ngIf="isSessionLive(next)"></i>
-          {{ getSessionBadge(next) }}
-        </span>
-      </div>
-
-      <!-- Up Next / Live Hero Block -->
-      <div class="hero-session-block">
-        <div class="next-sport">
-          <span class="sport-icon" *ngIf="getSchedulePictogramUrl(next) as pictogram">
-            <img [src]="pictogram" [alt]="next.sport">
+        <p class="question">{{ liveCount() > 0 ? 'Happening now for India' : 'Coming up for India' }}</p>
+        <div class="hero-timecue" [class.live]="isSessionLive(next)">
+          @if (isSessionLive(next)) {
+          <strong class="live-cue"><i class="pulse-dot"></i> LIVE NOW</strong>
+          } @else {
+          <span class="cue-label">
+            Next up
           </span>
-          <span>{{ next.sport }}</span>
-        </div>
-
-        <h2>{{ getScheduleEventTitle(next) }}</h2>
-
-        <div class="matchup-strip hero-matchup-strip" *ngIf="getBoxingOpponentLabel(next) as opponent">
-          <div class="matchup-line">
-            <span class="corner-chip">IND</span>
-            <span class="match-name india-name">{{ getBoxingIndiaLabel(next) }}</span>
-            <span class="versus">vs</span>
-            <span class="match-name opponent-name">{{ opponent }}</span>
-          </div>
-          <small *ngIf="getBoxingBoutMeta(next)">{{ getBoxingBoutMeta(next) }}</small>
-        </div>
-
-        <p class="athlete-line" *ngIf="!hasBoxingDraw(next) && next.athletes && next.athletes !== 'India'">{{ next.athletes }}</p>
-
-        <div class="time-block">
-          <span>{{ next.dayLabel }} {{ next.dateLabel }}</span>
-          <strong>{{ next.timeLabel }}</strong>
+          <strong>{{ getHeroCountdownLabel(next) }}</strong>
+          }
         </div>
       </div>
 
-      <!-- Date-Based Schedule Navigator -->
-      <div class="upcoming-navigator" *ngIf="upcomingDateGroups().length">
+      <!-- 2-Column Hero Split Grid (Fills Desktop Space) -->
+      <div class="hero-split-grid">
+        <!-- Left: Featured Session -->
+        <div class="hero-session-block">
+          <div class="next-sport">
+            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(next) as pictogram">
+              <img [src]="pictogram" [alt]="next.sport">
+            </span>
+            <span>{{ next.sport }}</span>
+          </div>
+
+          <h2>{{ getScheduleEventTitle(next) }}</h2>
+
+          <div class="matchup-strip hero-matchup-strip" *ngIf="getBoxingOpponentLabel(next) as opponent">
+            <div class="matchup-line">
+              <span class="corner-chip">IND</span>
+              <span class="match-name india-name">{{ getBoxingIndiaLabel(next) }}</span>
+              <span class="versus">vs</span>
+              <span class="match-name opponent-name">{{ opponent }}</span>
+            </div>
+            <small *ngIf="getBoxingBoutMeta(next)">{{ getBoxingBoutMeta(next) }}</small>
+          </div>
+
+          <p class="athlete-line" *ngIf="!hasBoxingDraw(next) && next.athletes && next.athletes !== 'India'">{{
+            next.athletes }}</p>
+
+          <div class="time-block">
+            <span>{{ next.dayLabel }} {{ next.dateLabel }}</span>
+            <strong>{{ next.timeLabel }}</strong>
+          </div>
+        </div>
+
+        <!-- Right: Recent Results -->
+        <aside class="hero-results-panel" *ngIf="latestTwoResults().length">
+          <div class="side-result-header">
+            <span class="side-label">{{ liveCount() > 0 ? 'Results archive' : 'Recent results' }}</span>
+            <button class="view-all-results-cta compact" type="button" (click)="navigateToResults()">View all</button>
+          </div>
+
+          <div class="result-mini-list" [class.compact-mode]="liveCount() > 0">
+            @for (item of latestTwoResults(); track (item?.row?.id || $index)) {
+            @if (item && item.row) {
+            <button class="result-mini-card" type="button" (click)="openSessionDialog(item.row)">
+              <span class="result-mini-meta">{{ item.row.sport }} · {{ item.row.dateLabel }}</span>
+              <strong>{{ getScheduleEventTitle(item.row) }}</strong>
+              <span class="result-mini-summary">{{ item.summary || 'Result declared' }}</span>
+            </button>
+            }
+            }
+          </div>
+        </aside>
+      </div>
+
+      <!-- Vertical Live & Chronological Timeline -->
+      <div class="upcoming-navigator" *ngIf="filteredUpcomingSessions().length || upcomingDateGroups().length">
         <div class="navigator-header">
-          <span class="queue-label">Upcoming Schedule by Date</span>
-          <!-- <a class="text-link inline-link" routerLink="/cwg-2026/schedule">View Full Matrix →</a> -->
+          <span class="queue-label">⚡ LIVE & CHRONOLOGICAL EVENT TIMELINE</span>
         </div>
 
         <!-- Date Filter Pills -->
         <div class="date-pills-row">
           <button type="button" class="date-pill" [class.active]="selectedDateKey() === 'all'"
             (click)="setSelectedDateKey('all')">
-            <span>Upcoming</span>
+            <span>Next 24 hours</span>
+          </button>
+          <button type="button" class="date-pill medal-sessions-pill" [class.active]="selectedDateKey() === 'medals'"
+            (click)="setSelectedDateKey('medals')">
+            <img [src]="medalIconUrl" alt="" class="pill-medal-icon">
+            <span>Medal sessions</span>
+            <small class="pill-count">({{ upcomingMedalSessions().length }})</small>
           </button>
           <button *ngFor="let group of upcomingDateGroups()" type="button" class="date-pill"
             [class.active]="selectedDateKey() === group.dateKey" (click)="setSelectedDateKey(group.dateKey)">
@@ -111,36 +147,134 @@
           </button>
         </div>
 
-        <!-- Dynamic Date Session List -->
-        <div class="date-sessions-list">
-          <article *ngFor="let row of filteredUpcomingSessions(); trackBy: trackBySession" class="date-session-item"
-            [class.boxing-session]="hasBoxingDraw(row)">
-            <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+        <!-- Dynamic Vertical Timeline Session List -->
+        <div class="vertical-timeline-list">
+          @for (group of timelineGroups(); track group.id) {
+          @if (group.rows.length === 1) {
+          @for (row of group.rows; track row.id) {
+          <article class="timeline-item" [class.live-item]="isSessionLive(row)"
+            [class.completed-item]="row.status === 'completed'" (click)="openSessionDialog(row)">
+
+            <div class="timeline-clock">
+              <time>{{ row.timeLabel }}</time>
+              <span>{{ row.dayLabel }} {{ row.dateLabel }}</span>
+            </div>
+
+            <div class="timeline-node">
+              <span class="node-dot" [class.live-dot]="isSessionLive(row)"></span>
+              <div class="connector-line"></div>
+            </div>
+
+            <div class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
               <img [src]="pictogram" [alt]="row.sport">
-            </span>
+            </div>
+
             <div class="session-details">
               <div class="session-header-line">
                 <span class="sport-name">{{ row.sport }}</span>
+
+                @if (isSessionLive(row)) {
+                <span class="queue-chip importance-live">
+                  <i class="pulse-dot"></i> LIVE NOW
+                </span>
+                } @else {
+                @if (getResultBadge(row); as res) {
+                <span class="result-badge-chip" [class.won]="res.isWon">
+                  ✓ {{ res.label }}
+                </span>
+                } @else {
                 <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
                   [title]="getSessionCertaintyTooltip(row)">
                   {{ getSessionBadge(row) }}
                 </span>
+                }
+                }
               </div>
-              <strong>{{ getScheduleEventTitle(row) }}</strong>
-              <div class="matchup-mini-line" *ngIf="getBoxingOpponentLabel(row) as opponent">
-                <span>IND</span>
-                <strong>{{ getBoxingIndiaLabel(row) }}</strong>
-                <i>vs</i>
-                <strong>{{ opponent }}</strong>
-              </div>
-              <small class="boxing-meta" *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</small>
-              <small class="athlete-name" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{ row.athletes }}</small>
+
+              <strong class="timeline-event-title">{{ getScheduleEventTitle(row) }}</strong>
+
+              <p class="result-summary-line" *ngIf="row.result?.summary">📝 {{ row.result?.summary }}</p>
+
+              <small class="athlete-name" *ngIf="hasBoxingDraw(row) || (row.athletes && row.athletes !== 'India')">{{
+                hasBoxingDraw(row) ? getBoxingIndiaLabel(row) : row.athletes }}</small>
             </div>
+
             <div class="session-time">
-              <span>{{ row.dayLabel }} {{ row.dateLabel }}</span>
-              <strong>{{ row.timeLabel }}</strong>
+              <span *ngIf="row.venue">{{ row.venue }}</span>
+              <strong>Details</strong>
             </div>
           </article>
+          }
+          } @else {
+          <article class="timeline-cluster" [class.live-item]="group.isLive">
+            <div class="timeline-clock cluster-clock">
+              <time>{{ group.timeLabel }}</time>
+              <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
+            </div>
+
+            <div class="timeline-node cluster-node">
+              <span class="node-dot" [class.live-dot]="group.isLive"></span>
+              <div class="connector-line"></div>
+            </div>
+
+            <div class="cluster-card">
+              <div class="cluster-header">
+                <div>
+                  <span class="cluster-kicker-line">
+                    <span class="cluster-kicker">Same start</span>
+                    <span class="queue-chip importance-core" *ngIf="group.hasMedal">
+                      <img [src]="medalIconUrl" alt="" class="medal-icon"> Medal window
+                    </span>
+                  </span>
+                  <strong>{{ group.rows.length }} India events at this time</strong>
+                </div>
+              </div>
+
+              <button class="cluster-event" *ngFor="let row of group.rows; trackBy: trackBySession" type="button"
+                [class.live-item]="isSessionLive(row)" (click)="openSessionDialog(row)">
+                <span class="cluster-event-time">{{ row.timeLabel }}</span>
+
+                <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+                  <img [src]="pictogram" [alt]="row.sport">
+                </span>
+
+                <span class="cluster-event-copy">
+                  <span class="session-header-line">
+                    <span class="sport-name">{{ row.sport }}</span>
+
+                    @if (isSessionLive(row)) {
+                    <span class="queue-chip importance-live">
+                      <i class="pulse-dot"></i> LIVE NOW
+                    </span>
+                    } @else {
+                    @if (getResultBadge(row); as res) {
+                    <span class="result-badge-chip" [class.won]="res.isWon">
+                      ✓ {{ res.label }}
+                    </span>
+                    } @else {
+                    <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
+                      [title]="getSessionCertaintyTooltip(row)">
+                      {{ getSessionBadge(row) }}
+                    </span>
+                    }
+                    }
+                  </span>
+
+                  <strong class="timeline-event-title">{{ getScheduleEventTitle(row) }}</strong>
+
+                  <span class="result-summary-line" *ngIf="row.result?.summary">📝 {{ row.result?.summary }}</span>
+
+                  <small class="athlete-name"
+                    *ngIf="hasBoxingDraw(row) || (row.athletes && row.athletes !== 'India')">{{
+                    hasBoxingDraw(row) ? getBoxingIndiaLabel(row) : row.athletes }}</small>
+                </span>
+
+                <span class="cluster-event-venue" *ngIf="row.venue">{{ row.venue }}</span>
+              </button>
+            </div>
+          </article>
+          }
+          }
         </div>
       </div>
 
@@ -169,7 +303,7 @@
         <p class="eyebrow">IOD Shorts</p>
         <h2>10 to Watch</h2>
       </div>
-      <span>{{ releasedShortsCount() }} shorts out · {{ scheduledShortsCount() }} coming soon</span>
+      <!-- <span>{{ releasedShortsCount() }} shorts out · {{ scheduledShortsCount() }} coming soon</span> -->
     </header>
 
     <div class="watch-rail">
@@ -202,34 +336,29 @@
     </div>
   </section>
 
-  <!-- Gold Medal Finals for India (Replaces redundant "This Week for India") -->
-  <section class="gold-finals-strip">
-    <header class="section-header">
-      <div>
-        <p class="eyebrow">Glasgow 2026 Finals</p>
-        <h2>Gold Medal Finals for India</h2>
-      </div>
-      <a routerLink="/cwg-2026/schedule">Full Schedule →</a>
-    </header>
-
-    <div class="gold-finals-grid">
-      <article class="gold-final-card" *ngFor="let row of goldMedalSessions(); trackBy: trackBySession"
-        [class.boxing-session]="hasBoxingDraw(row)">
-        <div class="card-header-row">
-          <div class="card-sport-line">
-            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
-              <img [src]="pictogram" [alt]="row.sport">
-            </span>
-            <span class="sport-name">{{ row.sport }}</span>
-          </div>
-          <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)" [title]="getSessionCertaintyTooltip(row)">
-            <img [src]="medalIconUrl" alt="Gold medal icon" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
-            {{ getSessionBadge(row) }}
+  <div class="home-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
+    (click)="closeSessionDialog()">
+    <aside class="home-session-panel" role="dialog" aria-modal="true" aria-label="Session details"
+      (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="next-sport">
+          <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+            <img [src]="pictogram" [alt]="row.sport">
           </span>
+          <span>{{ row.sport }}</span>
         </div>
+        <button class="home-dialog-close" type="button" aria-label="Close details"
+          (click)="closeSessionDialog()">&times;</button>
+      </header>
 
-        <div class="card-body">
-          <h3 class="event-title">{{ getScheduleEventTitle(row) }}</h3>
+      <div class="home-session-body">
+        <ng-container *ngIf="!getResultSummary(row)">
+          <p class="question">{{ row.dayLabel }} {{ row.dateLabel }} · {{ row.timeLabel }}</p>
+          <h2>{{ getScheduleEventTitle(row) }}</h2>
+          <p class="athlete-line" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{
+            row.athletes
+            }}</p>
+
           <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
             <div class="matchup-line">
               <span class="corner-chip">IND</span>
@@ -239,16 +368,47 @@
             </div>
             <small *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</small>
           </div>
-          <p class="card-athletes" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">
-            <span class="athlete-label">Contenders:</span> {{ row.athletes }}
-          </p>
-        </div>
 
-        <div class="card-footer">
-          <time class="time-tag">📅 {{ row.dayLabel }} {{ row.dateLabel }} · {{ row.timeLabel }}</time>
-          <span class="venue-tag" *ngIf="row.venue">📍 {{ row.venue }}</span>
+          <small class="session-dialog-meta" *ngIf="row.venue">📍 {{ row.venue }}</small>
+        </ng-container>
+
+        <app-cwg-2026-result-detail *ngIf="getResultSummary(row)" [row]="row" />
+      </div>
+    </aside>
+  </div>
+
+  <div class="home-session-dialog" *ngIf="isLiveSessionsDialogOpen()" role="presentation"
+    (click)="closeLiveSessionsDialog()">
+    <aside class="home-session-panel live-sessions-panel" role="dialog" aria-modal="true"
+      aria-label="Live sessions for India" (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="live-dialog-title">
+          <span class="compact-live-bug"><i class="pulse-dot"></i> LIVE</span>
+          <div>
+            <strong>India live now</strong>
+            <small>{{ liveCount() }} {{ liveCount() === 1 ? 'session' : 'sessions' }}</small>
+          </div>
         </div>
-      </article>
-    </div>
-  </section>
+        <button class="home-dialog-close" type="button" aria-label="Close live sessions"
+          (click)="closeLiveSessionsDialog()">&times;</button>
+      </header>
+
+      <div class="home-session-body live-session-list">
+        <button class="live-session-row" type="button" *ngFor="let row of liveSessions(); trackBy: trackBySession"
+          (click)="openLiveSessionDetails(row)">
+          <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+            <img [src]="pictogram" [alt]="row.sport">
+          </span>
+          <span class="live-session-copy">
+            <span>{{ row.sport }} · {{ row.timeLabel }}</span>
+            <strong>{{ getScheduleEventTitle(row) }}</strong>
+            <small *ngIf="hasBoxingDraw(row) || (row.athletes && row.athletes !== 'India')">
+              {{ hasBoxingDraw(row) ? getBoxingIndiaLabel(row) : row.athletes }}
+            </small>
+          </span>
+          <span class="live-session-arrow" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </aside>
+  </div>
 </main>
