@@ -30,10 +30,15 @@
   <div class="stream-tabs-bar">
     <nav class="stream-tabs" aria-label="Filter schedule matrix">
       <button *ngFor="let stream of streamTabs(); trackBy: trackByStream" type="button"
-        [class.active]="activeStream() === stream.key" [class.para]="stream.key === 'para'"
-        (click)="setActiveStream(stream.key)">
+        [class.active]="activeStream() === stream.key && !showDeclaredResultsOnly()" [class.para]="stream.key === 'para'"
+        (click)="setActiveStream(stream.key); setDeclaredResultsOnly(false)">
         <span>{{ stream.label }}</span>
         <span class="count-badge">{{ stream.rows }}</span>
+      </button>
+      <button type="button" class="results-pill" [class.active]="showDeclaredResultsOnly()"
+        (click)="toggleDeclaredResults()">
+        <span>Results</span>
+        <span class="count-badge">{{ declaredResultsCount() }}</span>
       </button>
     </nav>
   </div>
@@ -41,7 +46,7 @@
   <main class="matrix-content">
     <section class="matrix-card" aria-label="India schedule matrix">
       <div class="matrix-scroll">
-        <div class="schedule-grid" [style.--date-count]="dateColumns().length">
+        <div class="schedule-grid" [class.results-grid]="showDeclaredResultsOnly()" [style.--date-count]="dateColumns().length">
           <div class="corner-cell">Sport</div>
 
           <div class="date-head" *ngFor="let date of dateColumns(); trackBy: trackByDate">
@@ -61,18 +66,24 @@
             </div>
 
             <button class="date-cell" *ngFor="let cell of sport.cells; trackBy: trackByCell" type="button"
-              [class.active]="cell.sessionCount > 0" [class.medal]="cell.goldMedalsOnOffer > 0"
-              [class.selected]="selectedCellKey() === cell.key" [disabled]="cell.sessionCount === 0"
-              (click)="selectCell(cell)" [attr.aria-label]="
-                cell.sessionCount
-                  ? cell.sportName + ' on ' + cell.dateLabel + ': ' + cell.sessionCount + ' entries, ' + cell.goldMedalsOnOffer + ' gold medals on offer'
-                  : cell.sportName + ' on ' + cell.dateLabel + ': no mapped India entries'
-              ">
+              [class.active]="cell.sessionCount > 0"
+              [class.medal]="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)"
+              [class.cell-completed]="cell.hasDeclaredResult"
+              [class.cell-live]="cell.hasLiveNow"
+              [class.selected]="selectedCellKey() === cell.key"
+              [disabled]="cell.sessionCount === 0"
+              (click)="selectCell(cell)"
+              [title]="getCellTooltip ? getCellTooltip(cell) : ''">
               <span class="cell-content">
-                <img *ngIf="cell.goldMedalsOnOffer > 0" class="medal-icon" [src]="medalIconUrl"
-                  alt="Gold medals on offer">
-                <ng-container *ngIf="getCellLabel(cell); else emptyDot">{{ getCellLabel(cell) }}</ng-container>
-                <ng-template #emptyDot><span class="empty-dot">·</span></ng-template>
+                <ng-container *ngIf="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)">
+                  <img [src]="getCellMedalIconUrl ? getCellMedalIconUrl(cell) : medalIconUrl" alt="Medal won" class="cell-medal-icon">
+                  <span class="medal-count-num">{{ getCellMedalCountText ? getCellMedalCountText(cell) : '1' }}</span>
+                </ng-container>
+
+                <ng-container *ngIf="!shouldShowResultMedalIcon || !shouldShowResultMedalIcon(cell)">
+                  <ng-container *ngIf="getCellLabel && getCellLabel(cell); else emptyDot">{{ getCellLabel(cell) }}</ng-container>
+                  <ng-template #emptyDot><span class="empty-dot">·</span></ng-template>
+                </ng-container>
               </span>
             </button>
           </ng-container>
@@ -81,10 +92,10 @@
 
       <div class="legend-row">
         <div class="legend-items">
-          <span class="legend-item"><i class="legend-dot active-dot"></i> India Event Session</span>
-          <span class="legend-item"><img class="legend-medal" [src]="medalIconUrl" alt="">Medal Session</span>
+          <span class="legend-item"><i class="legend-dot active-dot"></i>{{ showDeclaredResultsOnly() ? 'Declared result day' : 'Upcoming India session' }}</span>
+          <span class="legend-item"><img class="legend-medal" [src]="medalIconUrl" alt="">Medal session</span>
         </div>
-        <span class="legend-hint">✨ Click active cell for session details &amp; status</span>
+        <span class="legend-hint">Click active cell for session details &amp; status</span>
       </div>
     </section>
   </main>
@@ -119,37 +130,46 @@
 
       <div class="session-list">
         <article *ngFor="let row of cell.rows; trackBy: trackByScheduleRow"
-          [class.gold-session]="row.goldMedalEvents?.length" [class.boxing-session]="hasBoxingDraw(row)">
-          <div class="session-meta">
-            <div class="session-time-status">
-              <time>{{ row.timeLabel }}</time>
-              <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
-                [title]="getSessionCertaintyTooltip(row)">
-                <img [src]="medalIconUrl" alt="" class="medal-icon" *ngIf="getSessionBadge(row) === 'Gold Medal'">
-                {{ getSessionBadge(row) }}
-              </span>
-            </div>
-            <button class="draw-button" *ngIf="getRoadToMedalImageUrl(row)" type="button"
-              (click)="openRoadToMedal(row)" title="Open Road To Medal graphic">
-              Road To Medal
-            </button>
-          </div>
-          <strong class="session-title">{{ getScheduleEventTitle(row) }}</strong>
+          [class.gold-session]="row.goldMedalEvents?.length && !getResultSummary(row)"
+          [class.completed-session]="row.status === 'completed'"
+          [class.boxing-session]="hasBoxingDraw(row)"
+          [class.has-result-detail]="getResultSummary(row)">
+          <!-- Completed session: standalone result detail card -->
+          <app-cwg-2026-result-detail *ngIf="getResultSummary(row)" [row]="row" />
 
-          <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
-            <div class="matchup-line">
-              <span class="corner-chip">IND</span>
-              <span class="match-name india-name">{{ getBoxingIndiaLabel(row) }}</span>
-              <span class="versus">vs</span>
-              <span class="match-name opponent-name">{{ opponent }}</span>
+          <!-- Scheduled / upcoming session -->
+          <ng-container *ngIf="!getResultSummary(row)">
+            <div class="session-meta">
+              <div class="session-time-status">
+                <time>{{ row.timeLabel }}</time>
+                <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
+                  [title]="getSessionCertaintyTooltip(row)">
+                  <img [src]="medalIconUrl" alt="" class="medal-icon" *ngIf="getSessionBadge(row) === 'Medal session'">
+                  {{ getSessionBadge(row) }}
+                </span>
+              </div>
+              <button class="draw-button" *ngIf="getRoadToMedalImageUrl(row)" type="button"
+                (click)="openRoadToMedal(row)" title="Open Road To Medal graphic">
+                Road To Medal
+              </button>
             </div>
-          </div>
+            <strong class="session-title">{{ getScheduleEventTitle(row) }}</strong>
 
-          <p *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{ row.athletes }}</p>
-          <small class="session-submeta">
-            <span *ngIf="row.venue">📍 {{ row.venue }}</span>
-            <span *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</span>
-          </small>
+            <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
+              <div class="matchup-line">
+                <span class="corner-chip">IND</span>
+                <span class="match-name india-name">{{ getBoxingIndiaLabel(row) }}</span>
+                <span class="versus">vs</span>
+                <span class="match-name opponent-name">{{ opponent }}</span>
+              </div>
+            </div>
+
+            <p *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{ row.athletes }}</p>
+            <small class="session-submeta">
+              <span *ngIf="row.venue">📍 {{ row.venue }}</span>
+              <span *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</span>
+            </small>
+          </ng-container>
         </article>
       </div>
     </aside>

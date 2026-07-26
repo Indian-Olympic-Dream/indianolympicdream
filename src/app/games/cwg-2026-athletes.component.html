@@ -79,54 +79,108 @@
 
   <section class="athlete-grid" aria-label="Commonwealth Games India athletes">
     <article *ngFor="let row of filteredRows(); trackBy: trackByParticipation" class="athlete-row"
-      [class.watch]="row.watchList?.isTenToWatch">
-      <span class="athlete-photo">
-        <img *ngIf="getAthleteImageUrl(row) as photo; else athleteFallback" [src]="photo" [alt]="getAthleteName(row)">
-        <ng-template #athleteFallback>
-          <img *ngIf="getSportPictogramUrl(row) as pictogram; else athleteInitials" [src]="pictogram"
-            [alt]="getSportName(row)" class="athlete-photo-pictogram">
-          <ng-template #athleteInitials>{{ getInitials(getAthleteName(row)) }}</ng-template>
-        </ng-template>
-      </span>
+      [class.watch]="row.watchList?.isTenToWatch" [class.is-dqed]="isDisqualified(row)">
+      <div class="athlete-row-header">
+        <span class="athlete-photo">
+          <img *ngIf="getAthleteImageUrl(row) as photo; else athleteFallback" [src]="photo" [alt]="getAthleteName(row)">
+          <ng-template #athleteFallback>
+            <img *ngIf="getSportPictogramUrl(row) as pictogram; else athleteInitials" [src]="pictogram"
+              [alt]="getSportName(row)" class="athlete-photo-pictogram">
+            <ng-template #athleteInitials>{{ getInitials(getAthleteName(row)) }}</ng-template>
+          </ng-template>
+        </span>
 
-      <div class="athlete-main">
-        <div class="athlete-title">
-          <strong>{{ getAthleteName(row) }}</strong>
-          <span class="watch-badge" *ngIf="row.watchList?.isTenToWatch">✨ #{{ row.watchList?.rank }} IOD WATCH</span>
+        <div class="athlete-main">
+          <div class="athlete-title">
+            <strong>{{ getAthleteName(row) }}</strong>
+            <span class="watch-badge" *ngIf="row.watchList?.isTenToWatch">✨ #{{ row.watchList?.rank }} IOD WATCH</span>
+
+            <div class="dq-container" *ngIf="isDisqualified(row)">
+              <span class="status-badge dq-badge" [class.active]="isTooltipOpen(row.id)"
+                [class.badge-rejected]="getDisqualificationBadgeLabel(row) === 'REJECTED'"
+                [class.badge-withdrawn]="getDisqualificationBadgeLabel(row) === 'WITHDRAWN'"
+                [class.badge-dns]="getDisqualificationBadgeLabel(row) === 'DNS'"
+                (click)="toggleTooltip ? toggleTooltip(row.id, $event) : null"
+                [attr.aria-label]="'Toggle details for ' + getAthleteName(row)">
+                <mat-icon class="dq-icon">{{ getDisqualificationBadgeLabel(row) === 'DNS' ? 'remove_circle_outline' :
+                  getDisqualificationBadgeLabel(row) === 'REJECTED' ? 'cancel' : getDisqualificationBadgeLabel(row) ===
+                  'WITHDRAWN' ? 'person_remove' : 'block' }}</mat-icon>
+                <span>{{ getDisqualificationBadgeLabel(row) }}</span>
+                <mat-icon class="info-icon">info</mat-icon>
+              </span>
+            </div>
+          </div>
+
+          <p class="athlete-event">{{ getAthleteEvent(row) }}</p>
         </div>
-        <p class="athlete-event">{{ row.eventName || row.eventBucket || getSportName(row) }}</p>
-        <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch || getRoadToMedalRow(row)">
-          <a *ngIf="row.watchList?.shortUrl as shortUrl" class="yt-button card-yt" [href]="shortUrl" target="_blank"
-            rel="noopener" aria-label="Watch {{ getAthleteName(row) }} short on YouTube">
-            <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-            </svg>
-            Watch Short
-          </a>
-          <span *ngIf="row.watchList?.isTenToWatch && !row.watchList?.shortUrl" class="yt-button disabled-yt">
-            Short Soon
+
+        <div class="sport-cell">
+          <span class="sport-icon">
+            <img *ngIf="getSportPictogramUrl(row) as pictogram; else sportFallback" [src]="pictogram"
+              [alt]="getSportName(row)">
+            <ng-template #sportFallback>{{ getInitials(getSportName(row)) }}</ng-template>
           </span>
-          <button *ngIf="getRoadToMedalRow(row) as roadRow" class="road-medal-button" type="button"
-            (click)="openRoadToMedal(roadRow)"
-            [attr.aria-label]="'Open ' + getAthleteName(row) + ' Road To Medal graphic'">
-            <mat-icon aria-hidden="true">emoji_events</mat-icon>
-            Road To Medal
-          </button>
+          <div class="sport-meta">
+            <span class="sport-name">{{ getSportName(row) }}</span>
+            <span class="context-tag" [class.para]="row.competitionStream === 'para' || row.isPara">{{
+              getCompetitionContext(row) }}</span>
+          </div>
         </div>
       </div>
 
-      <div class="sport-cell">
-        <span class="sport-icon">
-          <img *ngIf="getSportPictogramUrl(row) as pictogram; else sportFallback" [src]="pictogram"
-            [alt]="getSportName(row)">
-          <ng-template #sportFallback>{{ getInitials(getSportName(row)) }}</ng-template>
-        </span>
-        <div class="sport-meta">
-          <span class="sport-name">{{ getSportName(row) }}</span>
-          <span class="context-tag" [class.para]="row.competitionStream === 'para' || row.isPara">{{
-            getCompetitionContext(row) }}</span>
+      <div class="dq-inline-callout" *ngIf="isDisqualified(row) && isTooltipOpen(row.id)">
+        <mat-icon class="dq-callout-icon">info</mat-icon>
+        <span>{{ getDisqualificationNote(row) }}</span>
+      </div>
+
+      <div class="athlete-schedule-box" *ngIf="!isDisqualified(row)">
+        <div class="schedule-box-content" *ngIf="getAthleteScheduleTimings(row) as schedule">
+          <ng-container *ngIf="schedule.items.length; else pendingSchedule">
+            <div *ngFor="let item of schedule.items" class="schedule-row-item" [class.is-final]="item.isMedalSession">
+              <div class="schedule-event-meta">
+                <span class="schedule-stage-tag" [class.final-tag]="item.isMedalSession">
+                  <mat-icon class="stage-icon" *ngIf="item.isMedalSession">emoji_events</mat-icon>
+                  {{ item.displayLabel }}
+                </span>
+                <span class="schedule-opponent" *ngIf="item.opponentInfo">{{ item.opponentInfo }}</span>
+              </div>
+              <div class="schedule-time-meta">
+                <span class="time-date" *ngIf="item.dateLabel">{{ item.dateLabel }}</span>
+                <span class="time-dot" *ngIf="item.dateLabel && item.timeLabel">•</span>
+                <span class="time-clock" *ngIf="item.timeLabel && !item.resultLabel">{{ item.timeLabel }}</span>
+                <span class="time-result" *ngIf="item.resultLabel">{{ item.resultLabel }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #pendingSchedule>
+            <div class="schedule-row-item pending-item">
+              <span class="schedule-stage-tag pending-tag">ENTRY CONFIRMED</span>
+              <div class="schedule-time-meta muted">
+                <span>Glasgow 2026 Schedule Pending</span>
+              </div>
+            </div>
+          </ng-template>
         </div>
+      </div>
+
+      <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch || getRoadToMedalRow(row)">
+        <a *ngIf="row.watchList?.shortUrl as shortUrl" class="yt-button card-yt" [href]="shortUrl" target="_blank"
+          rel="noopener" aria-label="Watch {{ getAthleteName(row) }} short on YouTube">
+          <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+          </svg>
+          Watch Short
+        </a>
+        <span *ngIf="row.watchList?.isTenToWatch && !row.watchList?.shortUrl" class="yt-button disabled-yt">
+          Short Soon
+        </span>
+        <button *ngIf="getRoadToMedalRow(row) as roadRow" class="road-medal-button" type="button"
+          (click)="openRoadToMedal(roadRow)"
+          [attr.aria-label]="'Open ' + getAthleteName(row) + ' Road To Medal graphic'">
+          <mat-icon aria-hidden="true">emoji_events</mat-icon>
+          Road To Medal
+        </button>
       </div>
     </article>
 

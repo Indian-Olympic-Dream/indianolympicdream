@@ -4,6 +4,21 @@ export const CWG_2026_GAMES_KEY = "cwg-glasgow-2026";
 
 export type CwgCompetitionStream = "all" | "able-bodied" | "para";
 
+export type CwgParticipationStatus =
+  | "confirmed"
+  | "start-list-pending"
+  | "progression-dependent"
+  | "pool-position-dependent"
+  | "provisional"
+  | "eliminated";
+
+export type CwgTimingPrecision =
+  | "exact"
+  | "session-window"
+  | "start-list-pending"
+  | "draw-dependent"
+  | "tbd";
+
 export interface CwgScheduleData {
   gamesDates: string;
   timezone: string;
@@ -13,19 +28,27 @@ export interface CwgScheduleData {
 
 export interface CwgScheduleRow {
   id: string;
+  name?: string;
+  eventName?: string;
+  sportName?: string;
   sortKey: string;
   istStart?: string;
   istEnd?: string;
   dateLabel: string;
   dayLabel: string;
   timeLabel: string;
+  indiaTimeLabel?: string;
+  localTimeLabel?: string;
   sport: string;
   sportSlug: string;
   event: string;
   stage: string;
+  phase?: string;
   athletes: string;
   athleteNames?: string[];
   certainty: string;
+  participationStatus?: CwgParticipationStatus;
+  timingPrecision?: CwgTimingPrecision;
   venue: string;
   isMedalSession: boolean;
   isConditional: boolean;
@@ -33,10 +56,80 @@ export interface CwgScheduleRow {
   badgeOverride?: string;
   goldMedalEvents?: string[];
   notes?: string;
+  status?: string;
   result?: CwgScheduleResult;
 }
 
+export interface CwgResultCompetitor {
+  name: string;
+  countryCode?: string;
+  countryName?: string;
+  flagEmoji?: string;
+  scores?: (string | number)[];
+  totalScore?: string | number;
+  isWinner?: boolean;
+}
+
+export interface CwgScheduleResultMatch {
+  scoreText?: string;
+  durationText?: string;
+  winner?: string;
+  notes?: string;
+  editorNote?: string;
+  officialSourceUrl?: string;
+  storyUrl?: string;
+  competitor1?: CwgResultCompetitor;
+  competitor2?: CwgResultCompetitor;
+}
+
+export interface CwgLeaderboardEntry {
+  rank: number;
+  athleteName: string;
+  countryCode?: string;
+  countryName?: string;
+  flagEmoji?: string;
+  resultValue?: string;
+  qualificationTag?: string;
+}
+
+export interface CwgOfficialResultEntry {
+  organisationCode?: string;
+  organisationName?: string;
+  names?: string[];
+  resultStatus?: string;
+  resultCode?: string;
+  resultCodeDescription?: string;
+  result?: string;
+  rank?: string | number;
+  wlt?: string;
+  irm?: string;
+  qualificationMark?: string;
+}
+
+export interface CwgOfficialEventResult {
+  sourceType?: string;
+  detailUrl?: string;
+  unitPrintDescription?: string;
+  description?: string;
+  unitStatus?: string;
+  resultStatus?: string;
+  india?: CwgOfficialResultEntry[];
+  opponents?: CwgOfficialResultEntry[];
+  field?: CwgOfficialResultEntry[];
+  syncedAt?: string;
+}
+
 export interface CwgScheduleResult {
+  summaryLabel?: string;
+  resultLabel?: string;
+  summary?: string;
+  outcome?: string;
+  editorNote?: string;
+  officialSourceUrl?: string;
+  storyUrl?: string;
+  match?: CwgScheduleResultMatch | null;
+  leaderboard?: CwgLeaderboardEntry[] | null;
+  officialEventResult?: CwgOfficialEventResult | null;
   boxingDraw?: CwgBoxingDrawResult;
 }
 
@@ -98,8 +191,17 @@ export const getBoxingOpponentLabel = (row: CwgScheduleRow): string => {
 
 export const getBoxingEventTitle = (row: CwgScheduleRow): string => {
   const draw = getBoxingDraw(row);
-  if (!draw) return row.event;
-  return [draw.eventDescription, draw.roundName].filter(Boolean).join(" - ") || row.event;
+  let rawTitle = "";
+  if (draw) {
+    rawTitle = [draw.eventDescription, draw.roundName].filter(Boolean).join(" - ");
+  }
+  if (!rawTitle) {
+    rawTitle = row.eventName || (typeof row.event === "string" ? row.event : "") || row.name || "";
+  }
+  if (row.sportName && rawTitle.startsWith(`${row.sportName}: `)) {
+    rawTitle = rawTitle.substring(row.sportName.length + 2);
+  }
+  return rawTitle;
 };
 
 export const shouldShowRoadToMedal = (row: CwgScheduleRow): boolean => {
@@ -151,6 +253,9 @@ export interface CwgGamesParticipation {
   teamType?: "individual" | "pair" | "team" | "relay" | "squad";
   isPara?: boolean;
   status?: string;
+  isSuspended?: boolean;
+  isDisqualified?: boolean;
+  suspensionNote?: string;
   medalOutlook?: string;
   editorialPriority?: "hero" | "high" | "watch" | "depth";
   watchList?: CwgWatchList;
@@ -184,3 +289,82 @@ export const getParticipationSportSlug = (participation: CwgGamesParticipation):
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+export const getScheduleResultSummary = (row: CwgScheduleRow): string | null => {
+  if (row.status === 'scheduled' && !row.result?.match?.winner && !row.result?.officialEventResult) {
+    return null;
+  }
+  if (row.result?.summaryLabel?.trim()) return row.result.summaryLabel.trim();
+  if (row.result?.resultLabel?.trim()) return row.result.resultLabel.trim();
+  if (row.result?.summary?.trim()) return row.result.summary.trim();
+  if (row.result?.match?.scoreText?.trim()) {
+    const winner = row.result.match.winner ? `${row.result.match.winner} ` : '';
+    return `${winner}${row.result.match.scoreText}`.trim();
+  }
+  return null;
+};
+
+export const getScheduleResultBadge = (row: CwgScheduleRow): { label: string; isWon: boolean } | null => {
+  const summary = getScheduleResultSummary(row);
+  if (!summary) return null;
+  const isWon = summary.toUpperCase().includes('WON') || summary.toUpperCase().includes('GOLD') || summary.toUpperCase().includes('SILVER') || summary.toUpperCase().includes('BRONZE');
+  return { label: summary, isWon };
+};
+
+export const isScheduleRowLiveNow = (row: CwgScheduleRow, now = new Date()): boolean => {
+  if (
+    row.status === 'completed' ||
+    row.status === 'cancelled' ||
+    Boolean(getScheduleResultSummary(row))
+  ) {
+    return false;
+  }
+  if (row.status === 'live') return true;
+  if (!row.istStart) return false;
+  const start = new Date(row.istStart).getTime();
+  const end = row.istEnd ? new Date(row.istEnd).getTime() : start + 2 * 60 * 60 * 1000;
+  const isBoxing = `${row.sportSlug} ${row.sport}`.toLowerCase().includes('boxing');
+  // Bout times are estimates; keep boxing visible while the official result catches up.
+  const resultGraceMs = isBoxing ? 20 * 60 * 1000 : 0;
+  const current = now.getTime();
+  return current >= start && current <= end + resultGraceMs;
+};
+
+export const getCountryFlagEmoji = (country: string | undefined | null): string => {
+  if (!country) return '🏳️';
+  const norm = country.trim().toUpperCase();
+
+  const FLAG_MAP: Record<string, string> = {
+    IND: '🇮🇳', INDIA: '🇮🇳',
+    MLT: '🇲🇹', MALTA: '🇲🇹',
+    CAN: '🇨🇦', CANADA: '🇨🇦',
+    ENG: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', ENGLAND: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    SCO: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', SCOTLAND: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+    WAL: '🏴󠁧󠁢󠁷󠁬 sentence', WALES: '🏴󠁧󠁢󠁷󠁬 sentence',
+    NIR: '🇬🇧', 'NORTHERN IRELAND': '🇬🇧',
+    AUS: '🇦🇺', AUSTRALIA: '🇦🇺',
+    NZL: '🇳🇿', 'NEW ZEALAND': '🇳🇿',
+    RSA: '🇿🇦', 'SOUTH AFRICA': '🇿🇦',
+    NGR: '🇳🇬', NIGERIA: '🇳🇬',
+    MAS: '🇲🇾', MALAYSIA: '🇲🇾',
+    SGP: '🇸🇬', SIN: '🇸🇬', SINGAPORE: '🇸🇬',
+    FIJ: '🇫🇯', FIJI: '🇫🇯',
+    SAM: '🇼🇸', SAMOA: '🇼🇸',
+    KEN: '🇰🇪', KENYA: '🇰🇪',
+    JAM: '🇯🇲', JAMAICA: '🇯🇲',
+    TTO: '🇹🇹', 'TRINIDAD AND TOBAGO': '🇹🇹',
+    BAR: '🇧🇧', BARBADOS: '🇧🇧',
+    GUY: '🇬🇾', GUYANA: '🇬🇾',
+    GHA: '🇬🇭', GHANA: '🇬🇭',
+    UGA: '🇺🇬', UGANDA: '🇺🇬',
+    CYP: '🇨🇾', CYPRUS: '🇨🇾',
+    MRI: '🇲🇺', MAURITIUS: '🇲🇺',
+    NAM: '🇳🇦', NAMIBIA: '🇳🇦',
+    BOT: '🇧🇼', BOTSWANA: '🇧🇼',
+    SRI: '🇱🇰', 'SRI LANKA': '🇱🇰',
+    PAK: '🇵🇰', PAKISTAN: '🇵🇰',
+    BAN: '🇧🇩', BANGLADESH: '🇧🇩'
+  };
+
+  return FLAG_MAP[norm] || '🏳️';
+};
