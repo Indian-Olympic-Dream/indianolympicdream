@@ -6,6 +6,7 @@ import {
   CwgResultCompetitor,
   CwgScheduleRow,
   getBoxingEventTitle,
+  getCountryFlagEmoji,
 } from "./cwg-2026.types";
 
 @Component({
@@ -38,7 +39,10 @@ export class Cwg2026ResultDetailComponent {
       return { isSvg: true, safeSvg: this.sanitizer ? this.sanitizer.bypassSecurityTrustHtml(svg) : undefined };
     }
 
-    return { isSvg: false, textEmoji: competitor?.flagEmoji || competitor?.countryCode || "—" };
+    return {
+      isSvg: false,
+      textEmoji: competitor?.flagEmoji || getCountryFlagEmoji(code),
+    };
   }
 
   get eventTitle(): string {
@@ -157,8 +161,23 @@ export class Cwg2026ResultDetailComponent {
     );
   }
 
-  get officialIndiaEntries(): CwgOfficialResultEntry[] {
+  get rawOfficialIndiaEntries(): CwgOfficialResultEntry[] {
     return this.row?.result?.officialEventResult?.india || [];
+  }
+
+  get isGymnasticsAllAround(): boolean {
+    return (
+      /gymnastics/i.test(this.sportDisplayName) &&
+      /all-around/i.test(this.eventTitle)
+    );
+  }
+
+  get officialIndiaEntries(): CwgOfficialResultEntry[] {
+    if (!this.isGymnasticsAllAround) return this.rawOfficialIndiaEntries;
+    const overallEntries = this.rawOfficialIndiaEntries.filter(
+      (entry) => entry.bucket === "overall",
+    );
+    return overallEntries.length ? overallEntries : this.rawOfficialIndiaEntries;
   }
 
   get hasDetailedResult(): boolean {
@@ -173,11 +192,29 @@ export class Cwg2026ResultDetailComponent {
   }
 
   get officialSourceUrl(): string {
-    return (
+    const sourceUrl =
       this.row?.result?.officialSourceUrl ||
       this.row?.result?.officialEventResult?.detailUrl ||
-      ""
-    );
+      "";
+
+    if (!sourceUrl) return "";
+
+    try {
+      const url = new URL(sourceUrl);
+      const isMachineEndpoint =
+        url.hostname.includes("api.commonwealthsport.com") ||
+        url.hostname.includes("crs-cg2026-api.glasgow2026.com") ||
+        url.pathname.includes("/api/");
+      return isMachineEndpoint
+        ? "https://www.glasgow2026.com/results/detailed/"
+        : sourceUrl;
+    } catch {
+      return sourceUrl;
+    }
+  }
+
+  getCountryFlag(country?: string | null): string {
+    return getCountryFlagEmoji(country);
   }
 
   getCompetitorScore(competitor: CwgResultCompetitor): string {

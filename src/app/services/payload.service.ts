@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Apollo, gql } from 'apollo-angular';
-import { Observable, map, catchError } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { IndiaTier, SportLifecycle } from '../models/india-tier';
 import type { CwgGamesParticipation, PayloadListResponse } from '../games/cwg-2026.types';
@@ -971,9 +971,7 @@ export class PayloadService {
     const params = new HttpParams()
       .set('gamesKey', gamesKey)
       .set('_refresh', String(Date.now()));
-    return this.http.get<T>(`${environment.payload_url}/api/games-schedule/hub`, { params }).pipe(
-      catchError(() => this.http.get<T>('/assets/data/cwg-2026-india-schedule.json')),
-    );
+    return this.http.get<T>(`${environment.payload_url}/api/games-schedule/hub`, { params });
   }
 
   getGamesParticipations(

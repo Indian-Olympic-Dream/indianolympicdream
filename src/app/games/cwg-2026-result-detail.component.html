@@ -46,6 +46,19 @@
     </div>
   </div>
 
+  <div class="result-detail__scorecard" *ngIf="row.result?.match?.segments?.length">
+    <div class="result-detail__scorecard-head">
+      <span>{{ row.result?.match?.scoreLabel || 'Score breakdown' }}</span>
+      <strong *ngIf="row.result?.match?.scoreText">{{ row.result?.match?.scoreText }}</strong>
+    </div>
+    <div class="result-detail__segment" *ngFor="let segment of row.result?.match?.segments">
+      <strong>{{ segment.competitor1Score }}</strong>
+      <span>{{ segment.label }}</span>
+      <strong>{{ segment.competitor2Score }}</strong>
+    </div>
+    <p *ngIf="row.result?.match?.decisionText">{{ row.result?.match?.decisionText }}</p>
+  </div>
+
   <div class="result-detail__official-field" *ngIf="!competitors.length && officialIndiaEntries.length">
     <div class="result-detail__field-row" *ngFor="let entry of officialIndiaEntries">
       <span>
@@ -69,7 +82,7 @@
     <div class="result-detail__leaderboard-row" *ngFor="let entry of row.result?.leaderboard">
       <strong>{{ entry.rank }}</strong>
       <span>
-        <small>{{ entry.flagEmoji || entry.countryCode }}</small>
+        <small>{{ entry.flagEmoji || getCountryFlag(entry.countryCode || entry.countryName) }}</small>
         {{ entry.athleteName }}
       </span>
       <strong>{{ entry.resultValue || entry.qualificationTag || '—' }}</strong>

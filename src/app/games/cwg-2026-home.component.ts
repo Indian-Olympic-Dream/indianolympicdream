@@ -19,6 +19,7 @@ import {
   getScheduleResultSummary,
   isScheduleRowLiveNow,
   getCountryFlagEmoji,
+  parseCwgScheduleTimestamp,
 } from "./cwg-2026.types";
 
 interface WatchGroup {
@@ -253,21 +254,20 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   readonly upcomingDateGroups = computed<ScheduleDateGroup[]>(() => {
     const now = this.now().getTime();
-    const next24Hours = now + 24 * 60 * 60 * 1000;
     const rows = this.activeScheduleRows()
       .filter((row) => this.isOperationalUpcomingRow(row, now))
-      .filter((row) => this.getSessionStartMs(row) >= next24Hours)
       .filter((row) => row.id !== this.nextIndiaSession()?.id)
       .sort((a, b) => this.compareTimelineRows(a, b));
     const groupsMap = new Map<string, ScheduleDateGroup>();
 
     for (const row of rows) {
-      const key = `${row.dayLabel} ${row.dateLabel}`;
+      const date = this.getIstDateParts(this.getSessionStartMs(row));
+      const key = date.dateKey;
       if (!groupsMap.has(key)) {
         groupsMap.set(key, {
           dateKey: key,
-          dateLabel: row.dateLabel,
-          dayLabel: row.dayLabel,
+          dateLabel: date.dateLabel,
+          dayLabel: date.dayLabel,
           sessionCount: 0,
           goldCount: 0,
           rows: [],
@@ -303,7 +303,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
         .filter((row) => row.id !== this.nextIndiaSession()?.id)
         .sort((a, b) => this.compareTimelineRows(a, b));
       const nextDayRows = upcoming.filter((row) => this.getSessionStartMs(row) < next24Hours);
-      return (nextDayRows.length ? nextDayRows : upcoming).slice(0, 12);
+      return nextDayRows.length ? nextDayRows : upcoming;
     }
 
     const groups = this.upcomingDateGroups();
@@ -594,7 +594,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     if (!session) return "Schedule TBC";
     if (this.isSessionLive(session)) return `Live now · ${session.timeLabel}`;
     if (story.isToday) return `Today · ${session.timeLabel}`;
-    return `${session.dayLabel} ${session.dateLabel} · ${session.timeLabel}`;
+    const date = this.getIstDateParts(this.getSessionStartMs(session));
+    return `${date.dayLabel} ${date.dateLabel} · ${session.timeLabel}`;
   }
 
   getWatchStatusClass(story: WatchStory): string {
@@ -606,12 +607,12 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   private getSessionStartMs(row: CwgScheduleRow): number {
-    const timestamp = Date.parse(row.istStart || row.sortKey);
+    const timestamp = parseCwgScheduleTimestamp(row.istStart || row.sortKey);
     return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
   private getSessionEndMs(row: CwgScheduleRow): number {
-    const timestamp = row.istEnd ? Date.parse(row.istEnd) : NaN;
+    const timestamp = parseCwgScheduleTimestamp(row.istEnd);
     if (Number.isFinite(timestamp)) return timestamp;
     return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
   }
@@ -662,12 +663,13 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
         continue;
       }
 
+      const date = this.getIstDateParts(startMs);
       groups.push({
         id: row.id,
         startMs,
         endMs: activeEndMs,
-        dayLabel: row.dayLabel,
-        dateLabel: row.dateLabel,
+        dayLabel: date.dayLabel,
+        dateLabel: date.dateLabel,
         timeLabel: row.timeLabel,
         rows: [row],
         isLive: this.isSessionLive(row),
@@ -691,6 +693,34 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       hour12: false,
       timeZone: "Asia/Kolkata",
     }).format(new Date(timestamp));
+  }
+
+  private getIstDateParts(timestamp: number): {
+    dateKey: string;
+    dayLabel: string;
+    dateLabel: string;
+  } {
+    const date = new Date(timestamp);
+    const keyedParts = new Intl.DateTimeFormat("en-GB", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "Asia/Kolkata",
+    }).formatToParts(date);
+    const keyed = Object.fromEntries(keyedParts.map((part) => [part.type, part.value]));
+
+    return {
+      dateKey: `${keyed["year"]}-${keyed["month"]}-${keyed["day"]}`,
+      dayLabel: new Intl.DateTimeFormat("en-GB", {
+        weekday: "short",
+        timeZone: "Asia/Kolkata",
+      }).format(date),
+      dateLabel: new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "short",
+        timeZone: "Asia/Kolkata",
+      }).format(date),
+    };
   }
 
   private compareTimelineRows(a: CwgScheduleRow, b: CwgScheduleRow): number {
@@ -805,13 +835,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   private isSameDay(leftMs: number, rightMs: number): boolean {
-    const left = new Date(leftMs);
-    const right = new Date(rightMs);
-    return (
-      left.getFullYear() === right.getFullYear() &&
-      left.getMonth() === right.getMonth() &&
-      left.getDate() === right.getDate()
-    );
+    return this.getIstDateParts(leftMs).dateKey === this.getIstDateParts(rightMs).dateKey;
   }
 
   private normalizeSearchText(value?: string | null): string {

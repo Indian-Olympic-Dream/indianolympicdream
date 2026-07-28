@@ -70,8 +70,16 @@ export interface CwgResultCompetitor {
   isWinner?: boolean;
 }
 
+export interface CwgResultSegment {
+  label: string;
+  competitor1Score: string | number;
+  competitor2Score: string | number;
+}
+
 export interface CwgScheduleResultMatch {
   scoreText?: string;
+  scoreLabel?: string;
+  decisionText?: string;
   durationText?: string;
   winner?: string;
   notes?: string;
@@ -80,6 +88,7 @@ export interface CwgScheduleResultMatch {
   storyUrl?: string;
   competitor1?: CwgResultCompetitor;
   competitor2?: CwgResultCompetitor;
+  segments?: CwgResultSegment[];
 }
 
 export interface CwgLeaderboardEntry {
@@ -101,6 +110,7 @@ export interface CwgOfficialResultEntry {
   resultCodeDescription?: string;
   result?: string;
   rank?: string | number;
+  bucket?: "inline" | "versus" | "overall" | string;
   wlt?: string;
   irm?: string;
   qualificationMark?: string;
@@ -119,6 +129,13 @@ export interface CwgOfficialEventResult {
   syncedAt?: string;
 }
 
+export interface CwgMedalAward {
+  type: "gold" | "silver" | "bronze";
+  athleteName?: string;
+  result?: string;
+  rank?: number;
+}
+
 export interface CwgScheduleResult {
   summaryLabel?: string;
   resultLabel?: string;
@@ -130,6 +147,7 @@ export interface CwgScheduleResult {
   match?: CwgScheduleResultMatch | null;
   leaderboard?: CwgLeaderboardEntry[] | null;
   officialEventResult?: CwgOfficialEventResult | null;
+  medals?: CwgMedalAward[];
   boxingDraw?: CwgBoxingDrawResult;
 }
 
@@ -311,6 +329,16 @@ export const getScheduleResultBadge = (row: CwgScheduleRow): { label: string; is
   return { label: summary, isWon };
 };
 
+export const parseCwgScheduleTimestamp = (value?: string | null): number => {
+  if (!value) return Number.NaN;
+  const raw = value.trim();
+  const hasExplicitZone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  const normalized = hasExplicitZone
+    ? raw
+    : `${raw.length === 16 ? `${raw}:00` : raw}+05:30`;
+  return Date.parse(normalized);
+};
+
 export const isScheduleRowLiveNow = (row: CwgScheduleRow, now = new Date()): boolean => {
   if (
     row.status === 'completed' ||
@@ -321,8 +349,9 @@ export const isScheduleRowLiveNow = (row: CwgScheduleRow, now = new Date()): boo
   }
   if (row.status === 'live') return true;
   if (!row.istStart) return false;
-  const start = new Date(row.istStart).getTime();
-  const end = row.istEnd ? new Date(row.istEnd).getTime() : start + 2 * 60 * 60 * 1000;
+  const start = parseCwgScheduleTimestamp(row.istStart);
+  const parsedEnd = parseCwgScheduleTimestamp(row.istEnd);
+  const end = Number.isFinite(parsedEnd) ? parsedEnd : start + 2 * 60 * 60 * 1000;
   const isBoxing = `${row.sportSlug} ${row.sport}`.toLowerCase().includes('boxing');
   // Bout times are estimates; keep boxing visible while the official result catches up.
   const resultGraceMs = isBoxing ? 20 * 60 * 1000 : 0;

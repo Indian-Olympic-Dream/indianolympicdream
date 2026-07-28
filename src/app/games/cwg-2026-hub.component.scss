@@ -208,6 +208,61 @@ button {
   gap: 14px;
 }
 
+.schedule-refresh-notice {
+  padding: 10px 14px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(212, 175, 55, 0.07);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.matrix-state,
+.matrix-empty {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.58);
+  text-align: center;
+
+  strong {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.92rem;
+  }
+
+  span {
+    font-size: 0.78rem;
+  }
+}
+
+.matrix-state-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $gold;
+  box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.45);
+  animation: matrixStatePulse 1.4s infinite;
+}
+
+.matrix-state-error {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes matrixStatePulse {
+  70% {
+    box-shadow: 0 0 0 8px rgba(212, 175, 55, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
 .matrix-card {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.07);

@@ -262,7 +262,7 @@ a {
 .timeline-item {
   position: relative;
   display: grid;
-  grid-template-columns: 104px 18px 36px minmax(0, 1fr) minmax(86px, auto);
+  grid-template-columns: 104px 18px 36px minmax(240px, 1fr) minmax(180px, 280px);
   align-items: center;
   gap: 12px;
   padding: 12px 14px 12px 0;
@@ -459,7 +459,7 @@ a {
 .cluster-event {
   width: 100%;
   display: grid;
-  grid-template-columns: 82px 36px minmax(0, 1fr) minmax(76px, auto);
+  grid-template-columns: 82px 36px minmax(240px, 1fr) minmax(180px, 280px);
   align-items: center;
   gap: 10px;
   padding: 11px 14px;
@@ -1219,6 +1219,7 @@ a {
 }
 
 .session-details {
+  width: 100%;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1259,6 +1260,7 @@ a {
 }
 
 .session-time {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1269,6 +1271,7 @@ a {
   span {
     color: $muted;
     font-size: 0.68rem;
+    overflow-wrap: anywhere;
   }
 
   strong {
