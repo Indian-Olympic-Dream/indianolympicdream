@@ -1,6 +1,6 @@
 <section class="result-detail" *ngIf="hasDetailedResult" aria-label="Official result details"
-  [class.is-gold-card]="medalType === 'gold'" [class.is-silver-card]="medalType === 'silver'" [class.is-bronze-card]="medalType === 'bronze'"
-  [class.is-para-powerlifting]="isParaPowerlifting">
+  [class.is-gold-card]="medalType === 'gold'" [class.is-silver-card]="medalType === 'silver'"
+  [class.is-bronze-card]="medalType === 'bronze'" [class.is-para-powerlifting]="isParaPowerlifting">
   <header class="result-detail__header">
     <div class="result-detail__title-block">
       <div class="result-detail__timeline-meta">
@@ -9,7 +9,9 @@
       <h3 class="result-detail__event-title">{{ eventTitle }}</h3>
     </div>
     <div class="result-detail__badge-block">
-      <span class="result-detail__status-badge" [class.is-won]="isWonResult && !medalType" [class.is-lost]="isLostResult" [class.is-medal-badge]="!!medalType" [class.is-gold]="medalType === 'gold'" [class.is-silver]="medalType === 'silver'" [class.is-bronze]="medalType === 'bronze'">
+      <span class="result-detail__status-badge" [class.is-won]="isWonResult && !medalType"
+        [class.is-lost]="isLostResult" [class.is-medal-badge]="!!medalType" [class.is-gold]="medalType === 'gold'"
+        [class.is-silver]="medalType === 'silver'" [class.is-bronze]="medalType === 'bronze'">
         <span class="medal-icon-wrap" *ngIf="medalType" [innerHTML]="getCwgMedalSvg(medalType, 18, 24)"></span>
         <span>{{ summaryLabelText }}</span>
       </span>
@@ -18,8 +20,7 @@
 
   <div class="result-detail__match" *ngIf="competitors.length">
     <div class="result-detail__competitor" *ngFor="let competitor of competitors"
-      [class.is-winner]="competitor.isWinner"
-      [class.is-gold-winner]="competitor.isWinner && medalType === 'gold'"
+      [class.is-winner]="competitor.isWinner" [class.is-gold-winner]="competitor.isWinner && medalType === 'gold'"
       [class.is-silver-winner]="competitor.isWinner && medalType === 'silver'"
       [class.is-bronze-winner]="competitor.isWinner && medalType === 'bronze'">
       <div class="result-detail__competitor-left">
@@ -82,8 +83,11 @@
     <div class="result-detail__leaderboard-row" *ngFor="let entry of row.result?.leaderboard">
       <strong>{{ entry.rank }}</strong>
       <span>
-        <small>{{ entry.flagEmoji || getCountryFlag(entry.countryCode || entry.countryName) }}</small>
-        {{ entry.athleteName }}
+        <<<<<<< HEAD <small>{{ entry.flagEmoji || getCountryFlag(entry.countryCode || entry.countryName) }}</small>
+          =======
+          <small>{{ entry.flagEmoji || entry.countryCode }}</small>
+          >>>>>>> master
+          {{ entry.athleteName }}
       </span>
       <strong>{{ entry.resultValue || entry.qualificationTag || '—' }}</strong>
     </div>

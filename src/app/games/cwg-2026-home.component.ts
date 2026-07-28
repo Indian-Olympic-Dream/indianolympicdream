@@ -647,9 +647,9 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       const sameClockStart = Boolean(currentGroup && startMs === currentGroup.startMs);
       const canJoinCurrentGroup = Boolean(
         currentGroup &&
-          !sameStartOverflow &&
-          currentGroup.rows.length < maxGroupRows &&
-          sameClockStart
+        !sameStartOverflow &&
+        currentGroup.rows.length < maxGroupRows &&
+        sameClockStart
       );
 
       if (canJoinCurrentGroup && currentGroup) {

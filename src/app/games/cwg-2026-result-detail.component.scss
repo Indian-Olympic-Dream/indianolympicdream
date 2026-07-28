@@ -221,7 +221,7 @@
   }
 }
 
-.result-detail__scorecard > p {
+.result-detail__scorecard>p {
   margin: 3px 0 0;
   padding-top: 7px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -279,7 +279,7 @@
 }
 
 .result-detail__identity,
-.result-detail__field-row > span {
+.result-detail__field-row>span {
   min-width: 0;
   display: grid;
   gap: 2px;
@@ -424,6 +424,7 @@
 }
 
 @media (max-width: 520px) {
+
   .result-detail__header,
   .result-detail__footer,
   .result-detail__competitor,

@@ -186,7 +186,10 @@ a {
 
       &.winner {
         font-weight: 850;
-        .name { color: #ffffff; }
+
+        .name {
+          color: #ffffff;
+        }
       }
 
       .short-identity {
@@ -194,9 +197,18 @@ a {
         align-items: center;
         gap: 6px;
 
-        .flag { font-size: 0.88rem; }
-        .name { color: rgba(255, 255, 255, 0.85); font-size: 0.78rem; }
-        .gold-icon { font-size: 0.85rem; }
+        .flag {
+          font-size: 0.88rem;
+        }
+
+        .name {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.78rem;
+        }
+
+        .gold-icon {
+          font-size: 0.85rem;
+        }
       }
 
       .short-scores {
@@ -218,8 +230,17 @@ a {
   }
 
   .short-fallback-text {
-    strong { font-size: 0.8rem; color: #ffffff; display: block; }
-    .summary-snippet { font-size: 0.72rem; color: #f3d368; margin-top: 2px; }
+    strong {
+      font-size: 0.8rem;
+      color: #ffffff;
+      display: block;
+    }
+
+    .summary-snippet {
+      font-size: 0.72rem;
+      color: #f3d368;
+      margin-top: 2px;
+    }
   }
 }
 
@@ -428,7 +449,7 @@ a {
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  > div {
+  >div {
     display: grid;
     gap: 2px;
   }
@@ -548,9 +569,11 @@ a {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(255, 107, 107, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
   }
@@ -1316,6 +1339,7 @@ a {
   font-weight: 900;
   text-decoration: none;
   transition: opacity 0.2s;
+
   &:hover {
     opacity: 0.85;
   }
@@ -1746,7 +1770,7 @@ a {
   align-items: center;
   gap: 12px;
 
-  > div {
+  >div {
     display: grid;
     gap: 2px;
   }
@@ -1857,6 +1881,7 @@ a {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -1866,6 +1891,7 @@ a {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -1886,6 +1912,7 @@ a {
 }
 
 @media (max-width: 900px) {
+
   .timeline-item .session-header-line,
   .cluster-event .session-header-line {
     width: 100%;

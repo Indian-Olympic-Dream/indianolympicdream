@@ -183,11 +183,11 @@ export class Cwg2026ResultDetailComponent {
   get hasDetailedResult(): boolean {
     return Boolean(
       this.row?.result &&
-        (this.competitors.length ||
-          this.row.result.leaderboard?.length ||
-          this.officialIndiaEntries.length ||
-          this.row.result.summary ||
-          this.row.result.summaryLabel),
+      (this.competitors.length ||
+        this.row.result.leaderboard?.length ||
+        this.officialIndiaEntries.length ||
+        this.row.result.summary ||
+        this.row.result.summaryLabel),
     );
   }
 

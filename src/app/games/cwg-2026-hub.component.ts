@@ -312,7 +312,7 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
     if (row.result?.medals?.length) return true;
     const summary = (row.result?.summaryLabel || row.result?.resultLabel || "").toUpperCase();
     return summary.includes("GOLD") || summary.includes("SILVER") || summary.includes("BRONZE") ||
-           summary.includes("🥇") || summary.includes("🥈") || summary.includes("🥉");
+      summary.includes("🥇") || summary.includes("🥈") || summary.includes("🥉");
   }
 
   shouldShowMedalIndicator(cell: ScheduleCell): boolean {
@@ -325,8 +325,8 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
 
     if (this.showDeclaredResultsOnly()) {
       const isParaPowerlifting = (cell.sportName || "").toLowerCase().includes("powerlifting") ||
-                                 (cell.sportKey || "").toLowerCase().includes("powerlifting") ||
-                                 (cell.sportName || "").toLowerCase().includes("weightlifting");
+        (cell.sportKey || "").toLowerCase().includes("powerlifting") ||
+        (cell.sportName || "").toLowerCase().includes("weightlifting");
       const isJuly24 = cell.dateKey === "2026-07-24" || (cell.dateLabel || "").includes("24");
 
       return (isParaPowerlifting && isJuly24) || Boolean((cell as any).hasMedalWon);
