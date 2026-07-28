@@ -30,8 +30,8 @@
   <div class="stream-tabs-bar">
     <nav class="stream-tabs" aria-label="Filter schedule matrix">
       <button *ngFor="let stream of streamTabs(); trackBy: trackByStream" type="button"
-        [class.active]="activeStream() === stream.key && !showDeclaredResultsOnly()" [class.para]="stream.key === 'para'"
-        (click)="setActiveStream(stream.key); setDeclaredResultsOnly(false)">
+        [class.active]="activeStream() === stream.key && !showDeclaredResultsOnly()"
+        [class.para]="stream.key === 'para'" (click)="setActiveStream(stream.key); setDeclaredResultsOnly(false)">
         <span>{{ stream.label }}</span>
         <span class="count-badge">{{ stream.rows }}</span>
       </button>
@@ -44,59 +44,86 @@
   </div>
 
   <main class="matrix-content">
-    <section class="matrix-card" aria-label="India schedule matrix">
-      <div class="matrix-scroll">
-        <div class="schedule-grid" [class.results-grid]="showDeclaredResultsOnly()" [style.--date-count]="dateColumns().length">
-          <div class="corner-cell">Sport</div>
+    <div class="schedule-refresh-notice" *ngIf="hasScheduleError() && scheduleRows().length">
+      Live schedule refresh is delayed. Showing the last verified update.
+    </div>
 
-          <div class="date-head" *ngFor="let date of dateColumns(); trackBy: trackByDate">
-            <span>{{ date.dayLabel }}</span>
-            <strong>{{ date.dateLabel }}</strong>
-          </div>
+    <section class="matrix-state" *ngIf="isScheduleLoading() && !scheduleRows().length" aria-live="polite">
+      <span class="matrix-state-pulse" aria-hidden="true"></span>
+      <strong>Loading the current India schedule</strong>
+    </section>
 
-          <ng-container *ngFor="let sport of matrixRows(); trackBy: trackBySport">
-            <div class="sport-head" [class.para]="sport.stream === 'para'">
-              <span class="sport-icon">
-                <img *ngIf="getSportPictogramUrl(sport) as icon; else sportFallback" [src]="icon" [alt]="sport.name">
-                <ng-template #sportFallback>{{ getSportInitials(sport.name) }}</ng-template>
-              </span>
-              <span class="sport-copy">
-                <strong>{{ sport.name }}</strong>
-              </span>
+    <section class="matrix-state matrix-state-error" *ngIf="hasScheduleError() && !scheduleRows().length"
+      aria-live="assertive">
+      <strong>Current schedule unavailable</strong>
+      <span>Payload did not answer. We will retry automatically.</span>
+    </section>
+
+    <section class="matrix-card" aria-label="India schedule matrix"
+      *ngIf="!isScheduleLoading() && (!hasScheduleError() || scheduleRows().length)">
+      <ng-container *ngIf="matrixRows().length; else emptyMatrix">
+        <div class="matrix-scroll">
+          <div class="schedule-grid" [class.results-grid]="showDeclaredResultsOnly()"
+            [style.--date-count]="dateColumns().length">
+            <div class="corner-cell">Sport</div>
+
+            <div class="date-head" *ngFor="let date of dateColumns(); trackBy: trackByDate">
+              <span>{{ date.dayLabel }}</span>
+              <strong>{{ date.dateLabel }}</strong>
             </div>
 
-            <button class="date-cell" *ngFor="let cell of sport.cells; trackBy: trackByCell" type="button"
-              [class.active]="cell.sessionCount > 0"
-              [class.medal]="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)"
-              [class.cell-completed]="cell.hasDeclaredResult"
-              [class.cell-live]="cell.hasLiveNow"
-              [class.selected]="selectedCellKey() === cell.key"
-              [disabled]="cell.sessionCount === 0"
-              (click)="selectCell(cell)"
-              [title]="getCellTooltip ? getCellTooltip(cell) : ''">
-              <span class="cell-content">
-                <ng-container *ngIf="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)">
-                  <img [src]="getCellMedalIconUrl ? getCellMedalIconUrl(cell) : medalIconUrl" alt="Medal won" class="cell-medal-icon">
-                  <span class="medal-count-num">{{ getCellMedalCountText ? getCellMedalCountText(cell) : '1' }}</span>
-                </ng-container>
+            <ng-container *ngFor="let sport of matrixRows(); trackBy: trackBySport">
+              <div class="sport-head" [class.para]="sport.stream === 'para'">
+                <span class="sport-icon">
+                  <img *ngIf="getSportPictogramUrl(sport) as icon; else sportFallback" [src]="icon" [alt]="sport.name">
+                  <ng-template #sportFallback>{{ getSportInitials(sport.name) }}</ng-template>
+                </span>
+                <span class="sport-copy">
+                  <strong>{{ sport.name }}</strong>
+                </span>
+              </div>
 
-                <ng-container *ngIf="!shouldShowResultMedalIcon || !shouldShowResultMedalIcon(cell)">
-                  <ng-container *ngIf="getCellLabel && getCellLabel(cell); else emptyDot">{{ getCellLabel(cell) }}</ng-container>
-                  <ng-template #emptyDot><span class="empty-dot">·</span></ng-template>
-                </ng-container>
-              </span>
-            </button>
-          </ng-container>
-        </div>
-      </div>
+              <button class="date-cell" *ngFor="let cell of sport.cells; trackBy: trackByCell" type="button"
+                [class.active]="cell.sessionCount > 0"
+                [class.medal]="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)"
+                [class.cell-completed]="cell.hasDeclaredResult" [class.cell-live]="cell.hasLiveNow"
+                [class.selected]="selectedCellKey() === cell.key" [disabled]="cell.sessionCount === 0"
+                (click)="selectCell(cell)" [title]="getCellTooltip ? getCellTooltip(cell) : ''">
+                <span class="cell-content">
+                  <ng-container *ngIf="shouldShowResultMedalIcon && shouldShowResultMedalIcon(cell)">
+                    <img [src]="getCellMedalIconUrl ? getCellMedalIconUrl(cell) : medalIconUrl" alt="Medal won"
+                      class="cell-medal-icon">
+                    <span class="medal-count-num">{{ getCellMedalCountText ? getCellMedalCountText(cell) : '1' }}</span>
+                  </ng-container>
 
-      <div class="legend-row">
-        <div class="legend-items">
-          <span class="legend-item"><i class="legend-dot active-dot"></i>{{ showDeclaredResultsOnly() ? 'Declared result day' : 'Upcoming India session' }}</span>
-          <span class="legend-item"><img class="legend-medal" [src]="medalIconUrl" alt="">Medal session</span>
+                  <ng-container *ngIf="!shouldShowResultMedalIcon || !shouldShowResultMedalIcon(cell)">
+                    <ng-container *ngIf="getCellLabel && getCellLabel(cell); else emptyDot">{{ getCellLabel(cell)
+                      }}</ng-container>
+                    <ng-template #emptyDot><span class="empty-dot">·</span></ng-template>
+                  </ng-container>
+                </span>
+              </button>
+            </ng-container>
+          </div>
         </div>
-        <span class="legend-hint">Click active cell for session details &amp; status</span>
-      </div>
+
+        <div class="legend-row">
+          <div class="legend-items">
+            <span class="legend-item"><i class="legend-dot active-dot"></i>{{ showDeclaredResultsOnly() ? 'Declared
+              result day' : 'Upcoming India session' }}</span>
+            <span class="legend-item"><img class="legend-medal" [src]="medalIconUrl" alt="">Medal session</span>
+          </div>
+          <span class="legend-hint">Click active cell for session details &amp; status</span>
+        </div>
+
+        <ng-template #emptyMatrix>
+          <div class="matrix-empty">
+            <strong>{{ showDeclaredResultsOnly() ? 'No declared results in this view' : 'No upcoming sessions in this
+              view' }}</strong>
+            <span>Choose another India filter to continue.</span>
+          </div>
+        </ng-template>
+      </ng-container>
     </section>
   </main>
 
@@ -131,8 +158,7 @@
       <div class="session-list">
         <article *ngFor="let row of cell.rows; trackBy: trackByScheduleRow"
           [class.gold-session]="row.goldMedalEvents?.length && !getResultSummary(row)"
-          [class.completed-session]="row.status === 'completed'"
-          [class.boxing-session]="hasBoxingDraw(row)"
+          [class.completed-session]="row.status === 'completed'" [class.boxing-session]="hasBoxingDraw(row)"
           [class.has-result-detail]="getResultSummary(row)">
           <!-- Completed session: standalone result detail card -->
           <app-cwg-2026-result-detail *ngIf="getResultSummary(row)" [row]="row" />
@@ -177,8 +203,8 @@
 
   <div class="road-medal-dialog" *ngIf="selectedRoadToMedalRow() as roadRow" role="presentation"
     (click)="closeRoadToMedal()">
-    <section class="road-medal-panel" role="dialog" aria-modal="true"
-      [attr.aria-labelledby]="'road-medal-dialog-title'" (click)="$event.stopPropagation()">
+    <section class="road-medal-panel" role="dialog" aria-modal="true" [attr.aria-labelledby]="'road-medal-dialog-title'"
+      (click)="$event.stopPropagation()">
       <header class="road-medal-header">
         <div>
           <p class="eyebrow">Boxing Draw</p>

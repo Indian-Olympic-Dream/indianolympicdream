@@ -971,9 +971,7 @@ export class PayloadService {
     const params = new HttpParams()
       .set('gamesKey', gamesKey)
       .set('_refresh', String(Date.now()));
-    return this.http.get<T>(`${environment.payload_url}/api/games-schedule/hub`, { params }).pipe(
-      catchError(() => this.http.get<T>('/assets/data/cwg-2026-india-schedule.json')),
-    );
+    return this.http.get<T>(`${environment.payload_url}/api/games-schedule/hub`, { params });
   }
 
   getGamesParticipations(

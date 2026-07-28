@@ -17,6 +17,7 @@ import {
   getScheduleResultBadge,
   getScheduleResultSummary,
   isScheduleRowLiveNow,
+  parseCwgScheduleTimestamp,
 } from "./cwg-2026.types";
 
 type CompetitionStream = CwgCompetitionStream;
@@ -88,6 +89,8 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   readonly selectedRoadToMedalRow = signal<CwgScheduleRow | null>(null);
   readonly isRoadToMedalImageLoaded = signal(false);
   readonly sportPictograms = signal<Record<string, string>>({});
+  readonly isScheduleLoading = signal(true);
+  readonly hasScheduleError = signal(false);
   readonly now = signal(new Date());
   readonly scheduleData = signal<CwgScheduleData>({
     gamesDates: "23 July–2 August 2026",
@@ -129,6 +132,10 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   );
 
   getResultMedalSortRank(row: CwgScheduleRow): number {
+    const medals = row.result?.medals || [];
+    if (medals.some((medal) => medal.type === "gold")) return 1;
+    if (medals.some((medal) => medal.type === "silver")) return 2;
+    if (medals.some((medal) => medal.type === "bronze")) return 3;
     const summary = (row.result?.summaryLabel || row.result?.resultLabel || "").toUpperCase();
 
     if (summary.includes("GOLD") || summary.includes("1ST")) return 1;
@@ -222,17 +229,24 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   private loadSchedule(resetSelection: boolean): void {
     if (this.scheduleRequestInFlight) return;
     this.scheduleRequestInFlight = true;
+    if (resetSelection && !this.scheduleRows().length) {
+      this.isScheduleLoading.set(true);
+    }
 
     this.payload.getGamesHubSchedule<CwgScheduleData>(CWG_2026_GAMES_KEY).subscribe({
       next: (schedule) => {
-        if (schedule?.rows?.length) {
+        if (Array.isArray(schedule?.rows)) {
           this.scheduleData.set(schedule);
           if (resetSelection) this.selectedCellKey.set(null);
         }
         this.scheduleRequestInFlight = false;
+        this.isScheduleLoading.set(false);
+        this.hasScheduleError.set(false);
       },
       error: () => {
         this.scheduleRequestInFlight = false;
+        this.isScheduleLoading.set(false);
+        this.hasScheduleError.set(true);
       },
     });
   }
@@ -295,9 +309,10 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   };
 
   isMedalWonRow(row: CwgScheduleRow): boolean {
+    if (row.result?.medals?.length) return true;
     const summary = (row.result?.summaryLabel || row.result?.resultLabel || "").toUpperCase();
     return summary.includes("GOLD") || summary.includes("SILVER") || summary.includes("BRONZE") ||
-           summary.includes("🥇") || summary.includes("🥈") || summary.includes("🥉");
+      summary.includes("🥇") || summary.includes("🥈") || summary.includes("🥉");
   }
 
   shouldShowMedalIndicator(cell: ScheduleCell): boolean {
@@ -310,8 +325,8 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
 
     if (this.showDeclaredResultsOnly()) {
       const isParaPowerlifting = (cell.sportName || "").toLowerCase().includes("powerlifting") ||
-                                 (cell.sportKey || "").toLowerCase().includes("powerlifting") ||
-                                 (cell.sportName || "").toLowerCase().includes("weightlifting");
+        (cell.sportKey || "").toLowerCase().includes("powerlifting") ||
+        (cell.sportName || "").toLowerCase().includes("weightlifting");
       const isJuly24 = cell.dateKey === "2026-07-24" || (cell.dateLabel || "").includes("24");
 
       return (isParaPowerlifting && isJuly24) || Boolean((cell as any).hasMedalWon);
@@ -332,7 +347,12 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   getCellMedalCountText = (cell: ScheduleCell): string => {
     if (!cell) return "1";
     if (this.showDeclaredResultsOnly()) {
-      return "1";
+      const structuredCount = cell.rows.reduce(
+        (count, row) => count + (row.result?.medals?.length || 0),
+        0,
+      );
+      if (structuredCount > 0) return String(structuredCount);
+      return String(cell.rows.filter((row) => this.isMedalWonRow(row)).length || 1);
     }
     return String(cell.goldMedalsOnOffer || 1);
   };
@@ -454,12 +474,12 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   }
 
   private getSessionStartMs(row: CwgScheduleRow): number {
-    const timestamp = Date.parse(row.istStart || row.sortKey);
+    const timestamp = parseCwgScheduleTimestamp(row.istStart || row.sortKey);
     return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
   private getSessionEndMs(row: CwgScheduleRow): number {
-    const timestamp = row.istEnd ? Date.parse(row.istEnd) : NaN;
+    const timestamp = parseCwgScheduleTimestamp(row.istEnd);
     if (Number.isFinite(timestamp)) return timestamp;
     return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
   }
