@@ -83,11 +83,8 @@
     <div class="result-detail__leaderboard-row" *ngFor="let entry of row.result?.leaderboard">
       <strong>{{ entry.rank }}</strong>
       <span>
-        <<<<<<< HEAD <small>{{ entry.flagEmoji || getCountryFlag(entry.countryCode || entry.countryName) }}</small>
-          =======
-          <small>{{ entry.flagEmoji || entry.countryCode }}</small>
-          >>>>>>> master
-          {{ entry.athleteName }}
+        <small>{{ entry.flagEmoji || getCountryFlag(entry.countryCode || entry.countryName) }}</small>
+        {{ entry.athleteName }}
       </span>
       <strong>{{ entry.resultValue || entry.qualificationTag || '—' }}</strong>
     </div>
