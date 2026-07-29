@@ -5,6 +5,7 @@ import { PayloadService, Sport } from "../services/payload.service";
 import { Cwg2026ResultDetailComponent } from "./cwg-2026-result-detail.component";
 import {
   CWG_2026_GAMES_KEY,
+  CwgCompetitionStream,
   CwgGamesParticipation,
   CwgScheduleData,
   CwgScheduleRow,
@@ -50,6 +51,23 @@ interface TimelineGroup {
   hasMedal: boolean;
 }
 
+interface MedalTally {
+  gold: number;
+  silver: number;
+  bronze: number;
+  total: number;
+}
+
+interface MedalWinner {
+  id: string;
+  type: "gold" | "silver" | "bronze";
+  athleteName: string;
+  result?: string;
+  sport: string;
+  event: string;
+  row: CwgScheduleRow;
+}
+
 export interface WatchStory {
   rank: number;
   title: string;
@@ -93,6 +111,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   private scheduleRequestInFlight = false;
 
   readonly medalIconUrl = "assets/images/cwg/glasgow-gold-medal.svg";
+  readonly silverMedalIconUrl = "assets/images/cwg/glasgow-silver-medal.svg";
+  readonly bronzeMedalIconUrl = "assets/images/cwg/glasgow-bronze-medal.svg";
   readonly glasgowLogoUrl = "assets/images/cwg/glasgow-2026-logo-vertical.svg";
   readonly participations = signal<CwgGamesParticipation[]>([]);
   readonly scheduleData = signal<CwgScheduleData>({
@@ -108,12 +128,115 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   readonly hasRosterError = signal(false);
   readonly isScheduleLoading = signal(true);
   readonly hasScheduleError = signal(false);
+  readonly selectedMedalStream = signal<CwgCompetitionStream>("all");
+  readonly selectedMedalSport = signal<string>("all");
+  readonly indiaRank = signal<number | null>(8);
+  readonly isMedalWinnersDialogOpen = signal(false);
+  readonly resultOpenedFromMedalWinners = signal(false);
+  readonly medalStreamFilters: ReadonlyArray<{ key: CwgCompetitionStream; label: string }> = [
+    { key: "all", label: "All" },
+    { key: "able-bodied", label: "Able-bodied" },
+    { key: "para", label: "Para" },
+  ];
 
   readonly scheduleRows = computed(() =>
     [...this.scheduleData().rows].sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
   );
 
   readonly activeScheduleRows = computed(() => this.scheduleRows().filter((row) => !row.isEliminated));
+
+  readonly medalTally = computed<MedalTally>(() => {
+    const selectedStream = this.selectedMedalStream();
+    const medalTypes = this.scheduleRows()
+      .filter((row) =>
+        selectedStream === "all"
+          ? true
+          : this.getScheduleCompetitionStream(row) === selectedStream,
+      )
+      .flatMap((row) => this.getResultMedalTypes(row));
+    const gold = medalTypes.filter((type) => type === "gold").length;
+    const silver = medalTypes.filter((type) => type === "silver").length;
+    const bronze = medalTypes.filter((type) => type === "bronze").length;
+
+    return {
+      gold,
+      silver,
+      bronze,
+      total: gold + silver + bronze,
+    };
+  });
+
+  readonly medalStreamLabel = computed(() => {
+    if (this.selectedMedalStream() === "able-bodied") return "Able-bodied";
+    if (this.selectedMedalStream() === "para") return "Para";
+    return "All events";
+  });
+
+  readonly medalWinners = computed<MedalWinner[]>(() => {
+    const selectedStream = this.selectedMedalStream();
+    const medalOrder = { gold: 0, silver: 1, bronze: 2 };
+
+    return this.scheduleRows()
+      .filter((row) => row.status === "completed" && Boolean(row.result))
+      .filter((row) =>
+        selectedStream === "all"
+          ? true
+          : this.getScheduleCompetitionStream(row) === selectedStream,
+      )
+      .flatMap((row) => {
+        const structuredMedals = row.result?.medals || [];
+        if (structuredMedals.length) {
+          return structuredMedals.map((medal, index) => ({
+            id: `${row.id}:${medal.type}:${medal.athleteName || index}`,
+            type: medal.type,
+            athleteName: medal.athleteName || row.athletes || "India",
+            result: medal.result,
+            sport: row.sport,
+            event: row.event,
+            row,
+          }));
+        }
+
+        const competitor = row.result?.match?.competitor1;
+        return this.getResultMedalTypes(row).map((type, index) => ({
+          id: `${row.id}:${type}:legacy-${index}`,
+          type,
+          athleteName: competitor?.name || row.athletes || "India",
+          result: competitor?.totalScore != null ? String(competitor.totalScore) : undefined,
+          sport: row.sport,
+          event: row.event,
+          row,
+        }));
+      })
+      .sort(
+        (a, b) =>
+          medalOrder[a.type] - medalOrder[b.type] ||
+          b.row.sortKey.localeCompare(a.row.sortKey) ||
+          a.athleteName.localeCompare(b.athleteName),
+      );
+  });
+
+  readonly medalSportFilters = computed(() => {
+    const counts = new Map<string, number>();
+    this.medalWinners().forEach((winner) => {
+      counts.set(winner.sport, (counts.get(winner.sport) || 0) + 1);
+    });
+
+    return [
+      { key: "all", label: "All sports", count: this.medalWinners().length },
+      ...[...counts.entries()]
+        .sort(([leftSport, leftCount], [rightSport, rightCount]) =>
+          rightCount - leftCount || leftSport.localeCompare(rightSport),
+        )
+        .map(([sport, count]) => ({ key: sport, label: sport, count })),
+    ];
+  });
+
+  readonly visibleMedalWinners = computed(() => {
+    const selectedSport = this.selectedMedalSport();
+    if (selectedSport === "all") return this.medalWinners();
+    return this.medalWinners().filter((winner) => winner.sport === selectedSport);
+  });
 
   readonly declaredResults = computed(() =>
     this.activeScheduleRows()
@@ -133,26 +256,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       .filter((item) => Boolean(item && item.row && item.row.id))
       .slice(0, 2),
   );
-
-  readonly summary = computed(() => {
-    const roster = this.participations();
-    const scheduleRows = this.scheduleRows();
-    const ableRows = roster.filter((row) => row.competitionStream === "able-bodied");
-    const paraRows = roster.filter((row) => row.competitionStream === "para");
-
-    const goldsCount = new Set(scheduleRows.flatMap((row) => row.goldMedalEvents || [])).size;
-
-    return {
-      athletes: roster.length || 126,
-      ableAthletes: ableRows.length || 97,
-      paraAthletes: paraRows.length || 29,
-      sports: new Set(roster.map((row) => getParticipationSportName(row))).size || 13,
-      ableSports: new Set(ableRows.map((row) => getParticipationSportName(row))).size || 8,
-      paraSports: new Set(paraRows.map((row) => getParticipationSportName(row))).size || 5,
-      scheduleEntries: scheduleRows.length || 204,
-      golds: goldsCount || 108,
-    };
-  });
 
   readonly watchGroups = computed(() => {
     const groups = new Map<string, WatchGroup>();
@@ -256,7 +359,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     const now = this.now().getTime();
     const rows = this.activeScheduleRows()
       .filter((row) => this.isOperationalUpcomingRow(row, now))
-      .filter((row) => row.id !== this.nextIndiaSession()?.id)
       .sort((a, b) => this.compareTimelineRows(a, b));
     const groupsMap = new Map<string, ScheduleDateGroup>();
 
@@ -300,7 +402,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       const next24Hours = now + 24 * 60 * 60 * 1000;
       const upcoming = this.activeScheduleRows()
         .filter((row) => this.isOperationalUpcomingRow(row, now))
-        .filter((row) => row.id !== this.nextIndiaSession()?.id)
         .sort((a, b) => this.compareTimelineRows(a, b));
       const nextDayRows = upcoming.filter((row) => this.getSessionStartMs(row) < next24Hours);
       return nextDayRows.length ? nextDayRows : upcoming;
@@ -318,12 +419,43 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     return this.activeScheduleRows()
       .filter((row) => this.isMedalRow(row))
       .filter((row) => this.isOperationalUpcomingRow(row, now))
-      .filter((row) => row.id !== this.nextIndiaSession()?.id)
       .sort((a, b) => this.compareTimelineRows(a, b));
   });
 
   setSelectedDateKey(key: string): void {
     this.selectedDateKey.set(key);
+  }
+
+  setMedalStream(stream: CwgCompetitionStream): void {
+    this.selectedMedalStream.set(stream);
+    this.selectedMedalSport.set("all");
+  }
+
+  setMedalSport(sport: string): void {
+    this.selectedMedalSport.set(sport);
+  }
+
+  getMedalIconUrl(type: "gold" | "silver" | "bronze"): string {
+    if (type === "silver") return this.silverMedalIconUrl;
+    if (type === "bronze") return this.bronzeMedalIconUrl;
+    return this.medalIconUrl;
+  }
+
+  getMedalLabel(type: "gold" | "silver" | "bronze"): string {
+    return `${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+  }
+
+  openMedalWinnersDialog(): void {
+    this.isMedalWinnersDialogOpen.set(true);
+  }
+
+  closeMedalWinnersDialog(): void {
+    this.isMedalWinnersDialogOpen.set(false);
+  }
+
+  openMedalWinnerDetails(winner: MedalWinner): void {
+    this.resultOpenedFromMedalWinners.set(true);
+    this.selectedSessionRow.set(winner.row);
   }
 
   ngOnInit(): void {
@@ -345,6 +477,13 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
         this.participations.set([]);
         this.isRosterLoading.set(false);
         this.hasRosterError.set(true);
+      },
+    });
+
+    this.payload.getEditionBySlug("glasgow-2026").subscribe({
+      next: (edition) => {
+        const rank = edition?.globalStats?.indiaRank;
+        if (typeof rank === "number" && rank > 0) this.indiaRank.set(rank);
       },
     });
 
@@ -612,9 +751,10 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   private getSessionEndMs(row: CwgScheduleRow): number {
+    const start = this.getSessionStartMs(row);
     const timestamp = parseCwgScheduleTimestamp(row.istEnd);
-    if (Number.isFinite(timestamp)) return timestamp;
-    return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
+    if (Number.isFinite(timestamp) && timestamp > start) return timestamp;
+    return start + 2 * 60 * 60 * 1000;
   }
 
   private isDeclaredResultRow(row: CwgScheduleRow): boolean {
@@ -740,6 +880,49 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     return row.isMedalSession || Boolean(row.goldMedalEvents?.length);
   }
 
+  private getScheduleCompetitionStream(row: CwgScheduleRow): Exclude<CwgCompetitionStream, "all"> {
+    if (row.competitionStream) return row.competitionStream;
+
+    const sportLabel = `${row.sport || ""} ${row.sportSlug || ""}`.toLowerCase();
+    return sportLabel.includes("para") || sportLabel.includes("wheelchair")
+      ? "para"
+      : "able-bodied";
+  }
+
+  private getResultMedalTypes(row: CwgScheduleRow): Array<"gold" | "silver" | "bronze"> {
+    if (row.status !== "completed" || !row.result) return [];
+
+    const structuredMedals = (row.result.medals || [])
+      .map((medal) => medal.type)
+      .filter(
+        (type): type is "gold" | "silver" | "bronze" =>
+          type === "gold" || type === "silver" || type === "bronze",
+      );
+    if (structuredMedals.length) return structuredMedals;
+
+    const resultLabels = [
+      row.result.summaryLabel,
+      row.result.resultLabel,
+      row.result.summary,
+      row.result.outcome,
+    ]
+      .filter(Boolean)
+      .map((label) => String(label).trim().toLowerCase());
+
+    return (["gold", "silver", "bronze"] as const).filter((type) =>
+      resultLabels.some(
+        (label) =>
+          label === type ||
+          label === `${type} medal` ||
+          label.startsWith(`${type} ·`) ||
+          label.startsWith(`${type} (`) ||
+          label.startsWith(`${type} medal ·`) ||
+          label === `won ${type}` ||
+          label.startsWith(`won ${type} ·`),
+      ),
+    );
+  }
+
   private normalizeSportKey(value?: string | null): string {
     return (value || "")
       .toLowerCase()
@@ -848,11 +1031,18 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   openSessionDialog(row: CwgScheduleRow): void {
+    this.resultOpenedFromMedalWinners.set(false);
     this.selectedSessionRow.set(row);
   }
 
   closeSessionDialog(): void {
     this.selectedSessionRow.set(null);
+    this.resultOpenedFromMedalWinners.set(false);
+  }
+
+  backToMedalWinners(): void {
+    this.selectedSessionRow.set(null);
+    this.resultOpenedFromMedalWinners.set(false);
   }
 
   openHeaderLivePanel(): void {

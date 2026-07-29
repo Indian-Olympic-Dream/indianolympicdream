@@ -25,26 +25,77 @@
       </div>
     </div>
 
-    <div class="hero-stats">
-      <div class="stat-box">
-        <strong>{{ summary().athletes }}</strong>
-        <span>Athletes ({{ summary().ableAthletes }} Able · {{ summary().paraAthletes }} Para)</span>
+    <section class="hero-medal-tally" aria-labelledby="india-medal-tally-title">
+      <div class="medal-tally-header">
+        <div class="medal-tally-title">
+          <span>Official results</span>
+          <strong id="india-medal-tally-title">India Medal Tally</strong>
+          <small>{{ medalStreamLabel() }}</small>
+        </div>
+
+        <div class="medal-tally-controls">
+          <div class="medal-stream-filter" role="group" aria-label="Filter India medal tally">
+            <button *ngFor="let filter of medalStreamFilters" type="button"
+              [class.active]="selectedMedalStream() === filter.key"
+              [attr.aria-pressed]="selectedMedalStream() === filter.key"
+              (click)="setMedalStream(filter.key)">
+              {{ filter.label }}
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="stat-box">
-        <strong>{{ summary().sports }}</strong>
-        <span>Sports ({{ summary().ableSports }} Able · {{ summary().paraSports }} Para)</span>
+
+      <div class="medal-scoreboard" role="table" aria-label="India medal tally" aria-live="polite">
+        <div class="medal-scoreboard-head" role="row">
+          <span role="columnheader">Rank</span>
+          <span role="columnheader">Nation</span>
+          <span role="columnheader">Gold</span>
+          <span role="columnheader">Silver</span>
+          <span role="columnheader">Bronze</span>
+          <span role="columnheader">Total</span>
+        </div>
+
+        <div class="medal-scoreboard-row" role="row">
+          <strong class="india-rank" role="cell" aria-label="India overall rank">
+            <span>#{{ indiaRank() || '—' }}</span>
+            <small>Overall</small>
+          </strong>
+          <div class="medal-nation" role="rowheader">
+            <span class="india-flag" aria-hidden="true">🇮🇳</span>
+            <span>
+              <strong>India</strong>
+              <small>IND</small>
+            </span>
+          </div>
+          <strong class="medal-number gold" role="cell" aria-label="Gold medals">
+            <img [src]="medalIconUrl" alt="">
+            <span>{{ medalTally().gold }}</span>
+          </strong>
+          <strong class="medal-number silver" role="cell" aria-label="Silver medals">
+            <img [src]="silverMedalIconUrl" alt="">
+            <span>{{ medalTally().silver }}</span>
+          </strong>
+          <strong class="medal-number bronze" role="cell" aria-label="Bronze medals">
+            <img [src]="bronzeMedalIconUrl" alt="">
+            <span>{{ medalTally().bronze }}</span>
+          </strong>
+          <strong class="medal-number total" role="cell" aria-label="Total medals">{{ medalTally().total }}</strong>
+        </div>
       </div>
-      <div class="stat-box gold">
-        <strong>{{ summary().golds }}</strong>
-        <span>Gold medal events mapped</span>
+
+      <div class="medal-tally-footer">
+        <span>Declared medals only</span>
+        <div class="medal-tally-actions">
+          <button *ngIf="liveCount() > 0" type="button" class="medal-results-action has-live"
+            (click)="openHeaderLivePanel()" aria-label="Show live sessions for India">
+            <span><i class="pulse-dot"></i>{{ liveCount() }} live</span>
+          </button>
+          <button type="button" class="medal-winners-action" (click)="openMedalWinnersDialog()">
+            View {{ medalTally().total }} medal winners <span aria-hidden="true">→</span>
+          </button>
+        </div>
       </div>
-      <button type="button" class="stat-box live-stat header-live-control" [class.has-live]="liveCount() > 0"
-        (click)="openHeaderLivePanel()"
-        [attr.aria-label]="liveCount() > 0 ? 'Show live sessions for India' : 'View declared results'">
-        <strong>{{ liveCount() || declaredResults().length }}</strong>
-        <span>{{ liveCount() > 0 ? 'Live now' : 'Results logged' }}</span>
-      </button>
-    </div>
+    </section>
   </header>
 
   <!-- Core Answer Grid -->
@@ -336,16 +387,23 @@
     </div>
   </section>
 
-  <div class="home-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
+  <div class="home-session-dialog result-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
     (click)="closeSessionDialog()">
     <aside class="home-session-panel" role="dialog" aria-modal="true" aria-label="Session details"
       (click)="$event.stopPropagation()">
       <header class="home-session-header">
-        <div class="next-sport">
-          <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
-            <img [src]="pictogram" [alt]="row.sport">
-          </span>
-          <span>{{ row.sport }}</span>
+        <div class="home-session-heading">
+          <button *ngIf="resultOpenedFromMedalWinners()" class="home-dialog-back" type="button"
+            (click)="backToMedalWinners()" aria-label="Back to medal winners">
+            <span aria-hidden="true">←</span>
+            <span>Medal winners</span>
+          </button>
+          <div class="next-sport">
+            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+              <img [src]="pictogram" [alt]="row.sport">
+            </span>
+            <span>{{ row.sport }}</span>
+          </div>
         </div>
         <button class="home-dialog-close" type="button" aria-label="Close details"
           (click)="closeSessionDialog()">&times;</button>
@@ -408,6 +466,53 @@
           </span>
           <span class="live-session-arrow" aria-hidden="true">›</span>
         </button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="home-session-dialog" *ngIf="isMedalWinnersDialogOpen()" role="presentation"
+    (click)="closeMedalWinnersDialog()">
+    <aside class="home-session-panel medal-winners-panel" role="dialog" aria-modal="true"
+      aria-labelledby="medal-winners-title" (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="medal-winners-title">
+          <span class="india-flag" aria-hidden="true">🇮🇳</span>
+          <div>
+            <strong id="medal-winners-title">India’s medal winners</strong>
+            <small>{{ medalStreamLabel() }} · {{ visibleMedalWinners().length }} medals</small>
+          </div>
+        </div>
+        <button class="home-dialog-close" type="button" aria-label="Close medal winners"
+          (click)="closeMedalWinnersDialog()">&times;</button>
+      </header>
+
+      <div class="home-session-body medal-winners-list">
+        <div class="medal-sport-filters" role="group" aria-label="Filter medal winners by sport">
+          <button type="button" *ngFor="let sport of medalSportFilters()"
+            [class.active]="selectedMedalSport() === sport.key"
+            [attr.aria-pressed]="selectedMedalSport() === sport.key"
+            (click)="setMedalSport(sport.key)">
+            <span>{{ sport.label }}</span>
+            <strong>{{ sport.count }}</strong>
+          </button>
+        </div>
+
+        <button class="medal-winner-row" type="button" *ngFor="let winner of visibleMedalWinners()"
+          (click)="openMedalWinnerDetails(winner)">
+          <img [src]="getMedalIconUrl(winner.type)" [alt]="getMedalLabel(winner.type) + ' medal'">
+          <span class="medal-winner-copy">
+            <span>{{ winner.sport }} · {{ getMedalLabel(winner.type) }}</span>
+            <strong>{{ winner.athleteName }}</strong>
+            <small>
+              {{ winner.event }}<ng-container *ngIf="winner.result"> · {{ winner.result }}</ng-container>
+            </small>
+          </span>
+          <span class="live-session-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <p class="medal-winners-empty" *ngIf="visibleMedalWinners().length === 0">
+          No declared medals in this category yet.
+        </p>
       </div>
     </aside>
   </div>

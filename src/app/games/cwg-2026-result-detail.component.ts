@@ -173,11 +173,22 @@ export class Cwg2026ResultDetailComponent {
   }
 
   get officialIndiaEntries(): CwgOfficialResultEntry[] {
-    if (!this.isGymnasticsAllAround) return this.rawOfficialIndiaEntries;
-    const overallEntries = this.rawOfficialIndiaEntries.filter(
-      (entry) => entry.bucket === "overall",
-    );
-    return overallEntries.length ? overallEntries : this.rawOfficialIndiaEntries;
+    const entries = this.isGymnasticsAllAround
+      ? this.rawOfficialIndiaEntries.filter((entry) => entry.bucket === "overall")
+      : this.rawOfficialIndiaEntries;
+    const displayEntries = entries.length ? entries : this.rawOfficialIndiaEntries;
+
+    return [...displayEntries].sort((left, right) => {
+      const leftRank = Number(left.rank);
+      const rightRank = Number(right.rank);
+      const leftHasRank = Number.isFinite(leftRank) && leftRank > 0;
+      const rightHasRank = Number.isFinite(rightRank) && rightRank > 0;
+
+      if (leftHasRank && rightHasRank) return leftRank - rightRank;
+      if (leftHasRank) return -1;
+      if (rightHasRank) return 1;
+      return 0;
+    });
   }
 
   get hasDetailedResult(): boolean {

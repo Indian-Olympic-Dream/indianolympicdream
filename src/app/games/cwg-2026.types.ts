@@ -41,6 +41,7 @@ export interface CwgScheduleRow {
   localTimeLabel?: string;
   sport: string;
   sportSlug: string;
+  competitionStream?: Exclude<CwgCompetitionStream, "all">;
   event: string;
   stage: string;
   phase?: string;
@@ -351,10 +352,13 @@ export const isScheduleRowLiveNow = (row: CwgScheduleRow, now = new Date()): boo
   if (!row.istStart) return false;
   const start = parseCwgScheduleTimestamp(row.istStart);
   const parsedEnd = parseCwgScheduleTimestamp(row.istEnd);
-  const end = Number.isFinite(parsedEnd) ? parsedEnd : start + 2 * 60 * 60 * 1000;
+  const end =
+    Number.isFinite(parsedEnd) && parsedEnd > start
+      ? parsedEnd
+      : start + 2 * 60 * 60 * 1000;
   const isBoxing = `${row.sportSlug} ${row.sport}`.toLowerCase().includes('boxing');
   // Bout times are estimates; keep boxing visible while the official result catches up.
-  const resultGraceMs = isBoxing ? 20 * 60 * 1000 : 0;
+  const resultGraceMs = isBoxing ? 5 * 60 * 1000 : 0;
   const current = now.getTime();
   return current >= start && current <= end + resultGraceMs;
 };
