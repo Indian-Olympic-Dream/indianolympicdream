@@ -130,7 +130,7 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   readonly hasScheduleError = signal(false);
   readonly selectedMedalStream = signal<CwgCompetitionStream>("all");
   readonly selectedMedalSport = signal<string>("all");
-  readonly indiaRank = signal<number | null>(8);
+  readonly indiaRank = signal<number | null>(9);
   readonly isMedalWinnersDialogOpen = signal(false);
   readonly resultOpenedFromMedalWinners = signal(false);
   readonly medalStreamFilters: ReadonlyArray<{ key: CwgCompetitionStream; label: string }> = [
