@@ -30,7 +30,44 @@
       "notes": "Rink 3",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON 18 - 9",
+        "resultLabel": "India won 18 - 9",
+        "summary": "Rupa Rani Tirkey & Pinki Singh defeated Malta 18-9 in their opening Sectional Play match.",
+        "editorNote": "The Indian pair took control midway through the match, securing a comfortable nine-shot victory over Malta.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/bowls/women-pairs-sec-a",
+        "storyUrl": "https://iodsports.com/cwg-2026/stories/lawn-bowls-women-pairs-malta",
+        "match": {
+          "scoreText": "18 - 9",
+          "durationText": "1h 35m",
+          "winner": "India",
+          "notes": "Sectional Play Round 1",
+          "competitor1": {
+            "name": "Rupa Rani TIRKEY & PINKI",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "18"
+            ],
+            "totalScore": 18,
+            "isWinner": true
+          },
+          "competitor2": {
+            "name": "Rose RIXON & Connie-Rhea RIXON",
+            "countryCode": "MLT",
+            "countryName": "Malta",
+            "flagEmoji": "🇲🇹",
+            "scores": [
+              "9"
+            ],
+            "totalScore": 9,
+            "isWinner": false
+          }
+        }
+      }
     },
     {
       "id": "cwg26-india-002",
@@ -55,7 +92,44 @@
       "notes": "Rink 2",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON 21 - 14",
+        "resultLabel": "India won 21 - 14",
+        "summary": "Putul Sonowal beat Canada's Ryan Bester 21-14 in sectional play.",
+        "editorNote": "Putul Sonowal produced a tactical triumph against world-renowned Ryan Bester, scoring crucial multiple-shot ends to seal a 21-14 win.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/bowls/men-singles-sec-d",
+        "storyUrl": "https://iodsports.com/cwg-2026/stories/putul-sonowal-bester-upset",
+        "match": {
+          "scoreText": "21 - 14",
+          "durationText": "1h 15m",
+          "winner": "India",
+          "notes": "Sectional Play Round 2",
+          "competitor1": {
+            "name": "Putul SONOWAL",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "21"
+            ],
+            "totalScore": 21,
+            "isWinner": true
+          },
+          "competitor2": {
+            "name": "Ryan BESTER",
+            "countryCode": "CAN",
+            "countryName": "Canada",
+            "flagEmoji": "🇨🇦",
+            "scores": [
+              "14"
+            ],
+            "totalScore": 14,
+            "isWinner": false
+          }
+        }
+      }
     },
     {
       "id": "cwg26-india-003",
@@ -86,7 +160,22 @@
       "isConditional": true,
       "goldMedalEvents": [
         "artistic-gymnastics-men-team"
-      ]
+      ],
+      "status": "completed",
+      "result": {
+        "summaryLabel": "QUALIFICATION COMPLETE",
+        "resultLabel": "India completed Men's Team Final & Individual Qualification",
+        "summary": "India's men's artistic gymnastics team completed Subdivision 2 of the Team Final & Individual Qualification.",
+        "editorNote": "The qualification session is complete; do not keep this row in live state after Subdivision 2 ends.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/#/athletic-startlist/GAR/Q/M/GEN---------------/QUAL/000002--/1",
+        "storyUrl": "https://iodsports.com/cwg-2026/stories/mens-gymnastics-team-qualification",
+        "match": {
+          "scoreText": "Sub 2 complete",
+          "durationText": "17:00-20:15 IST",
+          "winner": null,
+          "notes": "Men's Team Qualification Sub 2"
+        }
+      }
     },
     {
       "id": "cwg26-india-004",
@@ -111,7 +200,44 @@
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "QUALIFIED FOR SEMIS (25.42s)",
+        "resultLabel": "Srihari Nataraj Qualified for Semis",
+        "summary": "Srihari Nataraj clocked 25.42s in Heat 3 to qualify 6th overall for the Men's 50m Backstroke Semi-Finals.",
+        "editorNote": "Srihari Nataraj put together a crisp start and powerful underwater kickout to secure his semi-final spot.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/swimming/mens-50m-backstroke-heats",
+        "storyUrl": "https://iodsports.com/cwg-2026/stories/srihari-nataraj-50m-backstroke-semis",
+        "match": {
+          "scoreText": "25.42s (Q)",
+          "durationText": "25.42s",
+          "winner": "Srihari Nataraj",
+          "notes": "Men's 50m Backstroke Heat 3 — Qualified 6th overall",
+          "competitor1": {
+            "name": "Srihari NATARAJ",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "25.42s"
+            ],
+            "totalScore": "25.42s",
+            "isWinner": true
+          },
+          "competitor2": {
+            "name": "HEAT 3 FIELD",
+            "countryCode": "SCO",
+            "countryName": "Scotland",
+            "flagEmoji": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+            "scores": [
+              "25.68s"
+            ],
+            "totalScore": "25.68s",
+            "isWinner": false
+          }
+        }
+      }
     },
     {
       "id": "cwg26-india-005",
@@ -136,7 +262,21 @@
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "BUDIGINA & IMAM Q",
+        "resultLabel": "Budigina & Imam Qualified",
+        "summary": "R.V.V.B.K. Budigina (57.10s) and Ali Imam (1:05.32) both qualified for the Men's S13 100m Freestyle Final.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Qualified",
+          "winner": null,
+          "notes": "Men's S13 100m Freestyle Heats"
+        }
+      }
     },
     {
       "id": "cwg26-india-006",
@@ -161,7 +301,43 @@
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": true,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON 5 - 0",
+        "resultLabel": "Jadumani Singh won 5 - 0",
+        "summary": "Jadumani Singh won by unanimous decision (5-0) in the Men's 55kg Round of 32.",
+        "editorNote": "Dominant performance by Jadumani Singh.",
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "5 - 0",
+          "winner": "Jadumani Singh",
+          "notes": "Men's 55kg Round of 32",
+          "competitor1": {
+            "name": "Jadumani SINGH",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "5"
+            ],
+            "totalScore": 5,
+            "isWinner": true
+          },
+          "competitor2": {
+            "name": "OPPONENT",
+            "countryCode": "TBD",
+            "countryName": "TBD",
+            "flagEmoji": "🏳️",
+            "scores": [
+              "0"
+            ],
+            "totalScore": 0,
+            "isWinner": false
+          }
+        }
+      }
     },
     {
       "id": "cwg26-india-007",
@@ -268,7 +444,21 @@
       "goldMedalEvents": [
         "para-powerlifting-men-lightweight",
         "para-powerlifting-women-lightweight"
-      ]
+      ],
+      "status": "completed",
+      "result": {
+        "summaryLabel": "COMPLETED",
+        "resultLabel": "Lightweight Finals Completed",
+        "summary": "Ashok Kumar Malik, Parmjeet Kumar, Suman Devi, and Jaspreet Kaur competed in the Lightweight Finals.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Completed",
+          "winner": null,
+          "notes": "Lightweight Finals"
+        }
+      }
     },
     {
       "id": "cwg26-india-011",
@@ -293,7 +483,21 @@
       "notes": "Rink 2",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON",
+        "resultLabel": "India beat South Africa",
+        "summary": "Rupa Rani Tirkey & Pinki Singh defeated South Africa in Sectional Play.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "WON",
+          "winner": "India",
+          "notes": "Women's Pairs Sectional Play"
+        }
+      }
     },
     {
       "id": "cwg26-india-012",
@@ -315,7 +519,7 @@
         "K. P. Swathish",
         "Satyajit Mondal"
       ],
-      "certainty": "Subdivision pending—India will compete in one session",
+      "certainty": "Superseded by confirmed official subdivision: Subdivision 2",
       "glasgowWindow": "17:30–21:15 BST",
       "venue": "OVO Hydro",
       "notes": "",
@@ -324,7 +528,24 @@
       "isConditional": true,
       "goldMedalEvents": [
         "artistic-gymnastics-men-team"
-      ]
+      ],
+      "status": "eliminated",
+      "result": {
+        "summaryLabel": "REMOVED",
+        "resultLabel": "Duplicate Gymnastics placeholder removed",
+        "summary": "India's men's artistic gymnastics team competed in Subdivision 2; this later placeholder session is not an India row.",
+        "editorNote": "Hide stale duplicate men's gymnastics qualification placeholder after confirmed Subdivision 2 allocation.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/#/athletic-startlist/GAR/Q/M/GEN---------------/QUAL/000002--/1",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Removed",
+          "durationText": "Superseded placeholder",
+          "winner": null,
+          "notes": "India competed in Men's Qualification Subdivision 2"
+        }
+      },
+      "isEliminated": true,
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-013",
@@ -349,7 +570,21 @@
       "notes": "Rink 4",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON",
+        "resultLabel": "India beat Falkland Islands",
+        "summary": "Putul Sonowal defeated Falkland Islands in Sectional Play.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "WON",
+          "winner": "India",
+          "notes": "Men's Singles Sectional Play"
+        }
+      }
     },
     {
       "id": "cwg26-india-014",
@@ -480,7 +715,22 @@
       "goldMedalEvents": [
         "para-powerlifting-women-heavyweight",
         "para-powerlifting-men-heavyweight"
-      ]
+      ],
+      "status": "completed",
+      "result": {
+        "summaryLabel": "BRONZE (130.9kg)",
+        "resultLabel": "Jhandu Kumar won Bronze",
+        "summary": "Jhandu Kumar won bronze in the Men's Heavyweight Para Powerlifting with a lift of 130.9kg.",
+        "editorNote": "Use this declared overlay for medal context; official unit payload ranks Jhandu inside Group B, while the medal is decided across groups.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/#/athlete-details/3133",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "130.9kg",
+          "winner": "Jhandu Kumar",
+          "notes": "Men's Heavyweight Para Powerlifting bronze"
+        }
+      },
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-019",
@@ -505,7 +755,32 @@
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": true,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "25.29s - 7th SF2",
+        "resultLabel": "Srihari Nataraj finished 7th (25.29s)",
+        "summary": "Srihari Nataraj finished 7th in Semi-Final 2 with a time of 25.29s and did not advance to the Final.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "25.29s",
+          "winner": null,
+          "notes": "7th in Semi-Final 2",
+          "competitor1": {
+            "name": "Srihari NATARAJ",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "25.29s"
+            ],
+            "totalScore": "25.29s",
+            "isWinner": false
+          }
+        }
+      }
     },
     {
       "id": "cwg26-india-020",
@@ -533,7 +808,21 @@
       "isConditional": true,
       "goldMedalEvents": [
         "para-swimming-men-s13-100m-freestyle"
-      ]
+      ],
+      "status": "completed",
+      "result": {
+        "summaryLabel": "4th & 7th",
+        "resultLabel": "Budigina 4th, Imam 7th",
+        "summary": "In the Men's S13 100m Freestyle Final, R.V.V.B.K. Budigina finished 4th (57.57s) and Ali Imam finished 7th (1:03.73).",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "4th & 7th",
+          "winner": null,
+          "notes": "Men's S13 100m Freestyle Final"
+        }
+      }
     },
     {
       "id": "cwg26-india-021",
@@ -592,7 +881,21 @@
       "notes": "Exact tip-off within session to be published in detailed running order.",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "COMPLETED",
+        "resultLabel": "Wales vs India",
+        "summary": "Women's Wheelchair Basketball match against Wales has concluded.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Completed",
+          "winner": null,
+          "notes": "Women's Wheelchair Basketball"
+        }
+      }
     },
     {
       "id": "cwg26-india-023",
@@ -617,7 +920,21 @@
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "COMPLETED",
+        "resultLabel": "Heats Completed",
+        "summary": "Dhakshian Shashikumar completed the Men's 400m Freestyle Heats.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Completed",
+          "winner": null,
+          "notes": "Heats"
+        }
+      }
     },
     {
       "id": "cwg26-india-024",
@@ -632,18 +949,27 @@
       "sportSlug": "swimming",
       "event": "Men’s S14 200m freestyle heats",
       "stage": "Heats",
-      "athletes": "Chaitanya Vishwas Kulkarni; Tejas Nandakumar",
+      "athletes": "Chaitanya Vishwas Kulkarni",
       "athleteNames": [
-        "Chaitanya Vishwas Kulkarni",
-        "Tejas Nandakumar"
+        "Chaitanya Vishwas Kulkarni"
       ],
-      "certainty": "Confirmed",
+      "certainty": "Official result confirmed; athlete did not appear on the start list",
       "glasgowWindow": "10:30–13:00 BST",
       "venue": "Tollcross International Swimming Centre",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "eliminated",
+      "result": {
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": null
+      },
+      "participationStatus": "confirmed",
+      "timingPrecision": "exact",
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-025",
@@ -662,13 +988,52 @@
       "athleteNames": [
         "Sachin Siwach"
       ],
-      "certainty": "Draw Pending",
+      "certainty": "Official result confirmed",
       "glasgowWindow": "11:00–14:00 BST",
       "venue": "Scottish Event Campus (SEC)",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "WON 4 - 1",
+        "resultLabel": "Sachin beat Keoma Al-Ahmadieh 4 - 1",
+        "summary": "Sachin defeated Canada's Keoma Al-Ahmadieh by a 4-1 points decision in the Men's 60kg Round of 32.",
+        "editorNote": "Sachin won four of the five judges' cards to advance from the Men's 60kg Round of 32.",
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "4 - 1",
+          "winner": "Sachin",
+          "notes": "Men's 60kg Round of 32 - Win on Points (WP)",
+          "competitor1": {
+            "name": "Sachin SACHIN",
+            "countryCode": "IND",
+            "countryName": "India",
+            "flagEmoji": "🇮🇳",
+            "scores": [
+              "4"
+            ],
+            "totalScore": 4,
+            "isWinner": true
+          },
+          "competitor2": {
+            "name": "Keoma AL-AHMADIEH",
+            "countryCode": "CAN",
+            "countryName": "Canada",
+            "flagEmoji": "🇨🇦",
+            "scores": [
+              "1"
+            ],
+            "totalScore": 1,
+            "isWinner": false
+          }
+        }
+      },
+      "participationStatus": "confirmed",
+      "timingPrecision": "exact",
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-026",
@@ -768,7 +1133,21 @@
       "notes": "Rink 2",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "COMPLETED",
+        "resultLabel": "India vs Tonga",
+        "summary": "Women's Pairs Sectional Play against Tonga has concluded.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Completed",
+          "winner": null,
+          "notes": "Women's Pairs Sectional Play"
+        }
+      }
     },
     {
       "id": "cwg26-india-030",
@@ -793,7 +1172,21 @@
       "notes": "Rink 4",
       "sourceBasis": "Official Glasgow 2026 Bowls & Para Bowls Match Schedule (13 July 2026)",
       "isMedalSession": false,
-      "isConditional": false
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "COMPLETED",
+        "resultLabel": "India vs Malaysia",
+        "summary": "Men's Singles Sectional Play against Malaysia has concluded.",
+        "editorNote": null,
+        "officialSourceUrl": null,
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Completed",
+          "winner": null,
+          "notes": "Men's Singles Sectional Play"
+        }
+      }
     },
     {
       "id": "cwg26-india-031",
@@ -995,12 +1388,11 @@
       "sportSlug": "swimming",
       "event": "Men’s S14 200m freestyle final",
       "stage": "Final",
-      "athletes": "Chaitanya Vishwas Kulkarni; Tejas Nandakumar",
+      "athletes": "Chaitanya Vishwas Kulkarni",
       "athleteNames": [
-        "Chaitanya Vishwas Kulkarni",
-        "Tejas Nandakumar"
+        "Chaitanya Vishwas Kulkarni"
       ],
-      "certainty": "Conditional",
+      "certainty": "Eliminated after no Indian athlete started the heats",
       "glasgowWindow": "19:00–22:15 BST",
       "venue": "Tollcross International Swimming Centre",
       "notes": "",
@@ -1009,7 +1401,20 @@
       "isConditional": true,
       "goldMedalEvents": [
         "para-swimming-men-s14-200m-freestyle"
-      ]
+      ],
+      "status": "eliminated",
+      "result": {
+        "summaryLabel": "DID NOT QUALIFY",
+        "resultLabel": "No Indian qualifier",
+        "summary": "India has no entrant in the Men's S14 200m freestyle final after Chaitanya Vishwas Kulkarni did not start the heats.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/#/athletic-result/SWM/ST/M/200MFR--14010-----/HEAT/--------",
+        "storyUrl": null,
+        "match": null
+      },
+      "isEliminated": true,
+      "participationStatus": "eliminated",
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-039",
@@ -3621,13 +4026,29 @@
       "athleteNames": [
         "Tejaswin Shankar"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Official day-one decathlon results confirmed",
       "glasgowWindow": "10:00–13:30 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "DAY 1 MORNING COMPLETE",
+        "resultLabel": "Tejaswin Shankar completed the first three decathlon events",
+        "summary": "Tejaswin Shankar completed the decathlon 100m, long jump and shot put events.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "Day 1",
+          "winner": null,
+          "notes": "Men's Decathlon — 100m, long jump and shot put"
+        }
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-137",
@@ -3701,13 +4122,29 @@
         "Rojit Singh Yanglem",
         "Harshveer Singh Sekhon + final team member TBC"
       ],
-      "certainty": "Expected India entry; final start list pending",
+      "certainty": "Official start list confirmed no Indian team",
       "glasgowWindow": "10:00–13:00 BST",
       "venue": "Sir Chris Hoy Velodrome",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": true,
-      "isConditional": true
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "DID NOT START",
+        "resultLabel": "India did not start the men's team pursuit qualification",
+        "summary": "India did not appear in the official men's 4000m team pursuit qualification start list.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "DNS",
+          "winner": null,
+          "notes": "Men's 4000m Team Pursuit Qualifying"
+        }
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-140",
@@ -3779,7 +4216,7 @@
       "athleteNames": [
         "India men’s pursuit team"
       ],
-      "certainty": "Conditional on qualification",
+      "certainty": "Removed after India did not start team pursuit qualification",
       "glasgowWindow": "16:00–19:00 BST",
       "venue": "Sir Chris Hoy Velodrome",
       "notes": "",
@@ -3788,7 +4225,20 @@
       "isConditional": true,
       "goldMedalEvents": [
         "track-cycling-men-team-pursuit"
-      ]
+      ],
+      "status": "eliminated",
+      "result": {
+        "summaryLabel": "DID NOT QUALIFY",
+        "resultLabel": "No Indian team in the final",
+        "summary": "India did not start the men's 4000m team pursuit qualification and therefore did not advance to the final.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "isEliminated": true,
+      "participationStatus": "eliminated",
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-143",
@@ -3857,13 +4307,29 @@
       "athleteNames": [
         "Tejaswin Shankar"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Official day-one decathlon results confirmed",
       "glasgowWindow": "18:30–22:00 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": false,
+      "status": "completed",
+      "result": {
+        "summaryLabel": "DAY 1 COMPLETE · 49.51",
+        "resultLabel": "Tejaswin Shankar completed decathlon day one",
+        "summary": "Tejaswin Shankar completed day one of the men's decathlon, finishing his 400m heat in 49.51 seconds.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": {
+          "scoreText": "49.51",
+          "winner": null,
+          "notes": "Men's Decathlon 400m — Heat 2, fourth"
+        }
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-146",
@@ -3968,13 +4434,25 @@
       "athleteNames": [
         "Tejaswin Shankar"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Confirmed after Tejaswin Shankar completed decathlon day one",
       "glasgowWindow": "10:00–13:45 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": false,
-      "isConditional": true
+      "isConditional": false,
+      "status": "scheduled",
+      "result": {
+        "summaryLabel": "CONTINUING",
+        "resultLabel": "Tejaswin Shankar continues in decathlon day two",
+        "summary": "Tejaswin Shankar is confirmed for the 110m hurdles, discus and pole vault events on day two.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "confirmed"
     },
     {
       "id": "cwg26-india-150",
@@ -4423,7 +4901,7 @@
       "athleteNames": [
         "Animesh Kujur"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Removed after Animesh Kujur did not advance from the semi-final",
       "glasgowWindow": "18:30–22:15 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
@@ -4432,7 +4910,20 @@
       "isConditional": true,
       "goldMedalEvents": [
         "athletics-men-200m"
-      ]
+      ],
+      "status": "eliminated",
+      "result": {
+        "summaryLabel": "DID NOT QUALIFY",
+        "resultLabel": "No Indian athlete in the men's 200m final",
+        "summary": "Animesh Kujur finished sixth in semi-final 2 and did not qualify for the men's 200m final.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "isEliminated": true,
+      "participationStatus": "eliminated",
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-167",
@@ -4510,16 +5001,28 @@
         "Rohit Yadav",
         "Yash Vir Singh"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Confirmed after all three Indian throwers qualified",
       "glasgowWindow": "18:30–22:15 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": true,
-      "isConditional": true,
+      "isConditional": false,
       "goldMedalEvents": [
         "athletics-men-javelin"
-      ]
+      ],
+      "status": "scheduled",
+      "result": {
+        "summaryLabel": "3 QUALIFIED",
+        "resultLabel": "Three Indian athletes confirmed for the final",
+        "summary": "Neeraj Chopra, Rohit Yadav and Yash Vir Singh are confirmed for the men's javelin final.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "gold-medal"
     },
     {
       "id": "cwg26-india-170",
@@ -4667,7 +5170,7 @@
         "Neeru Pathak",
         "Ansa Babu"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Removed after no Indian athlete qualified for the flat 400m finals",
       "glasgowWindow": "10:00–13:45 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
@@ -4677,7 +5180,20 @@
       "goldMedalEvents": [
         "athletics-men-400m",
         "athletics-women-400m"
-      ]
+      ],
+      "status": "eliminated",
+      "result": {
+        "summaryLabel": "NO INDIAN QUALIFIER",
+        "resultLabel": "No Indian athlete in the 400m finals",
+        "summary": "India has no qualifier for the men's or women's flat 400m finals.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "isEliminated": true,
+      "participationStatus": "eliminated",
+      "badgeOverride": "eliminated"
     },
     {
       "id": "cwg26-india-176",
@@ -4754,16 +5270,28 @@
         "Praveen Chithravel",
         "Selva Prabhu"
       ],
-      "certainty": "Confirmed entry; progression-dependent where applicable",
+      "certainty": "Confirmed after both Indian jumpers qualified",
       "glasgowWindow": "10:00–13:45 BST",
       "venue": "Scotstoun Stadium",
       "notes": "",
       "sourceBasis": "Official Schedule + India Entry List",
       "isMedalSession": true,
-      "isConditional": true,
+      "isConditional": false,
       "goldMedalEvents": [
         "athletics-men-triple-jump"
-      ]
+      ],
+      "status": "scheduled",
+      "result": {
+        "summaryLabel": "2 QUALIFIED",
+        "resultLabel": "Two Indian athletes confirmed for the final",
+        "summary": "Praveen Chithravel and Selva Prabhu Thirumaran are confirmed for the men's triple jump final.",
+        "editorNote": null,
+        "officialSourceUrl": "https://www.glasgow2026.com/results/detailed/",
+        "storyUrl": null,
+        "match": null
+      },
+      "participationStatus": "confirmed",
+      "badgeOverride": "gold-medal"
     },
     {
       "id": "cwg26-india-179",
