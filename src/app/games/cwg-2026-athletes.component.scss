@@ -289,7 +289,7 @@ input {
   flex-direction: column;
   gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
   padding: 12px 14px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -300,6 +300,22 @@ input {
     border-color: rgba(255, 255, 255, 0.16);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.athlete-row.is-medallist {
+  border-top-color: rgba(255, 255, 255, 0.18);
+
+  &[data-medal="gold"] {
+    border-left: 3px solid #d9b441;
+  }
+
+  &[data-medal="silver"] {
+    border-left: 3px solid #cbd5e1;
+  }
+
+  &[data-medal="bronze"] {
+    border-left: 3px solid #b8793d;
   }
 }
 
@@ -552,6 +568,166 @@ input {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.athlete-result-overview {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+
+  &[data-medal="gold"] .result-overview-copy strong {
+    color: #f1cf65;
+  }
+
+  &[data-medal="silver"] .result-overview-copy strong {
+    color: #e2e8f0;
+  }
+
+  &[data-medal="bronze"] .result-overview-copy strong {
+    color: #d69a62;
+  }
+}
+
+.result-overview-medal {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+
+  img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+}
+
+.result-overview-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+
+  small {
+    color: rgba(255, 255, 255, 0.45);
+    font: 750 0.6rem/1.2 "Geist Mono", monospace;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #ffffff;
+    font-size: 0.96rem;
+    line-height: 1.2;
+  }
+
+  > span {
+    color: $muted;
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+}
+
+.athlete-results-box {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.athlete-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 1px;
+  color: rgba(255, 255, 255, 0.48);
+  font: 750 0.61rem/1.2 "Geist Mono", monospace;
+  text-transform: uppercase;
+
+  small {
+    color: rgba(255, 255, 255, 0.35);
+    font: inherit;
+  }
+}
+
+.athlete-result-list {
+  display: grid;
+}
+
+.athlete-result-row {
+  appearance: none;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(86px, auto) minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(217, 180, 65, 0.52);
+    outline-offset: 1px;
+  }
+
+  &.is-medal-result strong {
+    color: #efd06d;
+  }
+
+  strong {
+    color: rgba(255, 255, 255, 0.88);
+    font: 800 0.67rem/1.2 "Geist Mono", monospace;
+    white-space: nowrap;
+  }
+}
+
+.athlete-result-stage {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.7rem;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.athlete-result-opponent {
+  min-width: 0;
+  overflow: hidden;
+  color: $muted;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.athlete-result-arrow {
+  color: $gold;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 520px) {
+  .athlete-result-row {
+    grid-template-columns: minmax(0, 1fr) auto 14px;
+  }
+
+  .athlete-result-opponent {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    white-space: normal;
+  }
 }
 
 .athlete-schedule-box {
@@ -1065,4 +1241,3 @@ input {
     grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
   }
 }
-

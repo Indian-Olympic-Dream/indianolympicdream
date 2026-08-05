@@ -1,340 +1,305 @@
 <main class="cwg-home">
-  <!-- Hero Branding Header with Integrated Nav -->
+  <!-- Hero Branding Header -->
   <header class="home-hero">
     <div class="hero-top-bar">
       <div class="hero-sub-branding">
         <span class="hub-pill">IOD HUB</span>
         <span class="dates-pill">23 July – 2 August 2026 · Glasgow</span>
       </div>
-
-      <!-- Integrated 3 Top Nav Links -->
-      <nav class="hero-nav" aria-label="CWG 2026 Navigation">
-        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
-        <a routerLink="/cwg-2026/schedule" routerLinkActive="active">Schedule</a>
-        <a routerLink="/cwg-2026/athletes" routerLinkActive="active">Athletes</a>
-      </nav>
     </div>
 
     <div class="hero-brand">
       <div class="logo-wrapper">
-        <img [src]="glasgowLogoUrl" alt="Glasgow 2026 Commonwealth Games Logo" class="glasgow-logo">
+        <img [src]="glasgowLogoUrl" alt="Glasgow 2026 Logo" class="glasgow-logo">
       </div>
       <div class="hero-copy">
+        <span class="report-kicker">POST-GAMES EXECUTIVE REPORT</span>
         <h1>India at Glasgow 2026</h1>
-        <p class="hero-subtitle">IOD Official Contingent Tracker & Interactive Event Schedule</p>
       </div>
     </div>
 
-    <div class="hero-stats">
-      <div class="stat-box">
-        <strong>{{ summary().athletes }}</strong>
-        <span>Athletes ({{ summary().ableAthletes }} Able · {{ summary().paraAthletes }} Para)</span>
+    <!-- Rich Medal Scorecard UI (1 Row Desktop, 2 Rows Mobile) -->
+    <section class="hero-medal-tally" aria-labelledby="india-medal-tally-title">
+      <div class="medal-scoreboard" role="table" aria-label="India medal tally">
+        <div class="medal-scoreboard-row">
+          <div class="india-rank-cell">
+            <span class="india-flag">🇮🇳</span>
+            <div class="rank-info">
+              <strong>#{{ indiaRank() || '4' }}</strong>
+              <small>Overall Rank</small>
+            </div>
+          </div>
+
+          <button type="button" class="tally-group gold" (click)="openMedalWinnersType('gold')"
+            title="View {{ medalTally().gold }} Gold Medal Winners">
+            <img [src]="medalIconUrl" alt="Gold Medal">
+            <div class="tally-val">
+              <strong>{{ medalTally().gold }}</strong>
+              <small>Gold</small>
+            </div>
+            <span class="tally-arrow" aria-hidden="true">&#8594;</span>
+          </button>
+
+          <button type="button" class="tally-group silver" (click)="openMedalWinnersType('silver')"
+            title="View {{ medalTally().silver }} Silver Medal Winners">
+            <img [src]="silverMedalIconUrl" alt="Silver Medal">
+            <div class="tally-val">
+              <strong>{{ medalTally().silver }}</strong>
+              <small>Silver</small>
+            </div>
+            <span class="tally-arrow" aria-hidden="true">&#8594;</span>
+          </button>
+
+          <button type="button" class="tally-group bronze" (click)="openMedalWinnersType('bronze')"
+            title="View {{ medalTally().bronze }} Bronze Medal Winners">
+            <img [src]="bronzeMedalIconUrl" alt="Bronze Medal">
+            <div class="tally-val">
+              <strong>{{ medalTally().bronze }}</strong>
+              <small>Bronze</small>
+            </div>
+            <span class="tally-arrow" aria-hidden="true">&#8594;</span>
+          </button>
+
+          <button type="button" class="tally-group total" (click)="openMedalWinnersType('all')"
+            title="View All {{ medalTally().total }} Medal Winners">
+            <div class="tally-val">
+              <strong class="total-num">{{ medalTally().total }}</strong>
+              <small>Total Medals</small>
+            </div>
+            <span class="tally-arrow" aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
       </div>
-      <div class="stat-box">
-        <strong>{{ summary().sports }}</strong>
-        <span>Sports ({{ summary().ableSports }} Able · {{ summary().paraSports }} Para)</span>
+    </section>
+
+    <!-- Sport Breakdown Hero Feature -->
+    <div class="hero-sport-breakdown-box">
+      <div class="report-title-group">
+        <h2>Sport-Wise Performance Breakdown</h2>
+        <p class="report-subline">Select any sport card or row below to view full event results & athlete standings</p>
       </div>
-      <div class="stat-box gold">
-        <strong>{{ summary().golds }}</strong>
-        <span>Gold medal events mapped</span>
+
+      <!-- Desktop/Tablet Table View -->
+      <div class="table-responsive desktop-table-view">
+        <table class="sport-report-table">
+          <thead>
+            <tr>
+              <th>Sport</th>
+              <th class="roster-col-header">Roster</th>
+              <th>G</th>
+              <th>S</th>
+              <th>B</th>
+              <th>Total</th>
+              <th>Productivity*</th>
+              <th>Performance Tier</th>
+              <th>World-Readiness Signal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of sportReportCards" [class.selected-sport-row]="selectedSportFilter() === item.sport"
+              (click)="openSportResults(item.sport)" (keydown.enter)="openSportResults(item.sport)" tabindex="0"
+              title="Open {{ item.sport }} results">
+              <td class="sport-cell">
+                <button type="button" class="sport-drilldown-button"
+                  (click)="$event.stopPropagation(); openSportResults(item.sport)"
+                  [attr.aria-label]="'Open ' + item.sport + ' results'">
+                  <span class="report-sport-icon">
+                    <img *ngIf="getReportSportPictogramUrl(item.sport) as pictogram; else sportInitials"
+                      [src]="pictogram" [alt]="item.sport + ' pictogram'">
+                    <ng-template #sportInitials>{{ item.sport.slice(0, 2).toUpperCase() }}</ng-template>
+                  </span>
+                  <strong>{{ item.sport }}</strong>
+                  <span class="sport-row-arrow" aria-hidden="true">&#8594;</span>
+                </button>
+              </td>
+              <td class="roster-col">{{ item.roster }}</td>
+              <td class="gold-col"><strong>{{ item.g }}</strong></td>
+              <td class="silver-col">{{ item.s }}</td>
+              <td class="bronze-col">{{ item.b }}</td>
+              <td class="total-col"><strong>{{ item.total }}</strong></td>
+              <td class="prod-col">{{ item.productivity }}</td>
+              <td class="tier-col">
+                <span class="tier-chip" [ngClass]="item.tierClass">{{ item.tier }}</span>
+              </td>
+              <td class="signal-cell">
+                <p>{{ item.signal }}</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <button type="button" class="stat-box live-stat header-live-control" [class.has-live]="liveCount() > 0"
-        (click)="openHeaderLivePanel()"
-        [attr.aria-label]="liveCount() > 0 ? 'Show live sessions for India' : 'View declared results'">
-        <strong>{{ liveCount() || declaredResults().length }}</strong>
-        <span>{{ liveCount() > 0 ? 'Live now' : 'Results logged' }}</span>
-      </button>
+
+      <!-- Mobile Screen Non-Scrolling Card List -->
+      <div class="mobile-sport-card-list">
+        <div class="mobile-sport-card" *ngFor="let item of sportReportCards"
+          [class.selected]="selectedSportFilter() === item.sport" (click)="openSportResults(item.sport)">
+          <!-- Top Row: Icon + Sport Name + Tier + Arrow -->
+          <div class="mobile-card-top">
+            <div class="mobile-sport-title">
+              <span class="report-sport-icon">
+                <img *ngIf="getReportSportPictogramUrl(item.sport) as pictogram; else mobInitials" [src]="pictogram"
+                  [alt]="item.sport">
+                <ng-template #mobInitials>{{ item.sport.slice(0, 2).toUpperCase() }}</ng-template>
+              </span>
+              <strong>{{ item.sport }}</strong>
+            </div>
+            <div class="mobile-sport-meta">
+              <span class="tier-chip" [ngClass]="item.tierClass">{{ item.tier }}</span>
+              <span class="sport-row-arrow-btn" aria-hidden="true">
+                <span class="btn-text">Results</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats Bar: Roster Centered, Medals Summary, Prod % -->
+          <div class="mobile-card-stats">
+            <div class="stat-box roster">
+              <span class="stat-label">ROSTER</span>
+              <span class="stat-value centered">{{ item.roster }}</span>
+            </div>
+            <div class="stat-box medals">
+              <span class="stat-label">MEDALS (G-S-B)</span>
+              <span class="stat-value no-wrap">
+                <span class="gold-col">{{ item.g }}G</span> ·
+                <span class="silver-col">{{ item.s }}S</span> ·
+                <span class="bronze-col">{{ item.b }}B</span>
+                <strong class="total-badge">({{ item.total }})</strong>
+              </span>
+            </div>
+            <div class="stat-box prod">
+              <span class="stat-label">PROD</span>
+              <span class="stat-value">{{ item.productivity }}%</span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Direct World-Readiness Signal Text -->
+          <div class="mobile-card-signal">
+            <p><strong>World-Readiness Signal:</strong> {{ item.signal }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- Core Answer Grid -->
-  <section class="answer-grid">
-    <!-- Coming up for India -->
-    <article class="answer-card next-answer" *ngIf="nextIndiaSession() as next; else scheduleState">
-      <div class="question-row">
-        <p class="question">{{ liveCount() > 0 ? 'Happening now for India' : 'Coming up for India' }}</p>
-        <div class="hero-timecue" [class.live]="isSessionLive(next)">
-          @if (isSessionLive(next)) {
-          <strong class="live-cue"><i class="pulse-dot"></i> LIVE NOW</strong>
-          } @else {
-          <span class="cue-label">
-            Next up
+  <div class="home-session-dialog" *ngIf="isSportResultsDialogOpen()" role="presentation" (click)="closeSportResults()">
+    <aside class="home-session-panel medal-winners-panel" role="dialog" aria-modal="true"
+      [attr.aria-label]="selectedSportFilter() + ' Results'" (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="medal-winners-title">
+          <span class="sport-icon"
+            *ngIf="getReportSportPictogramUrl(selectedSportFilter()) as pictogram; else flagFallback">
+            <img [src]="pictogram" [alt]="selectedSportFilter()">
           </span>
-          <strong>{{ getHeroCountdownLabel(next) }}</strong>
-          }
-        </div>
-      </div>
-
-      <!-- 2-Column Hero Split Grid (Fills Desktop Space) -->
-      <div class="hero-split-grid">
-        <!-- Left: Featured Session -->
-        <div class="hero-session-block">
-          <div class="next-sport">
-            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(next) as pictogram">
-              <img [src]="pictogram" [alt]="next.sport">
-            </span>
-            <span>{{ next.sport }}</span>
-          </div>
-
-          <h2>{{ getScheduleEventTitle(next) }}</h2>
-
-          <div class="matchup-strip hero-matchup-strip" *ngIf="getBoxingOpponentLabel(next) as opponent">
-            <div class="matchup-line">
-              <span class="corner-chip">IND</span>
-              <span class="match-name india-name">{{ getBoxingIndiaLabel(next) }}</span>
-              <span class="versus">vs</span>
-              <span class="match-name opponent-name">{{ opponent }}</span>
-            </div>
-            <small *ngIf="getBoxingBoutMeta(next)">{{ getBoxingBoutMeta(next) }}</small>
-          </div>
-
-          <p class="athlete-line" *ngIf="!hasBoxingDraw(next) && next.athletes && next.athletes !== 'India'">{{
-            next.athletes }}</p>
-
-          <div class="time-block">
-            <span>{{ next.dayLabel }} {{ next.dateLabel }}</span>
-            <strong>{{ next.timeLabel }}</strong>
+          <ng-template #flagFallback>
+            <span class="india-flag" aria-hidden="true">🇮🇳</span>
+          </ng-template>
+          <div>
+            <strong id="sport-results-title">{{ selectedSportFilter() === 'all' ? 'All Sports Results' :
+              selectedSportFilter() + ' Results' }}</strong>
+            <small>Declared Event Standings · {{ filteredDeclaredResults().length }} events</small>
           </div>
         </div>
+        <button class="home-dialog-close" type="button" aria-label="Close sport results"
+          (click)="closeSportResults()">&times;</button>
+      </header>
 
-        <!-- Right: Recent Results -->
-        <aside class="hero-results-panel" *ngIf="latestTwoResults().length">
-          <div class="side-result-header">
-            <span class="side-label">{{ liveCount() > 0 ? 'Results archive' : 'Recent results' }}</span>
-            <button class="view-all-results-cta compact" type="button" (click)="navigateToResults()">View all</button>
-          </div>
-
-          <div class="result-mini-list" [class.compact-mode]="liveCount() > 0">
-            @for (item of latestTwoResults(); track (item?.row?.id || $index)) {
-            @if (item && item.row) {
-            <button class="result-mini-card" type="button" (click)="openSessionDialog(item.row)">
-              <span class="result-mini-meta">{{ item.row.sport }} · {{ item.row.dateLabel }}</span>
-              <strong>{{ getScheduleEventTitle(item.row) }}</strong>
-              <span class="result-mini-summary">{{ item.summary || 'Result declared' }}</span>
+      <div class="home-session-body medal-winners-list">
+        <!-- Unified Single-Row Premium Filter Toolbar -->
+        <div class="unified-filter-toolbar" role="toolbar" aria-label="Filter results">
+          <div class="filter-segment division-segment">
+            <button type="button" [class.active]="selectedSportDivision() === 'all'" (click)="setSportDivision('all')">
+              <span>All</span>
             </button>
-            }
-            }
+            <button type="button" *ngIf="availableSportDivisions().hasMen"
+              [class.active]="selectedSportDivision() === 'men'" (click)="setSportDivision('men')">
+              <span>Men's</span>
+            </button>
+            <button type="button" *ngIf="availableSportDivisions().hasWomen"
+              [class.active]="selectedSportDivision() === 'women'" (click)="setSportDivision('women')">
+              <span>Women's</span>
+            </button>
+            <button type="button" *ngIf="availableSportDivisions().hasMixed"
+              [class.active]="selectedSportDivision() === 'mixed'" (click)="setSportDivision('mixed')">
+              <span>Mixed</span>
+            </button>
           </div>
-        </aside>
-      </div>
 
-      <!-- Vertical Live & Chronological Timeline -->
-      <div class="upcoming-navigator" *ngIf="filteredUpcomingSessions().length || upcomingDateGroups().length">
-        <div class="navigator-header">
-          <span class="queue-label">⚡ LIVE & CHRONOLOGICAL EVENT TIMELINE</span>
-        </div>
+          <div class="filter-divider"
+            *ngIf="availableSportMedalViews().hasGold || availableSportMedalViews().hasSilver || availableSportMedalViews().hasBronze">
+          </div>
 
-        <!-- Date Filter Pills -->
-        <div class="date-pills-row">
-          <button type="button" class="date-pill" [class.active]="selectedDateKey() === 'all'"
-            (click)="setSelectedDateKey('all')">
-            <span>Next 24 hours</span>
-          </button>
-          <button type="button" class="date-pill medal-sessions-pill" [class.active]="selectedDateKey() === 'medals'"
-            (click)="setSelectedDateKey('medals')">
-            <img [src]="medalIconUrl" alt="" class="pill-medal-icon">
-            <span>Medal sessions</span>
-            <small class="pill-count">({{ upcomingMedalSessions().length }})</small>
-          </button>
-          <button *ngFor="let group of upcomingDateGroups()" type="button" class="date-pill"
-            [class.active]="selectedDateKey() === group.dateKey" (click)="setSelectedDateKey(group.dateKey)">
-            <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
-            <small class="pill-count">({{ group.sessionCount }})</small>
-            <span *ngIf="group.goldCount > 0" class="pill-gold-badge" title="{{ group.goldCount }} Gold Medal Events">
-              <img [src]="medalIconUrl" alt="Gold medal icon" class="pill-medal-icon">
-              <small class="gold-count">{{ group.goldCount }}</small>
-            </span>
-          </button>
-        </div>
-
-        <!-- Dynamic Vertical Timeline Session List -->
-        <div class="vertical-timeline-list">
-          @for (group of timelineGroups(); track group.id) {
-          @if (group.rows.length === 1) {
-          @for (row of group.rows; track row.id) {
-          <article class="timeline-item" [class.live-item]="isSessionLive(row)"
-            [class.completed-item]="row.status === 'completed'" (click)="openSessionDialog(row)">
-
-            <div class="timeline-clock">
-              <time>{{ row.timeLabel }}</time>
-              <span>{{ row.dayLabel }} {{ row.dateLabel }}</span>
-            </div>
-
-            <div class="timeline-node">
-              <span class="node-dot" [class.live-dot]="isSessionLive(row)"></span>
-              <div class="connector-line"></div>
-            </div>
-
-            <div class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
-              <img [src]="pictogram" [alt]="row.sport">
-            </div>
-
-            <div class="session-details">
-              <div class="session-header-line">
-                <span class="sport-name">{{ row.sport }}</span>
-
-                @if (isSessionLive(row)) {
-                <span class="queue-chip importance-live">
-                  <i class="pulse-dot"></i> LIVE NOW
-                </span>
-                } @else {
-                @if (getResultBadge(row); as res) {
-                <span class="result-badge-chip" [class.won]="res.isWon">
-                  ✓ {{ res.label }}
-                </span>
-                } @else {
-                <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
-                  [title]="getSessionCertaintyTooltip(row)">
-                  {{ getSessionBadge(row) }}
-                </span>
-                }
-                }
-              </div>
-
-              <strong class="timeline-event-title">{{ getScheduleEventTitle(row) }}</strong>
-
-              <p class="result-summary-line" *ngIf="row.result?.summary">📝 {{ row.result?.summary }}</p>
-
-              <small class="athlete-name" *ngIf="hasBoxingDraw(row) || (row.athletes && row.athletes !== 'India')">{{
-                hasBoxingDraw(row) ? getBoxingIndiaLabel(row) : row.athletes }}</small>
-            </div>
-
-            <div class="session-time">
-              <span *ngIf="row.venue">{{ row.venue }}</span>
-              <strong>Details</strong>
-            </div>
-          </article>
-          }
-          } @else {
-          <article class="timeline-cluster" [class.live-item]="group.isLive">
-            <div class="timeline-clock cluster-clock">
-              <time>{{ group.timeLabel }}</time>
-              <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
-            </div>
-
-            <div class="timeline-node cluster-node">
-              <span class="node-dot" [class.live-dot]="group.isLive"></span>
-              <div class="connector-line"></div>
-            </div>
-
-            <div class="cluster-card">
-              <div class="cluster-header">
-                <div>
-                  <span class="cluster-kicker-line">
-                    <span class="cluster-kicker">Same start</span>
-                    <span class="queue-chip importance-core" *ngIf="group.hasMedal">
-                      <img [src]="medalIconUrl" alt="" class="medal-icon"> Medal window
-                    </span>
-                  </span>
-                  <strong>{{ group.rows.length }} India events at this time</strong>
-                </div>
-              </div>
-
-              <button class="cluster-event" *ngFor="let row of group.rows; trackBy: trackBySession" type="button"
-                [class.live-item]="isSessionLive(row)" (click)="openSessionDialog(row)">
-                <span class="cluster-event-time">{{ row.timeLabel }}</span>
-
-                <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
-                  <img [src]="pictogram" [alt]="row.sport">
-                </span>
-
-                <span class="cluster-event-copy">
-                  <span class="session-header-line">
-                    <span class="sport-name">{{ row.sport }}</span>
-
-                    @if (isSessionLive(row)) {
-                    <span class="queue-chip importance-live">
-                      <i class="pulse-dot"></i> LIVE NOW
-                    </span>
-                    } @else {
-                    @if (getResultBadge(row); as res) {
-                    <span class="result-badge-chip" [class.won]="res.isWon">
-                      ✓ {{ res.label }}
-                    </span>
-                    } @else {
-                    <span class="queue-chip" [ngClass]="getSessionImportanceClass(row)"
-                      [title]="getSessionCertaintyTooltip(row)">
-                      {{ getSessionBadge(row) }}
-                    </span>
-                    }
-                    }
-                  </span>
-
-                  <strong class="timeline-event-title">{{ getScheduleEventTitle(row) }}</strong>
-
-                  <span class="result-summary-line" *ngIf="row.result?.summary">📝 {{ row.result?.summary }}</span>
-
-                  <small class="athlete-name"
-                    *ngIf="hasBoxingDraw(row) || (row.athletes && row.athletes !== 'India')">{{
-                    hasBoxingDraw(row) ? getBoxingIndiaLabel(row) : row.athletes }}</small>
-                </span>
-
-                <span class="cluster-event-venue" *ngIf="row.venue">{{ row.venue }}</span>
-              </button>
-            </div>
-          </article>
-          }
-          }
-        </div>
-      </div>
-
-      <a class="text-link" routerLink="/cwg-2026/schedule">Open full schedule →</a>
-    </article>
-
-    <ng-template #scheduleState>
-      <article class="answer-card next-answer loading-card">
-        <div class="question-row">
-          <p class="question">Coming up for India</p>
-        </div>
-        <div class="skeleton-block" *ngIf="isScheduleLoading()">
-          <p class="loading-text">Loading schedule from CMS…</p>
-        </div>
-        <div class="error-block" *ngIf="hasScheduleError()">
-          <p>Unable to load schedule data.</p>
-        </div>
-      </article>
-    </ng-template>
-  </section>
-
-  <!-- 10 to Watch Rail -->
-  <section class="watch-strip" aria-label="IOD 10 to Watch">
-    <header class="section-header">
-      <div>
-        <p class="eyebrow">IOD Shorts</p>
-        <h2>10 to Watch</h2>
-      </div>
-      <!-- <span>{{ releasedShortsCount() }} shorts out · {{ scheduledShortsCount() }} coming soon</span> -->
-    </header>
-
-    <div class="watch-rail">
-      <article class="watch-tile" *ngFor="let story of watchRailStories(); trackBy: trackByWatchStory">
-        <div class="tile-poster" [class.no-poster]="!story.posterUrl">
-          <img *ngIf="story.posterUrl" [src]="story.posterUrl" [alt]="getWatchTitle(story)">
-          <div class="poster-fallback" *ngIf="!story.posterUrl">
-            <span>#{{ story.rank }}</span>
+          <div class="filter-segment outcome-segment"
+            *ngIf="availableSportMedalViews().hasGold || availableSportMedalViews().hasSilver || availableSportMedalViews().hasBronze">
+            <button type="button" [class.active]="selectedSportResultView() === 'all'"
+              (click)="setSportResultView('all')">
+              <span>All</span>
+            </button>
+            <button type="button" *ngIf="availableSportMedalViews().hasGold"
+              [class.active]="selectedSportResultView() === 'gold'" (click)="setSportResultView('gold')">
+              <img src="assets/images/cwg/glasgow-gold-medal.svg" alt="Gold">
+              <span>Gold</span>
+            </button>
+            <button type="button" *ngIf="availableSportMedalViews().hasSilver"
+              [class.active]="selectedSportResultView() === 'silver'" (click)="setSportResultView('silver')">
+              <img src="assets/images/cwg/glasgow-silver-medal.svg" alt="Silver">
+              <span>Silver</span>
+            </button>
+            <button type="button" *ngIf="availableSportMedalViews().hasBronze"
+              [class.active]="selectedSportResultView() === 'bronze'" (click)="setSportResultView('bronze')">
+              <img src="assets/images/cwg/glasgow-bronze-medal.svg" alt="Bronze">
+              <span>Bronze</span>
+            </button>
           </div>
         </div>
-        <div class="tile-copy">
-          <strong>{{ getWatchTitle(story) }}</strong>
-          <small>{{ getWatchTiming(story) }}</small>
-        </div>
 
-        <div class="tile-action">
-          <a *ngIf="story.shortUrl" class="yt-button rail-yt" [href]="story.shortUrl" target="_blank" rel="noopener"
-            aria-label="Watch {{ getWatchTitle(story) }} short on YouTube">
-            <svg class="yt-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-            </svg>
-            Watch Short
-          </a>
-          <span *ngIf="!story.shortUrl" class="yt-button disabled-yt">
-            Short soon
-          </span>
-        </div>
-      </article>
-    </div>
-  </section>
+        <!-- Event Grouped Results List -->
+        <ng-container *ngIf="eventGroupedDeclaredResults().length; else noSportResults">
+          <div class="event-group-block" *ngFor="let group of eventGroupedDeclaredResults()">
+            <div class="event-group-header-bar">
+              <span class="category-title">{{ group.eventName }}</span>
+              <span class="category-count">{{ group.items.length }} {{ group.items.length === 1 ? 'result' : 'results'
+                }}</span>
+            </div>
+
+            <button class="medal-winner-row" type="button" *ngFor="let item of group.items"
+              (click)="openSessionDialog(item.row)">
+              <span class="row-icon-col">
+                <img *ngIf="getItemMedalIconType(item) === 'gold'" src="assets/images/cwg/glasgow-gold-medal.svg"
+                  alt="Gold">
+                <img *ngIf="getItemMedalIconType(item) === 'silver'" src="assets/images/cwg/glasgow-silver-medal.svg"
+                  alt="Silver">
+                <img *ngIf="getItemMedalIconType(item) === 'bronze'" src="assets/images/cwg/glasgow-bronze-medal.svg"
+                  alt="Bronze">
+                <img
+                  *ngIf="getItemMedalIconType(item) === 'pictogram' && getReportSportPictogramUrl(item.row.sport) as pictogram"
+                  [src]="pictogram" [alt]="item.row.sport" class="sport-pictogram-icon">
+              </span>
+
+              <span class="medal-winner-copy">
+                <span>{{ item.row.sport }} · {{ item.row.dayLabel }} {{ item.row.dateLabel }}</span>
+                <strong>{{ item.row.athletes || getScheduleEventTitle(item.row) }}</strong>
+                <small>
+                  {{ item.row.event }}<ng-container *ngIf="item.summary"> · {{ item.summary }}</ng-container>
+                </small>
+              </span>
+              <span class="live-session-arrow" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </ng-container>
+
+        <ng-template #noSportResults>
+          <p class="medal-winners-empty">
+            No declared results match your selected division & filter criteria for {{ selectedSportFilter() }}.
+          </p>
+        </ng-template>
+      </div>
+    </aside>
+  </div>
 
   <div class="home-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
     (click)="closeSessionDialog()">
@@ -384,17 +349,14 @@
       <header class="home-session-header">
         <div class="live-dialog-title">
           <span class="compact-live-bug"><i class="pulse-dot"></i> LIVE</span>
-          <div>
-            <strong>India live now</strong>
-            <small>{{ liveCount() }} {{ liveCount() === 1 ? 'session' : 'sessions' }}</small>
-          </div>
+          <h2>India Live Sessions</h2>
         </div>
         <button class="home-dialog-close" type="button" aria-label="Close live sessions"
           (click)="closeLiveSessionsDialog()">&times;</button>
       </header>
 
-      <div class="home-session-body live-session-list">
-        <button class="live-session-row" type="button" *ngFor="let row of liveSessions(); trackBy: trackBySession"
+      <div class="home-session-body live-sessions-list">
+        <button class="live-session-row" type="button" *ngFor="let row of liveSessions()"
           (click)="openLiveSessionDetails(row)">
           <span class="session-sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
             <img [src]="pictogram" [alt]="row.sport">
@@ -408,6 +370,69 @@
           </span>
           <span class="live-session-arrow" aria-hidden="true">›</span>
         </button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="home-session-dialog" *ngIf="isMedalWinnersDialogOpen()" role="presentation"
+    (click)="closeMedalWinnersDialog()">
+    <aside class="home-session-panel medal-winners-panel" role="dialog" aria-modal="true"
+      aria-labelledby="medal-winners-title" (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="medal-winners-title">
+          <span class="india-flag" aria-hidden="true">🇮🇳</span>
+          <div>
+            <strong id="medal-winners-title">{{ medalTypeTitleLabel() }}</strong>
+            <small>{{ medalStreamLabel() }} · {{ visibleMedalWinners().length }} medals</small>
+          </div>
+        </div>
+        <button class="home-dialog-close" type="button" aria-label="Close medal winners"
+          (click)="closeMedalWinnersDialog()">&times;</button>
+      </header>
+
+      <div class="home-session-body medal-winners-list">
+        <div class="medal-sport-filters medal-type-filters" role="group" aria-label="Filter medal winners by type">
+          <button type="button" [class.active]="selectedMedalType() === 'all'" (click)="setMedalTypeFilter('all')">
+            <span>All Medals</span>
+          </button>
+          <button type="button" [class.active]="selectedMedalType() === 'gold'" (click)="setMedalTypeFilter('gold')">
+            <span>🥇 Gold</span>
+          </button>
+          <button type="button" [class.active]="selectedMedalType() === 'silver'"
+            (click)="setMedalTypeFilter('silver')">
+            <span>🥈 Silver</span>
+          </button>
+          <button type="button" [class.active]="selectedMedalType() === 'bronze'"
+            (click)="setMedalTypeFilter('bronze')">
+            <span>🥉 Bronze</span>
+          </button>
+        </div>
+
+        <div class="medal-sport-filters" role="group" aria-label="Filter medal winners by sport">
+          <button type="button" *ngFor="let sport of medalSportFilters()"
+            [class.active]="selectedMedalSport() === sport.key" [attr.aria-pressed]="selectedMedalSport() === sport.key"
+            (click)="setMedalSport(sport.key)">
+            <span>{{ sport.label }}</span>
+            <strong>{{ sport.count }}</strong>
+          </button>
+        </div>
+
+        <button class="medal-winner-row" type="button" *ngFor="let winner of visibleMedalWinners()"
+          (click)="openMedalWinnerDetails(winner)">
+          <img [src]="getMedalIconUrl(winner.type)" [alt]="getMedalLabel(winner.type) + ' medal'">
+          <span class="medal-winner-copy">
+            <span>{{ winner.sport }} · {{ getMedalLabel(winner.type) }}</span>
+            <strong>{{ winner.athleteName }}</strong>
+            <small>
+              {{ winner.event }}<ng-container *ngIf="winner.result"> · {{ winner.result }}</ng-container>
+            </small>
+          </span>
+          <span class="live-session-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <p class="medal-winners-empty" *ngIf="visibleMedalWinners().length === 0">
+          No declared medals in this category yet.
+        </p>
       </div>
     </aside>
   </div>
