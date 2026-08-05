@@ -21,14 +21,8 @@ import {
   isScheduleRowLiveNow,
   getCountryFlagEmoji,
   parseCwgScheduleTimestamp,
+  cleanCwgEventTitle,
 } from "./cwg-2026.types";
-
-interface WatchGroup {
-  groupKey: string;
-  title: string;
-  rank: number;
-  rows: CwgGamesParticipation[];
-}
 
 interface ScheduleDateGroup {
   dateKey: string;
@@ -68,32 +62,8 @@ interface MedalWinner {
   row: CwgScheduleRow;
 }
 
-export interface WatchStory {
-  rank: number;
-  title: string;
-  sport: string;
-  event: string;
-  posterUrl?: string;
-  shortStatus: "released" | "scheduled";
-  shortLabel: string;
-  shortUrl?: string;
-  group: WatchGroup | null;
-  nextSession: CwgScheduleRow | null;
-  isToday: boolean;
-}
-
-const DEFAULT_POSTERS: Record<number, string> = {
-  1: "assets/images/cwg/ten-to-watch/01-neeraj-chopra-rohit-yadav.png",
-  2: "assets/images/cwg/ten-to-watch/02-sreeshankar-lokesh.png",
-  3: "assets/images/cwg/ten-to-watch/03-sarvesh-kushare-tejaswin-shankar.png",
-  4: "assets/images/cwg/ten-to-watch/04-mirabai-chanu.png",
-  5: "assets/images/cwg/ten-to-watch/05-gulveer-singh.png",
-  6: "assets/images/cwg/ten-to-watch/06-jaismine-lamboria.png",
-  7: "assets/images/cwg/ten-to-watch/07-praveen-chithravel.png",
-  8: "assets/images/cwg/ten-to-watch/08-parul-chaudhary.png",
-  9: "assets/images/cwg/ten-to-watch/09-sakshi-chaudhary.png",
-  10: "assets/images/cwg/ten-to-watch/10-gurindervir-singh.png",
-};
+type SportResultView = "all" | "medals" | "wins" | "gold" | "silver" | "bronze";
+type SportDivisionFilter = "all" | "men" | "women" | "mixed";
 
 @Component({
   selector: "app-cwg-2026-home",
@@ -130,7 +100,13 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   readonly hasScheduleError = signal(false);
   readonly selectedMedalStream = signal<CwgCompetitionStream>("all");
   readonly selectedMedalSport = signal<string>("all");
-  readonly indiaRank = signal<number | null>(9);
+  readonly selectedReportTab = signal<"sports" | "road-ahead">("sports");
+  readonly selectedSportFilter = signal<string>("all");
+  readonly selectedSportDivision = signal<SportDivisionFilter>("all");
+  readonly selectedSportResultView = signal<SportResultView>("all");
+  readonly sportResultSearch = signal("");
+  readonly isSportResultsDialogOpen = signal(false);
+  readonly indiaRank = signal<number | null>(null);
   readonly isMedalWinnersDialogOpen = signal(false);
   readonly resultOpenedFromMedalWinners = signal(false);
   readonly medalStreamFilters: ReadonlyArray<{ key: CwgCompetitionStream; label: string }> = [
@@ -138,6 +114,72 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     { key: "able-bodied", label: "Able-bodied" },
     { key: "para", label: "Para" },
   ];
+
+  readonly sportReportCards = [
+    { sport: "Boxing", roster: 14, g: 7, s: 3, b: 0, total: 10, productivity: 71.4, tier: "Medal engine", tierClass: "engine", signal: "Outstanding conversion: 7 titles from 10 finals. Asian/World fields add absent elite powers." },
+    { sport: "Para Athletics", roster: 11, g: 3, s: 2, b: 1, total: 6, productivity: 54.5, tier: "Medal engine", tierClass: "engine", signal: "Strongest gold conversion outside Boxing; retain classification-specific benchmarks." },
+    { sport: "Weightlifting", roster: 12, g: 1, s: 6, b: 1, total: 8, productivity: 66.7, tier: "Productive, ceiling gap", tierClass: "productive", signal: "Broad podium depth (8 medals), but 6 silvers highlight first-place conversion gap." },
+    { sport: "Athletics", roster: 32, g: 0, s: 5, b: 5, total: 10, productivity: 31.3, tier: "Productive, ceiling gap", tierClass: "productive", signal: "10 medals without gold; credible depth in jumps/throws, insufficient winning conversion." },
+    { sport: "Judo", roster: 14, g: 2, s: 1, b: 1, total: 4, productivity: 28.6, tier: "Selective strength", tierClass: "selective", signal: "High top-end quality (2 golds), but only 4 medals across a large roster." },
+    { sport: "Para Powerlifting", roster: 7, g: 0, s: 0, b: 1, total: 1, productivity: 14.3, tier: "Isolated podium", tierClass: "isolated", signal: "A foothold podium (1 bronze) rather than a repeatable medal pipeline." },
+    { sport: "Artistic Gymnastics", roster: 8, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Finalist pathway", tierClass: "finalist", signal: "Finals exposure gained, but no podium conversion in a Commonwealth field." },
+    { sport: "Lawn Bowls", roster: 6, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Development gap", tierClass: "gap", signal: "No knockout-to-medal conversion despite direct CWG relevance." },
+    { sport: "Swimming", roster: 5, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Development gap", tierClass: "gap", signal: "No medal in a field led by globally deep Australia, England and Canada." },
+    { sport: "Para Swimming", roster: 6, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Development gap", tierClass: "gap", signal: "Entry, classification and progression reliability require structural attention." },
+    { sport: "Track Cycling", roster: 6, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Development gap", tierClass: "gap", signal: "No medal-round conversion; timed-event gap remains visible." },
+    { sport: "Para Track Cycling", roster: 1, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Finalist pathway", tierClass: "finalist", signal: "Lisha Das placed 6th in C4-C5 1000m TT (25.649s behind gold)." },
+    { sport: "Wheelchair Basketball", roster: 4, g: 0, s: 0, b: 0, total: 0, productivity: 0.0, tier: "Development gap", tierClass: "gap", signal: "Small roster gained exposure but did not create a medal path." }
+  ];
+
+  readonly roadAhead = [
+    { id: "bwf", title: "BWF World Championships", date: "2026", sport: "Badminton", copy: "Badminton World Federation flagship global event. Track world rankings, head-to-head records, draw seeds, and round-by-round match scores for India's shuttlers.", cwgContext: "BWF World Championship baseline" },
+    { id: "world-boxing", title: "World Boxing Championships", date: "2026", sport: "Boxing", copy: "India's 7 CWG boxing golds face the global test. Reuse draw progression, opponent quality tracking, and round-by-round bout scores from the CWG hub. Key champions: Jaismine Lamboria (57kg), Sachin (60kg), Ankush (80kg).", cwgContext: "7 golds, 10 medals, 71.4% productivity" },
+    { id: "asian-wl", title: "Asian Games — Weightlifting", date: "2027", sport: "Weightlifting", copy: "6 silvers and 1 gold from Glasgow show India consistently reached the podium but not the top step. Asian Games add China, Japan, and South Korea—calibrate expectations. Need attempt-by-attempt lift data, bodyweight categories, and real-time projected totals.", cwgContext: "1 gold, 6 silvers — clear ceiling gap" },
+    { id: "asian-ath", title: "Asian Games — Athletics & Para Athletics", date: "2027", sport: "Athletics", copy: "Combined 16 medals at CWG (3 Para golds). Neeraj Chopra (Silver, 85.83m javelin) and Gulveer Singh (Silver 10,000m + Bronze 5,000m) lead the charge. Track personal bests vs world/Asian championship standards. Para Athletics (54.5% productivity) is India's most efficient medal converter.", cwgContext: "16 combined medals, 0 able-bodied golds" },
+    { id: "la2028", title: "LA 2028 Olympic Qualification", date: "2028", sport: "Multi-sport", copy: "Long-horizon qualification tracking for all sports. Swimming, Cycling, and Gymnastics remain world-gap sports (0 medals from 26 roster places). Track PB rates, gap-to-medal, and qualification standards before making medal predictions.", cwgContext: "7 sports with 0 medals at CWG" },
+  ];
+
+  setReportTab(tab: "sports" | "road-ahead"): void {
+    this.selectedReportTab.set(tab);
+  }
+
+  openSportResults(sport: string): void {
+    this.selectedSportFilter.set(sport);
+    this.selectedSportResultView.set("all");
+    this.sportResultSearch.set("");
+    this.isSportResultsDialogOpen.set(true);
+  }
+
+  closeSportResults(): void {
+    this.isSportResultsDialogOpen.set(false);
+  }
+
+  closeSportResultsDialog(): void {
+    this.closeSportResults();
+  }
+
+  setSportDivision(division: SportDivisionFilter): void {
+    this.selectedSportDivision.set(division);
+  }
+
+  setSportResultView(view: SportResultView): void {
+    this.selectedSportResultView.set(view);
+  }
+
+  readonly activeSignalSport = signal<string | null>(null);
+
+  toggleSignalTooltip(sport: string, event: Event): void {
+    event.stopPropagation();
+    if (this.activeSignalSport() === sport) {
+      this.activeSignalSport.set(null);
+    } else {
+      this.activeSignalSport.set(sport);
+    }
+  }
+
+  setSportResultSearch(value: string): void {
+    this.sportResultSearch.set(value);
+  }
 
   readonly scheduleRows = computed(() =>
     [...this.scheduleData().rows].sort((a, b) => a.sortKey.localeCompare(b.sortKey)),
@@ -216,14 +258,29 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       );
   });
 
+  readonly selectedMedalType = signal<"all" | "gold" | "silver" | "bronze">("all");
+
+  readonly medalTypeTitleLabel = computed(() => {
+    const type = this.selectedMedalType();
+    if (type === "gold") return "India’s Gold Medal Winners";
+    if (type === "silver") return "India’s Silver Medal Winners";
+    if (type === "bronze") return "India’s Bronze Medal Winners";
+    return "India’s Medal Winners";
+  });
+
   readonly medalSportFilters = computed(() => {
+    const selectedType = this.selectedMedalType();
+    const filteredTypeWinners = selectedType === "all"
+      ? this.medalWinners()
+      : this.medalWinners().filter((w) => w.type === selectedType);
+
     const counts = new Map<string, number>();
-    this.medalWinners().forEach((winner) => {
+    filteredTypeWinners.forEach((winner) => {
       counts.set(winner.sport, (counts.get(winner.sport) || 0) + 1);
     });
 
     return [
-      { key: "all", label: "All sports", count: this.medalWinners().length },
+      { key: "all", label: "All sports", count: filteredTypeWinners.length },
       ...[...counts.entries()]
         .sort(([leftSport, leftCount], [rightSport, rightCount]) =>
           rightCount - leftCount || leftSport.localeCompare(rightSport),
@@ -234,8 +291,15 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   readonly visibleMedalWinners = computed(() => {
     const selectedSport = this.selectedMedalSport();
-    if (selectedSport === "all") return this.medalWinners();
-    return this.medalWinners().filter((winner) => winner.sport === selectedSport);
+    const selectedType = this.selectedMedalType();
+    let winners = this.medalWinners();
+    if (selectedSport !== "all") {
+      winners = winners.filter((w) => w.sport === selectedSport);
+    }
+    if (selectedType !== "all") {
+      winners = winners.filter((w) => w.type === selectedType);
+    }
+    return winners;
   });
 
   readonly declaredResults = computed(() =>
@@ -249,6 +313,222 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       })),
   );
 
+  readonly availableSportDivisions = computed(() => {
+    const filter = this.selectedSportFilter();
+    const normalizedFilter = filter.toLowerCase();
+    const rows = this.declaredResults().filter(
+      (item) => filter === "all" || item.row.sport.toLowerCase() === normalizedFilter,
+    );
+
+    const hasMen = rows.some((item) => {
+      const ev = (item.row.event || "").toLowerCase();
+      return ev.includes("men") && !ev.includes("women");
+    });
+    const hasWomen = rows.some((item) => (item.row.event || "").toLowerCase().includes("women"));
+    const hasMixed = rows.some((item) => (item.row.event || "").toLowerCase().includes("mixed"));
+
+    return { hasMen, hasWomen, hasMixed };
+  });
+
+  hasMedalColor(item: any, color: "gold" | "silver" | "bronze"): boolean {
+    if (!item) return false;
+    const target = color.toUpperCase();
+    const label = (item.badge?.label || "").toUpperCase();
+    const summary = (item.summary || "").toUpperCase();
+    if (label.includes(target) || summary.includes(target)) return true;
+
+    if (item.row) {
+      const medalTypes = this.getResultMedalTypes(item.row);
+      if (medalTypes.includes(color)) return true;
+      if (item.row.result?.medals?.some((m: any) => m.type === color)) return true;
+    }
+    return false;
+  }
+
+  readonly availableSportMedalViews = computed(() => {
+    const filter = this.selectedSportFilter();
+    const normalizedFilter = filter.toLowerCase();
+    const rows = this.declaredResults().filter(
+      (item) => filter === "all" || item.row.sport.toLowerCase() === normalizedFilter,
+    );
+
+    const hasGold = rows.some((item) => this.hasMedalColor(item, "gold"));
+    const hasSilver = rows.some((item) => this.hasMedalColor(item, "silver"));
+    const hasBronze = rows.some((item) => this.hasMedalColor(item, "bronze"));
+
+    return { hasGold, hasSilver, hasBronze };
+  });
+
+  getItemMedalIconType(item: any): 'gold' | 'silver' | 'bronze' | 'pictogram' {
+    if (!item) return 'pictogram';
+    const label = (item.badge?.label || '').toUpperCase();
+    const summary = (item.summary || '').toUpperCase();
+    const medalTypes = item.row ? this.getResultMedalTypes(item.row) : [];
+
+    if (label.includes('GOLD') || summary.includes('GOLD') || medalTypes.includes('gold')) return 'gold';
+    if (label.includes('SILVER') || summary.includes('SILVER') || medalTypes.includes('silver')) return 'silver';
+    if (label.includes('BRONZE') || summary.includes('BRONZE') || medalTypes.includes('bronze')) return 'bronze';
+
+    if (item.row?.result?.medals && item.row.result.medals.length > 0) {
+      const firstType = item.row.result.medals[0]?.type;
+      if (firstType === 'gold' || firstType === 'silver' || firstType === 'bronze') return firstType;
+    }
+
+    return 'pictogram';
+  }
+
+  isMedalResultItem(item: any): boolean {
+    const type = this.getItemMedalIconType(item);
+    if (type === 'gold' || type === 'silver' || type === 'bronze') return true;
+    return this.isMedalRow(item.row);
+  }
+
+  readonly filteredDeclaredResults = computed(() => {
+    const filter = this.selectedSportFilter();
+    const normalizedFilter = filter.toLowerCase();
+    const division = this.selectedSportDivision();
+    const view = this.selectedSportResultView();
+    const search = this.sportResultSearch().trim().toLowerCase();
+
+    return this.declaredResults().filter((item) => {
+      if (filter !== "all" && item.row.sport.toLowerCase() !== normalizedFilter) {
+        return false;
+      }
+
+      if (division !== "all") {
+        const ev = (item.row.event || "").toLowerCase();
+        if (division === "men" && (!ev.includes("men") || ev.includes("women"))) return false;
+        if (division === "women" && !ev.includes("women")) return false;
+        if (division === "mixed" && !ev.includes("mixed")) return false;
+      }
+
+      if (view === "medals" && !this.isMedalResultItem(item)) return false;
+      if (view === "wins" && !item.badge?.isWon) return false;
+      if (view === "gold" && !this.hasMedalColor(item, "gold")) return false;
+      if (view === "silver" && !this.hasMedalColor(item, "silver")) return false;
+      if (view === "bronze" && !this.hasMedalColor(item, "bronze")) return false;
+
+      if (search) {
+        const text = `${item.row.event} ${item.row.athletes} ${item.summary || ""}`.toLowerCase();
+        if (!text.includes(search)) return false;
+      }
+      return true;
+    });
+  });
+
+  getCanonicalEventCategory(rawEvent: string): string {
+    if (!rawEvent) return "General Event";
+    const cleaned = cleanCwgEventTitle(rawEvent);
+    const lower = cleaned.toLowerCase();
+
+    // 1. Track Cycling
+    if (
+      lower.includes("track cycling") ||
+      lower.includes("cycling") ||
+      lower.includes("points race") ||
+      lower.includes("scratch race") ||
+      lower.includes("keirin") ||
+      lower.includes("team pursuit") ||
+      lower.includes("team sprint") ||
+      lower.includes("time trial")
+    ) {
+      const isWomen = lower.includes("women");
+      const isPara = lower.includes("para");
+      const prefix = isPara ? "Para Track Cycling " : (isWomen ? "Women's " : "Men's ");
+
+      if (lower.includes("points race")) return prefix + "Points Race";
+      if (lower.includes("scratch race")) return prefix + "Scratch Race";
+      if (lower.includes("keirin")) return prefix + "Keirin";
+      if (lower.includes("team pursuit")) return prefix + "Team Pursuit";
+      if (lower.includes("team sprint")) return prefix + "Team Sprint";
+      if (lower.includes("time trial")) return prefix + "Time Trial";
+      if (lower.includes("individual pursuit")) return prefix + "Individual Pursuit";
+      if (lower.includes("sprint")) return prefix + "Sprint";
+    }
+
+    // 2. Decathlon sub-events
+    if (lower.includes("decathlon")) return "Men's Decathlon";
+
+    // 3. Exact match rules for Athletics canonical list
+    if (lower.includes("triple jump")) return lower.includes("women") ? "Women's Triple Jump" : "Men's Triple Jump";
+    if (lower.includes("javelin")) return lower.includes("women") ? "Women's Javelin Throw" : "Men's Javelin Throw";
+    if (lower.includes("discus")) return lower.includes("women") ? "Women's Discus Throw" : "Men's Discus Throw";
+    if (lower.includes("shot put")) return lower.includes("women") ? "Women's Shot Put" : "Men's Shot Put";
+    if (lower.includes("long jump")) return lower.includes("women") ? "Women's Long Jump" : "Men's Long Jump";
+    if (lower.includes("high jump")) return lower.includes("women") ? "Women's High Jump" : "Men's High Jump";
+    if (lower.includes("pole vault")) return lower.includes("women") ? "Women's Pole Vault" : "Men's Pole Vault";
+
+    if (lower.includes("steeplechase")) return lower.includes("men") && !lower.includes("women") ? "Men's 3000m Steeplechase" : "Women's 3000m Steeplechase";
+    if (lower.includes("race walk") || lower.includes("racewalk")) return lower.includes("men") && !lower.includes("women") ? "Men's 10,000m Race Walk" : "Women's 10,000m Race Walk";
+    if (lower.includes("relay") || lower.includes("4x400") || lower.includes("4 * 400")) return "Mixed 4 x 400m Relay";
+
+    if (lower.includes("110m hurdles")) return "Men's 110m Hurdles";
+    if (lower.includes("400m hurdles")) return lower.includes("women") ? "Women's 400m Hurdles" : "Men's 400m Hurdles";
+    if (lower.includes("100m hurdles")) return "Women's 100m Hurdles";
+
+    if (lower.includes("10,000m") || lower.includes("10000m")) return lower.includes("women") ? "Women's 10,000m" : "Men's 10,000m";
+    if (lower.includes("5000m") || lower.includes("5,000m")) return lower.includes("women") ? "Women's 5000m" : "Men's 5000m";
+
+    if (lower.includes("400m") && !lower.includes("hurdles") && !lower.includes("relay")) return lower.includes("women") ? "Women's 400m" : "Men's 400m";
+    if (lower.includes("200m") && !lower.includes("hurdles")) return lower.includes("women") ? "Women's 200m" : "Men's 200m";
+    if (lower.includes("100m") && !lower.includes("hurdles")) return lower.includes("women") ? "Women's 100m" : "Men's 100m";
+
+    // 4. Judo weight categories
+    if (lower.includes("judo") || lower.includes("kg")) {
+      const isWomen = lower.includes("women");
+      const prefix = isWomen ? "Women's " : "Men's ";
+
+      if (lower.includes("+100") || lower.includes("100+")) return prefix + "+100kg";
+      if (lower.includes("-100") || lower.includes("100kg")) return prefix + "-100kg";
+      if (lower.includes("-90") || lower.includes("90kg")) return prefix + "-90kg";
+      if (lower.includes("-81") || lower.includes("81kg")) return prefix + "-81kg";
+      if (lower.includes("-78") || lower.includes("78kg")) return prefix + "-78kg";
+      if (lower.includes("-70") || lower.includes("70kg")) return prefix + "-70kg";
+      if (lower.includes("-66") || lower.includes("66kg")) return prefix + "-66kg";
+      if (lower.includes("-63") || lower.includes("63kg")) return prefix + "-63kg";
+      if (lower.includes("-60") || lower.includes("60kg")) return prefix + "-60kg";
+      if (lower.includes("-57") || lower.includes("57kg")) return prefix + "-57kg";
+      if (lower.includes("-52") || lower.includes("52kg")) return prefix + "-52kg";
+      if (lower.includes("-48") || lower.includes("48kg")) return prefix + "-48kg";
+    }
+
+    // General fallback: strip stage suffixes & clean title
+    return (
+      cleaned
+        .replace(/\s*-\s*(Final|Semi-final|Quarter-final|Round of \d+|Group Stage|Qualification|Preliminary Round|Heat \d+).*/gi, "")
+        .replace(/\s+(Final|Semi-final|Quarter-final|Qualification|Heat \d+).*/gi, "")
+        .trim() || cleaned
+    );
+  }
+
+  getScheduleEventTitle(row: CwgScheduleRow): string {
+    const raw = row.event || row.eventName || row.name || "";
+    return cleanCwgEventTitle(raw) || getBoxingEventTitle(row);
+  }
+
+  readonly eventGroupedDeclaredResults = computed(() => {
+    const results = this.filteredDeclaredResults();
+    const groupMap = new Map<string, typeof results>();
+
+    results.forEach((item) => {
+      const rawEvent = item.row.event || "General Event";
+      const categoryName = this.getCanonicalEventCategory(rawEvent);
+
+      if (!groupMap.has(categoryName)) {
+        groupMap.set(categoryName, []);
+      }
+      groupMap.get(categoryName)!.push(item);
+    });
+
+    return [...groupMap.entries()].map(([eventName, items]) => ({
+      eventName,
+      items,
+      hasMedal: items.some((i) => this.isMedalResultItem(i)),
+    }));
+  });
+
+  readonly sportDialogResults = computed(() => this.filteredDeclaredResults());
+
   readonly liveCount = computed(() => this.liveSessions().length);
   readonly latestDeclaredResult = computed(() => this.declaredResults()[0] || null);
   readonly latestTwoResults = computed(() =>
@@ -257,61 +537,8 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       .slice(0, 2),
   );
 
-  readonly watchGroups = computed(() => {
-    const groups = new Map<string, WatchGroup>();
 
-    this.participations()
-      .filter((row) => row.watchList?.isTenToWatch)
-      .forEach((row) => {
-        const key = row.watchList?.groupKey || String(row.watchList?.rank || row.rosterOrder || row.id);
-        const group = groups.get(key) || {
-          groupKey: key,
-          title: row.watchList?.groupTitle || getParticipationAthleteName(row),
-          rank: row.watchList?.rank || 99,
-          rows: [],
-        };
-        group.rows.push(row);
-        groups.set(key, group);
-      });
 
-    return [...groups.values()].sort((a, b) => a.rank - b.rank);
-  });
-
-  readonly watchStories = computed<WatchStory[]>(() => {
-    return this.watchGroups().map((group) => {
-      const firstRow = group.rows[0];
-      const rank = group.rank;
-      const watchList = firstRow?.watchList;
-      const shortStatus: "released" | "scheduled" = watchList?.shortStatus || (rank >= 5 ? "released" : "scheduled");
-      const shortUrl = watchList?.shortUrl;
-      const posterUrl = watchList?.posterUrl || DEFAULT_POSTERS[rank];
-      const sport = firstRow ? getParticipationSportName(firstRow) : "Sport";
-      const event = group.rows.map((r) => r.eventName || r.eventBucket).filter(Boolean).join(" & ");
-
-      const nextSession = this.findNextSessionForGroup(group);
-
-      return {
-        rank,
-        title: group.title,
-        sport,
-        event: event || "Event",
-        posterUrl,
-        shortStatus,
-        shortLabel: shortStatus === "released" ? "Short out" : "Short soon",
-        shortUrl,
-        group,
-        nextSession,
-        isToday: nextSession ? this.isSameDay(this.getSessionStartMs(nextSession), this.now().getTime()) : false,
-      };
-    });
-  });
-
-  readonly releasedShortsCount = computed(() => this.watchStories().filter((s) => s.shortStatus === "released").length);
-  readonly scheduledShortsCount = computed(() => this.watchStories().filter((s) => s.shortStatus === "scheduled").length);
-
-  readonly watchRailStories = computed(() => {
-    return this.watchStories().sort((a, b) => a.rank - b.rank);
-  });
 
   readonly sportIconLookup = computed(() => {
     const lookup = new Map<string, string>();
@@ -446,14 +673,87 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   openMedalWinnersDialog(): void {
+    this.selectedMedalType.set("all");
     this.isMedalWinnersDialogOpen.set(true);
+  }
+
+  openMedalWinnersType(type: "all" | "gold" | "silver" | "bronze"): void {
+    this.selectedMedalType.set(type);
+    this.selectedMedalSport.set("all");
+    this.isMedalWinnersDialogOpen.set(true);
+  }
+
+  setMedalTypeFilter(type: "all" | "gold" | "silver" | "bronze"): void {
+    this.selectedMedalType.set(type);
   }
 
   closeMedalWinnersDialog(): void {
     this.isMedalWinnersDialogOpen.set(false);
   }
 
+  readonly selectedMedalWinner = signal<MedalWinner | null>(null);
+
+  readonly athleteProgressionHistory = computed(() => {
+    const winner = this.selectedMedalWinner();
+    const row = this.selectedSessionRow();
+
+    const targetSport = winner?.sport || row?.sport;
+    const targetAthlete = winner?.athleteName || row?.athletes;
+    const targetEvent = winner?.event || row?.event;
+
+    if (!targetSport) return [];
+
+    const matchedRows = this.scheduleRows().filter((r) => {
+      if (r.sport !== targetSport) return false;
+      if (!r.result) return false;
+
+      const eventClean = (targetEvent || "").toLowerCase().replace(/^(men's|women's|mixed)\s*/i, '').trim();
+      const rowEventClean = (r.event || "").toLowerCase().replace(/^(men's|women's|mixed)\s*/i, '').trim();
+
+      const eventMatch = Boolean(eventClean && rowEventClean.includes(eventClean));
+      const athleteMatch = Boolean(
+        targetAthlete && targetAthlete !== 'India' && (
+          (r.athletes && r.athletes.toLowerCase().includes(targetAthlete.toLowerCase())) ||
+          (JSON.stringify(r.result).toLowerCase().includes(targetAthlete.toLowerCase()))
+        )
+      );
+
+      return eventMatch || athleteMatch;
+    });
+
+    const uniqueMap = new Map<string, CwgScheduleRow>();
+    matchedRows.forEach((r) => uniqueMap.set(r.id, r));
+
+    return [...uniqueMap.values()]
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      .map((r) => {
+        const resultSummary = getScheduleResultSummary(r);
+        const stageName = r.stage || r.phase || (r.isMedalSession ? 'Medal Match' : 'Round Match');
+        const opponent = this.getBoxingOpponentLabel(r) || r.result?.match?.competitor2?.name || r.athletes || 'Opponent';
+        const isWon = Boolean(
+          r.result?.summaryLabel?.toUpperCase().includes('WON') ||
+          r.result?.resultLabel?.toUpperCase().includes('WON') ||
+          (r.result?.medals && r.result.medals.length > 0)
+        );
+        const medalType = r.result?.summaryLabel?.includes('GOLD') ? 'gold' : r.result?.summaryLabel?.includes('SILVER') ? 'silver' : r.result?.summaryLabel?.includes('BRONZE') ? 'bronze' : null;
+
+        return {
+          id: r.id,
+          stage: stageName,
+          dateLabel: `${r.dayLabel || ''} ${r.dateLabel || ''}`.trim(),
+          timeLabel: r.timeLabel,
+          title: this.getScheduleEventTitle(r),
+          opponent,
+          resultText: resultSummary || r.result?.match?.scoreText || r.result?.resultLabel || 'Completed',
+          isWon,
+          medalType,
+          row: r,
+        };
+      });
+  });
+
   openMedalWinnerDetails(winner: MedalWinner): void {
+    this.selectedMedalWinner.set(winner);
     this.resultOpenedFromMedalWinners.set(true);
     this.selectedSessionRow.set(winner.row);
   }
@@ -517,14 +817,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     if (this.scheduleRefreshTimer) clearInterval(this.scheduleRefreshTimer);
   }
 
-  trackByWatchGroup(_: number, group: WatchGroup): string {
-    return group.groupKey;
-  }
-
-  trackByWatchStory(_: number, story: WatchStory): number {
-    return story.rank;
-  }
-
   trackBySession(_: number, row: { id: string }): string {
     return row.id;
   }
@@ -542,8 +834,15 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     );
   }
 
-  getScheduleEventTitle(row: CwgScheduleRow): string {
-    return getBoxingEventTitle(row);
+  getReportSportPictogramUrl(sportName: string): string | null {
+    const lookup = this.sportIconLookup();
+    const normalizedName = this.normalizeSportKey(sportName);
+
+    return (
+      lookup.get(normalizedName) ||
+      [...lookup.entries()].find(([key]) => normalizedName.includes(key) || key.includes(normalizedName))?.[1] ||
+      null
+    );
   }
 
   hasBoxingDraw(row: CwgScheduleRow): boolean {
@@ -718,27 +1017,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
 
   getSportName(participation: CwgGamesParticipation): string {
     return getParticipationSportName(participation);
-  }
-
-  getWatchTitle(story: WatchStory): string {
-    return story.title;
-  }
-
-  getWatchMeta(story: WatchStory): string {
-    return `${story.sport} · ${story.event}`;
-  }
-
-  getWatchTiming(story: WatchStory): string {
-    const session = story.nextSession;
-    if (!session) return "Schedule TBC";
-    if (this.isSessionLive(session)) return `Live now · ${session.timeLabel}`;
-    if (story.isToday) return `Today · ${session.timeLabel}`;
-    const date = this.getIstDateParts(this.getSessionStartMs(session));
-    return `${date.dayLabel} ${date.dateLabel} · ${session.timeLabel}`;
-  }
-
-  getWatchStatusClass(story: WatchStory): string {
-    return story.shortStatus === "released" ? "short-released" : "short-scheduled";
   }
 
   getQuestionLabel(): string {
@@ -929,92 +1207,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       .replace(/&/g, "and")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-  }
-
-  private findNextSessionForGroup(group: WatchGroup): CwgScheduleRow | null {
-    const now = this.now().getTime();
-    const firstRow = group.rows[0];
-    if (!firstRow) return null;
-
-    // Build sport match: compare displayGroup/sport name against schedule sport
-    const groupSport = this.normalizeSearchText(getParticipationSportName(firstRow));
-
-    // Build event keywords from all participation eventName values in this group
-    // e.g. "Men's 100m" → ["men s 100m", "100m"]
-    // e.g. "Men's 5000m and 10,000m" → ["men s 5000m and 10 000m", "5000m", "10 000m", "10000m"]
-    const eventKeywords = this.extractEventKeywords(group);
-
-    const matches = this.scheduleRows()
-      .filter((row) => {
-        const rowSport = this.normalizeSearchText(row.sport);
-        const rowEvent = this.normalizeSearchText(row.event);
-
-        // Sport must match
-        const sportMatch = rowSport.includes(groupSport) || groupSport.includes(rowSport);
-        if (!sportMatch) return false;
-
-        // Event keywords must match
-        return eventKeywords.some((keyword) => rowEvent.includes(keyword));
-      })
-      .sort((a, b) => this.getSessionStartMs(a) - this.getSessionStartMs(b));
-
-    return matches.find((row) => this.getSessionEndMs(row) >= now) || matches[0] || null;
-  }
-
-  /**
-   * Extract meaningful event keywords from the participation rows in a watch group.
-   * Handles compound events like "Men's 5000m and 10,000m" by splitting on 'and'/','
-   * and extracting short tokens like "5000m", "javelin", "100m", "57kg", etc.
-   */
-  private extractEventKeywords(group: WatchGroup): string[] {
-    const keywords: string[] = [];
-    const seen = new Set<string>();
-
-    for (const row of group.rows) {
-      const raw = row.eventName || row.eventBucket || "";
-
-      // Normalise and split compound event descriptions on common delimiters
-      const parts = raw
-        .replace(/,/g, " and ")
-        .split(/\band\b|\+|&/i)
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-      for (const part of parts) {
-        const normalized = this.normalizeSearchText(part);
-
-        // Extract the core event token: the last meaningful word/phrase
-        // e.g. "Men's javelin throw" → "javelin"
-        // e.g. "Women's 3000m steeplechase" → "3000m steeplechase", "steeplechase", "3000m"
-        // e.g. "Men's 100m" → "100m"
-        // e.g. "Women's 57kg" → "57kg"
-        const tokens = normalized.split(/\s+/).filter((t) => t.length > 1);
-
-        // Add full normalized part
-        if (normalized && !seen.has(normalized)) {
-          seen.add(normalized);
-          keywords.push(normalized);
-        }
-
-        // Add individual meaningful tokens (skip gendered prefixes)
-        const skipTokens = new Set(["men", "s", "women", "mixed", "men s", "women s"]);
-        for (const token of tokens) {
-          if (!skipTokens.has(token) && !seen.has(token) && token.length > 1) {
-            // Only add tokens that look like event identifiers
-            // (contain digits, or are sport-specific terms)
-            const isEventToken =
-              /\d/.test(token) || // "100m", "57kg", "5000m", "48kg"
-              token.length >= 4;  // "javelin", "steeplechase", "triple", "long", "high", "decathlon"
-            if (isEventToken) {
-              seen.add(token);
-              keywords.push(token);
-            }
-          }
-        }
-      }
-    }
-
-    return keywords;
   }
 
   private isSameDay(leftMs: number, rightMs: number): boolean {

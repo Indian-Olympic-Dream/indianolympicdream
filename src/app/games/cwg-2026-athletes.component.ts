@@ -3,12 +3,18 @@ import { Component, HostListener, OnInit, computed, inject, signal } from "@angu
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink, RouterLinkActive } from "@angular/router";
 import { Athlete, PayloadService, Sport } from "../services/payload.service";
+import { Cwg2026ResultDetailComponent } from "./cwg-2026-result-detail.component";
 import {
   CWG_2026_GAMES_KEY,
   CwgGamesParticipation,
   CwgScheduleData,
   CwgScheduleRow,
+  getBoxingBoutMeta,
+  getBoxingCompetitorName,
   getBoxingDraw,
+  getBoxingEventTitle,
+  getBoxingIndiaLabel,
+  getBoxingOpponentLabel as resolveBoxingOpponentLabel,
   getParticipationAthlete,
   getParticipationAthleteName,
   getParticipationSport,
@@ -16,6 +22,7 @@ import {
   getParticipationSportSlug,
   getRoadToMedalImageUrl as resolveRoadToMedalImageUrl,
   getScheduleResultBadge,
+  getScheduleResultSummary,
 } from "./cwg-2026.types";
 
 interface SportNavItem {
@@ -30,10 +37,30 @@ interface SportNavAccumulator extends SportNavItem {
   firstOrder: number;
 }
 
+interface AthleteResultItem {
+  id: string;
+  displayLabel: string;
+  opponentInfo?: string;
+  dateLabel: string;
+  timeLabel: string;
+  isMedalSession: boolean;
+  resultLabel?: string;
+  medalType: "gold" | "silver" | "bronze" | null;
+  status?: string;
+  rawRow: CwgScheduleRow;
+}
+
+interface AthleteResultOverview {
+  label: string;
+  headline: string;
+  detail: string;
+  medalType: "gold" | "silver" | "bronze" | null;
+}
+
 @Component({
   selector: "app-cwg-2026-athletes",
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, MatIconModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive, MatIconModule, Cwg2026ResultDetailComponent],
   templateUrl: "./cwg-2026-athletes.component.html",
   styleUrl: "./cwg-2026-athletes.component.scss",
 })
@@ -48,6 +75,7 @@ export class Cwg2026AthletesComponent implements OnInit {
   readonly searchTerm = signal("");
   readonly isLoading = signal(true);
   readonly hasLoadError = signal(false);
+  readonly selectedSessionRow = signal<CwgScheduleRow | null>(null);
   readonly selectedRoadToMedalRow = signal<CwgScheduleRow | null>(null);
   readonly isRoadToMedalImageLoaded = signal(false);
   readonly closedTooltipIds = signal<Set<string>>(new Set());
@@ -202,7 +230,11 @@ export class Cwg2026AthletesComponent implements OnInit {
         ...(row.athleteNames || []),
       ].filter(Boolean);
 
-      const keys = names.flatMap((name) => this.getNameLookupKeys(name!));
+      const keys = names.flatMap((name) =>
+        String(name)
+          .split(";")
+          .flatMap((athleteName) => this.getNameLookupKeys(athleteName)),
+      );
       keys.forEach((key) => {
         const list = map.get(key) || [];
         list.push(row);
@@ -242,16 +274,7 @@ export class Cwg2026AthletesComponent implements OnInit {
   }
 
   getAthleteScheduleTimings(row: CwgGamesParticipation): {
-    items: {
-      id: string;
-      displayLabel: string;
-      opponentInfo?: string;
-      dateLabel: string;
-      timeLabel: string;
-      isMedalSession: boolean;
-      resultLabel?: string;
-      status?: string;
-    }[];
+    items: AthleteResultItem[];
     totalCount: number;
   } {
     if (this.isDisqualified(row)) return { items: [], totalCount: 0 };
@@ -277,7 +300,11 @@ export class Cwg2026AthletesComponent implements OnInit {
       if (matches.length) break;
     }
 
-    // Deduplicate identical schedule rows by date, time, event, stage
+    matches = matches.filter(
+      (scheduleRow) => scheduleRow.status === "completed" && Boolean(scheduleRow.result),
+    );
+
+    // Deduplicate identical result rows by date, time, event and stage.
     const seen = new Set<string>();
     const uniqueMatches: CwgScheduleRow[] = [];
 
@@ -298,7 +325,7 @@ export class Cwg2026AthletesComponent implements OnInit {
 
     const totalCount = uniqueMatches.length;
 
-    const items = uniqueMatches.slice(0, 4).map((sch, idx) => {
+    const items = uniqueMatches.slice(0, 10).map((sch, idx): AthleteResultItem => {
       const date = sch.dateLabel || "";
       const time = sch.timeLabel || sch.indiaTimeLabel || "";
       const isMedal = !!sch.isMedalSession;
@@ -310,6 +337,19 @@ export class Cwg2026AthletesComponent implements OnInit {
           .replace(/\s*\(Q\)/i, "")
           .replace(/\s*FINAL/i, "")
           .trim();
+      }
+
+      let medalType: "gold" | "silver" | "bronze" | null = null;
+      if (sch.result) {
+        const medals = sch.result.medals || [];
+        if (medals.length > 0 && medals[0]?.type) {
+          medalType = medals[0].type;
+        } else {
+          const label = `${sch.result.summaryLabel || ''} ${sch.result.resultLabel || ''} ${sch.result.summary || ''}`.toLowerCase();
+          if (label.includes("gold")) medalType = "gold";
+          else if (label.includes("silver")) medalType = "silver";
+          else if (label.includes("bronze")) medalType = "bronze";
+        }
       }
 
       // Check Boxing draw / Opponent info
@@ -340,7 +380,6 @@ export class Cwg2026AthletesComponent implements OnInit {
       if (!displayLabel) {
         const rawEvent = (sch.event || sch.eventName || sch.name || "").toLowerCase();
         const rawStage = (sch.stage || sch.phase || "").toLowerCase();
-        const isMedal = !!sch.isMedalSession;
 
         if (rawEvent.includes("decathlon")) {
           if (rawEvent.includes("100m") || rawEvent.includes("long jump") || rawEvent.includes("shot put")) {
@@ -414,11 +453,57 @@ export class Cwg2026AthletesComponent implements OnInit {
         timeLabel: time,
         isMedalSession: isMedal,
         resultLabel: cleanResult || undefined,
+        medalType,
         status: sch.status || "scheduled",
+        rawRow: sch,
       };
     });
 
     return { items, totalCount };
+  }
+
+  getAthleteResultOverview(row: CwgGamesParticipation): AthleteResultOverview {
+    if (this.isDisqualified(row)) {
+      return {
+        label: "Campaign status",
+        headline: this.getDisqualificationBadgeLabel(row),
+        detail: this.getDisqualificationNote(row),
+        medalType: null,
+      };
+    }
+
+    const results = this.getAthleteScheduleTimings(row).items;
+    const medalOrder = { gold: 0, silver: 1, bronze: 2 } as const;
+    const medalResult = results
+      .filter((item): item is AthleteResultItem & { medalType: "gold" | "silver" | "bronze" } => !!item.medalType)
+      .sort((a, b) => medalOrder[a.medalType] - medalOrder[b.medalType])[0];
+
+    if (medalResult) {
+      const medalName = `${medalResult.medalType.charAt(0).toUpperCase()}${medalResult.medalType.slice(1)}`;
+      return {
+        label: "Final result",
+        headline: `${medalName} medallist`,
+        detail: medalResult.displayLabel,
+        medalType: medalResult.medalType,
+      };
+    }
+
+    const finalResult = [...results].reverse().find((item) => item.resultLabel) || results.at(-1);
+    if (finalResult) {
+      return {
+        label: "Campaign result",
+        headline: finalResult.resultLabel || "Completed",
+        detail: finalResult.displayLabel,
+        medalType: null,
+      };
+    }
+
+    return {
+      label: "Campaign result",
+      headline: "No individual result",
+      detail: "No completed result is linked to this athlete entry.",
+      medalType: null,
+    };
   }
 
   getAthleteScheduleTiming(row: CwgGamesParticipation): string | null {
@@ -741,5 +826,44 @@ export class Cwg2026AthletesComponent implements OnInit {
     }
 
     return [...keys];
+  }
+
+  openSessionDialog(row: CwgScheduleRow): void {
+    this.selectedSessionRow.set(row);
+  }
+
+  closeSessionDialog(): void {
+    this.selectedSessionRow.set(null);
+  }
+
+  getResultSummary(row: CwgScheduleRow): string | null {
+    return getScheduleResultSummary(row);
+  }
+
+  getScheduleEventTitle(row: CwgScheduleRow): string {
+    return getBoxingEventTitle(row);
+  }
+
+  hasBoxingDraw(row: CwgScheduleRow): boolean {
+    return Boolean(getBoxingDraw(row));
+  }
+
+  getBoxingIndiaLabel(row: CwgScheduleRow): string {
+    const draw = getBoxingDraw(row);
+    if (!draw) return "";
+    const athleteName = row.athletes?.split(";")[0]?.trim();
+    if (athleteName && athleteName !== "India") return athleteName;
+    return getBoxingCompetitorName({
+      displayName: draw.indiaName,
+      countryCode: draw.indiaCountryCode,
+    });
+  }
+
+  getBoxingOpponentLabel(row: CwgScheduleRow): string {
+    return resolveBoxingOpponentLabel(row);
+  }
+
+  getBoxingBoutMeta(row: CwgScheduleRow): string {
+    return getBoxingBoutMeta(row);
   }
 }

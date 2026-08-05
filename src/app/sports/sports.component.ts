@@ -16,6 +16,15 @@ import {
 type SportTier = IndiaTier;
 type SportFilter = 'all' | SportTier;
 
+const NON_OLYMPIC_CATALOG_SPORTS = new Set([
+  'lawn-bowls',
+  'para-athletics',
+  'para-powerlifting',
+  'para-swimming',
+  'para-track-cycling',
+  'wheelchair-basketball',
+]);
+
 interface DisciplineSummary {
   id: string;
   name: string;
@@ -259,7 +268,7 @@ export class SportsComponent implements OnInit {
     sports
       .filter((sport) => {
         const parentId = this.getParentSportId(sport);
-        return !parentId || parentId === sport.id;
+        return (!parentId || parentId === sport.id) && this.isOlympicCatalogSport(sport);
       })
       .forEach(sport => {
         const firstChildPictogram = (childDisciplinesByParent.get(sport.id) || [])
@@ -301,6 +310,10 @@ export class SportsComponent implements OnInit {
       const sportResolution = this.resolveSports(participation, sportsById);
       if (!sportResolution) return;
       const { canonical, discipline } = sportResolution;
+
+      if (NON_OLYMPIC_CATALOG_SPORTS.has(this.normalizeSportSlug(canonical.slug || canonical.name))) {
+        return;
+      }
 
       if (!totals.has(canonical.id)) {
         totals.set(canonical.id, {
@@ -450,6 +463,19 @@ export class SportsComponent implements OnInit {
     }
 
     return null;
+  }
+
+  private isOlympicCatalogSport(sport: Sport): boolean {
+    return !NON_OLYMPIC_CATALOG_SPORTS.has(this.normalizeSportSlug(sport.slug || sport.name));
+  }
+
+  private normalizeSportSlug(value?: string | null): string {
+    return (value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 
   private isFourthPlaceResult(

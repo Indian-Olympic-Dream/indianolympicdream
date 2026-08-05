@@ -9,8 +9,7 @@
 
       <!-- Navigation Links -->
       <nav class="hero-nav" aria-label="Main Glasgow 2026 Navigation">
-        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Overview</a>
-        <a routerLink="/cwg-2026/schedule" routerLinkActive="active">Schedule</a>
+        <a routerLink="/cwg-2026" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
         <a routerLink="/cwg-2026/athletes" routerLinkActive="active">Athletes</a>
       </nav>
     </div>
@@ -21,13 +20,13 @@
       </div>
       <div class="hero-copy">
         <h1>India at Glasgow 2026</h1>
-        <p class="hero-subtitle">Official Contingent Roster</p>
+        <p class="hero-subtitle">Athlete Results & Campaign Records</p>
       </div>
     </div>
   </header>
 
-  <section class="sport-nav-section" aria-label="Roster sports">
-    <nav class="sport-filter-bar" aria-label="Filter roster by sport">
+  <section class="sport-nav-section" aria-label="Result sports">
+    <nav class="sport-filter-bar" aria-label="Filter athlete results by sport">
       <button *ngFor="let sport of sportNavItems(); trackBy: trackBySport" class="sport-chip" type="button"
         [class.active]="activeSport() === sport.key" [attr.aria-pressed]="activeSport() === sport.key"
         [attr.data-sport-key]="sport.key" (click)="setActiveSport(sport.key)">
@@ -66,20 +65,21 @@
     </nav>
   </section>
 
-  <!-- <section class="roster-tools" aria-label="Roster tools">
+  <section class="roster-tools" aria-label="Athlete result tools">
     <div class="roster-meta">
-      <p>{{ isLoading() ? 'Loading roster...' : filteredRows().length + ' athletes shown' }}</p>
+      <p>{{ isLoading() ? 'Loading results...' : filteredRows().length + ' athlete records' }}</p>
     </div>
     <label class="search-box">
-      <span>Search</span>
       <input type="search" [value]="searchTerm()" (input)="setSearch($any($event.target).value)"
-        placeholder="Athlete, event, sport">
+        placeholder="Search athlete, event, sport...">
     </label>
-  </section> -->
+  </section>
 
-  <section class="athlete-grid" aria-label="Commonwealth Games India athletes">
+  <section class="athlete-grid" aria-label="Commonwealth Games India athlete results">
     <article *ngFor="let row of filteredRows(); trackBy: trackByParticipation" class="athlete-row"
-      [class.watch]="row.watchList?.isTenToWatch" [class.is-dqed]="isDisqualified(row)">
+      [class.watch]="row.watchList?.isTenToWatch" [class.is-dqed]="isDisqualified(row)"
+      [class.is-medallist]="!!getAthleteResultOverview(row).medalType"
+      [attr.data-medal]="getAthleteResultOverview(row).medalType">
       <div class="athlete-row-header">
         <span class="athlete-photo">
           <img *ngIf="getAthleteImageUrl(row) as photo; else athleteFallback" [src]="photo" [alt]="getAthleteName(row)">
@@ -133,34 +133,36 @@
         <span>{{ getDisqualificationNote(row) }}</span>
       </div>
 
-      <div class="athlete-schedule-box" *ngIf="!isDisqualified(row)">
-        <div class="schedule-box-content" *ngIf="getAthleteScheduleTimings(row) as schedule">
-          <ng-container *ngIf="schedule.items.length; else pendingSchedule">
-            <div *ngFor="let item of schedule.items" class="schedule-row-item" [class.is-final]="item.isMedalSession">
-              <div class="schedule-event-meta">
-                <span class="schedule-stage-tag" [class.final-tag]="item.isMedalSession">
-                  <mat-icon class="stage-icon" *ngIf="item.isMedalSession">emoji_events</mat-icon>
-                  {{ item.displayLabel }}
-                </span>
-                <span class="schedule-opponent" *ngIf="item.opponentInfo">{{ item.opponentInfo }}</span>
-              </div>
-              <div class="schedule-time-meta">
-                <span class="time-date" *ngIf="item.dateLabel">{{ item.dateLabel }}</span>
-                <span class="time-dot" *ngIf="item.dateLabel && item.timeLabel">•</span>
-                <span class="time-clock" *ngIf="item.timeLabel && !item.resultLabel">{{ item.timeLabel }}</span>
-                <span class="time-result" *ngIf="item.resultLabel">{{ item.resultLabel }}</span>
-              </div>
-            </div>
-          </ng-container>
-          <ng-template #pendingSchedule>
-            <div class="schedule-row-item pending-item">
-              <span class="schedule-stage-tag pending-tag">ENTRY CONFIRMED</span>
-              <div class="schedule-time-meta muted">
-                <span>Glasgow 2026 Schedule Pending</span>
-              </div>
-            </div>
-          </ng-template>
-        </div>
+      <div class="athlete-result-overview" *ngIf="getAthleteResultOverview(row) as overview"
+        [attr.data-medal]="overview.medalType">
+        <span class="result-overview-medal" *ngIf="overview.medalType">
+          <img *ngIf="overview.medalType === 'gold'" src="assets/images/cwg/glasgow-gold-medal.svg" alt="Gold medal">
+          <img *ngIf="overview.medalType === 'silver'" src="assets/images/cwg/glasgow-silver-medal.svg" alt="Silver medal">
+          <img *ngIf="overview.medalType === 'bronze'" src="assets/images/cwg/glasgow-bronze-medal.svg" alt="Bronze medal">
+        </span>
+        <span class="result-overview-copy">
+          <small>{{ overview.label }}</small>
+          <strong>{{ overview.headline }}</strong>
+          <span>{{ overview.detail }}</span>
+        </span>
+      </div>
+
+      <div class="athlete-results-box" *ngIf="!isDisqualified(row) && getAthleteScheduleTimings(row) as results">
+        <ng-container *ngIf="results.items.length">
+          <div class="athlete-results-heading">
+            <span>Completed results</span>
+            <small>{{ results.totalCount }} {{ results.totalCount === 1 ? 'result' : 'results' }}</small>
+          </div>
+          <div class="athlete-result-list">
+            <button type="button" *ngFor="let item of results.items" class="athlete-result-row"
+              [class.is-medal-result]="!!item.medalType" (click)="openSessionDialog(item.rawRow)">
+              <span class="athlete-result-stage">{{ item.displayLabel }}</span>
+              <span class="athlete-result-opponent" *ngIf="item.opponentInfo">{{ item.opponentInfo }}</span>
+              <strong>{{ item.resultLabel || 'Completed' }}</strong>
+              <span class="athlete-result-arrow" aria-hidden="true">&#8594;</span>
+            </button>
+          </div>
+        </ng-container>
       </div>
 
       <div class="athlete-action" *ngIf="row.watchList?.isTenToWatch || getRoadToMedalRow(row)">
@@ -184,10 +186,10 @@
       </div>
     </article>
 
-    <p class="empty-state" *ngIf="isLoading()">Loading roster from Payload...</p>
-    <p class="empty-state" *ngIf="!isLoading() && hasLoadError()">Roster data is unavailable. Check the Payload server
+    <p class="empty-state" *ngIf="isLoading()">Loading athlete results from Payload...</p>
+    <p class="empty-state" *ngIf="!isLoading() && hasLoadError()">Athlete results are unavailable. Check the Payload server
       and try again.</p>
-    <p class="empty-state" *ngIf="!isLoading() && !hasLoadError() && !filteredRows().length">No roster rows match this
+    <p class="empty-state" *ngIf="!isLoading() && !hasLoadError() && !filteredRows().length">No athlete results match this
       view.</p>
   </section>
 
@@ -216,5 +218,45 @@
           [alt]="getRoadToMedalTitle(roadRow) + ' Road To Medal graphic'" (load)="markRoadToMedalImageLoaded()">
       </div>
     </section>
+  </div>
+
+  <div class="home-session-dialog result-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
+    (click)="closeSessionDialog()">
+    <aside class="home-session-panel" role="dialog" aria-modal="true" aria-label="Session details"
+      (click)="$event.stopPropagation()">
+      <header class="home-session-header">
+        <div class="home-session-heading">
+          <div class="next-sport">
+            <span>{{ row.sport }}</span>
+          </div>
+        </div>
+        <button class="home-dialog-close" type="button" aria-label="Close details"
+          (click)="closeSessionDialog()">&times;</button>
+      </header>
+
+      <div class="home-session-body">
+        <ng-container *ngIf="!getResultSummary(row)">
+          <p class="question">{{ row.dayLabel }} {{ row.dateLabel }} · {{ row.timeLabel }}</p>
+          <h2>{{ getScheduleEventTitle(row) }}</h2>
+          <p class="athlete-line" *ngIf="!hasBoxingDraw(row) && row.athletes && row.athletes !== 'India'">{{
+            row.athletes
+            }}</p>
+
+          <div class="matchup-strip" *ngIf="getBoxingOpponentLabel(row) as opponent">
+            <div class="matchup-line">
+              <span class="corner-chip">IND</span>
+              <span class="match-name india-name">{{ getBoxingIndiaLabel(row) }}</span>
+              <span class="versus">vs</span>
+              <span class="match-name opponent-name">{{ opponent }}</span>
+            </div>
+            <small *ngIf="getBoxingBoutMeta(row)">{{ getBoxingBoutMeta(row) }}</small>
+          </div>
+
+          <small class="session-dialog-meta" *ngIf="row.venue">📍 {{ row.venue }}</small>
+        </ng-container>
+
+        <app-cwg-2026-result-detail *ngIf="getResultSummary(row)" [row]="row" />
+      </div>
+    </aside>
   </div>
 </main>

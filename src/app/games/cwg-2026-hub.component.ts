@@ -84,7 +84,7 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   readonly medalIconUrl = "assets/images/cwg/glasgow-gold-medal.svg";
   readonly bronzeMedalIconUrl = "assets/images/cwg/glasgow-bronze-medal.svg";
   readonly activeStream = signal<CompetitionStream>("all");
-  readonly showDeclaredResultsOnly = signal(false);
+  readonly showDeclaredResultsOnly = signal(true);
   readonly selectedCellKey = signal<string | null>(null);
   readonly selectedRoadToMedalRow = signal<CwgScheduleRow | null>(null);
   readonly isRoadToMedalImageLoaded = signal(false);

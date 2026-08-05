@@ -47,11 +47,11 @@
   <g class="ribbon-assembly">
     <!-- Ribbon Base Shape -->
     <path d="M 74 0 L 63 70 L 137 70 L 126 0 Z" fill="url(#blue-ribbon-grad)"/>
-
+    
     <!-- Ribbon Weave Texture -->
-    <path d="M 68 0 L 60 70 M 76 0 L 70 70 M 84 0 L 80 70 M 92 0 L 90 70 M 100 0 L 100 70 M 108 0 L 110 70 M 116 0 L 120 70 M 124 0 L 130 70"
+    <path d="M 68 0 L 60 70 M 76 0 L 70 70 M 84 0 L 80 70 M 92 0 L 90 70 M 100 0 L 100 70 M 108 0 L 110 70 M 116 0 L 120 70 M 124 0 L 130 70" 
           stroke="rgba(255,255,255,0.14)" stroke-width="1.8"/>
-
+    
     <!-- Bold White Chevron Mark on Ribbon -->
     <g transform="translate(100, 35) scale(0.65)" stroke="#FFFFFF" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path d="M-22,-10 L-11,7 L0,-10 L11,7 L22,-10"/>
@@ -74,7 +74,7 @@
     <g opacity="0.6" stroke="url(#silver-lattice)" stroke-width="1.8" stroke-linecap="round" fill="none">
       <!-- Outer Boundary Curve of Left Lattice Strip -->
       <path d="M 46 82 Q 72 76 89 82 Q 97 148 78 200 Q 41 148 46 82 Z" stroke-width="2"/>
-
+      
       <!-- Crosshatch Diagonals -->
       <line x1="48" y1="88" x2="87" y2="103"/>
       <line x1="50" y1="108" x2="89" y2="123"/>
@@ -87,14 +87,14 @@
       <line x1="87" y1="128" x2="54" y2="143"/>
       <line x1="83" y1="148" x2="58" y2="163"/>
       <line x1="78" y1="168" x2="62" y2="183"/>
-
+      
       <!-- Central Structural Divider -->
       <path d="M 67 80 Q 79 138 69 192" stroke-width="1.6"/>
     </g>
 
     <!-- Right Side Glasgow 2026 Official Logo & Ultra-Readable Text -->
     <g transform="translate(126, 102)" text-anchor="middle">
-      <!-- Glasgow Chevron Emblem (Bold Dark Bronze Fill & Stroke) -->
+      <!-- Glasgow Chevron Emblem (Bold Dark Steel Fill & Stroke) -->
       <g stroke="#1C252C" fill="none" stroke-linecap="round" stroke-linejoin="round">
         <path d="M-24,-22 L-16,0 L-8,-22 L0,0 L8,-22 L16,0 L24,-22" stroke-width="4.5"/>
         <path d="M-16,-22 L0,2 L16,-22" stroke-width="3.8"/>
@@ -102,33 +102,33 @@
       </g>
 
       <!-- COMMONWEALTH (Ultra-Crisp Bold Engraved Text) -->
-      <text x="0" y="16"
-            font-family="'Geist Sans', system-ui, -apple-system, sans-serif"
-            font-size="11"
-            font-weight="900"
-            letter-spacing="0.6"
-            fill="#1C252C"
-            stroke="#1C252C"
+      <text x="0" y="16" 
+            font-family="'Geist Sans', system-ui, -apple-system, sans-serif" 
+            font-size="11" 
+            font-weight="900" 
+            letter-spacing="0.6" 
+            fill="#1C252C" 
+            stroke="#1C252C" 
             stroke-width="0.5">COMMONWEALTH</text>
 
       <!-- GAMES -->
-      <text x="0" y="29"
-            font-family="'Geist Sans', system-ui, -apple-system, sans-serif"
-            font-size="12"
-            font-weight="900"
-            letter-spacing="1.2"
-            fill="#1C252C"
-            stroke="#1C252C"
+      <text x="0" y="29" 
+            font-family="'Geist Sans', system-ui, -apple-system, sans-serif" 
+            font-size="12" 
+            font-weight="900" 
+            letter-spacing="1.2" 
+            fill="#1C252C" 
+            stroke="#1C252C" 
             stroke-width="0.6">GAMES</text>
 
       <!-- GLASGOW 2026 -->
-      <text x="0" y="43"
-            font-family="'Geist Sans', system-ui, -apple-system, sans-serif"
-            font-size="10"
-            font-weight="950"
-            letter-spacing="1.4"
-            fill="#182027"
-            stroke="#182027"
+      <text x="0" y="43" 
+            font-family="'Geist Sans', system-ui, -apple-system, sans-serif" 
+            font-size="10" 
+            font-weight="950" 
+            letter-spacing="1.4" 
+            fill="#182027" 
+            stroke="#182027" 
             stroke-width="0.7">GLASGOW 2026</text>
     </g>
 

@@ -208,6 +208,35 @@ export const getBoxingOpponentLabel = (row: CwgScheduleRow): string => {
   return "Opponent TBC";
 };
 
+export const getBoxingIndiaLabel = (row: CwgScheduleRow): string => {
+  const draw = getBoxingDraw(row);
+  if (!draw) return "";
+
+  const athleteName = row.athletes?.split(";")[0]?.trim();
+  if (athleteName && athleteName !== "India") return athleteName;
+
+  return getBoxingCompetitorName({
+    displayName: draw.indiaName,
+    countryCode: draw.indiaCountryCode,
+  });
+};
+
+export const getBoxingBoutMeta = (row: CwgScheduleRow): string => {
+  const draw = getBoxingDraw(row);
+  if (!draw) return "";
+
+  const parts = [
+    draw.boutNumber ? `Bout ${draw.boutNumber}` : "",
+    draw.opponentStatus === "confirmed"
+      ? "Opponent confirmed"
+      : draw.opponentStatus
+        ? "Opponent from draw path"
+        : "",
+  ].filter(Boolean);
+
+  return parts.join(" · ");
+};
+
 export const getBoxingEventTitle = (row: CwgScheduleRow): string => {
   const draw = getBoxingDraw(row);
   let rawTitle = "";
@@ -400,4 +429,19 @@ export const getCountryFlagEmoji = (country: string | undefined | null): string 
   };
 
   return FLAG_MAP[norm] || '🏳️';
+};
+
+export const cleanCwgEventTitle = (rawEvent?: string | null): string => {
+  if (!rawEvent) return "";
+  let text = rawEvent.trim();
+
+  // 1. Remove ugly "vs Country / Country / Country..." team match list suffixes
+  text = text.replace(/:\s*India\s+vs\s+.*$/i, "");
+  text = text.replace(/:\s*.*?\s+vs\s+.*$/i, "");
+  text = text.replace(/\s+vs\s+.*\/.*$/i, "");
+
+  // 2. Clean Track Cycling & sport prefix headers
+  text = text.replace(/^(Track Cycling|Cycling Track)\s*-\s*/i, "");
+
+  return text.trim();
 };
