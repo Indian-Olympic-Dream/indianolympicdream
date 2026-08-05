@@ -113,7 +113,7 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
 
   readonly streamTabs = computed(() =>
     this.streamOptions.map((stream) => {
-      const rows = this.rowsForStream(stream.key);
+      const rows = this.remainingRowsForStream(stream.key);
       return {
         ...stream,
         rows: rows.length,
@@ -166,10 +166,7 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
           return this.getSessionStartMs(a) - this.getSessionStartMs(b);
         });
     }
-    const now = this.now().getTime();
-    return rows
-      .filter((row) => this.isOperationalMatrixRow(row, now))
-      .sort((a, b) => this.getSessionStartMs(a) - this.getSessionStartMs(b));
+    return this.remainingRowsForStream(stream);
   }
 
   readonly matrixRows = computed(() => this.buildMatrixRows(this.visibleRows()));
@@ -464,6 +461,13 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
     return rows.filter((row) => this.getScheduleStream(row) === stream);
   }
 
+  private remainingRowsForStream(stream: CompetitionStream): CwgScheduleRow[] {
+    const now = this.now().getTime();
+    return this.rowsForStream(stream)
+      .filter((row) => this.isOperationalMatrixRow(row, now))
+      .sort((a, b) => this.getSessionStartMs(a) - this.getSessionStartMs(b));
+  }
+
   private isDeclaredResultRow(row: CwgScheduleRow): boolean {
     return row.status === "completed" || Boolean(getScheduleResultSummary(row));
   }
@@ -479,9 +483,10 @@ export class Cwg2026HubComponent implements OnInit, OnDestroy {
   }
 
   private getSessionEndMs(row: CwgScheduleRow): number {
+    const start = this.getSessionStartMs(row);
     const timestamp = parseCwgScheduleTimestamp(row.istEnd);
-    if (Number.isFinite(timestamp)) return timestamp;
-    return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
+    if (Number.isFinite(timestamp) && timestamp > start) return timestamp;
+    return start + 2 * 60 * 60 * 1000;
   }
 
   private countGoldMedalEvents(rows: CwgScheduleRow[]): number {

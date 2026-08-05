@@ -301,16 +301,23 @@
     </aside>
   </div>
 
-  <div class="home-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
+  <div class="home-session-dialog result-session-dialog" *ngIf="selectedSessionRow() as row" role="presentation"
     (click)="closeSessionDialog()">
     <aside class="home-session-panel" role="dialog" aria-modal="true" aria-label="Session details"
       (click)="$event.stopPropagation()">
       <header class="home-session-header">
-        <div class="next-sport">
-          <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
-            <img [src]="pictogram" [alt]="row.sport">
-          </span>
-          <span>{{ row.sport }}</span>
+        <div class="home-session-heading">
+          <button *ngIf="resultOpenedFromMedalWinners()" class="home-dialog-back" type="button"
+            (click)="backToMedalWinners()" aria-label="Back to medal winners">
+            <span aria-hidden="true">←</span>
+            <span>Medal winners</span>
+          </button>
+          <div class="next-sport">
+            <span class="sport-icon" *ngIf="getSchedulePictogramUrl(row) as pictogram">
+              <img [src]="pictogram" [alt]="row.sport">
+            </span>
+            <span>{{ row.sport }}</span>
+          </div>
         </div>
         <button class="home-dialog-close" type="button" aria-label="Close details"
           (click)="closeSessionDialog()">&times;</button>

@@ -3,24 +3,24 @@
     <!-- Premium Shimmer Silver Gradients -->
     <linearGradient id="silver-bevel" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="25%" stop-color="#E2E8F0"/>
-      <stop offset="50%" stop-color="#94A3B8"/>
-      <stop offset="75%" stop-color="#CBD5E1"/>
-      <stop offset="90%" stop-color="#64748B"/>
-      <stop offset="100%" stop-color="#334155"/>
+      <stop offset="20%" stop-color="#DDE4EA"/>
+      <stop offset="45%" stop-color="#8A949E"/>
+      <stop offset="70%" stop-color="#F2F5F7"/>
+      <stop offset="90%" stop-color="#69737C"/>
+      <stop offset="100%" stop-color="#3E464D"/>
     </linearGradient>
 
     <linearGradient id="silver-surface" x1="10%" y1="5%" x2="90%" y2="95%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="30%" stop-color="#E2E8F0"/>
-      <stop offset="65%" stop-color="#94A3B8"/>
-      <stop offset="100%" stop-color="#CBD5E1"/>
+      <stop offset="0%" stop-color="#F7FAFC"/>
+      <stop offset="30%" stop-color="#C7D0D8"/>
+      <stop offset="65%" stop-color="#929DA7"/>
+      <stop offset="100%" stop-color="#E2E8ED"/>
     </linearGradient>
 
     <linearGradient id="silver-lattice" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#475569"/>
-      <stop offset="50%" stop-color="#334155"/>
-      <stop offset="100%" stop-color="#1E293B"/>
+      <stop offset="0%" stop-color="#5C6670"/>
+      <stop offset="50%" stop-color="#3E474F"/>
+      <stop offset="100%" stop-color="#20262B"/>
     </linearGradient>
 
     <!-- Deep Blue Ribbon Gradient -->
@@ -60,12 +60,12 @@
   </g>
 
   <!-- Solid Metal Loop Attachment -->
-  <path d="M 66 62 C 66 54 134 54 134 62 L 138 72 C 138 76 62 76 62 72 Z" fill="url(#silver-bevel)" stroke="#334155" stroke-width="0.8"/>
+  <path d="M 66 62 C 66 54 134 54 134 62 L 138 72 C 138 76 62 76 62 72 Z" fill="url(#silver-bevel)" stroke="#3E474F" stroke-width="0.8"/>
 
   <!-- Medal Shield Outer Body -->
   <g filter="url(#medal-drop-shadow)">
     <!-- Outer Metallic Bevel Rim -->
-    <path d="M 36 74 Q 100 64 164 74 Q 176 146 100 234 Q 24 146 36 74 Z" fill="url(#silver-bevel)" stroke="#1E293B" stroke-width="1.5"/>
+    <path d="M 36 74 Q 100 64 164 74 Q 176 146 100 234 Q 24 146 36 74 Z" fill="url(#silver-bevel)" stroke="#343C43" stroke-width="1.5"/>
 
     <!-- Inner Medal Face Plate -->
     <path d="M 42 78 Q 100 70 158 78 Q 168 142 100 226 Q 32 142 42 78 Z" fill="url(#silver-surface)"/>
@@ -95,7 +95,7 @@
     <!-- Right Side Glasgow 2026 Official Logo & Ultra-Readable Text -->
     <g transform="translate(126, 102)" text-anchor="middle">
       <!-- Glasgow Chevron Emblem (Bold Dark Steel Fill & Stroke) -->
-      <g stroke="#0F172A" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <g stroke="#1C252C" fill="none" stroke-linecap="round" stroke-linejoin="round">
         <path d="M-24,-22 L-16,0 L-8,-22 L0,0 L8,-22 L16,0 L24,-22" stroke-width="4.5"/>
         <path d="M-16,-22 L0,2 L16,-22" stroke-width="3.8"/>
         <path d="M-8,-22 L0,-6 L8,-22" stroke-width="3.2"/>
@@ -107,8 +107,8 @@
             font-size="11" 
             font-weight="900" 
             letter-spacing="0.6" 
-            fill="#0F172A" 
-            stroke="#0F172A" 
+            fill="#1C252C" 
+            stroke="#1C252C" 
             stroke-width="0.5">COMMONWEALTH</text>
 
       <!-- GAMES -->
@@ -117,8 +117,8 @@
             font-size="12" 
             font-weight="900" 
             letter-spacing="1.2" 
-            fill="#0F172A" 
-            stroke="#0F172A" 
+            fill="#1C252C" 
+            stroke="#1C252C" 
             stroke-width="0.6">GAMES</text>
 
       <!-- GLASGOW 2026 -->
@@ -127,13 +127,13 @@
             font-size="10" 
             font-weight="950" 
             letter-spacing="1.4" 
-            fill="#0F172A" 
-            stroke="#0F172A" 
+            fill="#182027" 
+            stroke="#182027" 
             stroke-width="0.7">GLASGOW 2026</text>
     </g>
 
     <!-- Metallic Edge Light Highlights -->
-    <path d="M 42 78 Q 100 70 158 78" stroke="rgba(255,255,255,0.95)" stroke-width="2.5" fill="none"/>
-    <path d="M 158 78 Q 168 142 100 226" stroke="rgba(30,41,59,0.5)" stroke-width="2.5" fill="none"/>
+    <path d="M 42 78 Q 100 70 158 78" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none"/>
+    <path d="M 158 78 Q 168 142 100 226" stroke="rgba(40,48,55,0.5)" stroke-width="2.5" fill="none"/>
   </g>
 </svg>

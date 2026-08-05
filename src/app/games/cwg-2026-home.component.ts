@@ -586,7 +586,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     const now = this.now().getTime();
     const rows = this.activeScheduleRows()
       .filter((row) => this.isOperationalUpcomingRow(row, now))
-      .filter((row) => row.id !== this.nextIndiaSession()?.id)
       .sort((a, b) => this.compareTimelineRows(a, b));
     const groupsMap = new Map<string, ScheduleDateGroup>();
 
@@ -630,7 +629,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
       const next24Hours = now + 24 * 60 * 60 * 1000;
       const upcoming = this.activeScheduleRows()
         .filter((row) => this.isOperationalUpcomingRow(row, now))
-        .filter((row) => row.id !== this.nextIndiaSession()?.id)
         .sort((a, b) => this.compareTimelineRows(a, b));
       const nextDayRows = upcoming.filter((row) => this.getSessionStartMs(row) < next24Hours);
       return nextDayRows.length ? nextDayRows : upcoming;
@@ -648,7 +646,6 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
     return this.activeScheduleRows()
       .filter((row) => this.isMedalRow(row))
       .filter((row) => this.isOperationalUpcomingRow(row, now))
-      .filter((row) => row.id !== this.nextIndiaSession()?.id)
       .sort((a, b) => this.compareTimelineRows(a, b));
   });
 
@@ -780,6 +777,13 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
         this.participations.set([]);
         this.isRosterLoading.set(false);
         this.hasRosterError.set(true);
+      },
+    });
+
+    this.payload.getEditionBySlug("glasgow-2026").subscribe({
+      next: (edition) => {
+        const rank = edition?.globalStats?.indiaRank;
+        if (typeof rank === "number" && rank > 0) this.indiaRank.set(rank);
       },
     });
 
@@ -1025,9 +1029,10 @@ export class Cwg2026HomeComponent implements OnInit, OnDestroy {
   }
 
   private getSessionEndMs(row: CwgScheduleRow): number {
+    const start = this.getSessionStartMs(row);
     const timestamp = parseCwgScheduleTimestamp(row.istEnd);
-    if (Number.isFinite(timestamp)) return timestamp;
-    return this.getSessionStartMs(row) + 2 * 60 * 60 * 1000;
+    if (Number.isFinite(timestamp) && timestamp > start) return timestamp;
+    return start + 2 * 60 * 60 * 1000;
   }
 
   private isDeclaredResultRow(row: CwgScheduleRow): boolean {
