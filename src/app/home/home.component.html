@@ -1,0 +1,71 @@
+<main class="home-shell">
+  <header class="home-header">
+    <div class="header-text">
+      <p class="eyebrow">Indian Olympic Dream · 2026</p>
+      <h1>India's Week</h1>
+    </div>
+
+    <a class="calendar-live-count" routerLink="/calendar" fragment="live-events" *ngIf="home().liveCalendarCount > 0">
+      <span class="live-dot" aria-hidden="true"></span>
+      {{ home().liveCalendarCount }} {{ home().liveCalendarCount === 1 ? 'event' : 'events' }} live
+    </a>
+  </header>
+
+  <div class="loading-state" *ngIf="loading()">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Reading the sporting day…</span>
+  </div>
+
+  <ng-container *ngIf="!loading()">
+    <!-- Right Now Section (Only when an active moment is underway) -->
+    <section class="right-now" *ngIf="home().rightNow.length">
+      <div class="section-kicker live">
+        <span class="live-dot" aria-hidden="true"></span>
+        Right now
+      </div>
+      <div class="right-now-list">
+        <article class="right-now-moment" *ngFor="let moment of home().rightNow; trackBy: trackMoment"
+          (click)="onMomentClick(moment)">
+          <span>{{ moment.sport.name }}</span>
+          <strong>{{ moment.headline }}</strong>
+          <small *ngIf="moment.context">{{ moment.context }}</small>
+          <button type="button" class="moment-overlay-trigger" *ngIf="isInternal(moment.action)"
+            (click)="onMomentClick(moment, $event)">
+            {{ moment.action!.label }} <mat-icon>arrow_forward</mat-icon>
+          </button>
+          <a *ngIf="isExternal(moment.action)" [href]="moment.action!.navigation.href"
+            [attr.target]="moment.action!.navigation.target" [attr.rel]="moment.action!.navigation.rel"
+            (click)="$event.stopPropagation()">
+            {{ moment.action!.label }} <mat-icon>north_east</mat-icon>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Unified Sporting Timeline -->
+    <section class="india-timeline" *ngIf="home().days.length">
+      <header class="timeline-heading">
+        <span class="timeline-tz">All times IST</span>
+      </header>
+      <app-sports-moment-timeline [days]="home().days"></app-sports-moment-timeline>
+    </section>
+
+    <!-- Bottom Navigation Links -->
+    <nav class="home-depth-links" aria-label="Explore more IOD Sports">
+      <a routerLink="/calendar">
+        <span>
+          <small>Every event, every sport</small>
+          <strong>Open the full Calendar</strong>
+        </span>
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+      <a routerLink="/sports">
+        <span>
+          <small>Disciplines and pathways</small>
+          <strong>Explore Sports</strong>
+        </span>
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </nav>
+  </ng-container>
+</main>

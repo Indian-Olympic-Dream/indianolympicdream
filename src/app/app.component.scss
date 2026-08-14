@@ -193,6 +193,13 @@ mat-sidenav-content {
     filter: invert(1) brightness(0.96) contrast(0.94);
   }
 
+  &.nav-icon-logo {
+    height: 24px;
+    width: 24px;
+    object-fit: contain;
+    opacity: 0.85;
+  }
+
   &.nav-icon-premium-calendar {
     filter: none;
     opacity: 0.96;

@@ -1,0 +1,125 @@
+<div class="sports-timeline" aria-label="India sporting timeline">
+  <section *ngFor="let day of days; trackBy: trackDay" class="timeline-day" [class.is-today]="day.isToday"
+    [class.is-dense]="day.dense">
+    <header class="day-heading">
+      <span>{{ day.dayLabel }}</span>
+      <strong>{{ day.dateLabel }}</strong>
+      <small *ngIf="day.isToday">Today</small>
+    </header>
+
+    <div class="day-content">
+      <div class="event-anchor" *ngFor="let anchor of day.anchors" [class.is-live]="anchor.state === 'live'"
+        (click)="onAnchorClick(anchor, $event)">
+        <span class="anchor-pictogram" *ngIf="anchor.sport.pictogramUrl">
+          <img [src]="anchor.sport.pictogramUrl" [alt]="anchor.sport.name">
+        </span>
+        <span class="anchor-copy">
+          <small>{{ anchor.sport.name }} · {{ anchor.context }}</small>
+          <strong>{{ anchor.title }}</strong>
+          <span *ngIf="anchor.location">{{ anchor.location }}</span>
+        </span>
+        <a *ngIf="isInternal(anchor.action)" [routerLink]="anchor.action!.navigation.routerLink" (click)="$event.stopPropagation()">
+          {{ anchor.action!.label }} <mat-icon>arrow_forward</mat-icon>
+        </a>
+        <a *ngIf="isExternal(anchor.action)" [href]="anchor.action!.navigation.href"
+          [attr.target]="anchor.action!.navigation.target" [attr.rel]="anchor.action!.navigation.rel" (click)="$event.stopPropagation()">
+          {{ anchor.action!.label }} <mat-icon>north_east</mat-icon>
+        </a>
+      </div>
+
+      <div class="programme-summary" *ngIf="day.programme as programme" (click)="onProgrammeClick(programme, $event)">
+        <div>
+          <small>MEET PROGRAMME</small>
+          <strong>{{ programme.title }}</strong>
+          <span *ngIf="programme.location">{{ programme.location }}</span>
+        </div>
+        <div class="programme-count">
+          <strong>{{ programme.totalEvents }}</strong>
+          <span>events</span>
+        </div>
+        <div class="programme-groups">
+          <span *ngFor="let label of programme.groupLabels">{{ label }}</span>
+        </div>
+        <a *ngIf="isInternal(programme.action)" [routerLink]="programme.action!.navigation.routerLink" (click)="$event.stopPropagation()">
+          View full programme <mat-icon>arrow_forward</mat-icon>
+        </a>
+        <a *ngIf="isExternal(programme.action)" [href]="programme.action!.navigation.href"
+          [attr.target]="programme.action!.navigation.target" [attr.rel]="programme.action!.navigation.rel" (click)="$event.stopPropagation()">
+          Official programme <mat-icon>north_east</mat-icon>
+        </a>
+      </div>
+
+      <div class="untimed-area" *ngIf="day.untimedMoments.length">
+        <p>Timing to follow</p>
+        <article *ngFor="let moment of visibleUntimed(day); trackBy: trackMoment" class="timeline-moment untimed-moment"
+          [class.is-primary]="moment.importance === 'primary'" [class.is-live]="moment.state === 'live'"
+          [class.is-completed]="moment.state === 'completed'"
+          [class.is-disabled]="moment.isDisabled || moment.timingState === 'conditional'"
+          (click)="onMomentClick(moment, $event)">
+          <div class="time-cell">
+            <strong>{{ moment.timingState === 'conditional' ? 'If qualified' : moment.timingLabel }}</strong>
+            <small *ngIf="moment.timingState === 'conditional'">Time TBC</small>
+          </div>
+          <span class="moment-node" aria-hidden="true"></span>
+          <ng-container *ngTemplateOutlet="momentContent; context: { $implicit: moment }"></ng-container>
+        </article>
+      </div>
+
+      <div class="timed-area" *ngIf="day.timedEntries.length">
+        <ng-container *ngFor="let entry of visibleEntries(day); trackBy: trackEntry">
+          <div class="now-marker" *ngIf="entry.kind === 'now'">
+            <span>{{ entry.label }}</span>
+            <i aria-hidden="true"></i>
+            <strong>Now</strong>
+          </div>
+          <article *ngIf="entry.kind === 'moment'" class="timeline-moment timed-moment"
+            [class.is-primary]="entry.moment.importance === 'primary'" [class.is-live]="entry.moment.state === 'live'"
+            [class.is-completed]="entry.moment.state === 'completed'"
+            [class.is-disabled]="entry.moment.isDisabled || entry.moment.timingState === 'conditional'"
+            (click)="onMomentClick(entry.moment, $event)">
+            <div class="time-cell">
+              <strong>{{ entry.moment.timingLabel }}</strong>
+              <small *ngIf="entry.moment.timingState === 'session'">Session</small>
+            </div>
+            <span class="moment-node" aria-hidden="true"></span>
+            <ng-container *ngTemplateOutlet="momentContent; context: { $implicit: entry.moment }"></ng-container>
+          </article>
+        </ng-container>
+      </div>
+
+      <button class="dense-toggle" type="button" *ngIf="hiddenLoadedCount(day) > 0" (click)="toggleDay(day)">
+        {{ isExpanded(day) ? 'Show less' : '+ ' + hiddenLoadedCount(day) + ' more moments' }}
+        <mat-icon>{{ isExpanded(day) ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+      <p class="programme-pending" *ngIf="unpublishedProgrammeCount(day) > 0">
+        + {{ unpublishedProgrammeCount(day) }} more events · start times to follow
+      </p>
+    </div>
+  </section>
+</div>
+
+<ng-template #momentContent let-moment>
+  <div class="moment-content">
+    <div class="moment-title-row">
+      <span class="moment-pictogram" *ngIf="moment.sport.pictogramUrl">
+        <img [src]="moment.sport.pictogramUrl" [alt]="moment.sport.name">
+      </span>
+      <div>
+        <small>{{ moment.sport.name }}<ng-container *ngIf="moment.competition"> · {{ moment.competition }}</ng-container></small>
+        <h3>{{ moment.headline }}</h3>
+      </div>
+      <span class="conditional-chip" *ngIf="moment.timingState === 'conditional'">If Qualified</span>
+      <span class="state-label" *ngIf="moment.state === 'live'">Live</span>
+      <span class="state-label completed" *ngIf="moment.state === 'completed'">Result</span>
+    </div>
+    <p *ngIf="moment.context">{{ moment.context }}</p>
+    <strong class="result-line" *ngIf="moment.resultLabel">{{ moment.resultLabel }}</strong>
+    <a *ngIf="isInternal(moment.action)" class="moment-action" [routerLink]="moment.action!.navigation.routerLink">
+      {{ moment.action!.label }} <mat-icon>chevron_right</mat-icon>
+    </a>
+    <a *ngIf="isExternal(moment.action)" class="moment-action" [href]="moment.action!.navigation.href"
+      [attr.target]="moment.action!.navigation.target" [attr.rel]="moment.action!.navigation.rel">
+      {{ moment.action!.label }} <mat-icon>north_east</mat-icon>
+    </a>
+  </div>
+</ng-template>

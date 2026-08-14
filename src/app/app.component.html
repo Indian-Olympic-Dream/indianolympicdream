@@ -10,28 +10,27 @@
   </a>
 
   <nav class="desktop-nav hidden-mobile">
-    <a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link"
-      [routerLinkActiveOptions]="{ exact: true }">
-      <img class="nav-icon nav-icon-premium" src="assets/icons/legacy.svg" alt="" aria-hidden="true">
-      <span class="nav-label">Legacy</span>
+    <a class="nav-link" [routerLink]="['/']" [class.active-link]="isHomeActive()">
+      <img class="nav-icon nav-icon-logo" src="assets/images/logo.png" alt="" aria-hidden="true">
+      <span class="nav-label">Home</span>
+    </a>
+    <a class="nav-link" [routerLink]="['/calendar']" [class.active-link]="isCalendarActive()">
+      <img class="nav-icon nav-icon-premium nav-icon-premium-calendar" src="assets/icons/calendar.svg" alt=""
+        aria-hidden="true">
+      <span class="nav-label">Calendar</span>
     </a>
     <a class="nav-link" [routerLink]="['/athletes']" routerLinkActive="active-link">
       <img class="nav-icon nav-icon-pictogram" src="assets/icons/athletes.svg" alt="Athletes">
       <span class="nav-label">Athletes</span>
     </a>
-    <a class="nav-link" [routerLink]="['/calendar']" routerLinkActive="active-link">
-      <img class="nav-icon nav-icon-premium nav-icon-premium-calendar" src="assets/icons/calendar.svg" alt=""
-        aria-hidden="true">
-      <span class="nav-label">Calendar</span>
-    </a>
-    <a class="nav-link" [routerLink]="['/cwg-2026']" routerLinkActive="active-link">
-      <img class="nav-icon nav-icon-premium nav-icon-premium-calendar"
-        src="assets/images/cwg/glasgow-2026-logo-vertical-dark.svg" alt="" aria-hidden="true">
-      <span class="nav-label">CWG 2026</span>
+    <a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: true }">
+      <img class="nav-icon nav-icon-premium" src="assets/icons/legacy.svg" alt="" aria-hidden="true">
+      <span class="nav-label">Legacy</span>
     </a>
     <a class="nav-link" [routerLink]="['/originals']" routerLinkActive="active-link">
       <img class="nav-icon nav-icon-premium" src="assets/icons/originals.svg" alt="" aria-hidden="true">
-      <span class="nav-label">IOD Originals</span>
+      <span class="nav-label">Originals</span>
     </a>
   </nav>
 </mat-toolbar>
@@ -50,3 +49,6 @@
 
 <!-- Mobile Bottom Nav -->
 <app-bottom-nav class="visible-mobile"></app-bottom-nav>
+
+<!-- Global Sports Detail Sheet -->
+<app-sports-detail-sheet></app-sports-detail-sheet>
