@@ -3,22 +3,22 @@ import { Routes } from "@angular/router";
 export const routes: Routes = [
   {
     path: "",
+    pathMatch: "full",
     loadComponent: () =>
-      import("./sports/sports.component").then((m) => m.SportsComponent),
+      import("./home/home.component").then((m) => m.HomeComponent),
     data: {
       animation: "HomePage",
       order: 1,
     },
   },
   {
-    path: "home",
-    redirectTo: "",
-    pathMatch: "full",
-  },
-  {
     path: "sports",
-    redirectTo: "",
-    pathMatch: "full",
+    loadComponent: () =>
+      import("./sports/sports.component").then((m) => m.SportsComponent),
+    data: {
+      animation: "SportsPage",
+      order: 2,
+    },
   },
   {
     path: "history",

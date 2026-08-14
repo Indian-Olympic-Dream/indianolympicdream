@@ -1,10 +1,27 @@
 <mat-toolbar class="bottom-nav">
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">
+    <a class="nav-link" routerLink="/" [class.active-link]="isHomeActive()">
       <span class="nav-icon-col">
-        <img class="nav-inline-image nav-home-logo" src="assets/images/logo.png" alt="Home">
+        <img class="nav-inline-image nav-logo-icon" src="assets/images/logo.png" alt="" aria-hidden="true">
       </span>
       <span class="nav-label">Home</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a class="nav-link" routerLink="/calendar" [class.active-link]="isCalendarActive()">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-premium-icon nav-premium-icon-calendar" src="assets/icons/calendar.svg" alt=""
+          aria-hidden="true">
+      </span>
+      <span class="nav-label">Calendar</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a class="nav-link" routerLink="/athletes" routerLinkActive="active-link">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-pictogram" src="assets/icons/athletes.svg" alt="Athletes">
+      </span>
+      <span class="nav-label">Athletes</span>
     </a>
   </div>
   <div class="nav-item-container">
@@ -17,37 +34,11 @@
     </a>
   </div>
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/athletes" routerLinkActive="active-link">
-      <span class="nav-icon-col">
-        <img class="nav-inline-image nav-pictogram" src="assets/icons/athletes.svg" alt="Athletes">
-      </span>
-      <span class="nav-label">Athletes</span>
-    </a>
-  </div>
-  <div class="nav-item-container">
-    <a class="nav-link" routerLink="/calendar" routerLinkActive="active-link">
-      <span class="nav-icon-col">
-        <img class="nav-inline-image nav-premium-icon nav-premium-icon-calendar" src="assets/icons/calendar.svg" alt=""
-          aria-hidden="true">
-      </span>
-      <span class="nav-label">Calendar</span>
-    </a>
-  </div>
-  <div class="nav-item-container">
-    <a class="nav-link" routerLink="/cwg-2026" routerLinkActive="active-link">
-      <span class="nav-icon-col">
-        <img class="nav-inline-image nav-premium-icon nav-premium-icon-calendar"
-          src="assets/images/cwg/glasgow-2026-logo-vertical-dark.svg" alt="" aria-hidden="true">
-      </span>
-      <span class="nav-label">CWG 2026</span>
-    </a>
-  </div>
-  <div class="nav-item-container">
     <a class="nav-link" routerLink="/originals" routerLinkActive="active-link">
       <span class="nav-icon-col">
         <img class="nav-inline-image nav-premium-icon" src="assets/icons/originals.svg" alt="" aria-hidden="true">
       </span>
-      <span class="nav-label">IOD Originals</span>
+      <span class="nav-label">Originals</span>
     </a>
   </div>
 </mat-toolbar>

@@ -1,0 +1,239 @@
+<div class="sports-detail-backdrop" *ngIf="detailService.isOpen()" (click)="onBackdropClick($event)"
+  role="presentation">
+  <article class="sports-detail-sheet" [class.is-wide]="detail()?.presentationSize === 'wide'"
+    (click)="$event.stopPropagation()" role="dialog" aria-modal="true" *ngIf="detail() as data">
+
+    <!-- Top Header: Clean Masthead with Actions (No heavy card surface) -->
+    <header class="sheet-header">
+      <div class="sheet-header-top">
+        <div class="sport-badge">
+          <span>{{ data.sportName }}</span>
+        </div>
+
+        <div class="header-status-wrap">
+          <span class="state-badge" [class.is-live]="data.state === 'live'"
+            [class.is-completed]="data.state === 'completed'">
+            <span class="live-dot" *ngIf="data.state === 'live'"></span>
+            {{ data.stateLabel }}
+          </span>
+
+          <button class="sheet-close-btn" type="button" aria-label="Close" (click)="close()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hero Tournament Branding with Sport Pictogram -->
+      <div class="sheet-brand-row">
+        <div class="hero-sport-pictogram" *ngIf="data.sportPictogramUrl">
+          <img [src]="data.sportPictogramUrl" [alt]="data.sportName" />
+        </div>
+        <div class="brand-info">
+          <h1 class="tournament-name">{{ data.competitionTitle }}</h1>
+          <p class="tournament-sub" *ngIf="data.venue || data.dateLabel">
+            <span *ngIf="data.venue">{{ data.venue }}</span>
+            <span class="sub-sep" *ngIf="data.venue && data.dateLabel">·</span>
+            <span *ngIf="data.dateLabel">{{ data.dateLabel }}</span>
+          </p>
+
+          <div class="brand-actions-row" *ngIf="data.actions?.whereToWatchUrl || data.actions?.externalUrl">
+            <a class="action-pill watch-pill" *ngIf="data.actions?.whereToWatchUrl"
+              [href]="data.actions!.whereToWatchUrl" target="_blank" rel="noopener noreferrer">
+              <mat-icon>tv</mat-icon>
+              <span>{{ data.actions!.whereToWatchLabel || 'Watch Live' }}</span>
+              <mat-icon class="mini-ext">north_east</mat-icon>
+            </a>
+
+            <a class="action-pill site-pill" *ngIf="data.actions?.externalUrl" [href]="data.actions!.externalUrl"
+              target="_blank" rel="noopener noreferrer">
+              <mat-icon>language</mat-icon>
+              <span>Official</span>
+              <mat-icon class="mini-ext">north_east</mat-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Scrollable Content Body -->
+    <div class="sheet-body">
+      <!-- 1. Primary Stage: Hockey Scorecard / Matchup Stage -->
+      <section class="stage-card matchup-stage" *ngIf="data.matchup; else singleSubjectStage">
+        <div class="matchup-kicker" *ngIf="data.contextLine">
+          <span>{{ data.contextLine }}</span>
+        </div>
+
+        <div class="matchup-board">
+          <!-- Team A -->
+          <div class="team-card team-a" [class.is-india]="data.matchup.teamA.isIndia">
+            <span class="country-flag" *ngIf="data.matchup.teamA.flag">{{ data.matchup.teamA.flag }}</span>
+            <strong class="team-name">{{ data.matchup.teamA.name }}</strong>
+            <span class="country-code-pill">{{ data.matchup.teamA.code }}</span>
+            <span class="score-num" *ngIf="data.state === 'completed' || data.state === 'live'">
+              {{ data.matchup.teamA.score ?? '-' }}
+            </span>
+          </div>
+
+          <!-- Center Time & Versus -->
+          <div class="center-col">
+            <span class="match-time-pill">{{ data.timeLabel }}</span>
+            <span class="vs-badge">VS</span>
+          </div>
+
+          <!-- Team B -->
+          <div class="team-card team-b" [class.is-india]="data.matchup.teamB.isIndia">
+            <span class="country-flag" *ngIf="data.matchup.teamB.flag">{{ data.matchup.teamB.flag }}</span>
+            <strong class="team-name">{{ data.matchup.teamB.name }}</strong>
+            <span class="country-code-pill">{{ data.matchup.teamB.code }}</span>
+            <span class="score-num" *ngIf="data.state === 'completed' || data.state === 'live'">
+              {{ data.matchup.teamB.score ?? '-' }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- B. Badminton Discipline Selector + 2 Match Cards (BWF Worlds) -->
+      <section class="badminton-container" *ngIf="data.badmintonEntries?.length">
+        <!-- 5 Filter Buttons (MS, WS, MD, WD, XD) -->
+        <nav class="discipline-nav">
+          <button type="button" *ngFor="let disc of disciplines()" class="discipline-pill"
+            [class.active]="effectiveDiscipline() === disc" (click)="selectDiscipline(disc)">
+            <span class="disc-full">{{ disc }}</span>
+            <span class="disc-short">{{ getDisciplineShort(disc) }}</span>
+          </button>
+        </nav>
+
+        <!-- 2 Match / Score Cards for Selected Discipline -->
+        <div class="badminton-matches-grid">
+          <article class="badminton-match-card" *ngFor="let match of filteredBadmintonEntries()">
+            <!-- Card Header: Round & State Pill -->
+            <div class="match-card-top">
+              <div class="card-kicker">
+                <span class="match-round-tag">{{ match.round }}</span>
+                <span class="disc-code-tag">{{ match.disciplineCode }}</span>
+              </div>
+              <span class="match-time-tag" [class.is-bye]="match.bye" [class.is-live]="match.status === 'live'">
+                <span class="live-dot" *ngIf="match.status === 'live'"></span>
+                {{ match.bye ? 'SEEDED BYE' : (match.timeLabel || 'TIME TBC') }}
+              </span>
+            </div>
+
+            <!-- Broadcast Scoreboard Box -->
+            <div class="badminton-scoreboard">
+              <!-- Row 1: India -->
+              <div class="scoreboard-row is-india">
+                <div class="player-profile">
+                  <span class="country-flag">🇮🇳</span>
+                  <span class="country-code-badge">IND</span>
+                  <div class="player-names-wrap">
+                    <span class="player-name-line" *ngFor="let name of match.names">
+                      <strong class="name-text">{{ name }}</strong>
+                      <span class="seed-badge" *ngIf="match.seed">[{{ match.seed }}]</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="score-cells">
+                  <span class="score-cell">{{ match.score ? match.score.split(' ')[0] : '-' }}</span>
+                  <span class="score-cell">{{ match.score ? match.score.split(' ')[1] : '-' }}</span>
+                  <span class="score-cell">{{ match.score ? match.score.split(' ')[2] : '-' }}</span>
+                </div>
+              </div>
+
+              <!-- Scoreboard Divider -->
+              <div class="scoreboard-divider"></div>
+
+              <!-- Row 2: Opponent -->
+              <div class="scoreboard-row is-opponent" [class.is-bye-opp]="match.bye">
+                <div class="player-profile">
+                  <span class="country-flag">{{ match.opponentFlag || (match.bye ? '🎟️' : '🏸') }}</span>
+                  <span class="country-code-badge">{{ match.opponentCountryCode || (match.bye ? 'TBD' : 'OPP') }}</span>
+                  <div class="player-names-wrap">
+                    <span class="player-name-line"
+                      *ngFor="let opp of (match.opponentNames?.length ? match.opponentNames : ['Opponent to be confirmed'])">
+                      <strong class="name-text">{{ opp }}</strong>
+                      <span class="seed-badge" *ngIf="match.opponentSeed">[{{ match.opponentSeed }}]</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="score-cells">
+                  <span class="score-cell">-</span>
+                  <span class="score-cell">-</span>
+                  <span class="score-cell">-</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
+      </section>
+
+      <!-- 2. Official Result Card (if completed) -->
+      <section class="domain-card result-card" *ngIf="data.resultSummary">
+        <span class="domain-card-title">OFFICIAL RESULT</span>
+        <strong class="result-text">{{ data.resultSummary }}</strong>
+      </section>
+
+      <!-- 6. Athletics Field Competitors (Lausanne Men's Javelin Scorecard) -->
+      <section class="domain-card javelin-field-card" *ngIf="data.athleticsField?.length">
+        <div class="field-card-header">
+          <h3 class="domain-card-title">COMPETITOR FIELD · MEN'S JAVELIN</h3>
+          <span class="field-count">{{ data.athleticsField.length }} Athletes</span>
+        </div>
+
+        <div class="javelin-athletes-list">
+          <div class="javelin-athlete-row" *ngFor="let athlete of data.athleticsField; let idx = index"
+            [class.is-india]="athlete.isIndia">
+
+            <div class="athlete-rank-col">
+              <span class="rank-index">{{ idx + 1 }}</span>
+            </div>
+
+            <div class="athlete-nation-col">
+              <span class="country-flag">{{ athlete.flag || '🌍' }}</span>
+              <!-- <span class="country-code-badge">{{ athlete.countryCode }}</span> -->
+            </div>
+
+            <div class="athlete-main-col">
+              <strong class="athlete-name">{{ athlete.name }}</strong>
+              <!-- <span class="india-badge" *ngIf="athlete.isIndia">India</span> -->
+            </div>
+
+            <div class="athlete-stats-col">
+              <span class="stat-pill pb-pill" *ngIf="athlete.pb">PB {{ athlete.pb }}</span>
+              <span class="mark-box">{{ athlete.bestMark || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Athletics 18-Event Programme (Bhubaneswar Continental Tour) -->
+      <section class="domain-card programme-card" *ngIf="data.athleticsProgramme">
+        <h3 class="domain-card-title">MEET PROGRAMME · 18 EVENTS</h3>
+        <div class="programme-columns">
+          <!-- Men's Events -->
+          <div class="prog-col" *ngIf="data.athleticsProgramme.men.length">
+            <h4 class="col-title">MEN · {{ data.athleticsProgramme.men.length }} EVENTS</h4>
+            <ul class="prog-list">
+              <li *ngFor="let item of data.athleticsProgramme.men">
+                <span class="prog-event-name">{{ item.name }}</span>
+                <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Women's Events -->
+          <div class="prog-col" *ngIf="data.athleticsProgramme.women.length">
+            <h4 class="col-title">WOMEN · {{ data.athleticsProgramme.women.length }} EVENTS</h4>
+            <ul class="prog-list">
+              <li *ngFor="let item of data.athleticsProgramme.women">
+                <span class="prog-event-name">{{ item.name }}</span>
+                <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </article>
+</div>

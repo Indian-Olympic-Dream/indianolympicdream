@@ -30,6 +30,7 @@ import { ScrollTrackingService } from "./shared/services/scroll-tracking.service
 import { SeoService } from "./shared/services/seo.service";
 import { BottomNavComponent } from "./bottom-nav/bottom-nav.component";
 import { FooterComponent } from "./footer/footer.component";
+import { SportsDetailSheetComponent } from "./shared/sports-detail/sports-detail-sheet.component";
 
 @Component({
   selector: "app-root",
@@ -53,6 +54,7 @@ import { FooterComponent } from "./footer/footer.component";
     LayoutModule,
     BottomNavComponent,
     FooterComponent,
+    SportsDetailSheetComponent,
   ],
 })
 export class AppComponent {
@@ -145,10 +147,13 @@ export class AppComponent {
     }
   }
 
-  isActivePath(): boolean {
-    const url = this.router.url;
+  isCalendarActive(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return path === "/calendar" || path.startsWith("/calendar/");
+  }
 
-    return url === "/" || url === "/home";
+  isHomeActive(): boolean {
+    return this.router.url.split(/[?#]/, 1)[0] === "/";
   }
 
   isStoriesActive(): boolean {

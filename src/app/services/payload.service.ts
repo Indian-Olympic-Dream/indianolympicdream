@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Apollo, gql } from 'apollo-angular';
-import { Observable, map, catchError } from 'rxjs';
+import { Observable, of, map, catchError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { IndiaTier, SportLifecycle } from '../models/india-tier';
 import type { CwgGamesParticipation, PayloadListResponse } from '../games/cwg-2026.types';
@@ -122,6 +122,7 @@ export interface CalendarEvent {
   category?: string;
   eventScope?: 'sport_event' | 'qualification_window' | 'multi_sport_window';
   importance?: 'core' | 'high' | 'watch' | 'context';
+  coverageExperience?: CalendarEventExperience | null;
   status: string;
   isQualifier?: boolean;
   heroImage?: { url: string } | null;
@@ -244,7 +245,200 @@ export interface RetiredAthletesFeed {
   };
 }
 
+export interface GamesScheduleRow {
+  id: string;
+  name?: string;
+  gamesKey?: string;
+  calendarEvent?: {
+    id: string;
+    title: string;
+    slug?: string;
+  } | null;
+  eventName?: string;
+  phase?: string;
+  startTime: string;
+  endTime?: string | null;
+  venue?: string;
+  localTimeLabel?: string;
+  indiaTimeLabel?: string;
+  isMedalSession?: boolean;
+  isConditional?: boolean;
+  participationStatus?: string;
+  timingPrecision?: 'exact' | 'session-window' | 'start-list-pending' | 'draw-dependent' | 'tbd';
+  certainty?: string;
+  status?: string;
+  result?: any;
+}
+
+export interface GamesParticipationRow {
+  id: string;
+  gamesKey: string;
+  competitionName?: string;
+  editionName?: string;
+  sourceName?: string;
+  rosterOrder?: number;
+  eventName?: string;
+  eventBucket?: string;
+  eventBucketType?: string;
+  displayGroup?: string;
+  gender?: string;
+  teamType?: string;
+  status?: string;
+  editorialPriority?: string;
+  publicNote?: string;
+  athlete?: CalendarEventParticipant | null;
+  source?: {
+    label?: string;
+    url?: string;
+    capturedDate?: string;
+  } | null;
+}
+
 // ============ GRAPHQL QUERIES ============
+
+const CALENDAR_EVENT_SCHEDULE_QUERY = gql`
+  query GetCalendarEventSchedule($calendarEventId: JSON!) {
+    GamesSchedules(
+      where: { calendarEvent: { equals: $calendarEventId } }
+      sort: "startTime"
+      limit: 100
+    ) {
+      docs {
+        id
+        name
+        gamesKey
+        calendarEvent {
+          id
+          title: name
+          slug
+        }
+        eventName
+        phase
+        startTime
+        endTime
+        venue
+        localTimeLabel
+        indiaTimeLabel
+        isMedalSession
+        isConditional
+        participationStatus
+        timingPrecision
+        certainty
+        status
+        result
+      }
+    }
+  }
+`;
+
+const EVENT_HUB_SCHEDULE_QUERY = gql`
+  query GetEventHubSchedule($gamesKey: String!) {
+    GamesSchedules(
+      where: { gamesKey: { equals: $gamesKey } }
+      sort: "startTime"
+      limit: 100
+    ) {
+      docs {
+        id
+        name
+        gamesKey
+        calendarEvent {
+          id
+          title: name
+          slug
+        }
+        eventName
+        phase
+        startTime
+        endTime
+        venue
+        localTimeLabel
+        indiaTimeLabel
+        isMedalSession
+        isConditional
+        participationStatus
+        timingPrecision
+        certainty
+        status
+        result
+      }
+    }
+  }
+`;
+
+const UPCOMING_GAMES_SCHEDULE_QUERY = gql`
+  query GetUpcomingGamesSchedule($startTime: DateTime!, $limit: Int!) {
+    GamesSchedules(
+      where: { startTime: { greater_than_equal: $startTime } }
+      sort: "startTime"
+      limit: $limit
+    ) {
+      docs {
+        id
+        name
+        gamesKey
+        calendarEvent {
+          id
+          title: name
+          slug
+        }
+        eventName
+        phase
+        startTime
+        endTime
+        venue
+        localTimeLabel
+        indiaTimeLabel
+        isMedalSession
+        isConditional
+        participationStatus
+        timingPrecision
+        certainty
+        status
+        result
+      }
+    }
+  }
+`;
+
+const EVENT_HUB_PARTICIPATIONS_QUERY = gql`
+  query GetEventHubParticipations($gamesKey: String!) {
+    GamesParticipations(
+      where: { gamesKey: { equals: $gamesKey } }
+      sort: "rosterOrder"
+      limit: 200
+    ) {
+      docs {
+        id
+        gamesKey
+        competitionName
+        editionName
+        sourceName
+        rosterOrder
+        eventName
+        eventBucket
+        eventBucketType
+        displayGroup
+        gender
+        teamType
+        status
+        editorialPriority
+        publicNote
+        athlete {
+          id
+          fullName
+          slug
+          photo { url }
+        }
+        source {
+          label
+          url
+          capturedDate
+        }
+      }
+    }
+  }
+`;
 
 const SPORTS_QUERY = gql`
   query GetSports($where: Sport_where, $limit: Int) {
@@ -517,6 +711,7 @@ const CALENDAR_EVENTS_QUERY = gql`
       category
       eventScope
       importance
+      coverageExperience
       status
       isQualifier: isQualificationEvent
       hubKey
@@ -574,6 +769,7 @@ const CALENDAR_EVENT_BY_SLUG_QUERY = gql`
         category
         eventScope
         importance
+        coverageExperience
         status
         isQualifier: isQualificationEvent
         hubKey
@@ -864,7 +1060,7 @@ export class PayloadService {
   ): CalendarEventExperience {
     void options;
     if (!event) return 'external_only';
-    return 'external_only';
+    return event.coverageExperience || 'external_only';
   }
 
   getCalendarEventNavigation(
@@ -1282,5 +1478,57 @@ export class PayloadService {
     }
 
     return this.http.get<RetiredAthletesFeed>(`${environment.payload_url}/api/athletes/retired-feed`, { params });
+  }
+
+  getCalendarEventSchedule(calendarEventId: string): Observable<GamesScheduleRow[]> {
+    if (!calendarEventId?.trim()) {
+      return of([]);
+    }
+
+    return this.apollo
+      .query<{ GamesSchedules: { docs: GamesScheduleRow[] } }>({
+        query: CALENDAR_EVENT_SCHEDULE_QUERY,
+        variables: { calendarEventId: calendarEventId.trim() },
+        fetchPolicy: 'network-only',
+      })
+      .pipe(
+        map((result) => result.data?.GamesSchedules?.docs || [])
+      );
+  }
+
+  getEventHubSchedule(gamesKey: string): Observable<GamesScheduleRow[]> {
+    if (!gamesKey?.trim()) {
+      return of([]);
+    }
+
+    return this.apollo
+      .query<{ GamesSchedules: { docs: GamesScheduleRow[] } }>({
+        query: EVENT_HUB_SCHEDULE_QUERY,
+        variables: { gamesKey: gamesKey.trim() },
+        fetchPolicy: 'network-only',
+      })
+      .pipe(map((result) => result.data?.GamesSchedules?.docs || []));
+  }
+
+  getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {
+    return this.apollo
+      .query<{ GamesSchedules: { docs: GamesScheduleRow[] } }>({
+        query: UPCOMING_GAMES_SCHEDULE_QUERY,
+        variables: { startTime, limit },
+        fetchPolicy: 'network-only',
+      })
+      .pipe(map((result) => result.data?.GamesSchedules?.docs || []));
+  }
+
+  getEventHubParticipations(gamesKey: string): Observable<GamesParticipationRow[]> {
+    if (!gamesKey?.trim()) return of([]);
+
+    return this.apollo
+      .query<{ GamesParticipations: { docs: GamesParticipationRow[] } }>({
+        query: EVENT_HUB_PARTICIPATIONS_QUERY,
+        variables: { gamesKey: gamesKey.trim() },
+        fetchPolicy: 'network-only',
+      })
+      .pipe(map((result) => result.data?.GamesParticipations?.docs || []));
   }
 }

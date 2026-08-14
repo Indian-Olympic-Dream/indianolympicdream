@@ -103,12 +103,6 @@
   flex-shrink: 0;
 }
 
-.nav-home-logo {
-  width: 18px;
-  height: 18px;
-  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.35));
-}
-
 .nav-pictogram {
   filter: invert(1) brightness(0.95) contrast(0.95);
   opacity: 0.9;
@@ -122,6 +116,13 @@
 .nav-premium-icon-calendar {
   filter: none;
   opacity: 0.96;
+}
+
+.nav-logo-icon {
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
+  opacity: 0.9;
 }
 
 @media (max-width: 768px) {
