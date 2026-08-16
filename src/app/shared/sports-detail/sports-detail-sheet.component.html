@@ -58,7 +58,7 @@
     <!-- Scrollable Content Body -->
     <div class="sheet-body">
       <!-- 1. Primary Stage: Hockey Scorecard / Matchup Stage -->
-      <section class="stage-card matchup-stage" *ngIf="data.matchup; else singleSubjectStage">
+      <section class="stage-card matchup-stage" *ngIf="data.matchup && !data.badmintonMatchDetail">
         <div class="matchup-kicker" *ngIf="data.contextLine">
           <span>{{ data.contextLine }}</span>
         </div>
@@ -92,10 +92,10 @@
         </div>
       </section>
 
-      <!-- B. Badminton Discipline Selector + 2 Match Cards (BWF Worlds) -->
-      <section class="badminton-container" *ngIf="data.badmintonEntries?.length">
-        <!-- 5 Filter Buttons (MS, WS, MD, WD, XD) -->
-        <nav class="discipline-nav">
+      <!-- B. BWF campaign browser for event anchors, or one focused scorecard for a Home match. -->
+      <section class="badminton-container" [class.is-single-match]="data.badmintonMatchDetail"
+        *ngIf="data.badmintonEntries?.length">
+        <nav class="discipline-nav" *ngIf="!data.badmintonMatchDetail">
           <button type="button" *ngFor="let disc of disciplines()" class="discipline-pill"
             [class.active]="effectiveDiscipline() === disc" (click)="selectDiscipline(disc)">
             <span class="disc-full">{{ disc }}</span>
@@ -120,6 +120,12 @@
 
             <!-- Broadcast Scoreboard Box -->
             <div class="badminton-scoreboard">
+              <div class="scoreboard-game-head" aria-hidden="true">
+                <span>G1</span>
+                <span>G2</span>
+                <span>G3</span>
+              </div>
+
               <!-- Row 1: India -->
               <div class="scoreboard-row is-india">
                 <div class="player-profile">
@@ -146,7 +152,9 @@
               <div class="scoreboard-row is-opponent" [class.is-bye-opp]="match.bye">
                 <div class="player-profile">
                   <span class="country-flag">{{ match.opponentFlag || (match.bye ? '🎟️' : '🏸') }}</span>
-                  <span class="country-code-badge">{{ match.opponentCountryCode || (match.bye ? 'TBD' : 'OPP') }}</span>
+                  <span class="country-code-badge" *ngIf="match.opponentCountryCode || match.bye">
+                    {{ match.opponentCountryCode || 'TBD' }}
+                  </span>
                   <div class="player-names-wrap">
                     <span class="player-name-line"
                       *ngFor="let opp of (match.opponentNames?.length ? match.opponentNames : ['Opponent to be confirmed'])">
@@ -156,16 +164,26 @@
                   </div>
                 </div>
                 <div class="score-cells">
-                  <span class="score-cell">-</span>
-                  <span class="score-cell">-</span>
-                  <span class="score-cell">-</span>
+                  <span class="score-cell">{{ match.opponentScore ? match.opponentScore.split(' ')[0] : '-' }}</span>
+                  <span class="score-cell">{{ match.opponentScore ? match.opponentScore.split(' ')[1] : '-' }}</span>
+                  <span class="score-cell">{{ match.opponentScore ? match.opponentScore.split(' ')[2] : '-' }}</span>
                 </div>
               </div>
             </div>
+
+            <p class="match-sequence-note" *ngIf="match.note">
+              <mat-icon>schedule</mat-icon>
+              {{ match.note }}
+            </p>
           </article>
         </div>
 
-        <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
+        <p class="section-footer-note" *ngIf="data.badmintonMatchDetail; else orderOfPlayNote">
+          Official game scores will appear here when available.
+        </p>
+        <ng-template #orderOfPlayNote>
+          <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
+        </ng-template>
       </section>
 
       <!-- 2. Official Result Card (if completed) -->

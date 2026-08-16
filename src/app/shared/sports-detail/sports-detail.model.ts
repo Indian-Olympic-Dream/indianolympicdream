@@ -46,6 +46,7 @@ export interface BadmintonEntryItem {
   note?: string;
   status?: 'upcoming' | 'live' | 'completed' | 'bye';
   score?: string | null;
+  opponentScore?: string | null;
 }
 
 export interface AthleticsCompetitor {
@@ -91,6 +92,7 @@ export interface SportsDetailModel {
   hockeyGroupMatches?: HockeyGroupMatch[] | null;
   badmintonEntries?: BadmintonEntryItem[] | null;
   badmintonDisciplines?: string[] | null;
+  badmintonMatchDetail?: boolean;
   athleticsField?: AthleticsCompetitor[] | null;
   athleticsProgramme?: { men: ProgrammeEventItem[]; women: ProgrammeEventItem[] } | null;
   resultSummary?: string | null;

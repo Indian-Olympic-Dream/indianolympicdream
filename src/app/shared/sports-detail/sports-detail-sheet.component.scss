@@ -662,6 +662,13 @@
 .badminton-container {
   display: grid;
   gap: 12px;
+
+  &.is-single-match .badminton-match-card {
+    border-color: rgba(243, 200, 92, 0.18);
+    background:
+      radial-gradient(460px 160px at 0% 0%, rgba(243, 200, 92, 0.09), transparent 72%),
+      #0c0d12;
+  }
 }
 
 .discipline-nav {
@@ -803,6 +810,21 @@
     overflow: hidden;
   }
 
+  .scoreboard-game-head {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 6px 12px 1px;
+    color: rgba(255, 255, 255, 0.28);
+    font: 700 0.52rem/1 'Geist Mono', monospace;
+    letter-spacing: 0.08em;
+
+    span {
+      width: 26px;
+      text-align: center;
+    }
+  }
+
   .scoreboard-row {
     display: flex;
     align-items: center;
@@ -927,6 +949,22 @@
     height: 1px;
     background: rgba(255, 255, 255, 0.05);
     margin: 0 8px;
+  }
+
+  .match-sequence-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.48);
+    font: 600 0.64rem/1.35 'Geist Mono', monospace;
+
+    mat-icon {
+      width: 15px;
+      height: 15px;
+      font-size: 15px;
+      color: #f7dea0;
+    }
   }
 }
 
@@ -1183,5 +1221,52 @@
 
   .sports-detail-sheet {
     padding: 16px 16px 20px;
+  }
+
+  .badminton-match-card {
+    padding: 12px;
+
+    .scoreboard-row {
+      padding: 9px 8px;
+      gap: 6px;
+
+      .player-profile {
+        gap: 6px;
+      }
+
+      .country-flag {
+        font-size: 1.05rem;
+      }
+
+      .country-code-badge {
+        font-size: 0.54rem;
+        padding-inline: 4px;
+      }
+
+      .player-names-wrap .player-name-line .name-text {
+        font-size: 0.8rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .score-cells {
+        gap: 3px;
+
+        .score-cell {
+          width: 22px;
+          height: 23px;
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .scoreboard-game-head {
+      gap: 3px;
+      padding-right: 8px;
+
+      span {
+        width: 22px;
+      }
+    }
   }
 }

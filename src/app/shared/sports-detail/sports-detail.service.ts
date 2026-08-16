@@ -174,7 +174,7 @@ export class SportsDetailService {
     const dateFormatted = this.formatDateKey(moment.dateKey);
 
     const isBadminton = moment.sport.slug === 'badminton' || (moment.competition || '').toLowerCase().includes('bwf');
-    const isHockey = moment.sport.slug === 'hockey' || (moment.competition || '').toLowerCase().includes('hockey') || moment.headline.toLowerCase().includes('vs');
+    const isHockey = moment.sport.slug === 'hockey' || (moment.competition || '').toLowerCase().includes('hockey');
     const isLausanne = (moment.headline || '').toLowerCase().includes('neeraj') || (moment.context || '').toLowerCase().includes('lausanne') || (moment.competition || '').toLowerCase().includes('lausanne');
     const isContinental = (moment.competition || '').toLowerCase().includes('continental') || (moment.headline || '').toLowerCase().includes("india's athletes") || (moment.context || '').toLowerCase().includes('programme');
 
@@ -299,22 +299,41 @@ export class SportsDetailService {
       return;
     }
 
-    // 2. Badminton BWF Worlds: enrich with Indian entries
+    // 2. A Home BWF moment is one match, not a miniature tournament browser.
     if (isBadminton) {
       baseModel.competitionTitle = 'BWF World Championships 2026';
-      baseModel.venue = 'KD Jadhav Indoor Hall, New Delhi';
+      baseModel.venue = 'Indira Gandhi Indoor Stadium, New Delhi';
       baseModel.actions = {
         whereToWatchUrl: 'https://www.hotstar.com/in/sports/badminton',
         whereToWatchLabel: 'Watch Live',
         externalUrl: 'https://bwfworldchampionships.bwfbadminton.com/',
       };
-      this.payload.getEventHubParticipations('bwf-world-championships-2026').pipe(
-        catchError(() => of([])),
-        map((rows) => this.mapBadmintonEntries(rows, moment.dateKey))
-      ).subscribe((entries) => {
-        baseModel.badmintonEntries = entries;
-        this.open(baseModel);
-      });
+      if (baseModel.matchup) {
+        baseModel.badmintonMatchDetail = true;
+        const scorecard = this.buildBadmintonMatchDetail(moment, baseModel.matchup);
+        this.payload.getEventHubParticipations('bwf-world-championships-2026').pipe(
+          catchError(() => of([])),
+          map((rows) => {
+            if (!rows.length) return scorecard;
+            const participation = this.findBadmintonParticipationForMoment(
+              this.mapBadmintonEntries(rows, moment.dateKey),
+              moment,
+            );
+            return participation ? {
+              ...scorecard,
+              seed: participation.seed,
+              opponentSeed: participation.opponentSeed,
+              opponentCountry: participation.opponentCountry,
+              opponentCountryCode: participation.opponentCountryCode,
+              opponentFlag: participation.opponentFlag,
+            } : scorecard;
+          }),
+        ).subscribe((entry) => {
+          this.open({ ...baseModel, badmintonEntries: [entry] });
+        });
+        return;
+      }
+      this.open(baseModel);
       return;
     }
 
@@ -370,7 +389,7 @@ export class SportsDetailService {
       contextLine: anchor.context,
       dateLabel: 'Aug 2026',
       timeLabel: 'Timings TBC',
-      venue: isBadminton ? 'KD Jadhav Indoor Hall, New Delhi' : (anchor.location || null),
+      venue: isBadminton ? 'Indira Gandhi Indoor Stadium, New Delhi' : (anchor.location || null),
       presentationSize: 'wide',
       actions: isBadminton ? {
         whereToWatchUrl: 'https://www.hotstar.com/in/sports/badminton',
@@ -605,6 +624,72 @@ export class SportsDetailService {
       return all.filter((e) => e.bye || e.round === 'Round of 32');
     }
     return all;
+  }
+
+  private buildBadmintonMatchDetail(
+    moment: SportsMoment,
+    matchup: NonNullable<SportsDetailModel['matchup']>,
+  ): BadmintonEntryItem {
+    const contextParts = (moment.context || '')
+      .split('·')
+      .map((part) => part.trim())
+      .filter(Boolean);
+    const discipline = contextParts[0] || 'Badminton';
+    const disciplineCode: BadmintonEntryItem['disciplineCode'] =
+      /women's singles|^ws$/i.test(discipline) ? 'WS' :
+        /men's doubles|^md$/i.test(discipline) ? 'MD' :
+          /women's doubles|^wd$/i.test(discipline) ? 'WD' :
+            /mixed|^xd$/i.test(discipline) ? 'XD' : 'MS';
+    const round = contextParts.find((part) => /round/i.test(part)) || 'Round TBC';
+    const court = contextParts.find((part) => /court/i.test(part));
+    const sequence = contextParts.find((part) => /match\s+\d+\s+in order|follows|not before|scheduled start|time tba/i.test(part));
+    const splitSide = (name: string): string[] => name
+      .split(/\s*\/\s*/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    matchup.teamA.isIndia = true;
+    matchup.teamA.code = 'IND';
+    matchup.teamA.flag = '🇮🇳';
+
+    return {
+      discipline,
+      disciplineCode,
+      names: splitSide(matchup.teamA.name),
+      opponentNames: splitSide(matchup.teamB.name),
+      round,
+      timeLabel: moment.timingLabel,
+      court,
+      bye: false,
+      note: [court, sequence].filter(Boolean).join(' · ') || moment.context || undefined,
+      status: moment.state,
+      score: null,
+      opponentScore: null,
+    };
+  }
+
+  private findBadmintonParticipationForMoment(
+    entries: BadmintonEntryItem[],
+    moment: SportsMoment,
+  ): BadmintonEntryItem | null {
+    const opponentSide = moment.headline.split(/\s+(?:vs\.?|v)\s+/i)[1];
+    if (!opponentSide) return null;
+
+    const normalize = (value: string): string => value
+      .normalize('NFKD')
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase();
+    const targetOpponents = opponentSide
+      .split(/\s*\/\s*/)
+      .map(normalize)
+      .filter(Boolean);
+
+    return entries.find((entry) => targetOpponents.every((target) =>
+      (entry.opponentNames || []).some((name) => {
+        const candidate = normalize(name);
+        return candidate.includes(target) || target.includes(candidate);
+      }),
+    )) || null;
   }
 
   private mapAthleticsField(rows: GamesParticipationRow[]): AthleticsCompetitor[] {
