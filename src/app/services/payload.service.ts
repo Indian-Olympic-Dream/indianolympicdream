@@ -1492,7 +1492,7 @@ export class PayloadService {
         fetchPolicy: 'network-only',
       })
       .pipe(
-        map((result) => result.data?.GamesSchedules?.docs || [])
+        map((result) => this.normalizeGamesScheduleRows(result.data?.GamesSchedules?.docs || []))
       );
   }
 
@@ -1507,7 +1507,7 @@ export class PayloadService {
         variables: { gamesKey: gamesKey.trim() },
         fetchPolicy: 'network-only',
       })
-      .pipe(map((result) => result.data?.GamesSchedules?.docs || []));
+      .pipe(map((result) => this.normalizeGamesScheduleRows(result.data?.GamesSchedules?.docs || [])));
   }
 
   getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {
@@ -1517,7 +1517,7 @@ export class PayloadService {
         variables: { startTime, limit },
         fetchPolicy: 'network-only',
       })
-      .pipe(map((result) => result.data?.GamesSchedules?.docs || []));
+      .pipe(map((result) => this.normalizeGamesScheduleRows(result.data?.GamesSchedules?.docs || [])));
   }
 
   getEventHubParticipations(gamesKey: string): Observable<GamesParticipationRow[]> {
@@ -1530,5 +1530,14 @@ export class PayloadService {
         fetchPolicy: 'network-only',
       })
       .pipe(map((result) => result.data?.GamesParticipations?.docs || []));
+  }
+
+  private normalizeGamesScheduleRows(rows: GamesScheduleRow[]): GamesScheduleRow[] {
+    return rows.map((row) => ({
+      ...row,
+      phase: row.phase?.replace(/_/g, '-'),
+      participationStatus: row.participationStatus?.replace(/_/g, '-'),
+      timingPrecision: row.timingPrecision?.replace(/_/g, '-') as GamesScheduleRow['timingPrecision'],
+    }));
   }
 }

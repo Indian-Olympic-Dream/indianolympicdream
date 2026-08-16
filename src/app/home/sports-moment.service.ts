@@ -19,6 +19,7 @@ import {
 const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DENSE_DAY_THRESHOLD = 3;
+const BWF_WORLDS_GAMES_KEY = 'bwf-world-championships-2026';
 
 interface AugustEventContext {
   indiaMoment?: { headline: string; context: string };
@@ -124,19 +125,34 @@ export class SportsMomentService {
     if (Array.isArray(eventsOrNow)) {
       const events = eventsOrNow;
       const now = maybeNow || new Date();
-      return this.payload.getUpcomingGamesSchedule(new Date(this.dateFromKey('2026-08-15')).toISOString(), 250).pipe(
-        catchError(() => of([])),
+      return this.loadHomeScheduleRows().pipe(
         map((scheduleRows) => this.buildViewModel(events, scheduleRows, now)),
       );
     }
     const now = eventsOrNow instanceof Date ? eventsOrNow : new Date();
     return forkJoin({
       events: this.payload.getCalendarEvents({ limit: 120 }),
-      scheduleRows: this.payload.getUpcomingGamesSchedule(new Date(this.dateFromKey('2026-08-15')).toISOString(), 250).pipe(
-        catchError(() => of([])),
-      ),
+      scheduleRows: this.loadHomeScheduleRows(),
     }).pipe(
       map(({ events, scheduleRows }) => this.buildViewModel(events, scheduleRows, now)),
+    );
+  }
+
+  private loadHomeScheduleRows(): Observable<GamesScheduleRow[]> {
+    return forkJoin({
+      general: this.payload
+        .getUpcomingGamesSchedule(new Date(this.dateFromKey('2026-08-15')).toISOString(), 250)
+        .pipe(catchError(() => of([]))),
+      bwf: this.payload
+        .getEventHubSchedule(BWF_WORLDS_GAMES_KEY)
+        .pipe(catchError(() => of([]))),
+    }).pipe(
+      map(({ general, bwf }) => {
+        // The dedicated hub request owns BWF availability. If it fails or is empty,
+        // exclude incidental BWF rows from the broad query so the curated fallback survives.
+        const nonBwfRows = general.filter((row) => row.gamesKey !== BWF_WORLDS_GAMES_KEY);
+        return [...new Map([...nonBwfRows, ...bwf].map((row) => [row.id, row])).values()];
+      }),
     );
   }
 
@@ -229,6 +245,7 @@ export class SportsMomentService {
     const division = this.getDivision(event.title);
     const phase = this.formatPhase(row.phase);
     const context = event.slug ? AUGUST_2026_HOME_CONTEXT[event.slug] : undefined;
+    const isBadminton = (event.sport?.slug || '').includes('badminton') || (event.slug || '').includes('bwf');
     const rawHeadline = context?.indiaMoment ? context.indiaMoment.headline : (row.name?.trim() || row.eventName?.trim() || event.title);
     const isHockey = (event.sport?.slug || '').includes('hockey') ||
       (event.sport?.name || '').toLowerCase().includes('hockey') ||
@@ -236,10 +253,14 @@ export class SportsMomentService {
       (event.category || '').toLowerCase().includes('hockey') ||
       (row.eventName || '').toLowerCase().includes('hockey');
     const headline = isHockey ? formatMatchupWithFlags(rawHeadline) : rawHeadline;
-    const contextLine = context?.indiaMoment ? context.indiaMoment.context : ([division, row.eventName, phase].filter(Boolean).join(' · ') || null);
+    const contextLine = context?.indiaMoment
+      ? context.indiaMoment.context
+      : isBadminton
+        ? ([row.eventName, phase, this.getBadmintonCourtOrder(row)].filter(Boolean).join(' · ') || null)
+        : ([division, row.eventName, phase].filter(Boolean).join(' · ') || null);
 
-    const isBadminton = (event.sport?.slug || '').includes('badminton') || (event.slug || '').includes('bwf');
-    const isConditional = isBadminton && this.dateKey(start) >= '2026-08-19';
+    const isConditional = Boolean(row.isConditional || row.participationStatus === 'progression-dependent');
+    const sortMinutes = this.getScheduleSortMinutes(row, start, timingState);
 
     return {
       id: `schedule:${row.id}`,
@@ -247,7 +268,7 @@ export class SportsMomentService {
       sourceEventId: event.id,
       dateKey: this.dateKey(start),
       startTime: row.startTime,
-      sortMinutes: timingState === 'exact' ? this.indiaMinutes(start) : this.sessionMinutes(row.indiaTimeLabel),
+      sortMinutes,
       timingState: isConditional ? 'conditional' : timingState,
       timingLabel: isConditional ? 'If Qualified' : this.getTimingLabel(row, start, timingState),
       state: this.getScheduleState(row, now),
@@ -401,6 +422,27 @@ export class SportsMomentService {
       return 'session';
     }
     return this.parseDate(row.startTime) ? 'exact' : 'tbc';
+  }
+
+  private getBadmintonCourtOrder(row: GamesScheduleRow): string | null {
+    const sourceLabel = row.localTimeLabel || '';
+    const order = sourceLabel.match(/\bMatch\s+(\d+)\b/i)?.[1];
+    const court = (row.certainty || row.venue || sourceLabel).match(/\bCourt\s+\d+\b/i)?.[0];
+    if (court && order) return `${court} · Match ${order} in order`;
+    return row.certainty?.trim() || court || null;
+  }
+
+  private getScheduleSortMinutes(
+    row: GamesScheduleRow,
+    start: Date,
+    timingState: SportsMomentTimingState,
+  ): number | null {
+    if (timingState === 'exact') return this.indiaMinutes(start);
+    if (timingState === 'session') {
+      const label = row.indiaTimeLabel || row.localTimeLabel || '';
+      return /\d{1,2}:\d{2}/.test(label) ? this.indiaMinutes(start) : this.sessionMinutes(label);
+    }
+    return null;
   }
 
   private getTimingLabel(

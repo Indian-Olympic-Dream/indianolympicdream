@@ -79,7 +79,9 @@
             (click)="onMomentClick(entry.moment, $event)">
             <div class="time-cell">
               <strong>{{ entry.moment.timingLabel }}</strong>
-              <small *ngIf="entry.moment.timingState === 'session'">Session</small>
+              <small *ngIf="entry.moment.timingState === 'session'">
+                {{ entry.moment.timingLabel.includes('~') ? 'Approx.' : 'Session' }}
+              </small>
             </div>
             <span class="moment-node" aria-hidden="true"></span>
             <ng-container *ngTemplateOutlet="momentContent; context: { $implicit: entry.moment }"></ng-container>
@@ -114,11 +116,13 @@
     </div>
     <p *ngIf="moment.context">{{ moment.context }}</p>
     <strong class="result-line" *ngIf="moment.resultLabel">{{ moment.resultLabel }}</strong>
-    <a *ngIf="isInternal(moment.action)" class="moment-action" [routerLink]="moment.action!.navigation.routerLink">
+    <button *ngIf="isInternal(moment.action)" type="button" class="moment-action"
+      (click)="onMomentClick(moment, $event)">
       {{ moment.action!.label }} <mat-icon>chevron_right</mat-icon>
-    </a>
+    </button>
     <a *ngIf="isExternal(moment.action)" class="moment-action" [href]="moment.action!.navigation.href"
-      [attr.target]="moment.action!.navigation.target" [attr.rel]="moment.action!.navigation.rel">
+      [attr.target]="moment.action!.navigation.target" [attr.rel]="moment.action!.navigation.rel"
+      (click)="$event.stopPropagation()">
       {{ moment.action!.label }} <mat-icon>north_east</mat-icon>
     </a>
   </div>
