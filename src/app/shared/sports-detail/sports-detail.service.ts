@@ -617,12 +617,9 @@ export class SportsDetailService {
       };
     });
 
-    if (dateKey === '2026-08-17') {
-      return all.filter((e) => !e.bye && e.round === 'Round of 64');
-    }
-    if (dateKey === '2026-08-18') {
-      return all.filter((e) => e.bye || e.round === 'Round of 32');
-    }
+    // The official order of play can mix rounds on the same competition day.
+    // Match the focused Home moment against the complete verified roster rather
+    // than inferring which entries are eligible from the calendar date.
     return all;
   }
 
