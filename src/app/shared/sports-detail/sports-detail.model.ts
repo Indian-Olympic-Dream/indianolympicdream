@@ -47,6 +47,8 @@ export interface BadmintonEntryItem {
   status?: 'upcoming' | 'live' | 'completed' | 'bye';
   score?: string | null;
   opponentScore?: string | null;
+  opponentStatusLabel?: string | null;
+  resultNote?: string | null;
 }
 
 export interface AthleticsCompetitor {

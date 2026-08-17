@@ -162,6 +162,9 @@
                       <span class="seed-badge" *ngIf="match.opponentSeed">[{{ match.opponentSeed }}]</span>
                     </span>
                   </div>
+                  <span class="completion-badge" *ngIf="match.opponentStatusLabel">
+                    {{ match.opponentStatusLabel }}
+                  </span>
                 </div>
                 <div class="score-cells">
                   <span class="score-cell">{{ match.opponentScore ? match.opponentScore.split(' ')[0] : '-' }}</span>
@@ -178,9 +181,14 @@
           </article>
         </div>
 
-        <p class="section-footer-note" *ngIf="data.badmintonMatchDetail; else orderOfPlayNote">
-          Official game scores will appear here when available.
+        <p class="section-footer-note is-result" *ngIf="data.badmintonMatchDetail && filteredBadmintonEntries()[0]?.resultNote; else pendingOrCampaignNote">
+          {{ filteredBadmintonEntries()[0].resultNote }}
         </p>
+        <ng-template #pendingOrCampaignNote>
+          <p class="section-footer-note" *ngIf="data.badmintonMatchDetail; else orderOfPlayNote">
+            Official game scores will appear here when available.
+          </p>
+        </ng-template>
         <ng-template #orderOfPlayNote>
           <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
         </ng-template>

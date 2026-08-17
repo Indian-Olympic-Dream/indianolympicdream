@@ -663,9 +663,30 @@ export class SportsDetailService {
       bye: false,
       note: [court, sequence].filter(Boolean).join(' · ') || moment.context || undefined,
       status: moment.state,
-      score: null,
-      opponentScore: null,
+      score: moment.result?.score?.india.join(' ') || null,
+      opponentScore: moment.result?.score?.opponent.join(' ') || null,
+      opponentStatusLabel: moment.result?.completion === 'retirement' ? 'RET' : null,
+      resultNote: this.getBadmintonResultNote(moment),
     };
+  }
+
+  private getBadmintonResultNote(moment: SportsMoment): string | null {
+    if (!moment.result) return null;
+    const parts: string[] = [];
+    if (moment.result.outcome === 'win') parts.push('India won');
+    else if (moment.result.outcome === 'loss') parts.push('India lost');
+
+    if (moment.result.completion === 'retirement') parts.push('Opponent retired');
+    else if (moment.result.completion === 'walkover') parts.push('Walkover');
+    else if (moment.result.completion === 'disqualification') parts.push('Disqualification');
+
+    if (moment.result.durationSeconds) {
+      const minutes = Math.floor(moment.result.durationSeconds / 60);
+      const seconds = moment.result.durationSeconds % 60;
+      parts.push(seconds ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${minutes} min`);
+    }
+    if (moment.result.advanced) parts.push('Advanced');
+    return parts.join(' · ') || null;
   }
 
   private findBadmintonParticipationForMoment(

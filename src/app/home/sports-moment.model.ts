@@ -15,6 +15,19 @@ export interface SportsMomentSport {
   pictogramUrl: string | null;
 }
 
+export interface SportsMomentResult {
+  summary: string | null;
+  outcome?: 'win' | 'loss' | null;
+  winnerCountryCode?: string | null;
+  completion?: 'normal' | 'retirement' | 'walkover' | 'disqualification' | null;
+  durationSeconds?: number | null;
+  score?: {
+    india: Array<number | string>;
+    opponent: Array<number | string>;
+  } | null;
+  advanced?: boolean | null;
+}
+
 export interface SportsMoment {
   id: string;
   source: 'calendar-event' | 'games-schedule' | 'competition-match' | 'result' | 'release-context';
@@ -31,6 +44,7 @@ export interface SportsMoment {
   competition: string | null;
   importance: SportsMomentImportance;
   resultLabel: string | null;
+  result?: SportsMomentResult | null;
   action: SportsMomentAction | null;
   isDisabled?: boolean;
 }

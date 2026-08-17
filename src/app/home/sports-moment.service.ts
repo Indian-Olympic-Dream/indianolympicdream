@@ -7,6 +7,7 @@ import {
   SportsMomentAction,
   SportsMomentAnchor,
   SportsMomentImportance,
+  SportsMomentResult,
   SportsMomentSport,
   SportsMomentState,
   SportsMomentTimingState,
@@ -261,6 +262,8 @@ export class SportsMomentService {
 
     const isConditional = Boolean(row.isConditional || row.participationStatus === 'progression-dependent');
     const sortMinutes = this.getScheduleSortMinutes(row, start, timingState);
+    const result = this.getStructuredResult(row.result);
+    const state = this.getScheduleState(row, now);
 
     return {
       id: `schedule:${row.id}`,
@@ -271,14 +274,15 @@ export class SportsMomentService {
       sortMinutes,
       timingState: isConditional ? 'conditional' : timingState,
       timingLabel: isConditional ? 'If Qualified' : this.getTimingLabel(row, start, timingState),
-      state: this.getScheduleState(row, now),
+      state,
       sport: this.getSport(event),
       headline,
       context: contextLine,
       competition: event.category?.trim() || event.title,
       importance: this.getImportance(event),
-      resultLabel: this.getResultLabel(row.result),
-      action: isConditional ? null : this.buildAction(event, this.getScheduleState(row, now)),
+      resultLabel: result?.summary || this.getResultLabel(row.result),
+      result,
+      action: isConditional ? null : this.buildAction(event, state),
       isDisabled: isConditional,
     };
   }
@@ -535,6 +539,39 @@ export class SportsMomentService {
       if (typeof r['medal'] === 'string' && r['medal'].trim().length > 0) return `${r['medal']} Medal`;
     }
     return null;
+  }
+
+  private getStructuredResult(result: unknown): SportsMomentResult | null {
+    if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
+    const raw = result as Record<string, unknown>;
+    const rawScore = raw['score'];
+    let score: SportsMomentResult['score'] = null;
+    if (rawScore && typeof rawScore === 'object' && !Array.isArray(rawScore)) {
+      const scoreRecord = rawScore as Record<string, unknown>;
+      const india = Array.isArray(scoreRecord['india']) ? scoreRecord['india'] : [];
+      const opponent = Array.isArray(scoreRecord['opponent']) ? scoreRecord['opponent'] : [];
+      if (india.length && india.length === opponent.length) {
+        score = {
+          india: india.filter((value): value is number | string => typeof value === 'number' || typeof value === 'string'),
+          opponent: opponent.filter((value): value is number | string => typeof value === 'number' || typeof value === 'string'),
+        };
+      }
+    }
+
+    const outcome = raw['outcome'] === 'win' || raw['outcome'] === 'loss' ? raw['outcome'] : null;
+    const completion = ['normal', 'retirement', 'walkover', 'disqualification'].includes(String(raw['completion']))
+      ? raw['completion'] as SportsMomentResult['completion']
+      : null;
+
+    return {
+      summary: typeof raw['summary'] === 'string' ? raw['summary'] : this.getResultLabel(result),
+      outcome,
+      winnerCountryCode: typeof raw['winnerCountryCode'] === 'string' ? raw['winnerCountryCode'] : null,
+      completion,
+      durationSeconds: typeof raw['durationSeconds'] === 'number' ? raw['durationSeconds'] : null,
+      score,
+      advanced: typeof raw['advanced'] === 'boolean' ? raw['advanced'] : null,
+    };
   }
 
   private isIndiaHosted(event: CalendarEvent): boolean {
