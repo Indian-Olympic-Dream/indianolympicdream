@@ -566,9 +566,27 @@ export class SportsMomentService {
     const completion = ['normal', 'retirement', 'walkover', 'disqualification'].includes(String(raw['completion']))
       ? raw['completion'] as SportsMomentResult['completion']
       : null;
+    const rawMatchup = raw['matchup'];
+    let matchup: SportsMomentResult['matchup'] = null;
+    if (rawMatchup && typeof rawMatchup === 'object' && !Array.isArray(rawMatchup)) {
+      const matchupRecord = rawMatchup as Record<string, unknown>;
+      const india = matchupRecord['india'];
+      const opponent = matchupRecord['opponent'];
+      const indiaRecord = india && typeof india === 'object' && !Array.isArray(india)
+        ? india as Record<string, unknown>
+        : null;
+      const opponentRecord = opponent && typeof opponent === 'object' && !Array.isArray(opponent)
+        ? opponent as Record<string, unknown>
+        : null;
+      matchup = {
+        indiaCountryCode: typeof indiaRecord?.['countryCode'] === 'string' ? indiaRecord['countryCode'] : null,
+        opponentCountryCode: typeof opponentRecord?.['countryCode'] === 'string' ? opponentRecord['countryCode'] : null,
+      };
+    }
 
     return {
       summary: typeof raw['summary'] === 'string' ? raw['summary'] : this.getResultLabel(result),
+      matchup,
       outcome,
       winnerCountryCode: typeof raw['winnerCountryCode'] === 'string' ? raw['winnerCountryCode'] : null,
       completion,

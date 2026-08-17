@@ -17,6 +17,10 @@ export interface SportsMomentSport {
 
 export interface SportsMomentResult {
   summary: string | null;
+  matchup?: {
+    indiaCountryCode: string | null;
+    opponentCountryCode: string | null;
+  } | null;
   outcome?: 'win' | 'loss' | null;
   winnerCountryCode?: string | null;
   completion?: 'normal' | 'retirement' | 'walkover' | 'disqualification' | null;

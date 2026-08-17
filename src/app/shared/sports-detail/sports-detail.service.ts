@@ -323,9 +323,11 @@ export class SportsDetailService {
               ...scorecard,
               seed: participation.seed,
               opponentSeed: participation.opponentSeed,
-              opponentCountry: participation.opponentCountry,
-              opponentCountryCode: participation.opponentCountryCode,
-              opponentFlag: participation.opponentFlag,
+              opponentCountry: participation.opponentCountry || scorecard.opponentCountry,
+              opponentCountryCode: participation.opponentCountryCode || scorecard.opponentCountryCode,
+              opponentFlag: participation.opponentCountryCode
+                ? participation.opponentFlag
+                : scorecard.opponentFlag,
             } : scorecard;
           }),
         ).subscribe((entry) => {
@@ -540,8 +542,8 @@ export class SportsDetailService {
       const disciplineCode: 'MS' | 'WS' | 'MD' | 'WD' | 'XD' =
         discLower.includes("men's singles") || discLower === 'ms' ? 'MS' :
         discLower.includes("women's singles") || discLower === 'ws' ? 'WS' :
-        discLower.includes("men's doubles") || discLower === 'md' ? 'MD' :
-        discLower.includes("women's doubles") || discLower === 'wd' ? 'WD' : 'XD';
+        discLower.includes("women's doubles") || discLower === 'wd' ? 'WD' :
+        discLower.includes("men's doubles") || discLower === 'md' ? 'MD' : 'XD';
 
       const note = gRows[0].publicNote || '';
       const indianNames = gRows.map((r) => r.athlete?.fullName || r.sourceName || 'India').filter(Boolean);
@@ -634,8 +636,8 @@ export class SportsDetailService {
     const discipline = contextParts[0] || 'Badminton';
     const disciplineCode: BadmintonEntryItem['disciplineCode'] =
       /women's singles|^ws$/i.test(discipline) ? 'WS' :
-        /men's doubles|^md$/i.test(discipline) ? 'MD' :
-          /women's doubles|^wd$/i.test(discipline) ? 'WD' :
+        /women's doubles|^wd$/i.test(discipline) ? 'WD' :
+          /men's doubles|^md$/i.test(discipline) ? 'MD' :
             /mixed|^xd$/i.test(discipline) ? 'XD' : 'MS';
     const round = contextParts.find((part) => /round/i.test(part)) || 'Round TBC';
     const court = contextParts.find((part) => /court/i.test(part));
@@ -648,6 +650,7 @@ export class SportsDetailService {
     matchup.teamA.isIndia = true;
     matchup.teamA.code = 'IND';
     matchup.teamA.flag = '🇮🇳';
+    const opponentCountryCode = moment.result?.matchup?.opponentCountryCode?.toUpperCase() || '';
 
     return {
       discipline,
@@ -664,6 +667,9 @@ export class SportsDetailService {
       opponentScore: moment.result?.score?.opponent.join(' ') || null,
       opponentStatusLabel: moment.result?.completion === 'retirement' ? 'RET' : null,
       resultNote: this.getBadmintonResultNote(moment),
+      opponentCountry: opponentCountryCode,
+      opponentCountryCode,
+      opponentFlag: opponentCountryCode ? (this.BADMINTON_COUNTRY_FLAGS[opponentCountryCode] || '🏸') : '',
     };
   }
 

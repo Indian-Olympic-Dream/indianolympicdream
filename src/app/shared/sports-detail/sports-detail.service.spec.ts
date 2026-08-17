@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { GamesParticipationRow, PayloadService } from '../../services/payload.service';
+import { SportsMoment } from '../../home/sports-moment.model';
 import { BadmintonEntryItem } from './sports-detail.model';
 import { SportsDetailService } from './sports-detail.service';
 
@@ -57,5 +58,27 @@ describe('SportsDetailService badminton match enrichment', () => {
     expect(entries.length).toBe(2);
     expect(entries.find((entry) => entry.disciplineCode === 'XD')?.opponentFlag).toBe('🇨🇦');
     expect(entries.find((entry) => entry.disciplineCode === 'WD')?.opponentFlag).toBe('🇧🇬');
+  });
+
+  it('uses schedule matchup metadata for a progressed opponent', () => {
+    const moment = {
+      timingLabel: '~16:30 IST',
+      state: 'upcoming',
+      context: "Women's Doubles · Round 32 · Court 2 · Match 10 in order",
+      result: {
+        summary: null,
+        matchup: { indiaCountryCode: 'IND', opponentCountryCode: 'BUL' },
+      },
+    } as SportsMoment;
+    const matchup = {
+      teamA: { name: 'Kavipriya / Simran', code: 'IND', isIndia: true, flag: '🇮🇳' },
+      teamB: { name: 'Stoeva / Stoeva', code: 'STO', isIndia: false, flag: '' },
+    };
+
+    const entry = (service as any).buildBadmintonMatchDetail(moment, matchup) as BadmintonEntryItem;
+
+    expect(entry.disciplineCode).toBe('WD');
+    expect(entry.opponentCountryCode).toBe('BUL');
+    expect(entry.opponentFlag).toBe('🇧🇬');
   });
 });
