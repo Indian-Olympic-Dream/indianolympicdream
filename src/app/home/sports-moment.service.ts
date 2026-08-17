@@ -408,7 +408,11 @@ export class SportsMomentService {
     if (navigation.kind === 'external') {
       label = state === 'completed' ? 'Official results' : 'Official event';
     } else if (coverage === 'live_hub') {
-      label = state === 'live' ? 'Follow live' : campaign ? "Follow India's campaign" : 'Track India';
+      label = state === 'completed'
+        ? 'View result'
+        : state === 'live'
+          ? 'Follow live'
+          : campaign ? "Follow India's campaign" : 'Track India';
     } else if (coverage === 'preview_page') {
       label = 'Preview';
     } else {
