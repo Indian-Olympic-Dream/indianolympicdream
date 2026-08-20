@@ -1,0 +1,46 @@
+:host {
+  --flag-width: 34px;
+  --flag-height: 24px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: var(--flag-width);
+  height: var(--flag-height);
+}
+
+:host-context(.is-small-flag),
+:host([size='small']) {
+  --flag-width: 26px;
+  --flag-height: 18px;
+}
+
+.flag-shell {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.16), 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flag-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, rgba(130, 173, 247, 0.16), rgba(255, 255, 255, 0.04));
+}

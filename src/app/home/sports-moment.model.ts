@@ -1,4 +1,4 @@
-import { CalendarEventNavigation } from '../services/payload.service';
+import { CalendarEventNavigation, LiveScorePressure, LiveScoreUpdate } from '../services/payload.service';
 
 export type SportsMomentTimingState = 'exact' | 'session' | 'tbc' | 'conditional';
 export type SportsMomentState = 'upcoming' | 'live' | 'completed';
@@ -20,14 +20,55 @@ export interface SportsMomentResult {
   matchup?: {
     indiaCountryCode: string | null;
     opponentCountryCode: string | null;
+    indiaDisplayName?: string | null;
+    opponentDisplayName?: string | null;
+    indiaPlayers?: string[];
+    opponentPlayers?: string[];
+    indiaSeed?: string | null;
+    opponentSeed?: string | null;
   } | null;
-  outcome?: 'win' | 'loss' | null;
+  outcome?: 'win' | 'loss' | 'draw' | null;
   winnerCountryCode?: string | null;
   completion?: 'normal' | 'retirement' | 'walkover' | 'disqualification' | null;
   durationSeconds?: number | null;
   score?: {
     india: Array<number | string>;
     opponent: Array<number | string>;
+  } | null;
+  matchScore?: {
+    home: number;
+    away: number;
+    india: number;
+    opponent: number;
+  } | null;
+  live?: {
+    revision: number;
+    currentGame: number;
+    servingSide: 'india' | 'opponent' | 'unknown';
+    status: 'live' | 'suspended' | 'provisional-complete' | 'official-complete';
+    phase:
+      | 'ready'
+      | 'match-initialized'
+      | 'players-march-on'
+      | 'coin-toss'
+      | 'warm-up'
+      | 'in-play'
+      | 'interval'
+      | 'between-games'
+      | 'challenge'
+      | 'complete';
+    updatedAt: string | null;
+    startedAt: string | null;
+    provisionalCompletedAt: string | null;
+    officialPublishedAt: string | null;
+    elapsedSeconds: number | null;
+    pressure: LiveScorePressure | null;
+    challenge: {
+      side: 'india' | 'opponent';
+      status: 'pending' | 'successful' | 'unsuccessful';
+    } | null;
+    currentScore: { india: number; opponent: number } | null;
+    updates: LiveScoreUpdate[];
   } | null;
   advanced?: boolean | null;
 }
@@ -36,6 +77,7 @@ export interface SportsMoment {
   id: string;
   source: 'calendar-event' | 'games-schedule' | 'competition-match' | 'result' | 'release-context';
   sourceEventId: string;
+  gamesKey?: string | null;
   dateKey: string;
   startTime: string | null;
   sortMinutes: number | null;
@@ -48,6 +90,8 @@ export interface SportsMoment {
   competition: string | null;
   importance: SportsMomentImportance;
   resultLabel: string | null;
+  /** A past/finished slot whose official result has not yet reached Payload. */
+  resultPending?: boolean;
   result?: SportsMomentResult | null;
   action: SportsMomentAction | null;
   isDisabled?: boolean;
@@ -93,6 +137,7 @@ export interface SportsTimelineViewModel {
   liveCalendarCount: number;
   rightNow: SportsMoment[];
   nextIndia: SportsMoment | null;
+  recentResults: SportsMoment[];
   days: SportsTimelineDay[];
 }
 

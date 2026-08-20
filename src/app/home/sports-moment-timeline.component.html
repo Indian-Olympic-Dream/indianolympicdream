@@ -9,6 +9,7 @@
 
     <div class="day-content">
       <div class="event-anchor" *ngFor="let anchor of day.anchors" [class.is-live]="anchor.state === 'live'"
+        [attr.data-sport]="anchor.sport.slug"
         (click)="onAnchorClick(anchor, $event)">
         <span class="anchor-pictogram" *ngIf="anchor.sport.pictogramUrl">
           <img [src]="anchor.sport.pictogramUrl" [alt]="anchor.sport.name">
@@ -52,6 +53,7 @@
       <div class="untimed-area" *ngIf="day.untimedMoments.length">
         <p>Timing to follow</p>
         <article *ngFor="let moment of visibleUntimed(day); trackBy: trackMoment" class="timeline-moment untimed-moment"
+          [attr.data-sport]="moment.sport.slug"
           [class.is-primary]="moment.importance === 'primary'" [class.is-live]="moment.state === 'live'"
           [class.is-completed]="moment.state === 'completed'"
           [class.is-disabled]="moment.isDisabled || moment.timingState === 'conditional'"
@@ -73,13 +75,14 @@
             <strong>Now</strong>
           </div>
           <article *ngIf="entry.kind === 'moment'" class="timeline-moment timed-moment"
+            [attr.data-sport]="entry.moment.sport.slug"
             [class.is-primary]="entry.moment.importance === 'primary'" [class.is-live]="entry.moment.state === 'live'"
             [class.is-completed]="entry.moment.state === 'completed'"
             [class.is-disabled]="entry.moment.isDisabled || entry.moment.timingState === 'conditional'"
             (click)="onMomentClick(entry.moment, $event)">
             <div class="time-cell">
               <strong>{{ entry.moment.timingLabel }}</strong>
-              <small *ngIf="entry.moment.timingState === 'session'">
+              <small *ngIf="entry.moment.timingState === 'session' && entry.moment.state !== 'live'">
                 {{ entry.moment.timingLabel.includes('~') ? 'Approx.' : 'Session' }}
               </small>
             </div>
@@ -112,7 +115,9 @@
       </div>
       <span class="conditional-chip" *ngIf="moment.timingState === 'conditional'">If Qualified</span>
       <span class="state-label" *ngIf="moment.state === 'live'">Live</span>
-      <span class="state-label completed" *ngIf="moment.state === 'completed'">Result</span>
+      <span class="state-label completed" *ngIf="moment.state === 'completed'">
+        {{ moment.resultPending ? 'Awaiting result' : 'Result' }}
+      </span>
     </div>
     <p *ngIf="moment.context">{{ moment.context }}</p>
     <strong class="result-line" *ngIf="moment.resultLabel">{{ moment.resultLabel }}</strong>

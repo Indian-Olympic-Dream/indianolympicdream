@@ -1,0 +1,44 @@
+<div class="results-backdrop" [class.is-covered]="covered" [attr.aria-hidden]="covered ? 'true' : null"
+  [attr.inert]="covered ? '' : null" (click)="onBackdropClick($event)" role="presentation">
+  <aside class="results-sheet" role="dialog" aria-modal="true" aria-labelledby="recent-results-title">
+    <header class="results-header">
+      <div>
+        <p>India · Last 48 hours</p>
+        <h2 id="recent-results-title">Latest Results</h2>
+      </div>
+      <button type="button" class="close-button" aria-label="Close latest results" (click)="close()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+
+    <div class="results-scroll">
+      <section class="result-group" *ngFor="let group of groups; trackBy: trackGroup">
+        <h3>{{ group.label }}</h3>
+
+        <button type="button" class="result-row" *ngFor="let result of group.results; trackBy: trackResult"
+          [attr.data-sport]="result.sport.slug" [attr.data-outcome]="result.result?.outcome || 'result'"
+          (click)="select(result)">
+          <span class="result-pictogram" *ngIf="result.sport.pictogramUrl">
+            <img [src]="result.sport.pictogramUrl" [alt]="result.sport.name">
+          </span>
+
+          <span class="result-copy">
+            <small>
+              {{ result.sport.name }}
+              <ng-container *ngIf="result.context"> · {{ result.context }}</ng-container>
+            </small>
+            <strong>{{ result.headline }}</strong>
+            <span>{{ result.resultLabel }}</span>
+          </span>
+
+          <span class="outcome-badge">{{ outcomeLabel(result) }}</span>
+          <mat-icon class="row-arrow">chevron_right</mat-icon>
+        </button>
+      </section>
+    </div>
+
+    <footer class="results-footer">
+      Completed India results from IOD-tracked competitions
+    </footer>
+  </aside>
+</div>

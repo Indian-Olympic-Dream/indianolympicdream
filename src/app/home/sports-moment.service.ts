@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
-import { CalendarEvent, GamesScheduleRow, PayloadService } from '../services/payload.service';
+import { Observable, catchError, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
+import { CalendarEvent, GamesScheduleRow, LiveScoreCoverage, LiveScorePressure, PayloadService } from '../services/payload.service';
+import { LiveScoreMap, LiveScoreService } from '../services/live-score.service';
 import { TemporalEventEngine } from '../shared/services/temporal-event.engine';
 import {
   SportsMoment,
@@ -21,6 +22,8 @@ const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DENSE_DAY_THRESHOLD = 3;
 const BWF_WORLDS_GAMES_KEY = 'bwf-world-championships-2026';
+const RECENT_RESULTS_WINDOW_MS = 48 * 60 * 60 * 1000;
+const RECENT_RESULTS_LIMIT = 12;
 
 interface AugustEventContext {
   indiaMoment?: { headline: string; context: string };
@@ -120,41 +123,65 @@ export class SportsMomentService {
   constructor(
     private payload: PayloadService,
     private temporalEvents: TemporalEventEngine,
+    private liveScores: LiveScoreService,
   ) { }
 
   loadHome(eventsOrNow?: CalendarEvent[] | Date, maybeNow?: Date): Observable<SportsTimelineViewModel> {
     if (Array.isArray(eventsOrNow)) {
       const events = eventsOrNow;
       const now = maybeNow || new Date();
-      return this.loadHomeScheduleRows().pipe(
+      return this.loadHomeScheduleRows(now).pipe(
         map((scheduleRows) => this.buildViewModel(events, scheduleRows, now)),
       );
     }
     const now = eventsOrNow instanceof Date ? eventsOrNow : new Date();
     return forkJoin({
       events: this.payload.getCalendarEvents({ limit: 120 }),
-      scheduleRows: this.loadHomeScheduleRows(),
+      scheduleRows: this.loadHomeScheduleRows(now),
     }).pipe(
       map(({ events, scheduleRows }) => this.buildViewModel(events, scheduleRows, now)),
     );
   }
 
-  private loadHomeScheduleRows(): Observable<GamesScheduleRow[]> {
+  private loadHomeScheduleRows(now: Date): Observable<GamesScheduleRow[]> {
+    const windowStart = this.dateFromKey(this.dateKey(now));
+    const recentStart = new Date(now.getTime() - RECENT_RESULTS_WINDOW_MS);
     return forkJoin({
       general: this.payload
-        .getUpcomingGamesSchedule(new Date(this.dateFromKey('2026-08-15')).toISOString(), 250)
+        .getUpcomingGamesSchedule(windowStart.toISOString(), 250)
+        .pipe(catchError(() => of([]))),
+      recent: this.payload
+        .getUpcomingGamesSchedule(recentStart.toISOString(), 250)
         .pipe(catchError(() => of([]))),
       bwf: this.payload
         .getEventHubSchedule(BWF_WORLDS_GAMES_KEY)
         .pipe(catchError(() => of([]))),
     }).pipe(
-      map(({ general, bwf }) => {
+      map(({ general, recent, bwf }) => {
         // The dedicated hub request owns BWF availability. If it fails or is empty,
         // exclude incidental BWF rows from the broad query so the curated fallback survives.
-        const nonBwfRows = general.filter((row) => row.gamesKey !== BWF_WORLDS_GAMES_KEY);
+        const nonBwfRows = [...general, ...recent]
+          .filter((row) => row.gamesKey !== BWF_WORLDS_GAMES_KEY);
         return [...new Map([...nonBwfRows, ...bwf].map((row) => [row.id, row])).values()];
       }),
+      switchMap((rows) => combineLatest([of(rows), this.liveScores.watch(BWF_WORLDS_GAMES_KEY)])),
+      map(([rows, live]) => this.applyLiveScores(rows, live)),
     );
+  }
+
+  private applyLiveScores(rows: GamesScheduleRow[], live: LiveScoreMap): GamesScheduleRow[] {
+    if (!live.size) return rows;
+    return rows.map((row) => {
+      const publication = live.get(row.id);
+      if (!publication || publication.revision < (row.liveCoverage?.revision || 0)) return row;
+      return {
+        ...row,
+        liveCoverage: publication.liveCoverage,
+        liveUpdates: publication.updates || [],
+        ...(publication.status ? { status: publication.status } : {}),
+        ...(publication.result !== undefined ? { result: publication.result } : {}),
+      };
+    });
   }
 
   private buildViewModel(
@@ -162,13 +189,15 @@ export class SportsMomentService {
     scheduleRows: GamesScheduleRow[],
     now: Date,
   ): SportsTimelineViewModel {
-    const windowStart = this.dateFromKey('2026-08-15');
-    const windowEnd = new Date(this.dateFromKey('2026-08-23').getTime() + DAY_MS);
+    const windowStart = this.dateFromKey(this.dateKey(now));
+    const windowEnd = new Date(windowStart.getTime() + (7 * DAY_MS));
     const eventMap = new Map(events.map((event) => [event.id, event]));
     const moments: SportsMoment[] = [];
+    const recentResults: SportsMoment[] = [];
     const anchors: SportsMomentAnchor[] = [];
     const programmes = new Map<string, SportsProgrammeSummary>();
     const scheduleDaysByEvent = new Set<string>();
+    const recentCutoff = new Date(now.getTime() - RECENT_RESULTS_WINDOW_MS);
 
     for (const row of scheduleRows) {
       if (!row.calendarEvent?.id) continue;
@@ -178,11 +207,23 @@ export class SportsMomentService {
       if (name.includes('format') || eventName.includes('format') || phase.includes('format')) {
         continue;
       }
+      if (['cancelled', 'postponed', 'eliminated'].includes((row.status || '').toLowerCase())) continue;
       const event = eventMap.get(row.calendarEvent.id);
       if (!event || !this.isHomeRelevant(event, true, now)) continue;
       const start = this.parseDate(row.startTime);
-      if (!start || start < windowStart || start >= windowEnd) continue;
+      if (!start) continue;
       const moment = this.fromSchedule(row, event, now);
+
+      if (
+        start >= recentCutoff &&
+        start <= now &&
+        row.status === 'completed' &&
+        this.hasDisplayableScore(moment)
+      ) {
+        recentResults.push(moment);
+      }
+
+      if (start < windowStart || start >= windowEnd) continue;
       moments.push(moment);
       scheduleDaysByEvent.add(`${event.id}:${moment.dateKey}`);
     }
@@ -227,7 +268,7 @@ export class SportsMomentService {
 
     const upcoming = moments
       .filter((moment) => moment.state === 'upcoming')
-      .sort((a, b) => this.momentSortValue(a) - this.momentSortValue(b));
+      .sort((a, b) => this.momentChronologicalValue(a) - this.momentChronologicalValue(b));
     const nextIndia = upcoming.find((moment) => moment.source === 'games-schedule') || upcoming[0] || null;
     const days = this.buildDays(moments, anchors, programmes, now);
     const rightNow = moments
@@ -237,7 +278,18 @@ export class SportsMomentService {
       .buildCalendarFeed(events, now)
       .filter((item) => item.timeGroup === 'live').length;
 
-    return { now, liveCalendarCount, rightNow, nextIndia, days };
+    recentResults.sort((a, b) =>
+      this.momentChronologicalValue(b) - this.momentChronologicalValue(a),
+    );
+
+    return {
+      now,
+      liveCalendarCount,
+      rightNow,
+      nextIndia,
+      recentResults: recentResults.slice(0, RECENT_RESULTS_LIMIT),
+      days,
+    };
   }
 
   private fromSchedule(row: GamesScheduleRow, event: CalendarEvent, now: Date): SportsMoment {
@@ -262,27 +314,33 @@ export class SportsMomentService {
 
     const isConditional = Boolean(row.isConditional || row.participationStatus === 'progression-dependent');
     const sortMinutes = this.getScheduleSortMinutes(row, start, timingState);
-    const result = this.getStructuredResult(row.result);
+    const result = this.getStructuredResult(row.result, row.liveCoverage, row.liveUpdates);
     const state = this.getScheduleState(row, now);
+    const resultPending = state === 'completed'
+      && !this.hasValidResult(row.result)
+      && row.liveCoverage?.status !== 'provisional-complete';
+    const action = isConditional ? null : this.buildAction(event, state);
 
     return {
       id: `schedule:${row.id}`,
       source: 'games-schedule',
       sourceEventId: event.id,
+      gamesKey: row.gamesKey || null,
       dateKey: this.dateKey(start),
       startTime: row.startTime,
       sortMinutes,
       timingState: isConditional ? 'conditional' : timingState,
-      timingLabel: isConditional ? 'If Qualified' : this.getTimingLabel(row, start, timingState),
+      timingLabel: isConditional ? 'If Qualified' : state === 'live' ? 'Live' : this.getTimingLabel(row, start, timingState),
       state,
       sport: this.getSport(event),
       headline,
       context: contextLine,
       competition: event.category?.trim() || event.title,
       importance: this.getImportance(event),
-      resultLabel: result?.summary || this.getResultLabel(row.result),
+      resultLabel: result?.summary || this.getResultLabel(row.result) || (resultPending ? 'Official result pending' : null),
+      resultPending,
       result,
-      action: isConditional ? null : this.buildAction(event, state),
+      action: resultPending && action ? { ...action, label: 'Check result' } : action,
       isDisabled: isConditional,
     };
   }
@@ -335,7 +393,10 @@ export class SportsMomentService {
       .map((dateKey) => {
         const dayMoments = moments
           .filter((moment) => moment.dateKey === dateKey)
-          .sort((a, b) => this.momentSortValue(a) - this.momentSortValue(b));
+          .sort((a, b) =>
+            this.momentSortValue(a) - this.momentSortValue(b) ||
+            this.momentTieBreakValue(a) - this.momentTieBreakValue(b),
+          );
         const untimedMoments = dayMoments.filter((moment) => moment.sortMinutes === null);
         const timedMoments = dayMoments.filter(
           (moment): moment is SportsMoment & { sortMinutes: number } => moment.sortMinutes !== null,
@@ -483,20 +544,36 @@ export class SportsMomentService {
     return false;
   }
 
+  private hasDisplayableScore(moment: SportsMoment): boolean {
+    const result = moment.result;
+    if (!result?.summary?.trim()) return false;
+    if (result.matchScore) return true;
+    return Boolean(
+      result.score?.india.length &&
+      result.score.india.length === result.score.opponent.length,
+    );
+  }
+
   private getScheduleState(row: GamesScheduleRow, now: Date): SportsMomentState {
+    if (row.liveCoverage?.enabled) {
+      if (row.liveCoverage.status === 'live' || row.liveCoverage.status === 'suspended') return 'live';
+      if (row.liveCoverage.status === 'provisional-complete') return 'completed';
+    }
+    if (row.status === 'live') return 'live';
+    if (row.status === 'completed') return 'completed';
     if (this.hasValidResult(row.result)) return 'completed';
     const start = this.parseDate(row.startTime);
     if (!start) return 'upcoming';
     const end = row.endTime ? this.parseDate(row.endTime) : new Date(start.getTime() + 90 * 60 * 1000);
     if (now >= start && (!end || now <= end)) return 'live';
-    if (end && now > end && this.hasValidResult(row.result)) return 'completed';
+    if (end && now > end) return 'completed';
     return 'upcoming';
   }
 
   private momentStateForDate(dateKey: string, now: Date): SportsMomentState {
     const todayKey = this.dateKey(now);
     if (dateKey < todayKey) return 'completed';
-    if (dateKey === todayKey) return 'live';
+    if (dateKey === todayKey) return 'upcoming';
     return 'upcoming';
   }
 
@@ -545,9 +622,17 @@ export class SportsMomentService {
     return null;
   }
 
-  private getStructuredResult(result: unknown): SportsMomentResult | null {
-    if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
-    const raw = result as Record<string, unknown>;
+  private getStructuredResult(
+    result: unknown,
+    liveCoverage?: LiveScoreCoverage | null,
+    liveUpdates: GamesScheduleRow['liveUpdates'] = [],
+  ): SportsMomentResult | null {
+    const raw = result && typeof result === 'object' && !Array.isArray(result)
+      ? result as Record<string, unknown>
+      : {};
+    const isLiveCoverage = Boolean(
+      liveCoverage?.enabled && ['live', 'suspended', 'provisional-complete'].includes(liveCoverage.status),
+    );
     const rawScore = raw['score'];
     let score: SportsMomentResult['score'] = null;
     if (rawScore && typeof rawScore === 'object' && !Array.isArray(rawScore)) {
@@ -562,7 +647,30 @@ export class SportsMomentService {
       }
     }
 
-    const outcome = raw['outcome'] === 'win' || raw['outcome'] === 'loss' ? raw['outcome'] : null;
+    const liveGames = liveCoverage?.score?.games || [];
+    if (isLiveCoverage && liveGames.length) {
+      score = {
+        india: liveGames.map((game) => game.india),
+        opponent: liveGames.map((game) => game.opponent),
+      };
+    }
+
+    let matchScore: SportsMomentResult['matchScore'] = null;
+    if (rawScore && typeof rawScore === 'object' && !Array.isArray(rawScore)) {
+      const scoreRecord = rawScore as Record<string, unknown>;
+      if (['home', 'away', 'india', 'opponent'].every((key) => typeof scoreRecord[key] === 'number')) {
+        matchScore = {
+          home: scoreRecord['home'] as number,
+          away: scoreRecord['away'] as number,
+          india: scoreRecord['india'] as number,
+          opponent: scoreRecord['opponent'] as number,
+        };
+      }
+    }
+
+    const outcome = ['win', 'loss', 'draw'].includes(String(raw['outcome']))
+      ? raw['outcome'] as SportsMomentResult['outcome']
+      : null;
     const completion = ['normal', 'retirement', 'walkover', 'disqualification'].includes(String(raw['completion']))
       ? raw['completion'] as SportsMomentResult['completion']
       : null;
@@ -581,17 +689,55 @@ export class SportsMomentService {
       matchup = {
         indiaCountryCode: typeof indiaRecord?.['countryCode'] === 'string' ? indiaRecord['countryCode'] : null,
         opponentCountryCode: typeof opponentRecord?.['countryCode'] === 'string' ? opponentRecord['countryCode'] : null,
+        indiaDisplayName: typeof indiaRecord?.['displayName'] === 'string' ? indiaRecord['displayName'] : null,
+        opponentDisplayName: typeof opponentRecord?.['displayName'] === 'string' ? opponentRecord['displayName'] : null,
+        indiaPlayers: Array.isArray(indiaRecord?.['players'])
+          ? indiaRecord!['players'].filter((value): value is string => typeof value === 'string')
+          : [],
+        opponentPlayers: Array.isArray(opponentRecord?.['players'])
+          ? opponentRecord!['players'].filter((value): value is string => typeof value === 'string')
+          : [],
+        indiaSeed: indiaRecord?.['seed'] == null ? null : String(indiaRecord['seed']),
+        opponentSeed: opponentRecord?.['seed'] == null ? null : String(opponentRecord['seed']),
       };
     }
 
+    const currentLiveGame = liveGames[(liveCoverage?.currentGame || 1) - 1];
+    const liveSummary = liveCoverage?.status === 'provisional-complete'
+      ? 'Awaiting official result'
+      : currentLiveGame
+        ? `Game ${liveCoverage?.currentGame || 1} · ${currentLiveGame.india}–${currentLiveGame.opponent}`
+        : null;
+
+    if (!Object.keys(raw).length && !isLiveCoverage) return null;
+
     return {
-      summary: typeof raw['summary'] === 'string' ? raw['summary'] : this.getResultLabel(result),
+      summary: typeof raw['summary'] === 'string' ? raw['summary'] : (liveSummary || this.getResultLabel(result)),
       matchup,
       outcome,
       winnerCountryCode: typeof raw['winnerCountryCode'] === 'string' ? raw['winnerCountryCode'] : null,
       completion,
       durationSeconds: typeof raw['durationSeconds'] === 'number' ? raw['durationSeconds'] : null,
       score,
+      matchScore,
+      live: isLiveCoverage && liveCoverage ? {
+        revision: liveCoverage.revision,
+        currentGame: liveCoverage.currentGame,
+        servingSide: liveCoverage.servingSide,
+        status: liveCoverage.status as 'live' | 'suspended' | 'provisional-complete',
+        phase: liveCoverage.phase || (liveCoverage.status === 'provisional-complete' ? 'complete' : 'in-play'),
+        updatedAt: liveCoverage.lastPublishedAt || null,
+        startedAt: liveCoverage.startedAt || null,
+        provisionalCompletedAt: liveCoverage.provisionalCompletedAt || null,
+        officialPublishedAt: liveCoverage.officialPublishedAt || null,
+        elapsedSeconds: this.getLiveElapsedSeconds(liveCoverage),
+        pressure: liveCoverage.pressure || this.deriveLivePressure(liveCoverage),
+        challenge: liveCoverage.challenge || null,
+        currentScore: currentLiveGame
+          ? { india: currentLiveGame.india, opponent: currentLiveGame.opponent }
+          : null,
+        updates: liveUpdates || [],
+      } : null,
       advanced: typeof raw['advanced'] === 'boolean' ? raw['advanced'] : null,
     };
   }
@@ -599,6 +745,40 @@ export class SportsMomentService {
   private isIndiaHosted(event: CalendarEvent): boolean {
     const text = `${event.location || ''} ${event.country || ''}`.toLowerCase();
     return text.includes('india') || text.includes('bhubaneswar') || text.includes('new delhi');
+  }
+
+  private getLiveElapsedSeconds(coverage: LiveScoreCoverage): number | null {
+    if (!coverage.startedAt) return null;
+    const started = new Date(coverage.startedAt).getTime();
+    const ended = coverage.provisionalCompletedAt
+      ? new Date(coverage.provisionalCompletedAt).getTime()
+      : coverage.lastPublishedAt
+        ? new Date(coverage.lastPublishedAt).getTime()
+        : Date.now();
+    if (!Number.isFinite(started) || !Number.isFinite(ended) || ended < started) return null;
+    return Math.round((ended - started) / 1000);
+  }
+
+  private deriveLivePressure(coverage: LiveScoreCoverage): LiveScorePressure | null {
+    if (coverage.status !== 'live' || (coverage.phase && coverage.phase !== 'in-play')) return null;
+    const games = coverage.score?.games || [];
+    const game = games[(coverage.currentGame || 1) - 1];
+    if (!game || game.complete) return null;
+    const wins = (side: 'india' | 'opponent') => games.filter((entry) => entry.complete && entry.winner === side).length;
+    const winsWithNextPoint = (side: 'india' | 'opponent'): boolean => {
+      const india = game.india + (side === 'india' ? 1 : 0);
+      const opponent = game.opponent + (side === 'opponent' ? 1 : 0);
+      const high = Math.max(india, opponent);
+      const low = Math.min(india, opponent);
+      return high >= 21 && (high === 30 || high - low >= 2) &&
+        (side === 'india' ? india > opponent : opponent > india);
+    };
+    const sides = (['india', 'opponent'] as const).filter(winsWithNextPoint);
+    if (!sides.length) return null;
+    return {
+      kind: sides.some((side) => wins(side) >= 1) ? 'match-point' : 'game-point',
+      side: sides.length === 2 ? 'both' : sides[0],
+    };
   }
 
   private sessionMinutes(label?: string | null): number {
@@ -613,6 +793,17 @@ export class SportsMomentService {
     if (moment.sortMinutes !== null) return moment.sortMinutes;
     if (moment.timingState === 'conditional') return 23 * 60 + 59;
     return 12 * 60;
+  }
+
+  private momentChronologicalValue(moment: SportsMoment): number {
+    return this.dateFromKey(moment.dateKey).getTime() + (this.momentSortValue(moment) * 60_000);
+  }
+
+  private momentTieBreakValue(moment: SportsMoment): number {
+    const context = moment.context || '';
+    const court = Number(context.match(/\bCourt\s+(\d+)\b/i)?.[1] || 99);
+    const order = Number(context.match(/\bMatch\s+(\d+)\s+in order\b/i)?.[1] || 99);
+    return (court * 100) + order;
   }
 
   private eachIndiaDay(

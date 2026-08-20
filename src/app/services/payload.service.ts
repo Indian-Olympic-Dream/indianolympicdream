@@ -268,6 +268,110 @@ export interface GamesScheduleRow {
   certainty?: string;
   status?: string;
   result?: any;
+  liveCoverage?: LiveScoreCoverage | null;
+  /** Sanitized point-by-point updates supplied by the live SSE publication. */
+  liveUpdates?: LiveScoreUpdate[];
+}
+
+export interface LiveScoreGame {
+  india: number;
+  opponent: number;
+  complete: boolean;
+  winner: 'india' | 'opponent' | null;
+  intervalTaken?: boolean;
+}
+
+export interface LiveScorePressure {
+  kind: 'game-point' | 'match-point';
+  side: 'india' | 'opponent' | 'both';
+}
+
+export interface LiveScoreCoverage {
+  enabled: boolean;
+  revision: number;
+  status: 'idle' | 'pre-match' | 'live' | 'suspended' | 'provisional-complete' | 'official-complete';
+  phase?:
+    | 'ready'
+    | 'match-initialized'
+    | 'players-march-on'
+    | 'coin-toss'
+    | 'warm-up'
+    | 'in-play'
+    | 'interval'
+    | 'between-games'
+    | 'challenge'
+    | 'complete';
+  currentGame: number;
+  servingSide: 'india' | 'opponent' | 'unknown';
+  score?: { games?: LiveScoreGame[] } | null;
+  lastPublishedAt?: string | null;
+  startedAt?: string | null;
+  provisionalCompletedAt?: string | null;
+  officialPublishedAt?: string | null;
+  completionReason?: 'normal' | 'retirement' | 'walkover' | 'disqualification' | null;
+  matchWinner?: 'india' | 'opponent' | null;
+  challenge?: {
+    side: 'india' | 'opponent';
+    status: 'pending' | 'successful' | 'unsuccessful';
+  } | null;
+  preMatch?: {
+    initializedAt?: string | null;
+    playersMarchOnAt?: string | null;
+    coinTossAt?: string | null;
+    tossWinner?: 'india' | 'opponent' | null;
+    tossChoice?: 'serve' | 'receive' | 'end' | null;
+    initialServingSide?: 'india' | 'opponent' | 'unknown';
+    nearCourtSide?: 'india' | 'opponent' | 'unknown';
+    warmUpStartedAt?: string | null;
+    warmUpEndsAt?: string | null;
+  } | null;
+  pressure?: LiveScorePressure | null;
+}
+
+export interface LiveScoreUpdate {
+  id: string;
+  revision: number;
+  type:
+    | 'match-start'
+    | 'match-initialized'
+    | 'players-march-on'
+    | 'coin-toss'
+    | 'warm-up'
+    | 'point'
+    | 'correction'
+    | 'interval-start'
+    | 'interval-end'
+    | 'game-start'
+    | 'game-complete'
+    | 'challenge-start'
+    | 'challenge-result'
+    | 'match-complete'
+    | 'official-result'
+    | 'suspended'
+    | 'resumed';
+  currentGame: number;
+  india: number;
+  opponent: number;
+  side: 'india' | 'opponent' | null;
+  winner: 'india' | 'opponent' | null;
+  phase?: LiveScoreCoverage['phase'];
+  pressure?: LiveScorePressure | null;
+  resolution?: 'successful' | 'unsuccessful' | null;
+  completion?: 'normal' | 'retirement' | 'walkover' | 'disqualification' | null;
+  commentary?: {
+    kind:
+      | 'smash-winner'
+      | 'drop-winner'
+      | 'net-winner'
+      | 'drive-winner'
+      | 'service-winner'
+      | 'forced-error'
+      | 'unforced-error'
+      | 'service-fault'
+      | 'other-fault';
+    label: string;
+  } | null;
+  occurredAt: string;
 }
 
 export interface GamesParticipationRow {
@@ -326,6 +430,23 @@ const CALENDAR_EVENT_SCHEDULE_QUERY = gql`
         certainty
         status
         result
+        liveCoverage {
+          enabled
+          status
+          revision
+          phase
+          currentGame
+          servingSide
+          score
+          lastPublishedAt
+          startedAt
+          provisionalCompletedAt
+          officialPublishedAt
+          completionReason
+          matchWinner
+          challenge
+          preMatch
+        }
       }
     }
   }
@@ -361,6 +482,23 @@ const EVENT_HUB_SCHEDULE_QUERY = gql`
         certainty
         status
         result
+        liveCoverage {
+          enabled
+          status
+          revision
+          phase
+          currentGame
+          servingSide
+          score
+          lastPublishedAt
+          startedAt
+          provisionalCompletedAt
+          officialPublishedAt
+          completionReason
+          matchWinner
+          challenge
+          preMatch
+        }
       }
     }
   }
@@ -396,6 +534,23 @@ const UPCOMING_GAMES_SCHEDULE_QUERY = gql`
         certainty
         status
         result
+        liveCoverage {
+          enabled
+          status
+          revision
+          phase
+          currentGame
+          servingSide
+          score
+          lastPublishedAt
+          startedAt
+          provisionalCompletedAt
+          officialPublishedAt
+          completionReason
+          matchWinner
+          challenge
+          preMatch
+        }
       }
     }
   }
