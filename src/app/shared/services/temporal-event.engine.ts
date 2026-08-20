@@ -192,6 +192,14 @@ export class TemporalEventEngine {
   }
 
   deriveFixtureState(row: GamesScheduleRow, now = new Date()): EventTemporalState {
+    if (row.liveCoverage?.enabled) {
+      if (row.liveCoverage.status === 'live' || row.liveCoverage.status === 'suspended') return 'live';
+      if (row.liveCoverage.status === 'provisional-complete') return 'completed';
+    }
+    const explicitStatus = (row.status || '').toLowerCase();
+    if (explicitStatus === 'cancelled' || explicitStatus === 'postponed') return explicitStatus;
+    if (explicitStatus === 'live') return 'live';
+    if (explicitStatus === 'completed' || explicitStatus === 'eliminated') return 'completed';
     const start = new Date(row.startTime);
     if (Number.isNaN(start.getTime())) return 'upcoming';
     const end = row.endTime

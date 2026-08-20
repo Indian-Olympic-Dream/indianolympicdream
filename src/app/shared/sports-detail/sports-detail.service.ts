@@ -85,6 +85,14 @@ const COUNTRY_CODES: Record<string, string> = {
   thailand: 'THA', tha: 'THA',
   'hong kong': 'HKG', hkg: 'HKG',
   singapore: 'SGP', sgp: 'SGP', sin: 'SGP',
+  macau: 'MAC', mac: 'MAC',
+};
+
+const COUNTRY_NAMES: Record<string, string> = {
+  AUT: 'Austria', BUL: 'Bulgaria', CAN: 'Canada', CHN: 'China', DEN: 'Denmark',
+  ESP: 'Spain', INA: 'Indonesia', IND: 'India', IRL: 'Ireland', JPN: 'Japan',
+  KOR: 'Korea', MAC: 'Macau', MAS: 'Malaysia', MMR: 'Myanmar', MYA: 'Myanmar',
+  SCO: 'Scotland', SRI: 'Sri Lanka', TUR: 'Türkiye', USA: 'United States',
 };
 
 const HOCKEY_FLAGS: Record<string, string> = {
@@ -129,6 +137,8 @@ export class SportsDetailService {
 
   isOpen = signal<boolean>(false);
   detail = signal<SportsDetailModel | null>(null);
+  activeMomentId = signal<string | null>(null);
+  returnToResults = signal<boolean>(false);
 
   open(detail: SportsDetailModel): void {
     this.detail.set(detail);
@@ -138,12 +148,16 @@ export class SportsDetailService {
   close(): void {
     this.isOpen.set(false);
     this.detail.set(null);
+    this.activeMomentId.set(null);
+    this.returnToResults.set(false);
   }
 
   /**
    * Builds and opens a SportsDetailModel directly from a SportsMoment on Home.
    */
   openMoment(moment: SportsMoment, allScheduleRows: GamesScheduleRow[] = []): void {
+    this.returnToResults.set(false);
+    this.activeMomentId.set(moment.id);
     const isMatchup = /vs\.?|v|-/i.test(moment.headline);
     let matchup = null;
 
@@ -160,6 +174,10 @@ export class SportsDetailService {
           teamA: { name: teamAName, code: resolveCountryCode(teamAName), isIndia: isTeamAIndia, flag: flagA },
           teamB: { name: teamBName, code: resolveCountryCode(teamBName), isIndia: isTeamBIndia, flag: flagB },
         };
+        if (moment.result?.matchScore) {
+          matchup.teamA.score = moment.result.matchScore.home;
+          matchup.teamB.score = moment.result.matchScore.away;
+        }
       }
     }
 
@@ -168,7 +186,7 @@ export class SportsDetailService {
 
     const stateLabel =
       state === 'live' ? 'LIVE NOW' :
-        state === 'completed' ? 'RESULT' :
+        state === 'completed' ? (moment.resultPending ? 'AWAITING RESULT' : 'RESULT') :
           state === 'tbc' ? 'TIME TBC' : 'UPCOMING';
 
     const dateFormatted = this.formatDateKey(moment.dateKey);
@@ -198,14 +216,17 @@ export class SportsDetailService {
       timeLabel: moment.timingLabel,
       presentationSize: 'compact',
       matchup,
-      resultSummary: moment.resultLabel,
+      resultSummary: state === 'completed' && !moment.resultPending && !moment.result?.live
+        ? moment.resultLabel
+        : null,
       actions: moment.action?.navigation.href ? {
         externalUrl: moment.action.navigation.href,
         whereToWatchUrl: null,
       } : null,
     };
 
-    // 1. Hockey Match: enrich with distinct Men's / Women's Pool D campaign
+    // 1. A Home Hockey moment is a focused scorecard. Full tournament format
+    // belongs to the Event Centre, not this moment sheet.
     if (isHockey) {
       const isWomen = (moment.context || '').toLowerCase().includes('women') ||
         (moment.headline || '').toLowerCase().includes('women') ||
@@ -220,80 +241,6 @@ export class SportsDetailService {
         whereToWatchLabel: 'Watch Live',
         externalUrl: 'https://www.worldcup.hockey/',
       };
-
-      if (isWomen) {
-        baseModel.hockeyGroupMatches = [
-          {
-            matchLabel: 'Match 1',
-            dateLabel: '16 Aug',
-            timeLabel: '16:30 IST',
-            opponent: 'China',
-            opponentCode: 'CHN',
-            opponentFlag: '🇨🇳',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-16' || moment.headline.toLowerCase().includes('china'),
-            isCompleted: false,
-          },
-          {
-            matchLabel: 'Match 2',
-            dateLabel: '18 Aug',
-            timeLabel: '18:30 IST',
-            opponent: 'Spain',
-            opponentCode: 'ESP',
-            opponentFlag: '🇪🇸',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-18' || moment.headline.toLowerCase().includes('spain'),
-            isCompleted: false,
-          },
-          {
-            matchLabel: 'Match 3',
-            dateLabel: '20 Aug',
-            timeLabel: '20:45 IST',
-            opponent: 'Chile',
-            opponentCode: 'CHI',
-            opponentFlag: '🇨🇱',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-20' || moment.headline.toLowerCase().includes('chile'),
-            isCompleted: false,
-          },
-        ];
-      } else {
-        baseModel.hockeyGroupMatches = [
-          {
-            matchLabel: 'Match 1',
-            dateLabel: '15 Aug',
-            timeLabel: '16:30 IST',
-            opponent: 'Wales',
-            opponentCode: 'WAL',
-            opponentFlag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-15' || moment.headline.toLowerCase().includes('wales'),
-            isCompleted: false,
-          },
-          {
-            matchLabel: 'Match 2',
-            dateLabel: '17 Aug',
-            timeLabel: '18:30 IST',
-            opponent: 'England',
-            opponentCode: 'ENG',
-            opponentFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-17' || moment.headline.toLowerCase().includes('england'),
-            isCompleted: false,
-          },
-          {
-            matchLabel: 'Match 3',
-            dateLabel: '19 Aug',
-            timeLabel: '20:45 IST',
-            opponent: 'Germany',
-            opponentCode: 'GER',
-            opponentFlag: '🇩🇪',
-            indiaFlag: '🇮🇳',
-            isCurrentMatch: moment.dateKey === '2026-08-19' || moment.headline.toLowerCase().includes('germany'),
-            isCompleted: false,
-          },
-        ];
-      }
 
       this.open(baseModel);
       return;
@@ -321,13 +268,11 @@ export class SportsDetailService {
             );
             return participation ? {
               ...scorecard,
-              seed: participation.seed,
-              opponentSeed: participation.opponentSeed,
-              opponentCountry: participation.opponentCountry || scorecard.opponentCountry,
-              opponentCountryCode: participation.opponentCountryCode || scorecard.opponentCountryCode,
-              opponentFlag: participation.opponentCountryCode
-                ? participation.opponentFlag
-                : scorecard.opponentFlag,
+              seed: scorecard.seed || participation.seed,
+              opponentSeed: scorecard.opponentSeed || participation.opponentSeed,
+              opponentCountry: scorecard.opponentCountry || participation.opponentCountry,
+              opponentCountryCode: scorecard.opponentCountryCode || participation.opponentCountryCode,
+              opponentFlag: scorecard.opponentFlag || participation.opponentFlag,
             } : scorecard;
           }),
         ).subscribe((entry) => {
@@ -373,10 +318,54 @@ export class SportsDetailService {
     this.open(baseModel);
   }
 
+  /** Opens a focused result while preserving the Latest Results sheet underneath. */
+  openMomentFromResults(moment: SportsMoment): void {
+    this.openMoment(moment);
+    this.returnToResults.set(true);
+  }
+
+  refreshOpenMoment(moment: SportsMoment): void {
+    if (!this.isOpen() || this.activeMomentId() !== moment.id) return;
+    const current = this.detail();
+    if (!current) return;
+
+    const state: SportsDetailState = moment.timingState === 'tbc' ? 'tbc' : moment.state;
+    const next: SportsDetailModel = {
+      ...current,
+      state,
+      stateLabel: state === 'live' ? 'LIVE NOW' : state === 'completed' ? 'RESULT' : state === 'tbc' ? 'TIME TBC' : 'UPCOMING',
+      timeLabel: state === 'live' ? 'LIVE' : moment.timingLabel,
+      resultSummary: state === 'completed' && !moment.resultPending && !moment.result?.live
+        ? moment.resultLabel
+        : null,
+    };
+
+    if (next.matchup && moment.result?.matchScore) {
+      next.matchup = {
+        teamA: { ...next.matchup.teamA, score: moment.result.matchScore.home },
+        teamB: { ...next.matchup.teamB, score: moment.result.matchScore.away },
+      };
+    }
+    if (next.badmintonMatchDetail && next.matchup) {
+      const previous = next.badmintonEntries?.[0];
+      const refreshed = this.buildBadmintonMatchDetail(moment, next.matchup);
+      next.badmintonEntries = [{
+        ...refreshed,
+        seed: refreshed.seed || previous?.seed || null,
+        opponentSeed: refreshed.opponentSeed || previous?.opponentSeed || null,
+        opponentCountry: refreshed.opponentCountry || previous?.opponentCountry,
+        opponentCountryCode: refreshed.opponentCountryCode || previous?.opponentCountryCode,
+        opponentFlag: refreshed.opponentFlag || previous?.opponentFlag,
+      }];
+    }
+    this.detail.set(next);
+  }
+
   /**
    * Opens SportsDetailModel from a Day Anchor (e.g. BWF Worlds tournament anchor).
    */
   openAnchor(anchor: SportsMomentAnchor): void {
+    this.returnToResults.set(false);
     const isBadminton = anchor.sport.slug === 'badminton' || anchor.title.toLowerCase().includes('bwf');
     const isContinental = anchor.title.toLowerCase().includes('continental') || (anchor.context || '').toLowerCase().includes('continental');
 
@@ -426,6 +415,7 @@ export class SportsDetailService {
    * Opens SportsDetailModel from an Athletics Programme Summary (e.g. Bhubaneswar 18-event meet).
    */
   openProgramme(event: CalendarEvent, programmeRows?: any[]): void {
+    this.returnToResults.set(false);
     const model: SportsDetailModel = {
       sportName: 'Athletics',
       sportSlug: 'athletics',
@@ -515,6 +505,7 @@ export class SportsDetailService {
     GRN: '🇬🇳',
     TTO: '🇹🇹',
     KEN: '🇰🇪',
+    MAC: '🇲🇴',
   };
 
   private mapBadmintonEntries(rows: GamesParticipationRow[], dateKey?: string): BadmintonEntryItem[] {
@@ -642,6 +633,7 @@ export class SportsDetailService {
     const round = contextParts.find((part) => /round/i.test(part)) || 'Round TBC';
     const court = contextParts.find((part) => /court/i.test(part));
     const sequence = contextParts.find((part) => /match\s+\d+\s+in order|follows|not before|scheduled start|time tba/i.test(part));
+    const matchOrder = sequence?.match(/match\s+(\d+)/i)?.[1];
     const splitSide = (name: string): string[] => name
       .split(/\s*\/\s*/)
       .map((part) => part.trim())
@@ -649,15 +641,25 @@ export class SportsDetailService {
 
     matchup.teamA.isIndia = true;
     matchup.teamA.code = 'IND';
-    matchup.teamA.flag = '🇮🇳';
-    const opponentCountryCode = moment.result?.matchup?.opponentCountryCode?.toUpperCase() || '';
+    matchup.teamA.flag = '';
+    const matchupOpponentCode = moment.result?.matchup?.opponentCountryCode?.toUpperCase() || '';
+    const winnerCountryCode = moment.result?.winnerCountryCode?.toUpperCase() || '';
+    // Older verified BWF results predate the structured matchup block. In an
+    // India-facing match, a non-IND winner is deterministically the opponent;
+    // this preserves those results without guessing from athlete names.
+    const opponentCountryCode = matchupOpponentCode || (winnerCountryCode && winnerCountryCode !== 'IND'
+      ? winnerCountryCode
+      : '');
 
     return {
       discipline,
       disciplineCode,
       names: splitSide(matchup.teamA.name),
+      seed: moment.result?.matchup?.indiaSeed || null,
       opponentNames: splitSide(matchup.teamB.name),
+      opponentSeed: moment.result?.matchup?.opponentSeed || null,
       round,
+      matchOrder: matchOrder ? Number(matchOrder) : null,
       timeLabel: moment.timingLabel,
       court,
       bye: false,
@@ -667,9 +669,20 @@ export class SportsDetailService {
       opponentScore: moment.result?.score?.opponent.join(' ') || null,
       opponentStatusLabel: moment.result?.completion === 'retirement' ? 'RET' : null,
       resultNote: this.getBadmintonResultNote(moment),
-      opponentCountry: opponentCountryCode,
+      durationLabel: this.getBadmintonDurationLabel(moment),
+      outcome: moment.result?.outcome || null,
+      opponentCountry: COUNTRY_NAMES[opponentCountryCode] || opponentCountryCode,
       opponentCountryCode,
       opponentFlag: opponentCountryCode ? (this.BADMINTON_COUNTRY_FLAGS[opponentCountryCode] || '🏸') : '',
+      currentGame: moment.result?.live?.currentGame || null,
+      servingSide: moment.result?.live?.servingSide || null,
+      liveRevision: moment.result?.live?.revision || null,
+      liveUpdatedAt: moment.result?.live?.updatedAt || null,
+      liveStatus: moment.result?.live?.status || null,
+      livePhase: moment.result?.live?.phase || null,
+      livePressure: moment.result?.live?.pressure || null,
+      liveChallenge: moment.result?.live?.challenge || null,
+      liveUpdates: moment.result?.live?.updates || [],
     };
   }
 
@@ -683,13 +696,16 @@ export class SportsDetailService {
     else if (moment.result.completion === 'walkover') parts.push('Walkover');
     else if (moment.result.completion === 'disqualification') parts.push('Disqualification');
 
-    if (moment.result.durationSeconds) {
-      const minutes = Math.floor(moment.result.durationSeconds / 60);
-      const seconds = moment.result.durationSeconds % 60;
-      parts.push(seconds ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${minutes} min`);
-    }
     if (moment.result.advanced) parts.push('Advanced');
     return parts.join(' · ') || null;
+  }
+
+  private getBadmintonDurationLabel(moment: SportsMoment): string | null {
+    const durationSeconds = moment.result?.durationSeconds ?? moment.result?.live?.elapsedSeconds;
+    if (!durationSeconds) return null;
+    const minutes = Math.floor(durationSeconds / 60);
+    const seconds = durationSeconds % 60;
+    return seconds ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${minutes} min`;
   }
 
   private findBadmintonParticipationForMoment(

@@ -1,3 +1,6 @@
+import type { LiveScoreUpdate } from '../../services/payload.service';
+import type { LiveScorePressure } from '../../services/payload.service';
+
 export type SportsDetailState = 'tbc' | 'upcoming' | 'live' | 'completed';
 export type SportsDetailSize = 'compact' | 'wide';
 
@@ -40,6 +43,7 @@ export interface BadmintonEntryItem {
   opponentCountryCode?: string;
   opponentFlag?: string;
   round: string;
+  matchOrder?: number | null;
   timeLabel?: string;
   court?: string;
   bye: boolean;
@@ -49,6 +53,31 @@ export interface BadmintonEntryItem {
   opponentScore?: string | null;
   opponentStatusLabel?: string | null;
   resultNote?: string | null;
+  durationLabel?: string | null;
+  outcome?: 'win' | 'loss' | 'draw' | null;
+  currentGame?: number | null;
+  servingSide?: 'india' | 'opponent' | 'unknown' | null;
+  liveRevision?: number | null;
+  liveUpdatedAt?: string | null;
+  liveStatus?: 'live' | 'suspended' | 'provisional-complete' | 'official-complete' | null;
+  livePhase?:
+    | 'ready'
+    | 'match-initialized'
+    | 'players-march-on'
+    | 'coin-toss'
+    | 'warm-up'
+    | 'in-play'
+    | 'interval'
+    | 'between-games'
+    | 'challenge'
+    | 'complete'
+    | null;
+  livePressure?: LiveScorePressure | null;
+  liveChallenge?: {
+    side: 'india' | 'opponent';
+    status: 'pending' | 'successful' | 'unsuccessful';
+  } | null;
+  liveUpdates?: LiveScoreUpdate[];
 }
 
 export interface AthleticsCompetitor {
