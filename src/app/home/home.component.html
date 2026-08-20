@@ -28,19 +28,21 @@
           (click)="onMomentClick(moment)">
           <span class="right-now-copy">
             <small>{{ moment.sport.name }}</small>
-            <strong>{{ moment.headline }}</strong>
+            <!-- <strong>{{ moment.headline }}</strong> -->
             <span *ngIf="moment.context">{{ moment.context }}</span>
           </span>
 
-          <span class="home-live-score" *ngIf="moment.result?.live as live"
-            [class.is-pressure]="!!live.pressure" [class.is-break]="live.phase === 'interval' || live.phase === 'challenge'">
+          <span class="home-live-score" *ngIf="moment.result?.live as live" [class.is-pressure]="!!live.pressure"
+            [class.is-break]="live.phase === 'interval' || live.phase === 'challenge'">
             <strong class="home-score-state">{{ liveStateLabel(moment) }}</strong>
 
             <span class="home-score-row is-india">
               <app-country-flag class="is-small-flag" [code]="liveCountryCode(moment, 'india')"
                 [label]="liveSideName(moment, 'india')"></app-country-flag>
               <b>{{ liveSideName(moment, 'india') }}</b>
-              <app-shuttle-icon *ngIf="live.servingSide === 'india'" aria-label="India serving"></app-shuttle-icon>
+              <span class="home-serve-cell">
+                <app-shuttle-icon *ngIf="live.servingSide === 'india'" aria-label="India serving"></app-shuttle-icon>
+              </span>
               <span class="home-game-scores">
                 <i [class.is-current]="live.currentGame === 1">{{ liveScoreAt(moment, 'india', 0) ?? '–' }}</i>
                 <i [class.is-current]="live.currentGame === 2">{{ liveScoreAt(moment, 'india', 1) ?? '–' }}</i>
@@ -52,7 +54,10 @@
               <app-country-flag class="is-small-flag" [code]="liveCountryCode(moment, 'opponent')"
                 [label]="liveSideName(moment, 'opponent')"></app-country-flag>
               <b>{{ liveSideName(moment, 'opponent') }}</b>
-              <app-shuttle-icon *ngIf="live.servingSide === 'opponent'" aria-label="Opponent serving"></app-shuttle-icon>
+              <span class="home-serve-cell">
+                <app-shuttle-icon *ngIf="live.servingSide === 'opponent'"
+                  aria-label="Opponent serving"></app-shuttle-icon>
+              </span>
               <span class="home-game-scores">
                 <i [class.is-current]="live.currentGame === 1">{{ liveScoreAt(moment, 'opponent', 0) ?? '–' }}</i>
                 <i [class.is-current]="live.currentGame === 2">{{ liveScoreAt(moment, 'opponent', 1) ?? '–' }}</i>
@@ -60,7 +65,8 @@
               </span>
             </span>
 
-            <small class="home-score-meta">Live from court<ng-container *ngIf="liveDuration(moment) as duration"> · {{ duration }}</ng-container></small>
+            <small class="home-score-meta">Live from court<ng-container *ngIf="liveDuration(moment) as duration"> · {{
+                duration }}</ng-container></small>
           </span>
 
           <button type="button" class="moment-overlay-trigger" *ngIf="isInternal(moment.action)"
@@ -127,6 +133,5 @@
 </main>
 
 <app-recent-results-sheet *ngIf="resultsOpen()" [results]="home().recentResults" [now]="home().now"
-  [covered]="detailOpen()"
-  (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)">
+  [covered]="detailOpen()" (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)">
 </app-recent-results-sheet>
