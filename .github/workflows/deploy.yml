@@ -1,11 +1,17 @@
 name: Deploy Frontend (Angular)
 
+# The `develop` push trigger was removed on 2026-09-05.
+#
+# It ran on `runs-on: [self-hosted, uat]` — a Pi 4 B that was repurposed as the
+# broadcast appliance on 2026-08-29. No such runner exists, so every push to
+# `develop` queued a job that waited for a machine that is never coming back:
+# a red or eternally-pending check that means nothing, which is worse than no
+# check at all because people learn to ignore it.
+#
+# Restore it by re-adding the trigger AND pointing `runs-on` at a runner that
+# exists. Manual dispatch is left in place deliberately, so the workflow can
+# still be driven once there is somewhere for it to land.
 on:
-  push:
-    branches:
-      - develop    # → UAT (Pi 4 B)
-      # - master   # → Prod (Pi 5) — uncomment when ready
-
   # Allow manual trigger
   workflow_dispatch:
     inputs:
