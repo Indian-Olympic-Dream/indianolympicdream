@@ -158,7 +158,7 @@ export class CalendarDetailComponent implements OnInit {
   private getStatusLabel(status?: string): string {
     switch ((status || '').toLowerCase()) {
       case 'live':
-        return 'Live now';
+        return 'Ongoing';
       case 'completed':
         return 'Completed';
       case 'cancelled':

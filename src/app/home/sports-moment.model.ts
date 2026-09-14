@@ -115,6 +115,31 @@ export interface SportsProgrammeSummary {
   action: SportsMomentAction | null;
 }
 
+export interface HomeEventPreview {
+  id: string;
+  title: string;
+  sport: SportsMomentSport;
+  context: string | null;
+  location: string | null;
+  dateLabel: string;
+  relativeLabel: string;
+  importance: SportsMomentImportance;
+  action: SportsMomentAction | null;
+}
+
+export interface HomeCampaignPreview {
+  id: string;
+  hubKey: string;
+  eventIds: string[];
+  title: string;
+  context: string;
+  location: string | null;
+  dateLabel: string;
+  relativeLabel: string;
+  sportCount: number;
+  action: SportsMomentAction;
+}
+
 export type SportsTimelineEntry =
   | { kind: 'moment'; id: string; sortMinutes: number; moment: SportsMoment }
   | { kind: 'now'; id: string; sortMinutes: number; label: string };
@@ -134,11 +159,13 @@ export interface SportsTimelineDay {
 
 export interface SportsTimelineViewModel {
   now: Date;
-  liveCalendarCount: number;
+  ongoingEvents: HomeEventPreview[];
   rightNow: SportsMoment[];
   nextIndia: SportsMoment | null;
   recentResults: SportsMoment[];
   days: SportsTimelineDay[];
+  comingUp: HomeEventPreview[];
+  horizon: HomeCampaignPreview | null;
 }
 
 export type SportsHomeViewModel = SportsTimelineViewModel;

@@ -3,10 +3,14 @@ import { Observable, catchError, combineLatest, forkJoin, map, of, switchMap } f
 import { CalendarEvent, GamesScheduleRow, LiveScoreCoverage, LiveScorePressure, PayloadService } from '../services/payload.service';
 import { LiveScoreMap, LiveScoreService } from '../services/live-score.service';
 import { TemporalEventEngine } from '../shared/services/temporal-event.engine';
+import { getGamesHubRegistration } from '../games/games-hub.registry';
+import { hasIndiaAppearance } from '../games/games-hub.presentation';
 import {
   SportsMoment,
   SportsMomentAction,
   SportsMomentAnchor,
+  HomeCampaignPreview,
+  HomeEventPreview,
   SportsMomentImportance,
   SportsMomentResult,
   SportsMomentSport,
@@ -22,99 +26,12 @@ const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DENSE_DAY_THRESHOLD = 3;
 const BWF_WORLDS_GAMES_KEY = 'bwf-world-championships-2026';
-const RECENT_RESULTS_WINDOW_MS = 48 * 60 * 60 * 1000;
+const REALTIME_GAMES_KEYS = new Set([BWF_WORLDS_GAMES_KEY]);
+const RECENT_RESULTS_WINDOW_MS = 7 * DAY_MS;
 const RECENT_RESULTS_LIMIT = 12;
-
-interface AugustEventContext {
-  indiaMoment?: { headline: string; context: string };
-  dailyCampaign?: { openingHeadline: string; dailyHeadline: string };
-}
-
-const AUGUST_2026_HOME_CONTEXT: Record<string, AugustEventContext> = {
-  'bwf-world-championships-2026': {
-    dailyCampaign: {
-      openingHeadline: 'Indian opening-round matches',
-      dailyHeadline: 'Indian players in action',
-    },
-  },
-  'diamond-league-lausanne': {
-    indiaMoment: {
-      headline: 'Neeraj Chopra in Men’s Javelin Throw',
-      context: 'Stade Olympique de la Pontaise, Lausanne',
-    },
-  },
-  'indian-open-wact-silver-level-meet': {
-    indiaMoment: {
-      headline: 'Indian Open World Athletics Continental Tour',
-      context: '18-Event Meet Programme · Kalinga Stadium, Bhubaneswar',
-    },
-  },
-};
-
-const HOCKEY_COUNTRY_FLAGS: Record<string, string> = {
-  india: '🇮🇳',
-  ind: '🇮🇳',
-  wales: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-  wal: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-  england: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  eng: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  china: '🇨🇳',
-  chn: '🇨🇳',
-  spain: '🇪🇸',
-  esp: '🇪🇸',
-  germany: '🇩🇪',
-  ger: '🇩🇪',
-  chile: '🇨🇱',
-  chi: '🇨🇱',
-  'south africa': '🇿🇦',
-  rsa: '🇿🇦',
-  belgium: '🇧🇪',
-  bel: '🇧🇪',
-  netherlands: '🇳🇱',
-  ned: '🇳🇱',
-  australia: '🇦🇺',
-  aus: '🇦🇺',
-  argentina: '🇦🇷',
-  arg: '🇦🇷',
-  'new zealand': '🇳🇿',
-  nzl: '🇳🇿',
-  france: '🇫🇷',
-  fra: '🇫🇷',
-  pakistan: '🇵🇰',
-  pak: '🇵🇰',
-  japan: '🇯🇵',
-  jpn: '🇯🇵',
-  korea: '🇰🇷',
-  kor: '🇰🇷',
-  malaysia: '🇲🇾',
-  mas: '🇲🇾',
-  ireland: '🇮🇪',
-  irl: '🇮🇪',
-  myanmar: '🇲🇲',
-  mmr: '🇲🇲',
-  mya: '🇲🇲',
-};
-
-function formatMatchupWithFlags(headline: string): string {
-  const match = headline.match(/^([A-Za-z\s]+?)\s+(?:vs|v)\s+([A-Za-z\s]+?)$/i);
-  if (!match) return headline;
-
-  const team1 = match[1].trim();
-  const team2 = match[2].trim();
-  const flag1 = HOCKEY_COUNTRY_FLAGS[team1.toLowerCase()];
-  const flag2 = HOCKEY_COUNTRY_FLAGS[team2.toLowerCase()];
-
-  if (flag1 && flag2) {
-    return `${flag1} ${team1} vs ${flag2} ${team2}`;
-  }
-  if (flag1) {
-    return `${flag1} ${team1} vs ${team2}`;
-  }
-  if (flag2) {
-    return `${team1} vs ${flag2} ${team2}`;
-  }
-  return headline;
-}
+const COMING_UP_WINDOW_MS = 18 * DAY_MS;
+const HORIZON_WINDOW_MS = 60 * DAY_MS;
+const COMING_UP_LIMIT = 3;
 
 @Injectable({
   providedIn: 'root',
@@ -136,7 +53,10 @@ export class SportsMomentService {
     }
     const now = eventsOrNow instanceof Date ? eventsOrNow : new Date();
     return forkJoin({
-      events: this.payload.getCalendarEvents({ limit: 120 }),
+      events: this.payload.getCalendarEvents({
+        activeAfter: new Date(now.getTime() - (21 * DAY_MS)).toISOString(),
+        limit: 500,
+      }),
       scheduleRows: this.loadHomeScheduleRows(now),
     }).pipe(
       map(({ events, scheduleRows }) => this.buildViewModel(events, scheduleRows, now)),
@@ -153,19 +73,24 @@ export class SportsMomentService {
       recent: this.payload
         .getUpcomingGamesSchedule(recentStart.toISOString(), 250)
         .pipe(catchError(() => of([]))),
-      bwf: this.payload
-        .getEventHubSchedule(BWF_WORLDS_GAMES_KEY)
-        .pipe(catchError(() => of([]))),
     }).pipe(
-      map(({ general, recent, bwf }) => {
-        // The dedicated hub request owns BWF availability. If it fails or is empty,
-        // exclude incidental BWF rows from the broad query so the curated fallback survives.
-        const nonBwfRows = [...general, ...recent]
-          .filter((row) => row.gamesKey !== BWF_WORLDS_GAMES_KEY);
-        return [...new Map([...nonBwfRows, ...bwf].map((row) => [row.id, row])).values()];
+      map(({ general, recent }) =>
+        [...new Map([...general, ...recent].map((row) => [row.id, row])).values()],
+      ),
+      switchMap((rows) => {
+        const liveKeys = Array.from(new Set(
+          rows
+            .map((row) => row.gamesKey)
+            .filter((key): key is string => Boolean(key && REALTIME_GAMES_KEYS.has(key))),
+        ));
+        if (!liveKeys.length) return of(rows);
+        return combineLatest(liveKeys.map((key) => this.liveScores.watch(key))).pipe(
+          map((streams) => streams.reduce(
+            (currentRows, stream) => this.applyLiveScores(currentRows, stream),
+            rows,
+          )),
+        );
       }),
-      switchMap((rows) => combineLatest([of(rows), this.liveScores.watch(BWF_WORLDS_GAMES_KEY)])),
-      map(([rows, live]) => this.applyLiveScores(rows, live)),
     );
   }
 
@@ -196,7 +121,6 @@ export class SportsMomentService {
     const recentResults: SportsMoment[] = [];
     const anchors: SportsMomentAnchor[] = [];
     const programmes = new Map<string, SportsProgrammeSummary>();
-    const scheduleDaysByEvent = new Set<string>();
     const recentCutoff = new Date(now.getTime() - RECENT_RESULTS_WINDOW_MS);
 
     for (const row of scheduleRows) {
@@ -208,8 +132,9 @@ export class SportsMomentService {
         continue;
       }
       if (['cancelled', 'postponed', 'eliminated'].includes((row.status || '').toLowerCase())) continue;
+      if (!this.isIndiaScheduleRow(row)) continue;
       const event = eventMap.get(row.calendarEvent.id);
-      if (!event || !this.isHomeRelevant(event, true, now)) continue;
+      if (!event) continue;
       const start = this.parseDate(row.startTime);
       if (!start) continue;
       const moment = this.fromSchedule(row, event, now);
@@ -217,7 +142,7 @@ export class SportsMomentService {
       if (
         start >= recentCutoff &&
         start <= now &&
-        row.status === 'completed' &&
+        moment.state === 'completed' &&
         this.hasDisplayableScore(moment)
       ) {
         recentResults.push(moment);
@@ -225,45 +150,6 @@ export class SportsMomentService {
 
       if (start < windowStart || start >= windowEnd) continue;
       moments.push(moment);
-      scheduleDaysByEvent.add(`${event.id}:${moment.dateKey}`);
-    }
-
-    for (const event of events) {
-      if (!this.isHomeRelevant(event, false, now)) continue;
-      const start = this.temporalEvents.parseEventDate(event.startDate, false);
-      const end = this.temporalEvents.parseEventDate(event.endDate || event.startDate, true);
-      if (!start || !end || end < windowStart || start >= windowEnd) continue;
-      const context = event.slug ? AUGUST_2026_HOME_CONTEXT[event.slug] : undefined;
-
-      if (context?.dailyCampaign) {
-        for (const date of this.eachIndiaDay(start, end, windowStart, windowEnd)) {
-          const dateKey = this.dateKey(date);
-          const isOpeningDay = dateKey === this.dateKey(start);
-          if (!scheduleDaysByEvent.has(`${event.id}:${dateKey}`)) {
-            const roundDetail = this.getBwfDailyRound(dateKey);
-            moments.push(this.fromTbcEvent(
-              event,
-              dateKey,
-              isOpeningDay ? context.dailyCampaign.openingHeadline : context.dailyCampaign.dailyHeadline,
-              roundDetail,
-              now,
-            ));
-          }
-        }
-      }
-
-      if (context?.indiaMoment) {
-        const dateKey = this.dateKey(start);
-        if (!scheduleDaysByEvent.has(`${event.id}:${dateKey}`)) {
-          moments.push(this.fromTbcEvent(
-            event,
-            dateKey,
-            context.indiaMoment.headline,
-            context.indiaMoment.context,
-            now,
-          ));
-        }
-      }
     }
 
     const upcoming = moments
@@ -272,11 +158,11 @@ export class SportsMomentService {
     const nextIndia = upcoming.find((moment) => moment.source === 'games-schedule') || upcoming[0] || null;
     const days = this.buildDays(moments, anchors, programmes, now);
     const rightNow = moments
-      .filter((moment) => moment.state === 'live' && moment.importance !== 'standard')
+      .filter((moment) => moment.state === 'live' && moment.result?.live?.status === 'live')
       .sort((a, b) => this.momentSortValue(a) - this.momentSortValue(b));
-    const liveCalendarCount = this.temporalEvents
-      .buildCalendarFeed(events, now)
-      .filter((item) => item.timeGroup === 'live').length;
+    const ongoingEvents = this.buildOngoingEvents(events, now);
+    const horizon = this.buildHorizon(events, now);
+    const comingUp = this.buildComingUp(events, now, horizon?.id || null);
 
     recentResults.sort((a, b) =>
       this.momentChronologicalValue(b) - this.momentChronologicalValue(a),
@@ -284,12 +170,166 @@ export class SportsMomentService {
 
     return {
       now,
-      liveCalendarCount,
+      ongoingEvents,
       rightNow,
       nextIndia,
       recentResults: recentResults.slice(0, RECENT_RESULTS_LIMIT),
       days,
+      comingUp,
+      horizon,
     };
+  }
+
+  private buildOngoingEvents(events: CalendarEvent[], now: Date): HomeEventPreview[] {
+    // Date-window competitions are useful even without IOD scoring or a stream.
+    // Keep the badge and visible cards backed by exactly the same collection.
+    return this.temporalEvents.buildCalendarFeed(events, now)
+      .filter((item) => ['active', 'live'].includes(item.effectiveState)
+        && !['cancelled', 'postponed'].includes(item.event.status || ''))
+      .map((item) => ({
+        id: `calendar-ongoing:${item.event.id}`,
+        title: item.event.title,
+        sport: this.getSport(item.event),
+        context: item.categoryLabel || item.summaryLabel,
+        location: item.locationLabel || null,
+        dateLabel: item.dateLabel,
+        relativeLabel: 'Ongoing',
+        importance: this.getCalendarImportance(item.event),
+        action: this.buildAction(item.event, 'upcoming'),
+      }));
+  }
+
+  private buildComingUp(
+    events: CalendarEvent[],
+    now: Date,
+    horizonId: string | null,
+  ): HomeEventPreview[] {
+    const windowEnd = new Date(now.getTime() + COMING_UP_WINDOW_MS);
+    const selected = this.temporalEvents
+      .buildCalendarFeed(events, now)
+      .filter((item) => {
+        const start = this.temporalEvents.parseEventDate(item.event.startDate, false);
+        if (!start || start < this.dateFromKey(this.dateKey(now)) || start > windowEnd) return false;
+        if (item.effectiveState !== 'upcoming') return false;
+        if (item.event.hubKey && `hub:${item.event.hubKey}` === horizonId) return false;
+        return this.isCalendarPreviewRelevant(item.event);
+      })
+      .sort((a, b) => {
+        const priority = this.calendarPreviewPriority(b.event) - this.calendarPreviewPriority(a.event);
+        return priority || a.sortValue - b.sortValue;
+      })
+      .slice(0, COMING_UP_LIMIT)
+      .sort((a, b) => a.sortValue - b.sortValue);
+
+    return selected.map((item) => ({
+      id: `calendar-preview:${item.event.id}`,
+      title: item.event.title,
+      sport: this.getSport(item.event),
+      context: item.categoryLabel || item.summaryLabel,
+      location: item.locationLabel || null,
+      dateLabel: item.dateLabel,
+      relativeLabel: item.relativeLabel,
+      importance: this.getCalendarImportance(item.event),
+      action: this.buildAction(item.event, 'upcoming'),
+    }));
+  }
+
+  private buildHorizon(events: CalendarEvent[], now: Date): HomeCampaignPreview | null {
+    const today = this.dateFromKey(this.dateKey(now));
+    const windowEnd = new Date(today.getTime() + HORIZON_WINDOW_MS);
+    // Registered Games retain their own ceremony dates; individual sport windows
+    // can begin earlier. An unrelated Calendar record cannot move those dates.
+    for (const event of events) {
+      const hub = getGamesHubRegistration(event.hubKey);
+      if (!hub || new Date(hub.start) > windowEnd || new Date(hub.end) < today) continue;
+      const linked = events.filter((item) => item.hubKey === hub.hubKey
+        && new Date(item.endDate || item.startDate) >= new Date(hub.competitionStart)
+        && new Date(item.startDate) <= new Date(hub.end));
+      if (!linked.length) continue;
+      const days = Math.ceil((new Date(hub.start).getTime() - now.getTime()) / DAY_MS);
+      return {
+        id: `hub:${hub.hubKey}`, hubKey: hub.hubKey, eventIds: linked.map((item) => item.id),
+        title: hub.title, context: hub.homeContext, location: hub.location, dateLabel: hub.dateLabel,
+        relativeLabel: days > 0 ? `Opening day in ${days} ${days === 1 ? 'day' : 'days'}` : 'The Games are on',
+        sportCount: new Set(linked.map((item) => item.sport?.slug).filter(Boolean)).size,
+        action: { label: 'Open Asian Games Hub', navigation: {
+          experience: 'covered_page', kind: 'internal', routerLink: hub.route, href: null, target: null, rel: null,
+        } },
+      };
+    }
+    const situation = this.temporalEvents
+      .groupEventSituations(events)
+      .filter((item) =>
+        Boolean(item.hubKey) &&
+        item.events.length > 1 &&
+        item.startDate >= today &&
+        item.startDate <= windowEnd &&
+        this.temporalEvents.getImportance(item.events) === 'core'
+      )
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())[0];
+
+    if (!situation) return null;
+    const lead = this.temporalEvents.getLeadEvent(situation.events);
+    const sportCount = new Set(
+      situation.events.map((event) => event.sport?.parentSport?.slug || event.sport?.slug).filter(Boolean),
+    ).size;
+    const location = this.temporalEvents.formatLocation(lead.location, lead.country) || null;
+    const daysAway = Math.max(0, Math.ceil((situation.startDate.getTime() - today.getTime()) / DAY_MS));
+    const hub = getGamesHubRegistration(situation.hubKey);
+
+    return {
+      id: situation.id,
+      hubKey: situation.hubKey!,
+      eventIds: situation.events.map((event) => event.id),
+      title: hub?.title || this.temporalEvents.getSituationTitle(situation),
+      context: hub?.homeContext || "India's campaign, day by day",
+      location,
+      dateLabel: this.temporalEvents.formatDateRange(situation.startDate, situation.endDate),
+      relativeLabel: daysAway === 0
+        ? 'India starts today'
+        : daysAway === 1
+          ? 'India starts tomorrow'
+          : `India starts in ${daysAway} days`,
+      sportCount,
+      action: {
+        label: hub ? 'Open Games hub' : 'Open Games calendar',
+        navigation: {
+          experience: 'external_only',
+          kind: 'internal',
+          routerLink: hub?.route || ['/calendar'],
+          href: null,
+          target: null,
+          rel: null,
+        },
+      },
+    };
+  }
+
+  private isCalendarPreviewRelevant(event: CalendarEvent): boolean {
+    const coverage = this.payload.getCalendarEventExperience(event);
+    if (coverage !== 'external_only') return true;
+    const scope = `${event.type || ''} ${event.eventScope || ''}`.toLowerCase();
+    return scope.includes('domestic') || this.isIndiaHosted(event) || Boolean(event.indianParticipants?.length);
+  }
+
+  private calendarPreviewPriority(event: CalendarEvent): number {
+    const coverageRank = {
+      external_only: 0,
+      preview_page: 3,
+      covered_page: 4,
+      live_hub: 5,
+    }[this.payload.getCalendarEventExperience(event)];
+    const importanceRank: Record<string, number> = { context: 0, watch: 1, high: 2, core: 3 };
+    const indiaSignal = this.isIndiaHosted(event) || Boolean(event.indianParticipants?.length) ? 3 : 0;
+    const domesticSignal = `${event.type || ''} ${event.eventScope || ''}`.toLowerCase().includes('domestic') ? 2 : 0;
+    return (coverageRank * 100) + (indiaSignal * 10) + (domesticSignal * 10) +
+      (importanceRank[event.importance || 'context'] || 0);
+  }
+
+  private getCalendarImportance(event: CalendarEvent): SportsMomentImportance {
+    if (event.importance === 'core') return 'primary';
+    if (event.importance === 'high' || event.importance === 'watch') return 'high';
+    return 'standard';
   }
 
   private fromSchedule(row: GamesScheduleRow, event: CalendarEvent, now: Date): SportsMoment {
@@ -297,20 +337,11 @@ export class SportsMomentService {
     const timingState = this.getScheduleTimingState(row);
     const division = this.getDivision(event.title);
     const phase = this.formatPhase(row.phase);
-    const context = event.slug ? AUGUST_2026_HOME_CONTEXT[event.slug] : undefined;
     const isBadminton = (event.sport?.slug || '').includes('badminton') || (event.slug || '').includes('bwf');
-    const rawHeadline = context?.indiaMoment ? context.indiaMoment.headline : (row.name?.trim() || row.eventName?.trim() || event.title);
-    const isHockey = (event.sport?.slug || '').includes('hockey') ||
-      (event.sport?.name || '').toLowerCase().includes('hockey') ||
-      (event.title || '').toLowerCase().includes('hockey') ||
-      (event.category || '').toLowerCase().includes('hockey') ||
-      (row.eventName || '').toLowerCase().includes('hockey');
-    const headline = isHockey ? formatMatchupWithFlags(rawHeadline) : rawHeadline;
-    const contextLine = context?.indiaMoment
-      ? context.indiaMoment.context
-      : isBadminton
-        ? ([row.eventName, phase, this.getBadmintonCourtOrder(row)].filter(Boolean).join(' · ') || null)
-        : ([division, row.eventName, phase].filter(Boolean).join(' · ') || null);
+    const headline = row.name?.trim() || row.eventName?.trim() || event.title;
+    const contextLine = isBadminton
+      ? ([row.eventName, phase, this.getBadmintonCourtOrder(row)].filter(Boolean).join(' · ') || null)
+      : ([division, row.eventName, phase].filter(Boolean).join(' · ') || null);
 
     const isConditional = Boolean(row.isConditional || row.participationStatus === 'progression-dependent');
     const sortMinutes = this.getScheduleSortMinutes(row, start, timingState);
@@ -341,37 +372,6 @@ export class SportsMomentService {
       resultPending,
       result,
       action: resultPending && action ? { ...action, label: 'Check result' } : action,
-      isDisabled: isConditional,
-    };
-  }
-
-  private fromTbcEvent(
-    event: CalendarEvent,
-    dateKey: string,
-    headline: string,
-    context: string,
-    now: Date,
-  ): SportsMoment {
-    const isBadminton = (event.sport?.slug || '').includes('badminton') || (event.slug || '').includes('bwf');
-    const isConditional = isBadminton && dateKey >= '2026-08-19';
-    const state = this.momentStateForDate(dateKey, now);
-    return {
-      id: `event:${event.id}:${dateKey}`,
-      source: 'release-context',
-      sourceEventId: event.id,
-      dateKey,
-      startTime: null,
-      sortMinutes: null,
-      timingState: isConditional ? 'conditional' : 'tbc',
-      timingLabel: isConditional ? 'If Qualified' : 'Time TBC',
-      state,
-      sport: this.getSport(event),
-      headline,
-      context,
-      competition: event.category?.trim() || event.title,
-      importance: this.getImportance(event),
-      resultLabel: null,
-      action: isConditional ? null : this.buildAction(event, state),
       isDisabled: isConditional,
     };
   }
@@ -435,23 +435,9 @@ export class SportsMomentService {
       });
   }
 
-  private isHomeRelevant(event: CalendarEvent, hasIndiaSchedule: boolean, now: Date): boolean {
-    const coverage = this.payload.getCalendarEventExperience(event);
-    const start = this.temporalEvents.parseEventDate(event.startDate, false);
-    const end = this.temporalEvents.parseEventDate(event.endDate || event.startDate, true);
-    if (!start || !end) return false;
-    const daysAway = this.dayDifference(this.dateKey(now), this.dateKey(start));
-    const context = event.slug ? AUGUST_2026_HOME_CONTEXT[event.slug] : undefined;
-
-    if (coverage === 'live_hub') {
-      if (context?.dailyCampaign || context?.indiaMoment) return true;
-      return hasIndiaSchedule || this.isIndiaHosted(event);
-    }
-    if (coverage === 'covered_page') {
-      return hasIndiaSchedule || !!context || this.isIndiaHosted(event);
-    }
-    if (coverage === 'preview_page') return !!context && daysAway >= -1 && daysAway <= 7;
-    return false;
+  private isIndiaScheduleRow(row: GamesScheduleRow): boolean {
+    if (row.gamesKey === 'asian-games-2026') return hasIndiaAppearance(row);
+    return row.participationStatus === 'confirmed';
   }
 
   private buildAction(
@@ -467,7 +453,7 @@ export class SportsMomentService {
     const coverage = this.payload.getCalendarEventExperience(event);
     let label = 'View event';
     if (navigation.kind === 'external') {
-      label = state === 'completed' ? 'Official results' : 'Official event';
+      label = event.whereToWatch?.url === navigation.href ? 'Where to watch' : 'Official event';
     } else if (coverage === 'live_hub') {
       label = state === 'completed'
         ? 'View result'
@@ -565,7 +551,7 @@ export class SportsMomentService {
     const start = this.parseDate(row.startTime);
     if (!start) return 'upcoming';
     const end = row.endTime ? this.parseDate(row.endTime) : new Date(start.getTime() + 90 * 60 * 1000);
-    if (now >= start && (!end || now <= end)) return 'live';
+    // A scheduled start is not evidence of live play or a live score feed.
     if (end && now > end) return 'completed';
     return 'upcoming';
   }
@@ -579,7 +565,7 @@ export class SportsMomentService {
 
   private getSport(event: CalendarEvent): SportsMomentSport {
     return {
-      name: event.sport?.name || 'Olympic Sport',
+      name: event.sport?.name || 'Sport',
       slug: event.sport?.slug || 'sport',
       pictogramUrl: this.payload.getSportPictogramUrl({ sport: event.sport }),
     };
@@ -598,6 +584,8 @@ export class SportsMomentService {
   }
 
   private getImportance(event: CalendarEvent): SportsMomentImportance {
+    if (event.importance === 'core') return 'primary';
+    if (event.importance === 'high' || event.importance === 'watch') return 'high';
     const title = event.title.toLowerCase();
     if (title.includes('olympic') || title.includes('world championship') || title.includes('world cup')) {
       return 'primary';
@@ -806,22 +794,6 @@ export class SportsMomentService {
     return (court * 100) + order;
   }
 
-  private eachIndiaDay(
-    start: Date,
-    end: Date,
-    windowStart: Date,
-    windowEnd: Date,
-  ): Date[] {
-    const days: Date[] = [];
-    let current = new Date(Math.max(start.getTime(), windowStart.getTime()));
-    const finalEnd = new Date(Math.min(end.getTime(), windowEnd.getTime() - 1));
-    while (current <= finalEnd) {
-      days.push(new Date(current));
-      current = new Date(current.getTime() + DAY_MS);
-    }
-    return days;
-  }
-
   private parseDate(iso?: string | null): Date | null {
     if (!iso) return null;
     const parsed = new Date(iso);
@@ -865,28 +837,4 @@ export class SportsMomentService {
     return new Intl.DateTimeFormat('en-IN', { timeZone: INDIA_TIME_ZONE, ...options }).format(date);
   }
 
-  private dayDifference(fromKey: string, toKey: string): number {
-    return Math.round((this.dateFromKey(toKey).getTime() - this.dateFromKey(fromKey).getTime()) / DAY_MS);
-  }
-
-  private getBwfDailyRound(dateKey: string): string {
-    switch (dateKey) {
-      case '2026-08-17':
-        return 'Round of 64 · Order of play to follow';
-      case '2026-08-18':
-        return 'Round of 32 (Seeded Byes) · Order of play to follow';
-      case '2026-08-19':
-        return 'Round of 32 · Order of play to follow';
-      case '2026-08-20':
-        return 'Round of 16 · Order of play to follow';
-      case '2026-08-21':
-        return 'Quarter-finals · Order of play to follow';
-      case '2026-08-22':
-        return 'Semi-finals · Order of play to follow';
-      case '2026-08-23':
-        return 'Finals (Medal Matches) · Order of play to follow';
-      default:
-        return 'Order of play to follow';
-    }
-  }
 }

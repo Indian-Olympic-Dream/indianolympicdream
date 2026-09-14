@@ -1,10 +1,77 @@
 import { Observable, of, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { CalendarEvent, GamesScheduleRow, PayloadService } from '../services/payload.service';
 import { TemporalEventEngine } from '../shared/services/temporal-event.engine';
 import { SportsMomentService } from './sports-moment.service';
 import { LiveScoreMap, LiveScoreService } from '../services/live-score.service';
 
-describe('SportsMomentService BWF schedule fallback', () => {
+describe('SportsMomentService current schedule', () => {
+  function calendarService(rows: GamesScheduleRow[] = []): SportsMomentService {
+    const payload = jasmine.createSpyObj<PayloadService>('PayloadService', [
+      'getUpcomingGamesSchedule', 'getCalendarEventExperience',
+      'getCalendarEventNavigation', 'getSportPictogramUrl',
+    ]);
+    payload.getUpcomingGamesSchedule.and.returnValue(of(rows));
+    payload.getCalendarEventExperience.and.returnValue('external_only');
+    payload.getSportPictogramUrl.and.returnValue(null);
+    payload.getCalendarEventNavigation.and.callFake(event => ({
+      experience: 'external_only', kind: 'external', routerLink: null,
+      href: event?.whereToWatch?.url || event?.externalUrl || null,
+      target: '_blank', rel: 'noopener noreferrer',
+    }));
+    TestBed.configureTestingModule({ providers: [{ provide: PayloadService, useValue: payload }] });
+    return new SportsMomentService(payload, TestBed.inject(TemporalEventEngine), jasmine.createSpyObj('LiveScoreService', ['watch']));
+  }
+
+  it('shows external-only ongoing competitions without inventing live coverage or Indian starts', done => {
+    const events: CalendarEvent[] = [
+      { id: 'vietnam', title: 'Vietnam Open', startDate: '2026-09-08', endDate: '2026-09-13', status: 'upcoming', externalUrl: 'https://example.org/event' },
+      { id: 'us', title: 'US Open', startDate: '2026-08-31', endDate: '2026-09-13', status: 'upcoming', externalUrl: 'https://example.org/us' },
+    ];
+    calendarService().loadHome(events, new Date('2026-09-10T12:00:00+05:30')).subscribe(vm => {
+      expect(vm.ongoingEvents.length).toBe(2);
+      expect(vm.ongoingEvents.every(event => event.relativeLabel === 'Ongoing')).toBeTrue();
+      expect(vm.ongoingEvents.every(event => event.action?.label === 'Official event')).toBeTrue();
+      expect(vm.rightNow).toEqual([]);
+      expect(vm.nextIndia).toBeNull();
+      expect(vm.comingUp).toEqual([]);
+      done();
+    });
+  });
+
+  it('excludes cancelled, postponed, future and finished competitions and keeps watch links explicit', done => {
+    const base: CalendarEvent = { id: 'ongoing', title: 'Ongoing', startDate: '2026-09-08', endDate: '2026-09-10', status: 'upcoming', whereToWatch: { url: 'https://example.org/watch' } };
+    calendarService().loadHome([
+      base, { ...base, id: 'cancelled', status: 'cancelled' },
+      { ...base, id: 'postponed', status: 'postponed' },
+      { ...base, id: 'finished', endDate: '2026-09-09' },
+      { ...base, id: 'future', startDate: '2026-09-11', endDate: '2026-09-12' },
+    ], new Date('2026-09-10T23:59:00+05:30')).subscribe(vm => {
+      expect(vm.ongoingEvents.map(event => event.title)).toEqual(['Ongoing']);
+      expect(vm.ongoingEvents[0].action?.label).toBe('Where to watch');
+      done();
+    });
+  });
+
+  it('admits confirmed Indian starts outside IOD coverage without calling a scheduled window live', done => {
+    const event: CalendarEvent = { id: 'swim', title: 'Asian Games Swimming', status: 'upcoming', startDate: '2026-09-20', endDate: '2026-09-25', externalUrl: 'https://example.org/swimming', sport: { id: 'swim', slug: 'swimming', name: 'Swimming' } };
+    const row: GamesScheduleRow = {
+      id: 'india-swim', gamesKey: 'asian-games-2026', calendarEvent: { id: event.id, title: event.title },
+      startTime: '2026-09-20T10:00:00+05:30', endTime: '2026-09-20T12:00:00+05:30',
+      name: 'Swimming session', status: 'scheduled', participationStatus: 'confirmed', timingPrecision: 'session-window',
+      indianParticipants: [{ id: 'test-athlete', fullName: 'Test athlete' }],
+    };
+    calendarService([row, { ...row, id: 'unassigned-master-session', indianParticipants: [] }])
+      .loadHome([event], new Date('2026-09-20T11:00:00+05:30')).subscribe(vm => {
+        expect(vm.rightNow).toEqual([]);
+        expect(vm.nextIndia?.id).toBe('schedule:india-swim');
+        expect(vm.nextIndia?.state).toBe('upcoming');
+        expect(vm.nextIndia?.action?.label).toBe('Official event');
+        expect(vm.days[0].totalMomentCount).toBe(1);
+        done();
+      });
+  });
+
   const bwfEvent: CalendarEvent = {
     id: 'bwf-event',
     title: 'BWF World Championships 2026',
@@ -30,18 +97,16 @@ describe('SportsMomentService BWF schedule fallback', () => {
   };
 
   function createService(
-    bwfResponse: Observable<GamesScheduleRow[]>,
+    scheduleResponse: Observable<GamesScheduleRow[]>,
     liveResponse: Observable<LiveScoreMap> = of(new Map()),
   ): SportsMomentService {
     const payload = jasmine.createSpyObj<PayloadService>('PayloadService', [
       'getUpcomingGamesSchedule',
-      'getEventHubSchedule',
       'getCalendarEventExperience',
       'getCalendarEventNavigation',
       'getSportPictogramUrl',
     ]);
-    payload.getUpcomingGamesSchedule.and.returnValue(of([]));
-    payload.getEventHubSchedule.and.returnValue(bwfResponse as any);
+    payload.getUpcomingGamesSchedule.and.returnValue(scheduleResponse);
     payload.getCalendarEventExperience.and.returnValue('live_hub');
     payload.getCalendarEventNavigation.and.returnValue({
       experience: 'live_hub',
@@ -56,34 +121,39 @@ describe('SportsMomentService BWF schedule fallback', () => {
     const temporal = jasmine.createSpyObj<TemporalEventEngine>('TemporalEventEngine', [
       'parseEventDate',
       'buildCalendarFeed',
+      'groupEventSituations',
+      'getImportance',
+      'getLeadEvent',
+      'getSituationTitle',
+      'formatDateRange',
+      'formatLocation',
     ]);
     temporal.parseEventDate.and.callFake((value: string) => new Date(value));
     temporal.buildCalendarFeed.and.returnValue([]);
+    temporal.groupEventSituations.and.returnValue([]);
     const liveScores = jasmine.createSpyObj<LiveScoreService>('LiveScoreService', ['watch']);
     liveScores.watch.and.returnValue(liveResponse);
 
     return new SportsMomentService(payload, temporal, liveScores);
   }
 
-  function expectOpeningDayFallback(service: SportsMomentService, done: DoneFn): void {
+  function expectNoInventedMoment(service: SportsMomentService, done: DoneFn): void {
     service.loadHome([bwfEvent], new Date('2026-08-16T12:00:00+05:30')).subscribe({
       next: (viewModel) => {
-        const day = viewModel.days.find((item) => item.dateKey === '2026-08-17');
-        expect(day?.untimedMoments.length).toBe(1);
-        expect(day?.untimedMoments[0].headline).toBe('Indian opening-round matches');
-        expect(day?.untimedMoments[0].timingState).toBe('tbc');
+        expect(viewModel.days).toEqual([]);
+        expect(viewModel.nextIndia).toBeNull();
         done();
       },
       error: done.fail,
     });
   }
 
-  it('restores the curated Day 1 moment when the hub schedule is empty', (done) => {
-    expectOpeningDayFallback(createService(of([])), done);
+  it('does not invent an India moment when no schedule row exists', (done) => {
+    expectNoInventedMoment(createService(of([])), done);
   });
 
-  it('restores the curated Day 1 moment when the hub schedule request fails', (done) => {
-    expectOpeningDayFallback(createService(throwError(() => new Error('unavailable'))), done);
+  it('does not restore expired release copy when the schedule request fails', (done) => {
+    expectNoInventedMoment(createService(throwError(() => new Error('unavailable'))), done);
   });
 
   it('maps a completed BWF retirement result into the shared moment model', (done) => {
@@ -98,6 +168,7 @@ describe('SportsMomentService BWF schedule fallback', () => {
       indiaTimeLabel: '~12:20 IST',
       localTimeLabel: 'Followed by · Court 1 · Match 5',
       timingPrecision: 'session-window',
+      participationStatus: 'confirmed',
       status: 'completed',
       result: {
         summary: 'Hariharan / Arjun won 21–16, 6–4 (ret.)',
@@ -139,6 +210,7 @@ describe('SportsMomentService BWF schedule fallback', () => {
       indiaTimeLabel: '~10:40 IST',
       localTimeLabel: 'Court 1 · Match 3',
       timingPrecision: 'session-window',
+      participationStatus: 'confirmed',
       status: 'scheduled',
       result: {
         matchup: {
@@ -210,6 +282,7 @@ describe('SportsMomentService BWF schedule fallback', () => {
       startTime: '2026-08-16T11:00:00.000Z',
       indiaTimeLabel: '16:30 IST',
       timingPrecision: 'exact',
+      participationStatus: 'confirmed',
       status: 'scheduled',
       result: {
         summary: 'China drew with India 2–2',
@@ -229,6 +302,43 @@ describe('SportsMomentService BWF schedule fallback', () => {
         expect(moment?.resultLabel).toBe('China drew with India 2–2');
         expect(moment?.result?.matchScore).toEqual({ home: 2, away: 2, india: 2, opponent: 2 });
         expect(viewModel.recentResults.map((result) => result.id)).toEqual(['schedule:hockey-w6']);
+        done();
+      },
+      error: done.fail,
+    });
+  });
+
+  it('keeps a completed India result available for the rolling seven-day Home window', (done) => {
+    const completedRow: GamesScheduleRow = {
+      id: 'bwf-retirement-result',
+      gamesKey: 'bwf-world-championships-2026',
+      calendarEvent: {
+        id: 'bwf-event',
+        title: 'BWF World Championships 2026',
+        slug: 'bwf-world-championships-2026',
+      },
+      name: 'Hariharan / Arjun vs Guildea / Reynolds',
+      eventName: "Men's Doubles",
+      phase: 'round-64',
+      startTime: '2026-08-17T06:50:00.000Z',
+      indiaTimeLabel: '~12:20 IST',
+      timingPrecision: 'exact',
+      participationStatus: 'confirmed',
+      status: 'completed',
+      result: {
+        summary: 'Hariharan / Arjun won 21–16, 6–4 (ret.)',
+        outcome: 'win',
+        winnerCountryCode: 'IND',
+        completion: 'retirement',
+        score: { india: [21, 6], opponent: [16, 4] },
+        advanced: true,
+      },
+    };
+
+    createService(of([completedRow])).loadHome([bwfEvent], new Date('2026-08-23T12:00:00+05:30')).subscribe({
+      next: (viewModel) => {
+        expect(viewModel.days).toEqual([]);
+        expect(viewModel.recentResults.map((result) => result.id)).toEqual(['schedule:bwf-retirement-result']);
         done();
       },
       error: done.fail,

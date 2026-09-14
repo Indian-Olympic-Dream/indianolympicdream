@@ -24,7 +24,12 @@ export class BottomNavComponent {
     return path === "/calendar" || path.startsWith("/calendar/");
   }
 
+  isSportsActive(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return path === "/sports" || path === "/" || path === "/home";
+  }
+
   isHomeActive(): boolean {
-    return this.router.url.split(/[?#]/, 1)[0] === "/";
+    return this.isSportsActive();
   }
 }

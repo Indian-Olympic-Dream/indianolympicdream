@@ -264,11 +264,19 @@ export class SportsComponent implements OnInit {
       }>;
     }>();
 
-    // Seed all top-level sports so sports with zero participation remain visible and ready for future qualifiers.
+    const participatedSportIds = new Set<string>();
+    participations.forEach(participation => {
+      const sportResolution = this.resolveSports(participation, sportsById);
+      if (sportResolution) {
+        participatedSportIds.add(sportResolution.canonical.id);
+      }
+    });
+
+    // Seed top-level Olympic catalog sports (participated sports + LA28 new sports like Cricket & Squash)
     sports
       .filter((sport) => {
         const parentId = this.getParentSportId(sport);
-        return (!parentId || parentId === sport.id) && this.isOlympicCatalogSport(sport);
+        return (!parentId || parentId === sport.id) && this.isOlympicCatalogSport(sport, participatedSportIds);
       })
       .forEach(sport => {
         const firstChildPictogram = (childDisciplinesByParent.get(sport.id) || [])
@@ -311,7 +319,7 @@ export class SportsComponent implements OnInit {
       if (!sportResolution) return;
       const { canonical, discipline } = sportResolution;
 
-      if (NON_OLYMPIC_CATALOG_SPORTS.has(this.normalizeSportSlug(canonical.slug || canonical.name))) {
+      if (!this.isOlympicCatalogSport(canonical, participatedSportIds)) {
         return;
       }
 
@@ -465,8 +473,15 @@ export class SportsComponent implements OnInit {
     return null;
   }
 
-  private isOlympicCatalogSport(sport: Sport): boolean {
-    return !NON_OLYMPIC_CATALOG_SPORTS.has(this.normalizeSportSlug(sport.slug || sport.name));
+  private isOlympicCatalogSport(sport: Partial<Sport>, participatedSportIds?: Set<string>): boolean {
+    const slug = this.normalizeSportSlug(sport.slug || sport.name);
+    if (NON_OLYMPIC_CATALOG_SPORTS.has(slug)) return false;
+
+    const hasOlympicParticipation = !!(sport.id && participatedSportIds?.has(sport.id));
+    const hasDefaultTier = resolveDefaultIndiaTier(sport) != null;
+    const isNewInLa28 = this.resolveSportLifecycle(sport) === 'new_in_la28';
+
+    return hasOlympicParticipation || hasDefaultTier || isNewInLa28;
   }
 
   private normalizeSportSlug(value?: string | null): string {

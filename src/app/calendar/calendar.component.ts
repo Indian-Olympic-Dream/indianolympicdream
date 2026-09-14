@@ -213,7 +213,7 @@ export class CalendarComponent implements OnInit {
       importanceClass: this.getImportanceClass(event.importance),
       importanceLabel: this.getImportanceLabel(event.importance),
       sortValue: startDate?.getTime() || Number.MAX_SAFE_INTEGER,
-      locationLabel: this.getLocationLabel(event.location, event.country),
+      locationLabel: this.getLocationLabel(event.location, event.country, event.hubKey),
       categoryLabel: this.getCategoryLabel(event),
       typeLabel: this.getTypeLabel(event.type, event.category) || '',
       summaryLabel: this.getSummaryLabel(event),
@@ -259,7 +259,7 @@ export class CalendarComponent implements OnInit {
     if (!start || !end) return 'TBC';
 
     if (this.isCompletedEvent(event, end, today)) return 'Completed';
-    if (this.isLiveEvent(event, start, end, now, today)) return 'LIVE';
+    if (this.isLiveEvent(event, start, end, now, today)) return 'Ongoing';
 
     const daysAway = Math.ceil((start.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
     if (daysAway === 0) return 'Today';
@@ -390,6 +390,10 @@ export class CalendarComponent implements OnInit {
       return `${category} · LA28 Qualifier`;
     }
 
+    if (!category && event.hubKey === 'asian-games-2026') {
+      return 'Asian Games';
+    }
+
     return category;
   }
 
@@ -417,8 +421,11 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  private getLocationLabel(location?: string, country?: string): string {
-    if (!location && !country) return '';
+  private getLocationLabel(location?: string, country?: string, hubKey?: string): string {
+    if (!location && !country) {
+      if (hubKey === 'asian-games-2026') return 'Aichi-Nagoya, Japan';
+      return '';
+    }
     if (!country || country === 'Multiple' || country === 'TBC') return location || country || '';
     if ((location || '').toLowerCase().includes(country.toLowerCase())) return location || '';
     return location ? `${location}, ${country}` : country;

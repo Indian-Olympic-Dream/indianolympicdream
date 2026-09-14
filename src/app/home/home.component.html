@@ -1,137 +1,100 @@
 <main class="home-shell">
   <header class="home-header">
-    <div class="header-text">
-      <p class="eyebrow">Indian Olympic Dream · 2026</p>
-      <h1>India's Week</h1>
-    </div>
-
-    <a class="calendar-live-count" routerLink="/calendar" fragment="live-events" *ngIf="home().liveCalendarCount > 0">
-      <span class="live-dot" aria-hidden="true"></span>
-      {{ home().liveCalendarCount }} {{ home().liveCalendarCount === 1 ? 'event' : 'events' }} live
-    </a>
+    <div><p class="eyebrow">Indian Olympic Dream</p><h1>What's On<span>.</span></h1></div>
+    <a class="calendar-link" routerLink="/calendar">Full calendar <mat-icon>arrow_forward</mat-icon></a>
   </header>
 
-  <div class="loading-state" *ngIf="loading()">
-    <mat-spinner diameter="36"></mat-spinner>
-    <span>Reading the sporting day…</span>
-  </div>
-
+  <div class="loading-state" *ngIf="loading()" role="status"><mat-spinner diameter="30"></mat-spinner> Loading the latest schedule…</div>
   <ng-container *ngIf="!loading()">
-    <!-- Right Now Section (Only when an active moment is underway) -->
-    <section class="right-now" *ngIf="home().rightNow.length">
-      <div class="section-kicker live">
-        <span class="live-dot" aria-hidden="true"></span>
-        Right now
+    <div class="home-load-error" *ngIf="loadFailed()" role="alert"><span>The latest calendar couldn’t be loaded. Previous information is retained.</span><button type="button" (click)="retryLoad()">Try again</button></div>
+
+    <section class="home-section happening" aria-labelledby="happening-heading" *ngIf="home().ongoingEvents.length || home().rightNow.length">
+      <header class="section-heading"><h2 id="happening-heading">Happening now</h2><span class="section-meta">{{ home().ongoingEvents.length }} ongoing competitions</span></header>
+      <div class="live-list" *ngIf="home().rightNow.length">
+        <button class="live-result" type="button" *ngFor="let moment of visibleLive(); trackBy: trackMoment" (click)="onMomentClick(moment)">
+          <span class="live-label">Live scores</span><strong>{{ moment.headline }}</strong><span>{{ moment.resultLabel }}</span><mat-icon>arrow_forward</mat-icon>
+        </button>
       </div>
-      <div class="right-now-list">
-        <article class="right-now-moment" *ngFor="let moment of home().rightNow; trackBy: trackMoment"
-          (click)="onMomentClick(moment)">
-          <span class="right-now-copy">
-            <small>{{ moment.sport.name }}</small>
-            <!-- <strong>{{ moment.headline }}</strong> -->
-            <span *ngIf="moment.context">{{ moment.context }}</span>
-          </span>
+      <a class="more-link" routerLink="/calendar" *ngIf="home().rightNow.length > visibleLive().length">All {{ home().rightNow.length }} live scores</a>
+      <div class="ongoing-grid">
+        <article class="ongoing-event" *ngFor="let event of visibleOngoing()">
+          <div class="ongoing-copy">
+          <div class="ongoing-identity"><img *ngIf="event.sport.pictogramUrl" [src]="event.sport.pictogramUrl" alt=""><span>{{ event.sport.name }}</span><span class="ongoing-label">Ongoing</span></div>
+          <h3>{{ event.title }}</h3>
+          <p class="event-date">{{ event.dateLabel }}</p>
+          <p class="event-place" *ngIf="event.location">{{ event.location }}</p>
+          </div>
+          <a *ngIf="isInternal(event.action)" [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
+          <a *ngIf="isExternal(event.action)" [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
+          <span class="source-pending" *ngIf="!event.action">Details pending</span>
+        </article>
+      </div>
+      <a class="more-link" routerLink="/calendar" fragment="ongoing-events" *ngIf="home().ongoingEvents.length > visibleOngoing().length">All {{ home().ongoingEvents.length }} ongoing competitions <mat-icon>arrow_forward</mat-icon></a>
+    </section>
 
-          <span class="home-live-score" *ngIf="moment.result?.live as live" [class.is-pressure]="!!live.pressure"
-            [class.is-break]="live.phase === 'interval' || live.phase === 'challenge'">
-            <strong class="home-score-state">{{ liveStateLabel(moment) }}</strong>
+    <section class="games-gateway home-section" *ngIf="home().horizon as campaign" aria-labelledby="gateway-heading">
+      <div class="games-emblem-tile" aria-hidden="true" *ngIf="campaign.hubKey === 'asian-games-2026'">
+        <img src="assets/images/ag-2026/logo.webp" alt="Aichi-Nagoya 2026 official logo">
+      </div>
+      <div class="gateway-copy">
+        <p class="eyebrow"><span class="tricolour" aria-hidden="true"></span>Follow with IOD · Asian Games</p>
+        <h2 id="gateway-heading">{{ campaign.title }}</h2>
+        <p class="gateway-description">{{ campaign.context }}<ng-container *ngIf="campaign.location"> · {{ campaign.location }}</ng-container></p>
+        <nav class="gateway-paths" aria-label="Explore the Asian Games" *ngIf="campaign.hubKey === 'asian-games-2026'">
+          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'squad'}" fragment="games-guide"><strong>{{ gateway()?.athletes || 501 }}</strong> athletes</a>
+          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'matrix'}" fragment="games-guide"><strong>{{ campaign.sportCount }}</strong> sports</a>
+          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'events'}" fragment="games-guide"><strong>{{ gateway()?.programme || 405 }}</strong> events</a>
+        </nav>
+        <p class="gateway-note" *ngIf="campaign.hubKey === 'asian-games-2026'">{{ gatewayFailed() ? 'Counts unavailable · Open the hub for details.' : 'Verified contingent as of 11 Sep · Final entries and draws to follow.' }}</p>
+      </div>
+      <div class="gateway-action">
+        <span class="gateway-countdown"><span class="pulse-dot" aria-hidden="true"></span>{{ campaign.relativeLabel }}</span>
+        <span class="gateway-date">{{ campaign.dateLabel }}</span>
+        <a class="gateway-cta" [routerLink]="campaign.action.navigation.routerLink">{{ campaign.action.label }} <mat-icon>arrow_forward</mat-icon></a>
+      </div>
+    </section>
 
-            <span class="home-score-row is-india">
-              <app-country-flag class="is-small-flag" [code]="liveCountryCode(moment, 'india')"
-                [label]="liveSideName(moment, 'india')"></app-country-flag>
-              <b>{{ liveSideName(moment, 'india') }}</b>
-              <span class="home-serve-cell">
-                <app-shuttle-icon *ngIf="live.servingSide === 'india'" aria-label="India serving"></app-shuttle-icon>
-              </span>
-              <span class="home-game-scores">
-                <i [class.is-current]="live.currentGame === 1">{{ liveScoreAt(moment, 'india', 0) ?? '–' }}</i>
-                <i [class.is-current]="live.currentGame === 2">{{ liveScoreAt(moment, 'india', 1) ?? '–' }}</i>
-                <i [class.is-current]="live.currentGame === 3">{{ liveScoreAt(moment, 'india', 2) ?? '–' }}</i>
-              </span>
-            </span>
-
-            <span class="home-score-row is-opponent">
-              <app-country-flag class="is-small-flag" [code]="liveCountryCode(moment, 'opponent')"
-                [label]="liveSideName(moment, 'opponent')"></app-country-flag>
-              <b>{{ liveSideName(moment, 'opponent') }}</b>
-              <span class="home-serve-cell">
-                <app-shuttle-icon *ngIf="live.servingSide === 'opponent'"
-                  aria-label="Opponent serving"></app-shuttle-icon>
-              </span>
-              <span class="home-game-scores">
-                <i [class.is-current]="live.currentGame === 1">{{ liveScoreAt(moment, 'opponent', 0) ?? '–' }}</i>
-                <i [class.is-current]="live.currentGame === 2">{{ liveScoreAt(moment, 'opponent', 1) ?? '–' }}</i>
-                <i [class.is-current]="live.currentGame === 3">{{ liveScoreAt(moment, 'opponent', 2) ?? '–' }}</i>
-              </span>
-            </span>
-
-            <small class="home-score-meta">Live from court<ng-container *ngIf="liveDuration(moment) as duration"> · {{
-                duration }}</ng-container></small>
-          </span>
-
-          <button type="button" class="moment-overlay-trigger" *ngIf="isInternal(moment.action)"
-            (click)="onMomentClick(moment, $event)">
-            {{ moment.action!.label }} <mat-icon>arrow_forward</mat-icon>
-          </button>
-          <a *ngIf="isExternal(moment.action)" [href]="moment.action!.navigation.href"
-            [attr.target]="moment.action!.navigation.target" [attr.rel]="moment.action!.navigation.rel"
-            (click)="$event.stopPropagation()">
-            {{ moment.action!.label }} <mat-icon>north_east</mat-icon>
-          </a>
+    <section class="home-section next-section" *ngIf="home().nextIndia || home().comingUp.length" aria-labelledby="next-heading">
+      <header class="section-heading"><h2 id="next-heading">{{ home().nextIndia ? 'Next for India' : 'Coming up' }}</h2><span class="section-meta">{{ home().nextIndia ? 'Confirmed Indian participation' : 'Upcoming competitions' }}</span></header>
+      <button class="next-surface" *ngIf="home().nextIndia as moment" type="button" (click)="onMomentClick(moment)">
+        <span class="sport-icon"><img *ngIf="moment.sport.pictogramUrl" [src]="moment.sport.pictogramUrl" alt=""></span>
+        <span class="next-copy"><small>{{ moment.sport.name }}</small><strong>{{ moment.headline }}</strong><span>{{ moment.context || moment.competition }}</span></span>
+        <span class="next-time"><strong>{{ moment.timingLabel }}</strong><small>{{ nextDateLabel(moment) }}</small></span><mat-icon>arrow_forward</mat-icon>
+      </button>
+      <div class="upcoming-list">
+        <article class="upcoming-event" *ngFor="let event of home().comingUp">
+          <span class="sport-icon"><img *ngIf="event.sport.pictogramUrl" [src]="event.sport.pictogramUrl" alt=""></span>
+          <div class="upcoming-copy"><small>{{ event.sport.name }} · {{ event.relativeLabel }}</small><h3>{{ event.title }}</h3><p>{{ event.dateLabel }}<ng-container *ngIf="event.location"> · {{ event.location }}</ng-container></p></div>
+          <a *ngIf="isInternal(event.action)" [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
+          <a *ngIf="isExternal(event.action)" [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
         </article>
       </div>
     </section>
 
-    <!-- Latest completed India result, with the deeper recent-results sheet behind it. -->
-    <section class="latest-results" *ngIf="latestResult() as result">
-      <p class="section-kicker">Latest from India</p>
-      <button type="button" class="latest-result-surface" [attr.data-sport]="result.sport.slug"
-        [attr.data-outcome]="result.result?.outcome || 'result'" (click)="openRecentResults()">
-        <span class="latest-result-pictogram" *ngIf="result.sport.pictogramUrl">
-          <img [src]="result.sport.pictogramUrl" [alt]="result.sport.name">
-        </span>
+    <section class="home-section editorial-section" aria-labelledby="editorial-heading">
+      <header class="section-heading"><h2 id="editorial-heading">From IOD</h2><a routerLink="/originals">All originals <mat-icon>arrow_forward</mat-icon></a></header>
+      <div class="editorial-loading" *ngIf="editorialLoading()" role="status">Loading IOD shows…</div>
+      <div class="editorial-grid" *ngIf="editorial().length">
+        <article class="editorial-card" *ngFor="let video of editorial()">
+          <a class="editorial-poster" [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Watch ' + video.title">
+            <img *ngIf="thumbnail(video) as image" [src]="image" alt="" loading="lazy">
+            <span class="play-icon"><mat-icon>play_arrow</mat-icon></span>
+          </a>
+          <div class="editorial-copy"><p>{{ editorialMeta(video) }}</p><h3><a [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer">{{ video.title }}</a></h3></div>
+        </article>
+      </div>
+      <a class="channel-link" href="https://www.youtube.com/@IODSportsPod" target="_blank" rel="noopener noreferrer">Latest uploads on YouTube <mat-icon>north_east</mat-icon></a>
+      <div class="editorial-empty" *ngIf="!editorialLoading() && !editorial().length"><p>{{ editorialFailed() ? 'Shows couldn’t be loaded right now.' : 'Interviews, previews and analysis from Indian Olympic Dream.' }}</p><a routerLink="/originals">Explore IOD Originals <mat-icon>arrow_forward</mat-icon></a><button type="button" *ngIf="editorialFailed()" (click)="loadEditorial()">Try again</button></div>
+    </section>
 
-        <span class="latest-result-copy">
-          <small>{{ result.sport.name }} · {{ outcomeLabel(result) }}</small>
-          <strong>{{ result.resultLabel }}</strong>
-          <span>{{ result.headline }}</span>
-        </span>
-
-        <span class="latest-result-action">
-          View {{ home().recentResults.length }} {{ home().recentResults.length === 1 ? 'result' : 'results' }}
-          <mat-icon>arrow_forward</mat-icon>
-        </span>
+    <section class="home-section recent-section" *ngIf="latestResult() as result" aria-labelledby="results-heading">
+      <header class="section-heading"><h2 id="results-heading">Recent results</h2><button type="button" (click)="openRecentResults()">All {{ home().recentResults.length }} results <mat-icon>arrow_forward</mat-icon></button></header>
+      <button class="result-surface" type="button" (click)="openRecentResult(result)">
+        <span class="sport-icon"><img *ngIf="result.sport.pictogramUrl" [src]="result.sport.pictogramUrl" alt=""></span><span><small>{{ result.sport.name }} · {{ outcomeLabel(result) }}</small><strong>{{ result.resultLabel }}</strong><span>{{ result.headline }}</span></span><mat-icon>arrow_forward</mat-icon>
       </button>
     </section>
 
-    <!-- Unified Sporting Timeline -->
-    <section class="india-timeline" *ngIf="home().days.length">
-      <header class="timeline-heading">
-        <span class="timeline-tz">All times IST</span>
-      </header>
-      <app-sports-moment-timeline [days]="home().days"></app-sports-moment-timeline>
-    </section>
-
-    <!-- Bottom Navigation Links -->
-    <nav class="home-depth-links" aria-label="Explore more IOD Sports">
-      <a routerLink="/calendar">
-        <span>
-          <small>Every event, every sport</small>
-          <strong>Open the full Calendar</strong>
-        </span>
-        <mat-icon>arrow_forward</mat-icon>
-      </a>
-      <a routerLink="/sports">
-        <span>
-          <small>Disciplines and pathways</small>
-          <strong>Explore Sports</strong>
-        </span>
-        <mat-icon>arrow_forward</mat-icon>
-      </a>
-    </nav>
+    <nav class="home-depth-links" aria-label="Explore more"><a routerLink="/calendar">Every event, date and official source <span>Open Calendar <mat-icon>arrow_forward</mat-icon></span></a><a routerLink="/sports">Disciplines, athletes and pathways <span>Explore Sports <mat-icon>arrow_forward</mat-icon></span></a></nav>
   </ng-container>
 </main>
-
-<app-recent-results-sheet *ngIf="resultsOpen()" [results]="home().recentResults" [now]="home().now"
-  [covered]="detailOpen()" (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)">
-</app-recent-results-sheet>
+<app-recent-results-sheet *ngIf="resultsOpen()" [results]="home().recentResults" [now]="home().now" [covered]="detailOpen()" (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)"></app-recent-results-sheet>

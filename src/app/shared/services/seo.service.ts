@@ -24,7 +24,7 @@ export class SeoService {
   private readonly defaultDescription =
     "Track India's Olympic journey across current contenders, competition calendar, legacy history, athletes, originals, and stories.";
   private readonly defaultImagePath = '/assets/images/social/iod-share-card.png';
-  private readonly fallbackOrigin = 'https://indianolympicdream.com';
+  private readonly fallbackOrigin = 'https://iodsports.com';
   private initialized = false;
 
   init(): void {
@@ -98,11 +98,26 @@ export class SeoService {
       };
     }
 
-    if (cleanPath === '/' || cleanPath === '/home' || cleanPath === '/sports') {
+    if (cleanPath === '/' || cleanPath === '/home') {
       return {
-        title: `${this.siteName} | India's Olympic Sports Home`,
+        title: `${this.siteName} | Indian Olympic Sports Calendar & Results`,
         description:
-          "Track India's Olympic ecosystem with sport hubs, LA28 contender tiers, current calendar, legacy editions, and editorial originals.",
+          "Follow India's Olympic sports calendar, live and recent results, upcoming competitions, athletes, and the road to Aichi-Nagoya 2026.",
+      };
+    }
+
+    if (cleanPath === '/sports') {
+      return {
+        title: `Explore Olympic Sports | ${this.siteName}`,
+        description:
+          "Explore IOD's Indian Olympic sport hubs, disciplines, athletes, pathways, current focus, and legacy context.",
+      };
+    }
+
+    if (cleanPath === '/games/asian-games-2026') {
+      return {
+        title: `India at Asian Games 2026 | Aichi-Nagoya | ${this.siteName}`,
+        description: "Follow India at the Aichi-Nagoya 2026 Asian Games, 19 September–4 October. Explore the schedule in IST, squad, events and IOD previews.",
       };
     }
 
@@ -110,7 +125,7 @@ export class SeoService {
       return {
         title: `Calendar | ${this.siteName}`,
         description:
-          "Follow India's Olympic sports calendar with live now, this week, this month, and sport-specific competition tracking.",
+          "Explore ongoing and upcoming Olympic sports competitions, filter by sport, and find official event and viewing links with Indian Olympic Dream.",
       };
     }
 

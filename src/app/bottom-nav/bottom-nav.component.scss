@@ -5,7 +5,7 @@
 .bottom-nav {
   display: flex;
   justify-content: space-between;
-  gap: 4px;
+  gap: 2px;
   align-items: stretch;
   min-height: 0 !important;
   height: auto !important;
@@ -18,7 +18,7 @@
   background: rgba(10, 10, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 6px 8px calc(env(safe-area-inset-bottom) + 6px);
+  padding: 6px 4px calc(env(safe-area-inset-bottom) + 6px);
   box-sizing: border-box;
 }
 
@@ -44,7 +44,7 @@
   border: none;
   background: rgba(255, 255, 255, 0.02);
   box-sizing: border-box;
-  overflow: hidden;
+  &:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: -2px; }
 
   &:hover {
     background: rgba(255, 255, 255, 0.07);
@@ -66,6 +66,11 @@
       filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.2));
       opacity: 1;
     }
+
+    .nav-logo-icon {
+      opacity: 1;
+      filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.4));
+    }
   }
 }
 
@@ -84,6 +89,8 @@
   margin-top: 4px;
   letter-spacing: 0.25px;
   line-height: 1;
+  text-align: center;
+  white-space: normal;
   font-weight: 600;
   text-transform: none;
 }
@@ -124,6 +131,8 @@
   object-fit: contain;
   opacity: 0.9;
 }
+
+.nav-games-icon { width: 19px; height: 19px; object-fit: contain; filter: none; }
 
 @media (max-width: 768px) {
   :host {
