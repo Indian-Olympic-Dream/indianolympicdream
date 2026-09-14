@@ -1,0 +1,332 @@
+:host { display: block; }
+$gold: #f3c85c;
+$blue: #82adf7;
+$ag-purple: #5c509e;
+$ag-gold: #c8a83c;
+$ag-green: #3a9a5b;
+$ag-red: #e63327;
+.asian-hub { min-height: 100vh; color: #efeff3; font-family: 'Geist Sans',sans-serif; background: radial-gradient(ellipse 820px 540px at 10% -8%, #{$ag-purple}0d, transparent 75%), radial-gradient(ellipse 600px 500px at 100% 8%, #{$ag-gold}0c, transparent 80%), #07090c; }
+.hub-content { max-width: 1232px; padding: 22px 32px 64px; margin: auto; }
+a { color: inherit; text-decoration: none; }
+button { color: inherit; cursor: pointer; font: inherit; }
+a:focus-visible,button:focus-visible { outline: 2px solid $gold; outline-offset: 4px; }
+.breadcrumbs { display: flex; gap: 12px; color: #ffffff69; font: 10px 'Geist Mono',monospace; }
+.breadcrumbs a:hover { color: $gold; }
+
+// ===== Hero Card =====
+.games-hero { padding: 36px 0 28px; }
+.games-hero.has-broadcast { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.hero-card {
+  position: relative; padding: 28px 30px 26px; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(145deg, rgba($ag-purple, .08), rgba($ag-gold, .05), rgba($ag-green, .04));
+  border: 1px solid rgba(255,255,255,.09);
+  backdrop-filter: blur(16px);
+}
+.hero-card-glow {
+  position: absolute; inset: -1px; border-radius: inherit; z-index: 0; pointer-events: none;
+  background: conic-gradient(from 220deg at 30% 10%, #{$ag-purple}22, #{$ag-gold}18, #{$ag-green}14, transparent 60%);
+  animation: heroGlow 12s ease-in-out infinite alternate;
+}
+@keyframes heroGlow {
+  0% { opacity: .6; filter: blur(30px); }
+  50% { opacity: 1; filter: blur(50px); }
+  100% { opacity: .5; filter: blur(35px); }
+}
+.hero-card > *:not(.hero-card-glow) { position: relative; z-index: 1; }
+.hero-top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.hub-pill {
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba($ag-gold, .15); border: 1px solid rgba($ag-gold, .35);
+  color: $gold; font: 700 9px/1 'Geist Mono',monospace; letter-spacing: .06em;
+}
+.dates-pill { color: #ffffff80; font: 400 11px 'Geist Mono',monospace; }
+.hero-brand { display: flex; align-items: center; gap: 24px; margin-bottom: 22px; }
+.logo-wrapper {
+  flex: 0 0 88px; width: 88px; height: 88px; padding: 8px;
+  background: #ffffff; border-radius: 16px;
+  display: grid; place-items: center;
+  box-shadow: 0 8px 28px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.15), 0 0 40px rgba($ag-purple, .12);
+  transition: box-shadow .3s, transform .3s;
+}
+.logo-wrapper:hover { transform: scale(1.03); box-shadow: 0 10px 36px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.2), 0 0 50px rgba($ag-gold, .15); }
+.ag-logo { width: 100%; height: 100%; object-fit: contain; }
+.hero-copy { min-width: 0; }
+.eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font: 600 10px/1.4 'Geist Mono',monospace; color: #d5c4a0; text-transform: uppercase; letter-spacing: .12em; }
+.tricolour { display: inline-block; width: 22px; height: 13px; background: linear-gradient(#ef9346 0 33%,#eeeeef 33% 66%,#61a072 66%); border-radius: 1px; }
+h1 {
+  margin: 0 0 10px; font-size: clamp(32px, 4.2vw, 52px); line-height: 1.05;
+  letter-spacing: -.06em; font-weight: 700;
+}
+.year-accent {
+  background: linear-gradient(135deg, #{$ag-gold}, #{$gold});
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; font-weight: 780;
+}
+.gold-stop { color: $ag-red; }
+.mobile-break { display: none; }
+.opening {
+  display: flex; align-items: center; gap: 8px; margin: 0;
+  color: $gold; font: 500 11px 'Geist Mono',monospace;
+}
+.pulse-dot {
+  width: 6px; height: 6px; background: $ag-gold; border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 6px rgba($ag-gold, .5);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.7); }
+}
+.hero-stats {
+  display: flex; gap: 0; margin: 20px 0 18px;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+  background: rgba(255,255,255,.03); overflow: hidden;
+}
+.stat-cell {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 14px 10px; text-align: center;
+}
+.stat-cell + .stat-cell { border-left: 1px solid rgba(255,255,255,.08); }
+.stat-cell strong {
+  font: 650 24px 'Geist Sans',sans-serif; letter-spacing: -.04em;
+  background: linear-gradient(135deg, #fff 40%, #{$ag-gold});
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-cell small { font: 9px/1.3 'Geist Mono',monospace; color: #ffffff60; text-transform: uppercase; letter-spacing: .1em; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px 25px; }
+.hero-actions a { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #ffffff8c; transition: color .2s; }
+.hero-actions a:hover { color: #ffffffcc; }
+.hero-actions a:first-child { color: #f9e4ac; }
+.hero-actions a:first-child:hover { color: $gold; }
+.hero-actions mat-icon { width: 16px; height: 16px; font-size: 16px; }
+
+.channel-strip { display: flex; align-items: center; gap: 13px; padding: 16px 0; margin: 0 0 34px; border-block: 1px solid #ffffff12; }
+.channel-icon { display: grid; place-items: center; width: 32px; height: 24px; border-radius: 7px; color: #e99e9e; background: #c6383820; }
+.channel-strip strong { display: block; font-size: 13px; font-weight: 580; }
+.channel-strip small { display: block; font-size: 11px; color: #ffffff69; margin-top: 4px; }
+.channel-strip>mat-icon { margin-left: auto; color: #9a9fa9; font-size: 18px; }
+.games-guide { scroll-margin-top: 18px; }
+.guide-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.guide-heading h2 { font-size: 27px; letter-spacing: -.045em; font-weight: 620; margin: 6px 0 0; }
+.guide-heading>a,.hub-footnote a { display: inline-flex; align-items: center; gap: 6px; color: $blue; font: 500 11px 'Geist Mono',monospace; }
+.guide-heading mat-icon,.hub-footnote mat-icon { width: 17px; height: 17px; font-size: 17px; }
+.games-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 0; }
+.focus-filter { display: inline-flex; padding: 3px; background: #ffffff04; border: 1px solid #ffffff16; border-radius: 9px; }
+.focus-filter button { min-height: 44px; padding: 10px 15px; color: #ffffffb0; background: transparent; border: 1px solid transparent; border-radius: 6px; font: inherit; font-size: 14px; }
+.focus-filter button.selected { color: #ffe4a0; background: #f3c85c0e; border-color: #f3c85c55; }
+.sport-select {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #ffffffa0;
+  font: 500 13px 'Geist Mono', monospace;
+  letter-spacing: 0.02em;
+
+  select {
+    min-height: 42px;
+    max-width: 260px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: #f4f4f4;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center, #11141b;
+    padding: 8px 36px 8px 14px;
+    font: 500 13px/1.4 'Geist Sans', sans-serif;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: all 180ms ease;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.32);
+      background-color: #161a24;
+    }
+
+    &:focus-visible {
+      border-color: rgba(200, 168, 60, 0.5);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(200, 168, 60, 0.2);
+    }
+
+    option {
+      background: #11141b;
+      color: #ffffff;
+      padding: 8px;
+    }
+  }
+}
+.focus-help { margin: -9px 0 16px; color: #ffffffa0; font-size: 14px; line-height: 1.5; }
+.matrix-day-button { width: 100%; min-height: 38px; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 650; cursor: pointer; }
+.matrix-day-button:hover { background: #ffffff10; }
+.games-filters :focus-visible, .matrix-day-button:focus-visible { outline: 2px solid #f3c85c; outline-offset: 2px; }
+.guide-tabs { display: flex; gap: 28px; border-bottom: 1px solid #ffffff16; }
+.guide-tabs button { position: relative; min-height: 47px; padding: 0 0 12px; background: none; border: 0; color: #ffffff69; font-size: 14px; font-weight: 550; }
+.guide-tabs button.active { color: #f4e5c2; }
+.guide-tabs .active::after { content:''; position: absolute; height: 2px; background: $gold; bottom: -1px; left: 0; right: 0; }
+.schedule-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 0 15px; }
+.schedule-tools>span { font: 9px 'Geist Mono',monospace; color: #ffffff60; text-transform: uppercase; letter-spacing: .1em; }
+.scope-filter { display: flex; gap: 5px; }
+.scope-filter button { min-height: 36px; padding: 6px 12px; border: 1px solid transparent; background: transparent; border-radius: 6px; color: #ffffff75; font-size: 11px; }
+.scope-filter button.active { background: #82adf710; color: #b5cefa; border-color: #82adf726; }
+.day-picker { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 10px; }
+.day-picker button { min-height: 58px; min-width: 65px; padding: 8px 10px; border: 1px solid #ffffff12; border-radius: 6px; background: #ffffff03; }
+.day-picker small { display: block; text-transform: uppercase; font: 9px 'Geist Mono',monospace; color: #ffffff66; }
+.day-picker strong { display: block; margin-top: 5px; font: 550 11px 'Geist Mono',monospace; }
+.day-picker .selected { background: #f3c85c13; border-color: #f3c85c66; color: #f9dd97; }
+.timing-note { margin: 16px 0; font-size: 11px; line-height: 1.6; color: #ffffff70; max-width: 760px; }
+.session { display: grid; grid-template-columns: 140px minmax(0,1fr); gap: 24px; padding: 20px 0; border-bottom: 1px solid #ffffff10; }
+.session-time { padding-top: 3px; }
+.session-time strong { font: 550 11px 'Geist Mono',monospace; }
+.session-time small { display: block; color: #999eab; font: 9px/1.5 'Geist Mono',monospace; margin-top: 8px; }
+.session-copy { border-left: 1px solid #ffffff1c; padding-left: 21px; }
+.session-copy>p { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin: 0 0 7px; color: $blue; font: 500 9px 'Geist Mono',monospace; text-transform: uppercase; letter-spacing: .08em; }
+.session h3,.roster h3,.event-list h3 { margin: 0; font-size: 16px; line-height: 1.4; font-weight: 560; letter-spacing: -.015em; }
+.session-copy>span { display: block; margin-top: 5px; font-size: 11px; color: #ffffff66; }
+.medal-label,.india-label { color: $gold; font-size: 8px; }
+.result-summary { display: block; margin-top: 9px; color: #c4d8ba; font-size: 13px; font-weight: 550; }
+.session[data-state='live'] .session-time { color: #f87171; }
+.session[data-state='active'] .session-time { color: $gold; }
+.session[data-state='completed'] h3 { color: #ffffff80; }
+.empty-state { display: flex; gap: 20px; padding: 40px 22px; margin: 15px 0; background: linear-gradient(110deg,#82adf709,transparent); border: 1px solid #ffffff10; border-radius: 10px; }
+.empty-state>mat-icon { color: #82adf780; flex-shrink: 0; }
+.empty-state h3 { margin: 0 0 8px; font-size: 17px; font-weight: 570; letter-spacing: -.02em; }
+.empty-state p { max-width: 610px; margin: 0; color: #ffffff7a; font-size: 12px; line-height: 1.6; }
+.empty-state a,.empty-state button { display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; color: $blue; font: 500 11px 'Geist Mono',monospace; padding: 0; background: none; border: 0; }
+.empty-state a mat-icon,.empty-state button mat-icon { width: 15px; height: 15px; font-size: 15px; }
+.roster,.event-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 32px; }
+.roster article,.event-list article { padding: 16px 0; border-bottom: 1px solid #ffffff12; }
+.roster small,.event-list small { display: block; margin-bottom: 5px; color: #82adf7bb; font: 9px/1.5 'Geist Mono',monospace; }
+.roster p { margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #ffffff80; }
+.hub-footnote { margin-top: 36px; padding-top: 20px; border-top: 1px solid #ffffff12; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 15px; }
+.hub-footnote>span { color: #ffffff50; font: 9px 'Geist Mono',monospace; }
+.loading,.fetch-error { padding: 24px 0; font-size: 13px; color: #ccd1dc; }
+.fetch-error { display: flex; gap: 14px; align-items: center; }
+.fetch-error button { border: 1px solid #82adf73a; background: #82adf710; border-radius: 5px; padding: 8px; color: $blue; }
+@media(max-width:700px) {
+  .hub-content { padding: 18px 18px 38px; }
+  .games-hero { display: block; padding: 24px 0 20px; }
+  .games-hero.has-broadcast { display: block; }
+  .games-hero app-hub-broadcast { margin-top: 20px; }
+  .hero-card { padding: 20px 18px 20px; border-radius: 14px; }
+  .hero-top-bar { margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .hub-pill { font-size: 8px; padding: 3px 8px; }
+  .dates-pill { font-size: 10px; }
+  .hero-brand { gap: 16px; margin-bottom: 18px; }
+  .logo-wrapper { flex: 0 0 68px; width: 68px; height: 68px; padding: 6px; border-radius: 13px; }
+  h1 { font-size: 36px; margin: 0 0 8px; }
+  .mobile-break { display: initial; }
+  .eyebrow { font-size: 9px; margin-bottom: 6px; }
+  .opening { font-size: 10px; }
+  .hero-stats { margin: 16px 0 14px; }
+  .stat-cell { padding: 11px 6px; }
+  .stat-cell strong { font-size: 20px; }
+  .stat-cell small { font-size: 8px; }
+  .channel-strip { margin-bottom: 29px; }
+  .channel-strip strong { font-size: 12px; }
+  .channel-strip small { font-size: 10px; line-height: 1.5; }
+  .guide-heading h2 { font-size: 24px; }
+  .guide-heading>a { font-size: 9px; }
+  .games-filters { gap: 10px; padding: 16px 0; }
+  .focus-filter { width: 100%; }
+  .focus-filter button { flex: 1; }
+  .sport-select { width: 100%; }
+  .sport-select select { flex: 1; max-width: none; min-width: 0; }
+  .guide-tabs { gap: 18px; flex-wrap: wrap; }
+  .guide-tabs button { font-size: 12px; }
+  .day-picker { gap: 5px; }
+  .day-picker button { min-width: 61px; padding: 8px; }
+  .session { grid-template-columns: 93px minmax(0,1fr); gap: 6px; padding: 18px 0; }
+  .session-copy { padding-left: 12px; }
+  .session-time strong { font-size: 10px; line-height: 1.8; }
+  .session h3 { font-size: 14px; }
+  .empty-state { padding: 25px 16px; gap: 13px; }
+  .empty-state h3 { font-size: 16px; }
+  .roster,.event-list { grid-template-columns: 1fr; }
+  .matrix-sport-cell { min-width: 110px; padding: 9px 10px; font-size: 10px; gap: 5px; }
+  .matrix-sport-cell img { width: 15px; height: 15px; }
+  .matrix-cell { min-width: 36px; min-height: 36px; }
+  .matrix-cell strong { font-size: 10px; }
+  .matrix-date-header { min-width: 36px; padding: 7px 3px; }
+  .matrix-date-header small { font-size: 7px; }
+  .matrix-date-header strong { font-size: 10px; }
+  .matrix-date-header span { font-size: 7px; }
+}
+// ===== Schedule Matrix =====
+.matrix-section { padding-top: 4px; }
+.matrix-scroll {
+  overflow-x: auto; overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  margin: 12px 0 18px;
+  border: 1px solid #ffffff10; border-radius: 10px;
+  background: #ffffff03;
+  scrollbar-width: thin; scrollbar-color: #ffffff20 transparent;
+}
+.schedule-matrix {
+  width: max-content; min-width: 100%;
+  border-collapse: separate; border-spacing: 0;
+  font: 11px 'Geist Mono', monospace;
+}
+.schedule-matrix thead { position: sticky; top: 0; z-index: 2; }
+.matrix-sport-header {
+  position: sticky; left: 0; z-index: 3;
+  min-width: 155px; padding: 12px 16px;
+  text-align: left; font: 600 9px/1.5 'Geist Mono', monospace;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: #ffffff60;
+  background: #0a0d11; border-bottom: 1px solid #ffffff14;
+}
+.matrix-date-header {
+  min-width: 46px; padding: 10px 5px 8px;
+  text-align: center; vertical-align: bottom;
+  background: #0a0d11; border-bottom: 1px solid #ffffff14;
+  white-space: nowrap;
+}
+.matrix-date-header small { display: block; font: 8px 'Geist Mono', monospace; color: #ffffff55; text-transform: uppercase; }
+.matrix-date-header strong { display: block; margin: 3px 0 1px; font: 600 12px 'Geist Mono', monospace; color: #ffffffcc; }
+.matrix-date-header span { display: block; font: 8px 'Geist Mono', monospace; color: #ffffff44; text-transform: uppercase; }
+.matrix-row { transition: background .15s; }
+.matrix-row:hover { background: #ffffff06; }
+.matrix-sport-cell {
+  position: sticky; left: 0; z-index: 1;
+  display: flex; align-items: center; gap: 9px;
+  min-width: 155px; padding: 11px 16px;
+  font-size: 12px; font-weight: 520; color: #ffffffcc;
+  background: #0a0d11; border-bottom: 1px solid #ffffff0a;
+  white-space: nowrap;
+}
+.matrix-row:hover .matrix-sport-cell { background: #0e1117; }
+.matrix-sport-cell img { width: 18px; height: 18px; object-fit: contain; filter: brightness(0) invert(.78); flex-shrink: 0; }
+.matrix-cell {
+  position: relative; min-width: 46px; min-height: 44px;
+  padding: 6px 4px; text-align: center; vertical-align: middle;
+  border-bottom: 1px solid #ffffff0a; border-left: 1px solid #ffffff06;
+  cursor: default; transition: background .15s;
+}
+.matrix-cell strong { display: block; font: 600 12px 'Geist Mono', monospace; color: #ffffff38; }
+.matrix-cell.has-sessions strong { color: #ffffffcc; }
+.matrix-cell.has-sessions { background: #82adf708; }
+.matrix-cell.has-medal { background: #f3c85c0a; }
+.matrix-cell.has-medal strong { color: $gold; }
+.matrix-cell.has-india { box-shadow: inset 0 -2px 0 #ef934680; }
+.matrix-medal-dot, .matrix-india-dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  margin: 3px 1px 0; vertical-align: top;
+}
+.matrix-medal-dot { background: $gold; }
+.matrix-india-dot { background: #ef9346; }
+.matrix-cell:hover {
+  background: #82adf715;
+}
+.matrix-legend {
+  display: flex; flex-wrap: wrap; gap: 18px; padding: 0 0 8px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font: 10px 'Geist Mono', monospace; color: #ffffff60;
+}
+.legend-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+}
+.legend-dot.is-session { background: #82adf755; }
+.legend-dot.is-medal { background: $gold; }
+.legend-dot.is-india { background: #ef9346; }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior: auto; transition: none !important; } }

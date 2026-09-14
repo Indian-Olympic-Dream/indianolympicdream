@@ -1,15 +1,20 @@
-import { Routes } from "@angular/router";
+import { inject } from "@angular/core";
+import { Router, Routes } from "@angular/router";
 
 export const routes: Routes = [
   {
     path: "",
     pathMatch: "full",
-    loadComponent: () =>
-      import("./home/home.component").then((m) => m.HomeComponent),
-    data: {
-      animation: "HomePage",
-      order: 1,
-    },
+    redirectTo: ({ queryParams, fragment }) => inject(Router).createUrlTree(
+      ['/sports'], { queryParams, fragment: fragment ?? undefined },
+    ),
+  },
+  {
+    path: "home",
+    pathMatch: "full",
+    redirectTo: ({ queryParams, fragment }) => inject(Router).createUrlTree(
+      ['/sports'], { queryParams, fragment: fragment ?? undefined },
+    ),
   },
   {
     path: "sports",
@@ -17,7 +22,7 @@ export const routes: Routes = [
       import("./sports/sports.component").then((m) => m.SportsComponent),
     data: {
       animation: "SportsPage",
-      order: 2,
+      order: 1,
     },
   },
   {
@@ -25,6 +30,11 @@ export const routes: Routes = [
     loadChildren: () =>
       import("./history/history.routes").then((m) => m.HISTORY_ROUTES),
     data: { animation: "HistoryPage", order: 2 },
+  },
+  {
+    path: "games/asian-games-2026",
+    loadComponent: () => import("./games/asian-games-2026-hub.component").then((m) => m.AsianGames2026HubComponent),
+    data: { animation: "AsianGamesHubPage", order: 3, transitionType: "bottom-to-top" },
   },
   {
     path: "games/commonwealth-games-2026",

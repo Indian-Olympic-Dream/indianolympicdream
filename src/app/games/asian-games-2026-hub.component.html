@@ -1,0 +1,139 @@
+<main class="asian-hub">
+  <div class="hub-content">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a routerLink="/sports">Sports</a><span>/</span><span>Asian Games</span></nav>
+    <header class="games-hero" [class.has-broadcast]="!!featuredVideo()">
+      <div class="hero-card">
+        <div class="hero-card-glow" aria-hidden="true"></div>
+        <div class="hero-top-bar">
+          <span class="hub-pill">IOD HUB</span>
+          <span class="dates-pill">{{ games.dateLabel }} · {{ games.location }}</span>
+        </div>
+        <div class="hero-brand">
+          <div class="logo-wrapper">
+            <img src="assets/images/ag-2026/logo.webp" alt="20th Asian Games Aichi-Nagoya 2026" class="ag-logo">
+          </div>
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="tricolour" aria-hidden="true"></span>India at the 20th Asian Games</p>
+            <h1>Aichi-Nagoya<br class="mobile-break"> <span class="year-accent">2026</span><span class="gold-stop">.</span></h1>
+            <p class="opening"><i class="pulse-dot" aria-hidden="true"></i>{{ openingLabel() }}</p>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-cell">
+            <strong>{{ allSports().length || '–' }}</strong>
+            <small>Sports in guide</small>
+          </div>
+          <div class="stat-cell">
+            <strong>{{ squadCount() || '–' }}</strong>
+            <small>Athletes listed</small>
+          </div>
+          <div class="stat-cell">
+            <strong>19 Sep</strong>
+            <small>Opening ceremony</small>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a href="/games/asian-games-2026#games-guide" (click)="openGuide($event)">Explore the Games <mat-icon>arrow_downward</mat-icon></a>
+          <a [href]="games.officialUrl" target="_blank" rel="noopener noreferrer">Official website <mat-icon>north_east</mat-icon></a>
+        </div>
+      </div>
+      <app-hub-broadcast *ngIf="featuredVideo() as video" [video]="video" id="iod-show"></app-hub-broadcast>
+    </header>
+
+    <a class="channel-strip" *ngIf="!featuredVideo()" [href]="games.youtubeChannelUrl" target="_blank" rel="noopener noreferrer">
+      <span class="channel-icon"><mat-icon>play_arrow</mat-icon></span><span><strong>The conversation continues on IOD.</strong><small>Previews, watch-alongs and analysis on YouTube</small></span><mat-icon>north_east</mat-icon>
+    </a>
+
+
+    <section class="games-guide" id="games-guide" aria-labelledby="guide-heading">
+      <div class="guide-heading"><div><p class="eyebrow">Follow your sport</p><h2 id="guide-heading">Your Games guide</h2></div><a routerLink="/calendar">Full Calendar <mat-icon>arrow_forward</mat-icon></a></div>
+      <div class="loading" *ngIf="loading()" role="status">Loading the Games…</div>
+      <div class="fetch-error" *ngIf="failed().length" role="status"><span>Some of the latest information couldn’t be loaded.</span><button type="button" (click)="load()">Try again</button></div>
+      <ng-container *ngIf="!loading()">
+        <div class="games-filters" *ngIf="allSports().length">
+          <div class="focus-filter" role="group" aria-label="Sport programme">
+            <button type="button" [class.selected]="!la28Only()" [attr.aria-pressed]="!la28Only()" (click)="setProgrammeScope(false)">All Asian Games sports</button>
+            <button type="button" [class.selected]="la28Only()" [attr.aria-pressed]="la28Only()" aria-describedby="focus-help" (click)="setProgrammeScope(true)">LA28 sports</button>
+          </div>
+          <label class="sport-select"><span>Coverage</span><select [value]="iodCoverageOnly() ? 'iod' : 'all'" (change)="setCoverageScope($any($event.target).value === 'iod')"><option value="all">All Indian participation</option><option value="iod">IOD in-depth · 12 sports</option></select></label>
+          <label class="sport-select"><span>Sport</span><select [value]="selectedSport()" (change)="selectSport($any($event.target).value)"><option value="all">All {{ sports().length }} sport groups</option><option *ngFor="let sport of sports()" [value]="sport.slug">{{ sport.name }}</option></select></label>
+        </div>
+        <p class="focus-help" id="focus-help">{{ la28Only() ? 'Sports on the LA28 programme; individual Asian Games events may differ.' : 'India’s announced participation across Asian Games sports.' }}<ng-container *ngIf="iodCoverageOnly()"> Showing IOD’s 12 editorial priority sports.</ng-container></p>
+
+        <nav class="guide-tabs" aria-label="Games guide views">
+          <button type="button" [attr.aria-pressed]="selectedView() === 'matrix'" [class.active]="selectedView() === 'matrix'" (click)="selectView('matrix')">Schedule matrix</button>
+          <button type="button" [attr.aria-pressed]="selectedView() === 'schedule'" [class.active]="selectedView() === 'schedule'" (click)="selectView('schedule')">Schedule</button>
+          <button type="button" [attr.aria-pressed]="selectedView() === 'squad'" [class.active]="selectedView() === 'squad'" (click)="selectView('squad')">India’s squad</button>
+          <button type="button" [attr.aria-pressed]="selectedView() === 'events'" [class.active]="selectedView() === 'events'" (click)="selectView('events')">Events</button>
+        </nav>
+
+        <section *ngIf="selectedView() === 'schedule'" aria-label="Games schedule">
+          <div class="schedule-tools"><div class="scope-filter" aria-label="Schedule scope"><button type="button" [class.active]="scheduleScope() === 'programme'" [attr.aria-pressed]="scheduleScope() === 'programme'" (click)="scheduleScope.set('programme')">All sessions</button><button type="button" [class.active]="scheduleScope() === 'india'" [attr.aria-pressed]="scheduleScope() === 'india'" (click)="scheduleScope.set('india')">India confirmed</button></div><span>All times IST</span></div>
+          <ng-container *ngIf="days().length; else noSchedule">
+            <div class="day-picker" aria-label="Choose competition day"><button type="button" *ngFor="let day of days()" [class.selected]="activeDay() === day.key" [attr.aria-pressed]="activeDay() === day.key" (click)="selectedDay.set(day.key)"><small>{{ day.day }}</small><strong>{{ day.date }}</strong></button></div>
+            <p class="timing-note">Japan is 3½ hours ahead of India. Session windows can contain several events; individual start times may follow later.</p>
+            <div class="schedule-list"><article class="session" *ngFor="let item of dayRows()" [attr.data-state]="item.state">
+              <div class="session-time"><strong>{{ item.time }}</strong><small *ngIf="item.label">{{ item.label }}</small></div>
+              <div class="session-copy"><p>{{ item.sport }}<span *ngIf="item.row.isMedalSession" class="medal-label">Medal session</span><span *ngIf="item.india" class="india-label">India</span></p><h3>{{ item.row.eventName || item.row.name }}</h3><span *ngIf="item.row.venue">{{ item.row.venue }}</span><strong *ngIf="item.result" class="result-summary">{{ item.result }}</strong></div>
+            </article></div>
+          </ng-container>
+          <ng-template #noSchedule><div class="empty-state"><mat-icon>event_note</mat-icon><div><h3>{{ scheduleScope() === 'india' ? 'India’s starts, once confirmed.' : 'The schedule is being prepared.' }}</h3><p>{{ scheduleScope() === 'india' ? 'Explore the session programme while Indian start lists and match assignments are confirmed.' : 'Competition sessions will appear here with timings for India. The official Games website has the latest announcements.' }}</p><button *ngIf="scheduleScope() === 'india'" type="button" (click)="scheduleScope.set('programme')">Explore all sessions <mat-icon>arrow_forward</mat-icon></button><a *ngIf="scheduleScope() === 'programme'" [href]="games.officialUrl" target="_blank" rel="noopener noreferrer">Visit the official website <mat-icon>north_east</mat-icon></a></div></div></ng-template>
+        </section>
+
+        <section *ngIf="selectedView() === 'squad'" aria-label="India squad">
+          <ng-container *ngIf="athletes().length; else noSquad"><p class="timing-note">{{ athletes().length }} athletes in this view · Selections can change before final entries.</p><div class="roster"><article *ngFor="let athlete of athletes()"><small>{{ athlete.sport }} · {{ athlete.status }}</small><h3>{{ athlete.name }}</h3><p>{{ athlete.events }}</p></article></div></ng-container>
+          <ng-template #noSquad><div class="empty-state"><mat-icon>groups</mat-icon><div><h3>India’s squad is being prepared.</h3><p>Names and event entries will appear here as the selections are checked and published.</p></div></div></ng-template>
+        </section>
+        <section *ngIf="selectedView() === 'events'" aria-label="Games events">
+          <ng-container *ngIf="programmeEvents().length; else noEvents"><p class="timing-note">{{ programmeEvents().length }} events in this guide</p><div class="event-list"><article *ngFor="let event of programmeEvents()"><small>{{ event.sport?.name }}</small><h3>{{ event.officialName }}</h3></article></div></ng-container>
+          <ng-template #noEvents><div class="empty-state"><mat-icon>sports</mat-icon><div><h3>The event guide is on its way.</h3><p>Explore the official programme while we prepare sport-by-sport coverage.</p><a [href]="games.officialUrl" target="_blank" rel="noopener noreferrer">Official Games website <mat-icon>north_east</mat-icon></a></div></div></ng-template>
+        </section>
+        <section *ngIf="selectedView() === 'matrix'" aria-label="Schedule matrix" class="matrix-section">
+          <p class="timing-note">{{ matrixSports().length }} {{ matrixSports().length === 1 ? 'sport' : 'sports' }} · All dates shown in IST · Select a session count to explore that day</p>
+          <ng-container *ngIf="matrixSports().length; else noMatrix">
+            <div class="matrix-scroll">
+              <table class="schedule-matrix">
+                <thead>
+                  <tr>
+                    <th class="matrix-sport-header" scope="col">Sport</th>
+                    <th *ngFor="let d of matrixDates()" scope="col" class="matrix-date-header">
+                      <small>{{ d.day }}</small>
+                      <strong>{{ d.date }}</strong>
+                      <span>{{ d.month }}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let sport of matrixSports()" class="matrix-row">
+                    <td class="matrix-sport-cell">
+                      <img *ngIf="sport.icon" [src]="sport.icon" alt="" width="20" height="20" loading="lazy">
+                      <span>{{ sport.name }}</span>
+                    </td>
+                    <td *ngFor="let cell of sport.grid; let dayIndex = index" class="matrix-cell"
+                        [class.has-sessions]="!!cell"
+                        [class.has-medal]="!!cell?.medals"
+                        [class.has-india]="!!cell?.india"
+                        [attr.title]="matrixCellLabel(cell)">
+                      <ng-container *ngIf="cell">
+                        <button type="button" class="matrix-day-button" (click)="openMatrixDay(sport.slug, matrixDates()[dayIndex].key)" [attr.aria-label]="sport.name + ', ' + matrixDates()[dayIndex].key + ': ' + matrixCellLabel(cell)">{{ cell.sessions }}</button>
+                        <i *ngIf="cell.medals" class="matrix-medal-dot" aria-label="Medal session"></i>
+                        <i *ngIf="cell.india" class="matrix-india-dot" aria-label="India confirmed"></i>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="matrix-legend">
+              <span class="legend-item"><i class="legend-dot is-session"></i>Sessions</span>
+              <span class="legend-item"><i class="legend-dot is-medal"></i>Medal session</span>
+              <span class="legend-item"><i class="legend-dot is-india"></i>India confirmed</span>
+            </div>
+          </ng-container>
+          <ng-template #noMatrix><div class="empty-state"><mat-icon>grid_view</mat-icon><div><h3>The schedule matrix will appear once session data is available.</h3><p>Check back as the competition schedule is published.</p></div></div></ng-template>
+        </section>
+      </ng-container>
+    </section>
+    <footer class="hub-footnote"><span>Indian Olympic Dream · Aichi-Nagoya 2026</span><a routerLink="/sports">Explore Olympic sports <mat-icon>arrow_forward</mat-icon></a></footer>
+  </div>
+</main>
