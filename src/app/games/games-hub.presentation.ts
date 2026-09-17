@@ -18,7 +18,8 @@ export function hasIndiaAppearance(row: GamesScheduleRow): boolean {
   // is required before presenting them as an Indian athlete's start.
   return row.participationStatus === 'confirmed'
     && !row.isConditional
-    && !!(row.indianParticipants?.length || row.gamesParticipations?.length)
+    && !!(row.indianParticipants?.length || row.gamesParticipations?.length
+      || (row.timingPrecision === 'exact' && row.sessionDetails?.some(detail => detail.organisations?.includes('IND'))))
     && !['cancelled', 'eliminated', 'postponed'].includes(row.status || '');
 }
 

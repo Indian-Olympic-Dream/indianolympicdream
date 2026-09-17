@@ -246,7 +246,32 @@ export interface RetiredAthletesFeed {
   };
 }
 
+export interface GamesSessionDetail {
+  timeIST?: string;
+  event: string;
+  phase?: string;
+  unit?: string;
+  status?: string;
+  conditional?: boolean;
+  medal?: boolean;
+  organisations?: string[];
+  competitors?: string[];
+  sides?: {
+    code: string;
+    label: string;
+    participants?: string[];
+    score?: string | number | null;
+    isWinner?: boolean;
+  }[];
+  units?: string[];
+  sourceUrl?: string;
+}
+
 export interface GamesScheduleRow {
+  sourceId?: string;
+  sourceBasis?: string;
+  sessionDetails?: GamesSessionDetail[];
+  gamesProgrammeEvent?: { id: string; officialName: string };
   id: string;
   name?: string;
   gamesKey?: string;
@@ -270,6 +295,7 @@ export interface GamesScheduleRow {
   participationStatus?: string;
   timingPrecision?: 'exact' | 'session-window' | 'start-list-pending' | 'draw-dependent' | 'tbd';
   certainty?: string;
+  notes?: string;
   status?: string;
   result?: any;
   liveCoverage?: LiveScoreCoverage | null;
@@ -396,6 +422,7 @@ export interface GamesParticipationRow {
   status?: string;
   editorialPriority?: string;
   publicNote?: string;
+  gamesProgrammeEvent?: { id: string; officialName: string } | null;
   sport?: Sport | null;
   athlete?: CalendarEventParticipant | null;
   source?: {
@@ -495,6 +522,10 @@ const EVENT_HUB_SCHEDULE_QUERY = gql`
         id
         name
         gamesKey
+        sourceId
+        sourceBasis
+        sessionDetails
+        gamesProgrammeEvent { id officialName }
         sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
         indianParticipants { id fullName }
         gamesParticipations { id }
@@ -515,6 +546,7 @@ const EVENT_HUB_SCHEDULE_QUERY = gql`
         participationStatus
         timingPrecision
         certainty
+        notes
         status
         result
         liveCoverage {
@@ -621,6 +653,7 @@ const EVENT_HUB_PARTICIPATIONS_QUERY = gql`
         status
         editorialPriority
         publicNote
+        gamesProgrammeEvent { id officialName }
         sport {
           id
           name

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Aichi–Nagoya 2026 gold medal</title>
+  <desc id="desc">A premium gold medal with blue ribbon and an abstract Japanese landscape.</desc>
+  <defs>
+    <linearGradient id="ribbon" x1="12" y1="5" x2="48" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#32266E"/>
+      <stop offset=".44" stop-color="#51449A"/>
+      <stop offset=".72" stop-color="#233C86"/>
+      <stop offset="1" stop-color="#122354"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="14" y1="15" x2="53" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4B2"/>
+      <stop offset=".2" stop-color="#F5CA54"/>
+      <stop offset=".52" stop-color="#B7770B"/>
+      <stop offset=".74" stop-color="#FFE27A"/>
+      <stop offset="1" stop-color="#8B5405"/>
+    </linearGradient>
+    <radialGradient id="face" cx="0" cy="0" r="1" gradientTransform="translate(24 24) rotate(51) scale(40)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1A0"/>
+      <stop offset=".4" stop-color="#EFC34F"/>
+      <stop offset="1" stop-color="#A76508"/>
+    </radialGradient>
+    <linearGradient id="land" x1="14" y1="35" x2="53" y2="53" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8D5608"/>
+      <stop offset=".55" stop-color="#C58B20"/>
+      <stop offset="1" stop-color="#F6D065"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-20%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="2.4" stdDeviation="2.2" flood-color="#000" flood-opacity=".48"/>
+    </filter>
+    <filter id="texture" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="noise"/>
+      <feComposite in="noise" in2="SourceGraphic" operator="in" result="grain"/>
+      <feBlend in="SourceGraphic" in2="grain" mode="soft-light"/>
+    </filter>
+    <clipPath id="medalFace"><circle cx="32" cy="38" r="22"/></clipPath>
+  </defs>
+
+  <path d="M13 2h15l4 17-10 7L13 2Z" fill="url(#ribbon)"/>
+  <path d="M51 2H36l-4 17 10 7L51 2Z" fill="url(#ribbon)"/>
+  <path d="M18 2l10 19M46 2 36 21" stroke="#C9C5EC" stroke-opacity=".42" stroke-width="1.8"/>
+  <path d="M24 13h16l3 8H21l3-8Z" fill="url(#rim)" stroke="#7B4A06" stroke-width=".8"/>
+
+  <g filter="url(#shadow)">
+    <circle cx="32" cy="38" r="24" fill="url(#rim)"/>
+    <circle cx="32" cy="38" r="21.8" fill="url(#face)" stroke="#FFF0A0" stroke-opacity=".72" stroke-width=".7"/>
+    <g clip-path="url(#medalFace)" filter="url(#texture)">
+      <path d="M9 42 22 30l11 9 11-17 14 7v31H8l1-18Z" fill="#F7D56C" fill-opacity=".5"/>
+      <path d="M7 49c8-8 14-10 22-7 7 3 12 2 18-5 5-6 9-6 14-4v28H7V49Z" fill="url(#land)"/>
+      <path d="M8 55c10-5 18-6 27-2 9 4 16 2 24-5v15H8v-8Z" fill="#7E4A05" fill-opacity=".58"/>
+      <path d="m8 49 15-14 10 8 13-18 13 7M8 55c10-5 18-6 27-2 9 4 16 2 24-5" fill="none" stroke="#704106" stroke-opacity=".78" stroke-width="1"/>
+      <path d="M17 19c8 4 15 11 21 21l-7 20H12V20l5-1Z" fill="#FFE38A" fill-opacity=".2"/>
+    </g>
+    <g transform="translate(45 46)" fill="none" stroke="#7D4A05" stroke-width="1.05" stroke-linecap="round">
+      <circle r="2.1"/>
+      <path d="M0-6v2M0 4v2M-6 0h2M4 0h2M-4.3-4.3l1.5 1.5M2.8 2.8l1.5 1.5M4.3-4.3 2.8-2.8M-2.8 2.8l-1.5 1.5"/>
+    </g>
+    <path d="M17.5 23.5A21 21 0 0 1 43 18" fill="none" stroke="#FFF6C5" stroke-opacity=".62" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+</svg>

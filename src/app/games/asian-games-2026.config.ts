@@ -8,6 +8,7 @@ export const ASIAN_GAMES_2026 = {
   end: '2026-10-04T23:59:59+09:00',
   competitionStart: '2026-09-16T00:00:00+09:00',
   dateLabel: '19 Sep – 4 Oct 2026',
+  scheduleUrl: 'https://results.asiangames2026.org/#/schedule/calendar',
   officialUrl: 'https://www.aichi-nagoya2026.org/',
   youtubeChannelUrl: 'https://www.youtube.com/@IODSportsPod',
   athleteCount: 501,
