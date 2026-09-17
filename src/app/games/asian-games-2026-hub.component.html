@@ -49,6 +49,7 @@
                 class="ag-gold-medal legend-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">Medal
               events</span>
             <span><i class="legend-dot is-india" aria-hidden="true">✓</i>Confirmed</span>
+            <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
           </div>
         </div>
 
@@ -256,14 +257,19 @@
                   </th>
                   <td *ngFor="let cell of sport.grid; let i = index" class="matrix-cell"
                     [class.is-today]="matrixDates()[i].key === todayKey()" [class.has-sessions]="!!cell"
-                    [class.has-medal]="!!cell?.medalEvents" [class.has-india]="!!cell?.india"><button *ngIf="cell"
+                    [class.has-medal]="!!cell?.medalEvents" [class.has-india]="!!cell?.india && !cell?.results"
+                    [class.has-result]="!!cell?.results" [class.result-win]="cell?.outcome === 'win'"
+                    [class.result-loss]="cell?.outcome === 'loss'"><button *ngIf="cell"
                       type="button" (click)="openMatrixDayDialog(sport.slug, matrixDates()[i].key)"
                       [attr.aria-label]="sport.name + ', ' + matrixDates()[i].key + ': ' + matrixCellLabel(cell)"><span
-                        *ngIf="!cell.medalEvents && !cell.india" class="matrix-activity-mark"
+                        *ngIf="!cell.medalEvents && !cell.india && !cell.results" class="matrix-activity-mark"
                         aria-hidden="true"></span><span *ngIf="cell.medalEvents" class="matrix-medal-count"><img
                           class="ag-gold-medal matrix-medal-icon" src="assets/images/ag-2026/gold-medal.svg"
-                          alt=""><small>{{ cell.medalEvents }}</small></span><span *ngIf="cell.india"
-                        class="matrix-india-dot" aria-hidden="true">✓</span></button></td>
+                          alt=""><small>{{ cell.medalEvents }}</small></span><span *ngIf="cell.results"
+                        class="matrix-result-mark" [class.is-win]="cell.outcome === 'win'"
+                        [class.is-loss]="cell.outcome === 'loss'" aria-hidden="true"><strong>{{ matrixResultLabel(cell)
+                          }}</strong><small *ngIf="cell.results > 1">{{ cell.results }}</small></span><span
+                        *ngIf="cell.india && !cell.results" class="matrix-india-dot" aria-hidden="true">✓</span></button></td>
                 </tr>
               </tbody>
             </table>
@@ -441,7 +447,8 @@
       <ng-container *ngIf="isSingleFixture(row) && singleFixtureDetail(row) as fixtureDetail; else standardSessionView">
         <div class="drawer-fixture-block">
           <div class="drawer-session-summary fixture-summary">
-            <div class="dialog-time"><span>Starts</span><strong>{{ getScheduleTiming(row) }}</strong></div>
+            <div class="dialog-time" [class.is-result]="isResultTiming(row)"><span>{{ sessionTimingLabel(row)
+                }}</span><strong>{{ sessionTimingValue(row) }}</strong></div>
             <div class="dialog-badges" [class.metadata-only]="showEvents === false">
               <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
             </div>
@@ -501,7 +508,8 @@
 
       <ng-template #standardSessionView>
         <div class="drawer-session-summary">
-          <div class="dialog-time"><span>Starts</span><strong>{{ getScheduleTiming(row) }}</strong></div>
+          <div class="dialog-time" [class.is-result]="isResultTiming(row)"><span>{{ sessionTimingLabel(row)
+              }}</span><strong>{{ sessionTimingValue(row) }}</strong></div>
           <div class="dialog-badges" [class.metadata-only]="showEvents === false"><ng-container
               *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container></div>
         </div>

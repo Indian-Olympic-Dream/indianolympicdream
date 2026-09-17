@@ -4,7 +4,7 @@ import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal }
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { Observable, catchError, forkJoin, interval, of } from 'rxjs';
+import { Observable, catchError, interval, of } from 'rxjs';
 import { OriginalsService, Video } from '../originals/originals.service';
 import { selectHubVideo } from '../originals/broadcast-presentation';
 import { HubBroadcastComponent } from './hub-broadcast.component';
@@ -46,6 +46,13 @@ export interface TimelineDateGroup {
   hasQuotaSport: boolean;
 }
 
+interface MatrixCell {
+  medalEvents: number;
+  india: number;
+  results: number;
+  outcome: 'win' | 'loss' | 'mixed' | null;
+}
+
 @Component({
   selector: 'app-asian-games-2026-hub',
   standalone: true,
@@ -59,6 +66,7 @@ export class AsianGames2026HubComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   private readonly route = inject(ActivatedRoute);
+  private participationsRequested = false;
   readonly games = ASIAN_GAMES_2026;
   readonly loading = signal(true);
   readonly failed = signal<string[]>([]);
@@ -184,7 +192,7 @@ export class AsianGames2026HubComponent implements OnInit {
   /** Sports × dates matrix. Earlier-starting sports lead; ties stay alphabetical. */
   readonly matrixSports = computed(() => {
     const dates = this.matrixDates();
-    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number }> }>();
+    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number; results: number; wins: number; losses: number }> }>();
     for (const row of this.scopedSchedule()) {
       if (!Number.isFinite(Date.parse(row.startTime))) continue;
       const sport = this.rowSport(row);
@@ -194,9 +202,15 @@ export class AsianGames2026HubComponent implements OnInit {
       if (!sportMap.has(slug)) sportMap.set(slug, { slug, name, firstDay: dateKey, icon: sport ? this.pictogram(sport) : null, cells: new Map() });
       const entry = sportMap.get(slug)!;
       if (dateKey < entry.firstDay) entry.firstDay = dateKey;
-      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0 };
+      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0, results: 0, wins: 0, losses: 0 };
       for (const key of asianMedalEventKeys(row)) cell.medalEventKeys.add(key);
       if (hasIndiaAppearance(row)) cell.india++;
+      const resultCount = this.rowResultCount(row);
+      if (resultCount) {
+        cell.results += resultCount;
+        if (row.result?.outcome === 'win') cell.wins += resultCount;
+        if (row.result?.outcome === 'loss') cell.losses += resultCount;
+      }
       entry.cells.set(dateKey, cell);
     }
     return [...sportMap.values()]
@@ -206,7 +220,14 @@ export class AsianGames2026HubComponent implements OnInit {
         isQuotaSport: this.isQuotaSport(sport.slug),
         grid: dates.map((d) => {
           const cell = sport.cells.get(d.key);
-          return cell ? { medalEvents: cell.medalEventKeys.size, india: cell.india } : null;
+          return cell ? {
+            medalEvents: cell.medalEventKeys.size,
+            india: cell.india,
+            results: cell.results,
+            outcome: cell.results && cell.wins === cell.results ? 'win' as const
+              : cell.results && cell.losses === cell.results ? 'loss' as const
+                : cell.results ? 'mixed' as const : null,
+          } : null;
         }),
       }));
   });
@@ -299,22 +320,36 @@ export class AsianGames2026HubComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.failed.set([]);
-    forkJoin({
-      events: this.read('competitions', this.payload.getCalendarEvents({ hubKey: this.games.hubKey, limit: 100 })),
-      schedule: this.read('schedule', this.payload.getEventHubSchedule(this.games.gamesKey)),
-      participations: this.read('squad', this.payload.getEventHubParticipations(this.games.gamesKey)),
-      programme: this.read('events', this.payload.getEventHubProgramme(this.games.gamesKey)),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ events, schedule, participations, programme }) => {
-      const linked = events.filter((event) => new Date(event.endDate || event.startDate) >= new Date(this.games.competitionStart)
-        && new Date(event.startDate) <= new Date(this.games.end));
-      this.events.set(linked);
+    this.read('schedule', this.payload.getEventHubSchedule(this.games.gamesKey))
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((schedule) => {
       this.schedule.set(schedule);
-      this.participations.set(participations);
-      this.programme.set(programme);
       this.loading.set(false);
-      this.read('videos', this.originals.getVideosForCalendarEvents(linked.map((event) => event.id)))
-        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((videos) => this.videos.set(videos));
+      this.loadEditorial(schedule);
     });
+  }
+
+  private loadEditorial(schedule: GamesScheduleRow[]): void {
+    const eventIds = [...new Set(schedule.map(row => row.calendarEvent?.id).filter((id): id is string => Boolean(id)))];
+    if (eventIds.length) {
+      this.read('videos', this.originals.getVideosForCalendarEvents(eventIds))
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(videos => this.videos.set(videos));
+      return;
+    }
+    this.read('competitions', this.payload.getCalendarEvents({ hubKey: this.games.hubKey, limit: 100 }))
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(events => {
+        const linked = events.filter(event => new Date(event.endDate || event.startDate) >= new Date(this.games.competitionStart)
+          && new Date(event.startDate) <= new Date(this.games.end));
+        this.events.set(linked);
+        this.read('videos', this.originals.getVideosForCalendarEvents(linked.map(event => event.id)))
+          .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(videos => this.videos.set(videos));
+      });
+  }
+
+  private ensureParticipations(): void {
+    if (this.participationsRequested || this.participations().length) return;
+    this.participationsRequested = true;
+    this.read('squad', this.payload.getEventHubParticipations(this.games.gamesKey))
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(rows => this.participations.set(rows));
   }
 
   selectSport(slug: string): void {
@@ -400,6 +435,7 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   openMatrixDayDialog(sportSlug: string, dateKey: string): void {
+    this.ensureParticipations();
     const sessions = this.getSessionsForSportAndDate(sportSlug, dateKey);
     const sport = this.sports().find(s => s.slug === sportSlug) || this.allSports().find(s => s.slug === sportSlug);
     if (!sessions.length && !sport) return;
@@ -441,6 +477,7 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   openSessionDialog(row: GamesScheduleRow): void {
+    this.ensureParticipations();
     if (!this.matrixSelectedCell() && !this.isSquadDialogOpen()) this.returnFocus = this.document.activeElement as HTMLElement;
     this.matrixSelectedCell.set(null);
     this.selectedSessionRow.set(row);
@@ -452,6 +489,7 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   openSquadDialog(): void {
+    this.ensureParticipations();
     this.returnFocus = this.document.activeElement as HTMLElement;
     this.isSquadDialogOpen.set(true);
   }
@@ -481,12 +519,42 @@ export class AsianGames2026HubComponent implements OnInit {
     this.selectedView.set(view);
   }
 
-  matrixCellLabel(cell: { medalEvents: number; india: number } | null): string {
+  matrixCellLabel(cell: MatrixCell | null): string {
     if (!cell) return '';
     const parts: string[] = ['Scheduled programme'];
+    if (cell.results) parts.push(`${cell.results} official result${cell.results !== 1 ? 's' : ''}`);
     if (cell.medalEvents) parts.push(`${cell.medalEvents} medal event${cell.medalEvents !== 1 ? 's' : ''}`);
-    if (cell.india) parts.push(`${cell.india} confirmed India session${cell.india !== 1 ? 's' : ''}`);
+    if (cell.india && !cell.results) parts.push(`${cell.india} confirmed India session${cell.india !== 1 ? 's' : ''}`);
     return parts.join(' · ');
+  }
+
+  matrixResultLabel(cell: MatrixCell): string {
+    return cell.outcome === 'win' ? 'W' : cell.outcome === 'loss' ? 'L' : 'FT';
+  }
+
+  sessionTimingLabel(row: GamesScheduleRow): string {
+    if (row.result?.summary) return Array.isArray(row.result?.matches) && row.result.matches.length > 1 ? 'Results' : 'Result';
+    if (row.status === 'eliminated') return 'Campaign';
+    if (row.status === 'completed') return 'Status';
+    if (this.isSessionLive(row)) return 'Live now';
+    return 'Starts';
+  }
+
+  sessionTimingValue(row: GamesScheduleRow): string {
+    const matches = Array.isArray(row.result?.matches) ? row.result.matches.length : 0;
+    if (row.result?.summary) return matches > 1 ? `${matches} matches final` : 'Official result';
+    if (row.status === 'eliminated') return 'Complete';
+    if (row.status === 'completed') return 'Completed';
+    return this.getScheduleTiming(row);
+  }
+
+  isResultTiming(row: GamesScheduleRow): boolean {
+    return Boolean(row.result?.summary) || ['completed', 'eliminated'].includes(row.status || '');
+  }
+
+  private rowResultCount(row: GamesScheduleRow): number {
+    if (!row.result?.summary) return 0;
+    return Array.isArray(row.result.matches) && row.result.matches.length ? row.result.matches.length : 1;
   }
 
   countdown(row: GamesScheduleRow): string { return timeUntilStart(row.startTime, this.now()); }

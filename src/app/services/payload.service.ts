@@ -1786,8 +1786,14 @@ export class PayloadService {
       return of([]);
     }
 
-    return this.getAllHubPages<GamesScheduleRow>(EVENT_HUB_SCHEDULE_QUERY, 'GamesSchedules', gamesKey)
-      .pipe(map(rows => this.normalizeGamesScheduleRows(rows).sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id))));
+    const params = new HttpParams()
+      .set('gamesKey', gamesKey.trim())
+      .set('format', 'full');
+    return this.http.get<PayloadListResponse<GamesScheduleRow>>(
+      `${environment.payload_url}/api/games-schedule/hub`,
+      { params },
+    ).pipe(map(response => this.normalizeGamesScheduleRows(response.docs || [])
+      .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id))));
   }
 
   getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {
@@ -1803,8 +1809,14 @@ export class PayloadService {
   getEventHubParticipations(gamesKey: string): Observable<GamesParticipationRow[]> {
     if (!gamesKey?.trim()) return of([]);
 
-    return this.getAllHubPages<GamesParticipationRow>(EVENT_HUB_PARTICIPATIONS_QUERY, 'GamesParticipations', gamesKey)
-      .pipe(map((rows) => rows.map((row) => ({
+    const params = new HttpParams()
+      .set('gamesKey', gamesKey.trim())
+      .set('limit', '1000')
+      .set('page', '1');
+    return this.http.get<PayloadListResponse<GamesParticipationRow>>(
+      `${environment.payload_url}/api/games-participations/hub`,
+      { params },
+    ).pipe(map((response) => (response.docs || []).map((row) => ({
         ...row,
         selectionStatus: row.selectionStatus?.replace(/_/g, '-') as GamesParticipationRow['selectionStatus'],
       })).sort((a, b) => (a.rosterOrder ?? Number.MAX_SAFE_INTEGER) - (b.rosterOrder ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id))));
@@ -1843,6 +1855,12 @@ export class PayloadService {
   private normalizeGamesScheduleRows(rows: GamesScheduleRow[]): GamesScheduleRow[] {
     return rows.map((row) => ({
       ...row,
+      calendarEvent: row.calendarEvent && typeof row.calendarEvent === 'object'
+        ? {
+          ...row.calendarEvent,
+          title: row.calendarEvent.title || (row.calendarEvent as GamesScheduleRow['calendarEvent'] & { name?: string }).name || '',
+        }
+        : row.calendarEvent,
       phase: row.phase?.replace(/_/g, '-'),
       participationStatus: row.participationStatus?.replace(/_/g, '-'),
       timingPrecision: row.timingPrecision?.replace(/_/g, '-') as GamesScheduleRow['timingPrecision'],

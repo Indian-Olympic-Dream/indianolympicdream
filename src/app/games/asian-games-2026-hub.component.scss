@@ -1186,6 +1186,21 @@ img.la28-transparent-logo {
     box-shadow: inset 0 -2px 0 rgba(239, 147, 70, 0.6);
   }
 
+  &.has-result {
+    background: linear-gradient(145deg, rgba(110, 157, 204, .13), rgba(110, 157, 204, .035));
+    box-shadow: inset 0 -2px 0 rgba(126, 174, 218, .55);
+  }
+
+  &.has-result.result-win {
+    background: linear-gradient(145deg, rgba(73, 151, 105, .16), rgba(73, 151, 105, .04));
+    box-shadow: inset 0 -2px 0 rgba(104, 190, 137, .65);
+  }
+
+  &.has-result.result-loss {
+    background: linear-gradient(145deg, rgba(184, 112, 90, .12), rgba(184, 112, 90, .025));
+    box-shadow: inset 0 -2px 0 rgba(200, 132, 108, .5);
+  }
+
   .matrix-india-dot {
     display: inline-block;
     width: 5px;
@@ -1240,6 +1255,56 @@ img.la28-transparent-logo {
 
   &.is-india {
     background: #ef9346;
+  }
+}
+
+.legend-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 21px;
+  height: 15px;
+  padding: 0 4px;
+  border: 1px solid rgba(126, 174, 218, .55);
+  border-radius: 4px;
+  color: #a9cff2;
+  background: rgba(110, 157, 204, .1);
+  font: 700 8px/1 'Geist Mono', monospace;
+  font-style: normal;
+  letter-spacing: .04em;
+}
+
+.matrix-result-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 20px;
+  min-height: 17px;
+  padding: 2px 4px;
+  border: 1px solid rgba(126, 174, 218, .5);
+  border-radius: 5px;
+  color: #abd2f4;
+  background: rgba(103, 151, 197, .12);
+
+  strong,
+  small {
+    font: 700 8px/1 'Geist Mono', monospace;
+  }
+
+  small {
+    color: rgba(255, 255, 255, .7);
+  }
+
+  &.is-win {
+    border-color: rgba(104, 190, 137, .55);
+    color: #a9deb9;
+    background: rgba(73, 151, 105, .13);
+  }
+
+  &.is-loss {
+    border-color: rgba(200, 132, 108, .48);
+    color: #ddb09f;
+    background: rgba(184, 112, 90, .1);
   }
 }
 
@@ -2688,6 +2753,12 @@ img.la28-transparent-logo {
     strong {
       color: #f0cb6b;
       font-size: 18px;
+    }
+
+    &.is-result strong {
+      color: #b9d8c3;
+      font-size: 14px;
+      letter-spacing: -.01em;
     }
   }
 
