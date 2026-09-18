@@ -3165,18 +3165,18 @@ img.la28-transparent-logo {
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, .065);
 
-  summary {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
+  .matchup-roster-toggle {
+    width: 100%;
+    min-height: 18px;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) 16px;
+    align-items: center;
     gap: 4px 10px;
+    padding-right: 42px;
+    border: 0;
+    background: transparent;
+    text-align: left;
     cursor: pointer;
-    list-style: none;
-
-    &::-webkit-details-marker {
-      display: none;
-    }
 
     strong {
       color: #d8dde5;
@@ -3185,19 +3185,26 @@ img.la28-transparent-logo {
     }
 
     span {
+      overflow: hidden;
       color: #828c99;
       font-size: 9.5px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    &::after {
-      content: '+';
+    mat-icon {
+      width: 16px;
+      height: 16px;
       color: #aeb6c1;
-      font: 600 11px 'Geist Mono', monospace;
+      font-size: 16px;
+      line-height: 16px;
     }
-  }
 
-  &[open] summary::after {
-    content: '−';
+    &:focus-visible {
+      outline: 1px solid rgba($gold, .55);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
   }
 
   .matchup-athletes {
@@ -3985,6 +3992,14 @@ img.la28-transparent-logo {
 
   .matchup-athletes span {
     font-size: 11px;
+  }
+
+  .matchup-roster-toggle {
+    grid-template-columns: max-content 16px;
+
+    >span {
+      display: none;
+    }
   }
 
   .games-detail-drawer .drawer-session,

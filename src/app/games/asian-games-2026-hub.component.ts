@@ -106,6 +106,7 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly expandedTimelineProgrammes = signal<ReadonlySet<string>>(new Set<string>());
   readonly inlineEventLimit = 3;
   readonly selectedSessionRow = signal<GamesScheduleRow | null>(null);
+  readonly expandedLineups = signal<ReadonlySet<string>>(new Set<string>());
   readonly matrixSelectedCell = signal<{
     sportSlug: string;
     sportName: string;
@@ -444,6 +445,24 @@ export class AsianGames2026HubComponent implements OnInit {
       })))
       .sort((a, b) => a.order - b.order);
   }
+  trackDrawerEvent(_index: number, entry: DrawerEventEntry): string {
+    return entry.detail.sourceUrl || `${entry.row.id}|${entry.detail.timeIST || ''}|${entry.detail.event}|${entry.detail.phase || ''}|${entry.detail.unit || ''}`;
+  }
+  lineupKey(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): string {
+    const event = detail.sourceUrl || `${detail.timeIST || ''}|${detail.event}|${detail.phase || ''}|${detail.unit || ''}`;
+    return `${row.id}|${event}|${side.code}`;
+  }
+  isLineupExpanded(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): boolean {
+    return this.expandedLineups().has(this.lineupKey(detail, row, side));
+  }
+  toggleLineup(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): void {
+    const key = this.lineupKey(detail, row, side);
+    this.expandedLineups.update(current => {
+      const next = new Set(current);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
   participationLabel(row: GamesScheduleRow): string {
     const status = asianParticipation(row);
     return status === 'confirmed' ? 'Confirmed' : status === 'conditional' ? 'If qualified' : '';
@@ -479,6 +498,7 @@ export class AsianGames2026HubComponent implements OnInit {
 
   closeMatrixDayDialog(): void {
     this.matrixSelectedCell.set(null);
+    this.expandedLineups.set(new Set<string>());
     this.returnFocus?.focus();
   }
 
@@ -512,6 +532,7 @@ export class AsianGames2026HubComponent implements OnInit {
 
   closeSessionDialog(): void {
     this.selectedSessionRow.set(null);
+    this.expandedLineups.set(new Set<string>());
     this.returnFocus?.focus();
   }
 

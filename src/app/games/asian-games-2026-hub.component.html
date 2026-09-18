@@ -434,15 +434,20 @@
               <div *ngIf="side.participants.length && side.participants.length <= 4" class="matchup-athletes">
                 <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
               </div>
-              <details *ngIf="side.participants.length > 4" class="matchup-roster">
-                <summary>
+              <div *ngIf="side.participants.length > 4" class="matchup-roster">
+                <button type="button" class="matchup-roster-toggle"
+                  [attr.aria-expanded]="isLineupExpanded(detail, row, side)"
+                  [attr.aria-label]="(isLineupExpanded(detail, row, side) ? 'Hide' : 'View') + ' lineup for ' + side.label"
+                  (click)="toggleLineup(detail, row, side)">
                   <strong>{{ side.participants.length }} athletes</strong>
                   <span>{{ side.participantsAreRoster ? 'Squad · lineup pending' : 'View lineup' }}</span>
-                </summary>
-                <div class="matchup-athletes">
+                  <mat-icon aria-hidden="true">{{ isLineupExpanded(detail, row, side) ? 'expand_less' : 'expand_more'
+                    }}</mat-icon>
+                </button>
+                <div *ngIf="isLineupExpanded(detail, row, side)" class="matchup-athletes">
                   <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
                 </div>
-              </details>
+              </div>
               <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
                 }}</strong>
             </div>
@@ -603,7 +608,7 @@
             <div class="drawer-section-title">
               <h4>Competition events</h4><span>{{ events.length }}</span>
             </div>
-            <ng-container *ngFor="let event of events"><ng-container
+            <ng-container *ngFor="let event of events; trackBy: trackDrawerEvent"><ng-container
                 *ngTemplateOutlet="eventDetail; context: { $implicit: event.detail, row: event.row }"></ng-container></ng-container>
           </section>
           <ng-template #programmePending>
