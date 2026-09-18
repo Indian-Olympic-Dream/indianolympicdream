@@ -1354,7 +1354,6 @@ img.la28-transparent-logo {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  min-width: 22px;
   min-height: 18px;
   padding: 2px 4px;
   border: 1px solid rgba(126, 174, 218, .5);
@@ -1503,7 +1502,6 @@ img.la28-transparent-logo {
 }
 
 .event-detail-list {
-  margin-top: 22px;
 
   h4 {
     color: $muted;
@@ -2903,7 +2901,6 @@ img.la28-transparent-logo {
   position: relative;
   display: grid;
   gap: 12px;
-  margin-top: 24px;
   padding-left: 0;
 
   .drawer-section-title {
@@ -3106,22 +3103,25 @@ img.la28-transparent-logo {
     --flag-height: 25px;
   }
 
-  &.is-india {
-    border-color: rgba($gold, .32);
-    background: linear-gradient(145deg, rgba($gold, .105), rgba(2, 4, 7, .58));
-    box-shadow: inset 0 0 0 1px rgba($gold, .035);
+  &.is-winner {
+    border-color: rgba(115, 195, 145, .42);
+    background: linear-gradient(145deg, rgba(115, 195, 145, .085), rgba(2, 4, 7, .58));
+    box-shadow: inset 0 0 0 1px rgba(115, 195, 145, .025);
   }
+}
 
-  &.is-winner::after {
-    content: '';
-    position: absolute;
-    inset: 7px 7px auto auto;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #73c391;
-    box-shadow: 0 0 12px rgba(115, 195, 145, .5);
-  }
+.matchup-winner-label {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  padding: 3px 7px;
+  border: 1px solid rgba(115, 195, 145, .28);
+  border-radius: 999px;
+  color: #a9dfba;
+  background: rgba(115, 195, 145, .09);
+  font: 650 8.5px/1.2 'Geist Mono', monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .matchup-country {
@@ -3160,12 +3160,96 @@ img.la28-transparent-logo {
   }
 }
 
+.matchup-roster {
+  grid-column: 1 / -1;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, .065);
+
+  summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 10px;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    strong {
+      color: #d8dde5;
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+
+    span {
+      color: #828c99;
+      font-size: 9.5px;
+    }
+
+    &::after {
+      content: '+';
+      color: #aeb6c1;
+      font: 600 11px 'Geist Mono', monospace;
+    }
+  }
+
+  &[open] summary::after {
+    content: '−';
+  }
+
+  .matchup-athletes {
+    margin-top: 8px;
+  }
+}
+
 .matchup-score {
   position: absolute;
   right: 10px;
   bottom: 9px;
   color: #f1d98e;
   font: 650 16px 'Geist Mono', monospace;
+}
+
+.event-result-summary {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(255, 255, 255, .18);
+  border-radius: 0 9px 9px 0;
+  background: rgba(255, 255, 255, .025);
+
+  >span {
+    color: #8f98a5;
+    font: 650 8.5px/1.25 'Geist Mono', monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  >strong {
+    color: #dce1e8;
+    font-size: 11px;
+    font-weight: 560;
+    line-height: 1.45;
+  }
+
+  &.is-win {
+    border-left-color: rgba(115, 195, 145, .65);
+
+    >span {
+      color: #91d2a7;
+    }
+  }
+
+  &.is-loss {
+    border-left-color: rgba(215, 130, 130, .55);
+
+    >span {
+      color: #d89c9c;
+    }
+  }
 }
 
 .india-entry-block {

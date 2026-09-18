@@ -21,6 +21,7 @@ export interface DrawerCompetitorSide {
   code: string;
   label: string;
   participants: string[];
+  participantsAreRoster?: boolean;
   score?: string | number | null;
   isWinner?: boolean;
 }
@@ -675,13 +676,19 @@ export class AsianGames2026HubComponent implements OnInit {
 
   detailSides(detail: GamesSessionDetail, row: GamesScheduleRow): DrawerCompetitorSide[] {
     if (isCeremonyDetail(detail)) return [];
-    if (detail.sides?.length) return detail.sides.map(side => ({
-      code: (side.code || '').toUpperCase(),
-      label: side.label || side.code,
-      participants: side.participants || [],
-      score: side.score,
-      isWinner: side.isWinner,
-    }));
+    if (detail.sides?.length) return detail.sides.map(side => {
+      const code = (side.code || '').toUpperCase();
+      const publishedParticipants = side.participants || [];
+      const roster = code === 'IND' && !publishedParticipants.length ? this.detailIndiaEntries(detail, row) : [];
+      return {
+        code,
+        label: side.label || side.code,
+        participants: publishedParticipants.length ? publishedParticipants : roster,
+        participantsAreRoster: !publishedParticipants.length && roster.length > 0,
+        score: side.score,
+        isWinner: side.isWinner,
+      };
+    });
 
     const codes = detail.organisations || [];
     const labels = detail.competitors || [];
@@ -691,6 +698,7 @@ export class AsianGames2026HubComponent implements OnInit {
       participants: code.toUpperCase() === 'IND'
         ? (row.indianParticipants || []).map(athlete => athlete.fullName).filter(Boolean)
         : [],
+      participantsAreRoster: code.toUpperCase() === 'IND',
     }));
   }
 
@@ -700,7 +708,31 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   showDerivedIndiaEntries(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
-    return !isCeremonyDetail(detail) && !hasPublishedIndiaParticipants(detail, row);
+    return !isCeremonyDetail(detail) && !this.detailSides(detail, row).length && !hasPublishedIndiaParticipants(detail, row);
+  }
+
+  detailResultSummary(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
+    const matches = Array.isArray(row.result?.matches) ? row.result.matches : [];
+    const officialKey = String(detail.sourceUrl || '').match(/\/results\/([^/?#]+)/)?.[1];
+    const exact = officialKey ? matches.find((match: any) => match?.officialKey === officialKey) : null;
+    if (exact?.summary) return exact.summary;
+
+    const normalize = (value: unknown) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const detailText = normalize(`${detail.event} ${detail.phase || ''} ${detail.unit || ''}`);
+    const semantic = matches.find((match: any) => {
+      const event = normalize(match?.event);
+      const phase = normalize(match?.phase);
+      const unit = normalize(match?.unit);
+      return (!event || detailText.includes(event)) && (!phase || detailText.includes(phase)) && (!unit || detailText.includes(unit));
+    });
+    if (semantic?.summary) return semantic.summary;
+    return this.competitionDetails(row).length === 1 ? row.result?.summary || null : null;
+  }
+
+  detailResultOutcome(summary: string): 'win' | 'loss' | 'neutral' {
+    if (/\bbeat\b/i.test(summary)) return 'win';
+    if (/\blost to\b/i.test(summary)) return 'loss';
+    return 'neutral';
   }
 
   derivedIndiaEntryNote(detail: GamesSessionDetail): string {

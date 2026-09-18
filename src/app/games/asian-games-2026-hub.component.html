@@ -430,9 +430,19 @@
                 <span>{{ side.code }}</span>
                 <strong>{{ side.label }}</strong>
               </div>
-              <div *ngIf="side.participants.length" class="matchup-athletes">
+              <span *ngIf="side.isWinner" class="matchup-winner-label">Winner</span>
+              <div *ngIf="side.participants.length && side.participants.length <= 4" class="matchup-athletes">
                 <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
               </div>
+              <details *ngIf="side.participants.length > 4" class="matchup-roster">
+                <summary>
+                  <strong>{{ side.participants.length }} athletes</strong>
+                  <span>{{ side.participantsAreRoster ? 'Squad · lineup pending' : 'View lineup' }}</span>
+                </summary>
+                <div class="matchup-athletes">
+                  <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
+                </div>
+              </details>
               <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
                 }}</strong>
             </div>
@@ -448,6 +458,14 @@
         </div>
 
         <ng-container *ngTemplateOutlet="indiaEntries; context: { $implicit: detail, row: row }"></ng-container>
+
+        @if (detailResultSummary(detail, row); as resultSummary) {
+        <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
+          [class.is-loss]="detailResultOutcome(resultSummary) === 'loss'">
+          <span>Result</span>
+          <strong>{{ resultSummary }}</strong>
+        </div>
+        }
 
         <details *ngIf="detail.units && detail.units.length > 1" class="drawer-units">
           <summary><span>Heats &amp; matches</span><small>{{ detail.units.length }} possible slots</small></summary>
