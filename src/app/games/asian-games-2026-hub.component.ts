@@ -108,10 +108,22 @@ export class AsianGames2026HubComponent implements OnInit {
   } | null>(null);
   readonly featuredVideo = computed(() => selectHubVideo(this.videos(), this.now()));
   readonly openingLabel = computed(() => {
-    const day = this.now().toLocaleDateString('en-CA', { timeZone: this.games.timeZone });
-    const days = Math.round((Date.parse(`${this.games.start.slice(0, 10)}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 86_400_000);
-    return days > 0 ? `${days} ${days === 1 ? 'day' : 'days'} to opening day`
-      : this.now() > new Date(this.games.end) ? 'Games complete' : 'The Games are on';
+    const openingMs = Date.parse(this.games.openingCeremony);
+    const nowMs = this.now().getTime();
+    const diffMs = openingMs - nowMs;
+
+    if (diffMs > 0) {
+      const totalHours = Math.floor(diffMs / 3_600_000);
+      const mins = Math.floor((diffMs % 3_600_000) / 60_000);
+      if (totalHours > 0) {
+        return `${totalHours}h ${mins}m to Opening Ceremony`;
+      }
+      return `${mins}m to Opening Ceremony`;
+    }
+    if (diffMs > -14_400_000) {
+      return 'Opening Ceremony Live';
+    }
+    return this.now() > new Date(this.games.end) ? 'Games complete' : 'The Games are on';
   });
 
   /** Only identical database IDs are duplicates; parallel venues remain distinct. */

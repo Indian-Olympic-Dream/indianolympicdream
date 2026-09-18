@@ -11,16 +11,34 @@
     </div> -->
     <header class="games-hero">
       <div class="hero-copy">
-        <p class="eyebrow"><span class="tricolour" aria-hidden="true"></span> IOD GAMES HUB <span class="edition">20TH
-            ASIAN GAMES</span></p>
-        <h1>India. Every session.<br><span>Aichi–Nagoya 2026.</span></h1>
-        <p class="hero-description">Follow India’s Games, from the first start to the final podium.</p>
-        <div class="hero-meta"><span>{{ games.dateLabel }}</span><span>Japan</span><span class="opening">{{
-            openingLabel() }}</span></div>
+        <div class="hero-eyebrow-badge">
+          <app-country-flag class="hero-flag" code="IND" label="India" size="small" aria-hidden="true"></app-country-flag>
+          <span class="hub-brand">IOD GAMES HUB</span>
+          <span class="edition-divider" aria-hidden="true">·</span>
+          <span class="edition-text">20TH ASIAN GAMES</span>
+        </div>
+        <h1>India’s Road to LA28<br><span class="hero-title-gradient">Begins at Aichi–Nagoya 2026.</span></h1>
+        <p class="hero-description">Follow India’s Olympic contenders, continental showdowns, and direct LA28 quotas.</p>
+        <div class="hero-meta-row">
+          <div class="hero-meta-pill">
+            <mat-icon class="meta-icon" aria-hidden="true">calendar_today</mat-icon>
+            <span>{{ games.dateLabel }}</span>
+          </div>
+          <div class="hero-meta-pill">
+            <mat-icon class="meta-icon" aria-hidden="true">location_on</mat-icon>
+            <span>{{ games.location }}</span>
+          </div>
+          <div class="hero-meta-pill status-pill">
+            <span class="status-pulse-dot" aria-hidden="true"></span>
+            <span>{{ openingLabel() }}</span>
+          </div>
+        </div>
       </div>
       <div class="hero-emblem">
-        <img src="assets/images/ag-2026/logo.webp" alt="20th Asian Games Aichi-Nagoya 2026">
-        <span>ONE ASIA. ONE DREAM.</span>
+        <div class="emblem-card">
+          <img src="assets/images/ag-2026/logo.webp" alt="20th Asian Games Aichi-Nagoya 2026">
+        </div>
+        <span class="emblem-slogan">ONE ASIA. ONE DREAM.</span>
       </div>
     </header>
     <section class="games-guide" id="games-guide" aria-label="Games guide">
