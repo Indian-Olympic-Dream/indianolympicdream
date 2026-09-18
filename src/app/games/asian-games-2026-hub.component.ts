@@ -448,15 +448,15 @@ export class AsianGames2026HubComponent implements OnInit {
   trackDrawerEvent(_index: number, entry: DrawerEventEntry): string {
     return entry.detail.sourceUrl || `${entry.row.id}|${entry.detail.timeIST || ''}|${entry.detail.event}|${entry.detail.phase || ''}|${entry.detail.unit || ''}`;
   }
-  lineupKey(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): string {
+  lineupKey(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide, sideIndex: number = 0): string {
     const event = detail.sourceUrl || `${detail.timeIST || ''}|${detail.event}|${detail.phase || ''}|${detail.unit || ''}`;
-    return `${row.id}|${event}|${side.code}`;
+    return `${row.id}|${event}|${sideIndex}:${side.code || ''}:${side.label || ''}`;
   }
-  isLineupExpanded(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): boolean {
-    return this.expandedLineups().has(this.lineupKey(detail, row, side));
+  isLineupExpanded(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide, sideIndex: number = 0): boolean {
+    return this.expandedLineups().has(this.lineupKey(detail, row, side, sideIndex));
   }
-  toggleLineup(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide): void {
-    const key = this.lineupKey(detail, row, side);
+  toggleLineup(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide, sideIndex: number = 0): void {
+    const key = this.lineupKey(detail, row, side, sideIndex);
     this.expandedLineups.update(current => {
       const next = new Set(current);
       next.has(key) ? next.delete(key) : next.add(key);

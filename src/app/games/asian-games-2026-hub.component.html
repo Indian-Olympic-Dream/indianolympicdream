@@ -422,7 +422,7 @@
 
         @if (detailSides(detail, row); as sides) {
         <div *ngIf="sides.length" class="matchup-board" [class.single-side]="sides.length === 1">
-          <ng-container *ngFor="let side of sides; let first = first">
+          <ng-container *ngFor="let side of sides; let first = first; let sideIndex = index">
             <span *ngIf="!first" class="matchup-vs">VS</span>
             <div class="matchup-side" [class.is-india]="side.code === 'IND'" [class.is-winner]="side.isWinner">
               <app-country-flag [code]="side.code" [label]="side.label"></app-country-flag>
@@ -430,26 +430,27 @@
                 <span>{{ side.code }}</span>
                 <strong>{{ side.label }}</strong>
               </div>
-              <span *ngIf="side.isWinner" class="matchup-winner-label">Winner</span>
+              <div class="matchup-side-status">
+                <span *ngIf="side.isWinner" class="matchup-winner-label">Winner</span>
+                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score }}</strong>
+              </div>
               <div *ngIf="side.participants.length && side.participants.length <= 4" class="matchup-athletes">
                 <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
               </div>
               <div *ngIf="side.participants.length > 4" class="matchup-roster">
                 <button type="button" class="matchup-roster-toggle"
-                  [attr.aria-expanded]="isLineupExpanded(detail, row, side)"
-                  [attr.aria-label]="(isLineupExpanded(detail, row, side) ? 'Hide' : 'View') + ' lineup for ' + side.label"
-                  (click)="toggleLineup(detail, row, side)">
+                  [attr.aria-expanded]="isLineupExpanded(detail, row, side, sideIndex)"
+                  [attr.aria-label]="(isLineupExpanded(detail, row, side, sideIndex) ? 'Hide' : 'View') + ' lineup for ' + side.label"
+                  (click)="toggleLineup(detail, row, side, sideIndex)">
                   <strong>{{ side.participants.length }} athletes</strong>
                   <span>{{ side.participantsAreRoster ? 'Squad · lineup pending' : 'View lineup' }}</span>
-                  <mat-icon aria-hidden="true">{{ isLineupExpanded(detail, row, side) ? 'expand_less' : 'expand_more'
+                  <mat-icon aria-hidden="true">{{ isLineupExpanded(detail, row, side, sideIndex) ? 'expand_less' : 'expand_more'
                     }}</mat-icon>
                 </button>
-                <div *ngIf="isLineupExpanded(detail, row, side)" class="matchup-athletes">
+                <div *ngIf="isLineupExpanded(detail, row, side, sideIndex)" class="matchup-athletes">
                   <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
                 </div>
               </div>
-              <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
-                }}</strong>
             </div>
           </ng-container>
         </div>
