@@ -462,98 +462,17 @@
     </ng-template>
 
     <ng-template #sessionDetails let-row let-showEvents="showEvents">
-      <ng-container *ngIf="isSingleFixture(row) && singleFixtureDetail(row) as fixtureDetail; else standardSessionView">
-        <div class="drawer-fixture-block">
-          <div class="drawer-session-summary fixture-summary">
-            <div class="dialog-time" [class.is-result]="isResultTiming(row)"><span>{{ sessionTimingLabel(row)
-                }}</span><strong>{{ sessionTimingValue(row) }}</strong></div>
-            <div class="dialog-badges" [class.metadata-only]="showEvents === false">
-              <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
-            </div>
-          </div>
-
-          <div class="drawer-fixture-stage"
-            *ngIf="(fixtureStage(row) || sessionDetailSubtitle(fixtureDetail)) as stage">
-            <span>{{ stage }}</span>
-          </div>
-
-          @if (detailSides(fixtureDetail, row); as sides) {
-          <div *ngIf="sides.length" class="matchup-board" [class.single-side]="sides.length === 1">
-            <ng-container *ngFor="let side of sides; let first = first">
-              <span *ngIf="!first" class="matchup-vs">VS</span>
-              <div class="matchup-side" [class.is-india]="side.code === 'IND'" [class.is-winner]="side.isWinner">
-                <app-country-flag [code]="side.code" [label]="side.label"></app-country-flag>
-                <div class="matchup-country">
-                  <span>{{ side.code }}</span>
-                  <strong>{{ side.label }}</strong>
-                </div>
-                <div *ngIf="side.participants.length" class="matchup-athletes">
-                  <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
-                </div>
-                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
-                  }}</strong>
-              </div>
-            </ng-container>
-          </div>
-          }
-
-          <div
-            *ngIf="isConditionalDetail(fixtureDetail, row) && !detailSides(fixtureDetail, row).length && !detailIndiaEntries(fixtureDetail, row).length"
-            class="conditional-path">
-            <mat-icon aria-hidden="true">route</mat-icon>
-            <div><strong>Possible Indian appearance</strong><span>Opponent and participants depend on earlier
-                results.</span></div>
-          </div>
-
-          <ng-container
-            *ngTemplateOutlet="indiaEntries; context: { $implicit: fixtureDetail, row: row }"></ng-container>
-
-          <p *ngIf="isConditionalRow(row) && !rowHasIndiaEntries(row)" class="timing-note">India must advance to take
-            part in this round.</p>
-          <p *ngIf="getIndiaParticipationStatus(row) === 'contingent' && !rowHasIndiaEntries(row)"
-            class="timing-note">This is a programme session. An Indian appearance has not yet been confirmed.</p>
-
-          <div class="dialog-result" *ngIf="row.result?.summary"><span>Result</span><strong>{{ row.result.summary
-              }}</strong></div>
-
-          <div class="quota-match-callout" *ngIf="isQuotaRow(row)">
-            <img src="assets/images/olympics/la2028.png" class="la28-transparent-logo callout-logo" alt="LA28">
-            <span><strong>LA28 Direct Quota Match:</strong> Winner earns direct qualification for Los Angeles
-              2028</span>
-          </div>
+      <section class="event-detail-list drawer-linear-events" *ngIf="showEvents !== false && competitionDetails(row).length">
+        <div class="drawer-section-title">
+          <h4>Competition events</h4><span>{{ drawerDetailCount(row) }}</span>
         </div>
-      </ng-container>
-
-      <ng-template #standardSessionView>
-        <div class="drawer-session-summary">
-          <div class="dialog-time" [class.is-result]="isResultTiming(row)"><span>{{ sessionTimingLabel(row)
-              }}</span><strong>{{ sessionTimingValue(row) }}</strong></div>
-          <div class="dialog-badges" [class.metadata-only]="showEvents === false"><ng-container
-              *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container></div>
-        </div>
-        <p *ngIf="isConditionalRow(row) && !rowHasIndiaEntries(row)" class="timing-note">India must advance to take
-          part in this round.</p>
-        <p *ngIf="getIndiaParticipationStatus(row) === 'contingent' && !rowHasIndiaEntries(row)"
-          class="timing-note">This is a programme session. An Indian appearance has not yet been confirmed.</p>
-        <section class="event-detail-list" *ngIf="showEvents !== false && competitionDetails(row).length">
-          <div class="drawer-section-title">
-            <h4>Competition events</h4><span>{{ drawerDetailCount(row) }}</span>
-          </div>
-          <ng-container *ngFor="let detail of competitionDetails(row)"><ng-container
-              *ngTemplateOutlet="eventDetail; context: { $implicit: detail, row: row }"></ng-container></ng-container>
-        </section>
-        <section class="event-detail-list ceremony-list" *ngIf="showEvents !== false && ceremonyDetails(row).length">
-          <div class="drawer-section-title">
-            <h4>Ceremonies</h4><span>{{ ceremonyDetails(row).length }}</span>
-          </div>
-          <ng-container *ngFor="let detail of ceremonyDetails(row)"><ng-container
-              *ngTemplateOutlet="eventDetail; context: { $implicit: detail, row: row }"></ng-container></ng-container>
-        </section>
-        <p class="timing-note" *ngIf="showEvents !== false && !row.sessionDetails?.length">Detailed programme awaiting
-          publication.</p>
-        <div class="dialog-result" *ngIf="row.result?.summary"><span>Result</span><strong>{{ row.result.summary
-            }}</strong></div>
-      </ng-template>
+        <ng-container *ngFor="let detail of competitionDetails(row)"><ng-container
+            *ngTemplateOutlet="eventDetail; context: { $implicit: detail, row: row }"></ng-container></ng-container>
+      </section>
+      <p class="timing-note" *ngIf="showEvents !== false && !competitionDetails(row).length">Detailed competition
+        programme awaiting publication.</p>
+      <div class="dialog-result" *ngIf="!competitionDetails(row).length && row.result?.summary"><span>Result</span><strong>{{
+          row.result.summary }}</strong></div>
     </ng-template>
 
     <div class="dialog-backdrop" *ngIf="selectedSessionRow() as row" (click)="closeSessionDialog()">
@@ -661,11 +580,18 @@
             (click)="closeMatrixDayDialog()"><mat-icon>close</mat-icon></button>
         </header>
         <div class="dialog-body">
-          <section *ngFor="let row of cell.sessions" class="drawer-session"
-            [class.single-fixture-session]="isSingleFixtureCell(cell)">
-            <h3 *ngIf="cell.sessions.length > 1 || !isSingleFixture(row)">{{ drawerSessionTitle(row) }}</h3>
-            <ng-container *ngTemplateOutlet="sessionDetails; context: { $implicit: row }"></ng-container>
+          @if (drawerCompetitionEntries(cell.sessions); as events) {
+          <section class="event-detail-list drawer-linear-events" *ngIf="events.length; else programmePending">
+            <div class="drawer-section-title">
+              <h4>Competition events</h4><span>{{ events.length }}</span>
+            </div>
+            <ng-container *ngFor="let event of events"><ng-container
+                *ngTemplateOutlet="eventDetail; context: { $implicit: event.detail, row: event.row }"></ng-container></ng-container>
           </section>
+          <ng-template #programmePending>
+            <p class="timing-note">Detailed competition programme awaiting publication.</p>
+          </ng-template>
+          }
 
           <footer class="drawer-footer">
             <a class="drawer-footer-source" [href]="cellSourceUrl(cell)" target="_blank" rel="noopener noreferrer">

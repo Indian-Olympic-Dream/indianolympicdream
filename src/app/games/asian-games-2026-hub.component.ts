@@ -25,6 +25,12 @@ export interface DrawerCompetitorSide {
   isWinner?: boolean;
 }
 
+interface DrawerEventEntry {
+  detail: GamesSessionDetail;
+  row: GamesScheduleRow;
+  order: number;
+}
+
 export interface TimelineGroup {
   id: string;
   startMs: number;
@@ -428,7 +434,15 @@ export class AsianGames2026HubComponent implements OnInit {
     return parts.length > 1 ? parts.filter(part => !/ceremony/i.test(part)).join(' / ') || short : short;
   }
   competitionDetails(row: GamesScheduleRow): GamesSessionDetail[] { return (row.sessionDetails || []).filter(detail => !isCeremonyDetail(detail)); }
-  ceremonyDetails(row: GamesScheduleRow): GamesSessionDetail[] { return (row.sessionDetails || []).filter(isCeremonyDetail); }
+  drawerCompetitionEntries(rows: GamesScheduleRow[]): DrawerEventEntry[] {
+    return rows
+      .flatMap((row, rowIndex) => this.competitionDetails(row).map((detail, detailIndex) => ({
+        detail,
+        row,
+        order: this.drawerEventOrder(detail, row, rowIndex, detailIndex),
+      })))
+      .sort((a, b) => a.order - b.order);
+  }
   participationLabel(row: GamesScheduleRow): string {
     const status = asianParticipation(row);
     return status === 'confirmed' ? 'Confirmed' : status === 'conditional' ? 'If qualified' : '';
@@ -706,6 +720,13 @@ export class AsianGames2026HubComponent implements OnInit {
 
   drawerDetailCount(row: GamesScheduleRow): number {
     return this.competitionDetails(row).length;
+  }
+
+  private drawerEventOrder(detail: GamesSessionDetail, row: GamesScheduleRow, rowIndex: number, detailIndex: number): number {
+    const time = /^(\d{1,2}):(\d{2})/.exec(detail.timeIST || '');
+    if (time) return (Number(time[1]) * 60 + Number(time[2])) * 100 + detailIndex;
+    const start = Date.parse(row.startTime);
+    return Number.isFinite(start) ? start + detailIndex : Number.MAX_SAFE_INTEGER - 10_000 + rowIndex * 100 + detailIndex;
   }
 
   sessionDate(row: GamesScheduleRow): string { return this.formatDialogDate(indiaDateKey(row.startTime)); }
