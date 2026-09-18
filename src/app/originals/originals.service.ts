@@ -1,17 +1,20 @@
 import { Injectable } from "@angular/core";
 import { Apollo, gql } from "apollo-angular";
-import { Observable } from "rxjs";
+import { forkJoin, Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
 import { environment } from "../../environments/environment";
 
 export type VideoType =
+  | "video"
   | "podcast"
   | "clip"
   | "short"
   | "highlight"
   | "documentary"
   | "interview"
-  | "mixedZone";
+  | "mixedZone"
+  | "live"
+  | "vlogs";
 
 export interface Video {
   id: string;
@@ -23,6 +26,10 @@ export interface Video {
   duration?: number | null;
   publishedDate?: string | null;
   featured: boolean;
+  broadcast?: {
+    status?: 'scheduled' | 'live' | 'replay' | null;
+    scheduledStartTime?: string | null;
+  } | null;
   thumbnail?: {
     url?: string | null;
     alt?: string | null;
@@ -78,6 +85,7 @@ const normalizeOriginalsMediaPath = (path: string): string => {
 
 const sanitizeVideoType = (type: unknown): VideoType => {
   const allowed: VideoType[] = [
+    "video",
     "podcast",
     "clip",
     "short",
@@ -85,8 +93,10 @@ const sanitizeVideoType = (type: unknown): VideoType => {
     "documentary",
     "interview",
     "mixedZone",
+    "live",
+    "vlogs",
   ];
-  return allowed.includes(type as VideoType) ? (type as VideoType) : "clip";
+  return allowed.includes(type as VideoType) ? (type as VideoType) : "video";
 };
 
 const sanitizeVideo = (row: any): Video => ({
@@ -99,6 +109,9 @@ const sanitizeVideo = (row: any): Video => ({
   duration: typeof row?.duration === "number" ? row.duration : null,
   publishedDate: typeof row?.publishedDate === "string" ? row.publishedDate : null,
   featured: !!row?.featured,
+  broadcast: row?.broadcast && ['scheduled', 'live', 'replay'].includes(row.broadcast.status)
+    ? { status: row.broadcast.status, scheduledStartTime: row.broadcast.scheduledStartTime || null }
+    : null,
   thumbnail:
     row?.thumbnail && typeof row.thumbnail === "object"
       ? {
@@ -165,6 +178,7 @@ const GET_ALL_VIDEOS = gql`
         thumbnail { url alt }
         publishedDate
         featured
+        broadcast { status scheduledStartTime }
         sports {
           id
           name
@@ -203,6 +217,7 @@ const GET_VIDEOS_BY_TYPE = gql`
         thumbnail { url alt }
         publishedDate
         featured
+        broadcast { status scheduledStartTime }
         sports {
           id
           name
@@ -227,6 +242,75 @@ const GET_VIDEOS_BY_TYPE = gql`
   }
 `;
 
+const GET_VIDEOS_BY_CALENDAR_EVENTS = gql`
+  query VideosByCalendarEvents($where: Video_where, $limit: Int, $sort: String) {
+    Videos(where: $where, limit: $limit, sort: $sort) {
+      docs {
+        id
+        title
+        description
+        youtubeURL
+        youtubeId
+        type
+        duration
+        thumbnail { url alt }
+        publishedDate
+        featured
+        broadcast { status scheduledStartTime }
+        sports {
+          id
+          name
+          slug
+          pictogram { url }
+        }
+        athletes {
+          id
+          fullName
+        }
+        calendarEvents {
+          id
+          slug
+          title: name
+        }
+        tags {
+          name
+        }
+      }
+      totalDocs
+    }
+  }
+`;
+
+export const resolveYouTubeVideoId = (video: Pick<Video, "youtubeId" | "youtubeURL">): string | null => {
+  if (typeof video.youtubeId === "string" && /^[a-zA-Z0-9_-]{11}$/.test(video.youtubeId)) {
+    return video.youtubeId;
+  }
+
+  const raw = typeof video.youtubeURL === "string" ? video.youtubeURL.trim() : "";
+  if (!raw) return null;
+
+  const direct = raw.match(/^([a-zA-Z0-9_-]{11})$/);
+  if (direct?.[1]) return direct[1];
+
+  const shortMatch = raw.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (shortMatch?.[1]) return shortMatch[1];
+
+  const queryMatch = raw.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (queryMatch?.[1]) return queryMatch[1];
+
+  const embedMatch = raw.match(/embed\/([a-zA-Z0-9_-]{11})/i);
+  const liveMatch = raw.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/i);
+  const shortsMatch = raw.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  return embedMatch?.[1] || liveMatch?.[1] || shortsMatch?.[1] || null;
+};
+
+export const getYouTubeThumbnailUrl = (video: Pick<Video, "youtubeId" | "youtubeURL" | "thumbnail">): string | null => {
+  const managed = normalizeOriginalsMediaUrl(video.thumbnail?.url);
+  if (managed) return managed;
+  const youtubeId = resolveYouTubeVideoId(video);
+  return youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null;
+};
+
 @Injectable({
   providedIn: "root",
 })
@@ -242,9 +326,24 @@ export class OriginalsService {
         query: GET_ALL_VIDEOS,
         variables: { limit, page, sort: "-publishedDate" },
         fetchPolicy: "network-only",
-        errorPolicy: "all",
+        errorPolicy: "none",
       })
       .pipe(map((result) => (result.data?.Videos?.docs || []).map(sanitizeVideo)));
+  }
+
+  /** Merge upcoming/live shows with recent uploads, independently of import order. */
+  getHomeVideos(limit = 40): Observable<Video[]> {
+    return forkJoin([this.apollo.query<{ Videos: { docs: any[] } }>({
+      query: GET_VIDEOS_BY_CALENDAR_EVENTS,
+      variables: { where: {}, limit, sort: '-publishedDate' },
+      fetchPolicy: 'network-only',
+      errorPolicy: 'none',
+    }), this.apollo.query<{ Videos: { docs: any[] } }>({
+      query: GET_VIDEOS_BY_CALENDAR_EVENTS,
+      variables: { where: { OR: [{ broadcast__status: { equals: 'live' } }, { broadcast__status: { equals: 'scheduled' } }] }, limit: 20, sort: '-publishedDate' },
+      fetchPolicy: 'network-only',
+      errorPolicy: 'none',
+    })]).pipe(map(results => [...new Map(results.flatMap(result => (result.data?.Videos?.docs || []).map(sanitizeVideo)).map(video => [video.id, video])).values()]));
   }
 
   getVideosByType(
@@ -256,7 +355,28 @@ export class OriginalsService {
         query: GET_VIDEOS_BY_TYPE,
         variables: { type, limit, sort: "-publishedDate" },
         fetchPolicy: "network-only",
-        errorPolicy: "all",
+        errorPolicy: "none",
+      })
+      .pipe(map((result) => (result.data?.Videos?.docs || []).map(sanitizeVideo)));
+  }
+
+  getVideosForCalendarEvents(
+    calendarEventIds: string[],
+    limit: number = 12,
+  ): Observable<Video[]> {
+    const ids = Array.from(new Set(calendarEventIds.map((id) => id.trim()).filter(Boolean)));
+    if (!ids.length) return of([]);
+
+    return this.apollo
+      .query<{ Videos: { docs: any[] } }>({
+        query: GET_VIDEOS_BY_CALENDAR_EVENTS,
+        variables: {
+          where: { calendarEvents: { in: ids } },
+          limit,
+          sort: "-publishedDate",
+        },
+        fetchPolicy: "network-only",
+        errorPolicy: "none",
       })
       .pipe(map((result) => (result.data?.Videos?.docs || []).map(sanitizeVideo)));
   }

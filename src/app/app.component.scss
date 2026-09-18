@@ -129,9 +129,16 @@ mat-sidenav-content {
   transform: translate(-50%, -50%);
 }
 
+.nav-icon.nav-icon-games {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: none;
+}
+
 .nav-link {
   height: 38px;
-  padding: 0 16px;
+  padding: 0 12px;
   border-radius: 12px;
   border: 1px solid transparent;
   background: transparent;
@@ -214,6 +221,25 @@ mat-sidenav-content {
 }
 
 // Responsive Helpers
+@media (min-width: 769px) and (max-width: 1100px) {
+  .main-toolbar {
+    padding-inline: 14px;
+  }
+
+  .logo-container .brand-text {
+    display: none;
+  }
+
+  .desktop-nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding-inline: 9px;
+    gap: 6px;
+  }
+}
+
 .hidden-mobile {
   @media (max-width: 768px) {
     display: none !important;

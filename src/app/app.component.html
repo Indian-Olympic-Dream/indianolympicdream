@@ -1,6 +1,6 @@
 <mat-toolbar class="main-toolbar">
-  <a class="logo-container" [routerLink]="['/']" routerLinkActive="active-home"
-    [routerLinkActiveOptions]="{ exact: true }" aria-label="Go to Home">
+  <a class="logo-container" [routerLink]="['/sports']" routerLinkActive="active-home"
+    [routerLinkActiveOptions]="{ exact: true }" aria-label="IOD Sports">
     <img src="assets/images/logo.png" class="olympic-logo" alt="IOD Sports" loading="eager" decoding="async"
       fetchpriority="high" width="50" height="50">
     <div class="brand-text">
@@ -10,11 +10,15 @@
   </a>
 
   <nav class="desktop-nav hidden-mobile">
-    <a class="nav-link" [routerLink]="['/']" [class.active-link]="isHomeActive()">
+    <a class="nav-link" [routerLink]="['/sports']" [class.active-link]="isSportsActive()" [attr.aria-current]="isSportsActive() ? 'page' : null">
       <img class="nav-icon nav-icon-logo" src="assets/images/logo.png" alt="" aria-hidden="true">
-      <span class="nav-label">Home</span>
+      <span class="nav-label">Sports</span>
     </a>
-    <a class="nav-link" [routerLink]="['/calendar']" [class.active-link]="isCalendarActive()">
+    <a class="nav-link nav-asian-games" routerLink="/games/asian-games-2026" routerLinkActive="active-link" ariaCurrentWhenActive="page">
+      <img class="nav-icon nav-icon-games" src="assets/images/ag-2026/logo.webp" alt="" aria-hidden="true">
+      <span class="nav-label">Asian Games</span>
+    </a>
+    <a class="nav-link" [routerLink]="['/calendar']" [class.active-link]="isCalendarActive()" [attr.aria-current]="isCalendarActive() ? 'page' : null">
       <img class="nav-icon nav-icon-premium nav-icon-premium-calendar" src="assets/icons/calendar.svg" alt=""
         aria-hidden="true">
       <span class="nav-label">Calendar</span>

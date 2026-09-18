@@ -206,7 +206,7 @@ export class TemporalEventEngine {
       ? new Date(row.endTime)
       : new Date(start.getTime() + 2 * 60 * 60 * 1000);
     if (now.getTime() < start.getTime()) return 'upcoming';
-    if (now.getTime() <= end.getTime()) return 'live';
+    if (now.getTime() <= end.getTime()) return 'active';
     return 'completed';
   }
 
@@ -234,11 +234,7 @@ export class TemporalEventEngine {
     state: EventTemporalState,
   ): string | null {
     if (navigation.kind === 'external') {
-      if (event.whereToWatch?.url) {
-        return (event.whereToWatch.label || '').trim() ||
-          (state === 'completed' ? 'Watch Replay' : 'Where to Watch');
-      }
-      return state === 'completed' ? 'Official Results' : 'Official Source';
+      return event.whereToWatch?.url === navigation.href ? 'Where to watch' : 'Official event';
     }
     if (navigation.kind === 'internal') {
       if (navigation.experience === 'live_hub') return 'Live Hub';

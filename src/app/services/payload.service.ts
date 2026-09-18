@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Apollo, gql } from 'apollo-angular';
-import { Observable, of, map, catchError } from 'rxjs';
+import { EMPTY, Observable, of, map, catchError, expand, reduce } from 'rxjs';
+import type { DocumentNode } from 'graphql';
 import { environment } from '../../environments/environment';
 import { IndiaTier, SportLifecycle } from '../models/india-tier';
 import type { CwgGamesParticipation, PayloadListResponse } from '../games/cwg-2026.types';
@@ -245,10 +246,38 @@ export interface RetiredAthletesFeed {
   };
 }
 
+export interface GamesSessionDetail {
+  timeIST?: string;
+  event: string;
+  phase?: string;
+  unit?: string;
+  status?: string;
+  conditional?: boolean;
+  medal?: boolean;
+  organisations?: string[];
+  competitors?: string[];
+  sides?: {
+    code: string;
+    label: string;
+    participants?: string[];
+    score?: string | number | null;
+    isWinner?: boolean;
+  }[];
+  units?: string[];
+  sourceUrl?: string;
+}
+
 export interface GamesScheduleRow {
+  sourceId?: string;
+  sourceBasis?: string;
+  sessionDetails?: GamesSessionDetail[];
+  gamesProgrammeEvent?: { id: string; officialName: string };
   id: string;
   name?: string;
   gamesKey?: string;
+  sport?: Sport | null;
+  indianParticipants?: { id: string; fullName: string }[] | null;
+  gamesParticipations?: { id: string }[] | null;
   calendarEvent?: {
     id: string;
     title: string;
@@ -266,6 +295,7 @@ export interface GamesScheduleRow {
   participationStatus?: string;
   timingPrecision?: 'exact' | 'session-window' | 'start-list-pending' | 'draw-dependent' | 'tbd';
   certainty?: string;
+  notes?: string;
   status?: string;
   result?: any;
   liveCoverage?: LiveScoreCoverage | null;
@@ -377,6 +407,8 @@ export interface LiveScoreUpdate {
 export interface GamesParticipationRow {
   id: string;
   gamesKey: string;
+  sourceId?: string;
+  selectionStatus?: 'provisional' | 'approved' | 'entry-confirmed' | 'withdrawn' | 'replaced' | null;
   competitionName?: string;
   editionName?: string;
   sourceName?: string;
@@ -390,12 +422,34 @@ export interface GamesParticipationRow {
   status?: string;
   editorialPriority?: string;
   publicNote?: string;
+  gamesProgrammeEvent?: { id: string; officialName: string } | null;
+  sport?: Sport | null;
   athlete?: CalendarEventParticipant | null;
   source?: {
     label?: string;
     url?: string;
     capturedDate?: string;
   } | null;
+}
+
+export interface GamesProgrammeEventRow {
+  id: string;
+  gamesKey: string;
+  competitionEventKey: string;
+  officialName: string;
+  gender?: 'men' | 'women' | 'mixed' | 'open' | null;
+  eventType?:
+    | 'individual'
+    | 'team'
+    | 'pair'
+    | 'relay'
+    | 'weight-category'
+    | 'combined-event'
+    | 'tournament'
+    | 'other'
+    | null;
+  isMedalEvent?: boolean | null;
+  sport?: Sport | null;
 }
 
 // ============ GRAPHQL QUERIES ============
@@ -453,16 +507,28 @@ const CALENDAR_EVENT_SCHEDULE_QUERY = gql`
 `;
 
 const EVENT_HUB_SCHEDULE_QUERY = gql`
-  query GetEventHubSchedule($gamesKey: String!) {
+  query GetEventHubSchedule($gamesKey: String!, $page: Int!) {
     GamesSchedules(
       where: { gamesKey: { equals: $gamesKey } }
-      sort: "startTime"
-      limit: 100
+      sort: "id"
+      page: $page
+      limit: 250
     ) {
+      hasNextPage
+      nextPage
+      page
+      totalDocs
       docs {
         id
         name
         gamesKey
+        sourceId
+        sourceBasis
+        sessionDetails
+        gamesProgrammeEvent { id officialName }
+        sport { id name slug pictogram { url } parentSport { id name slug pictogram { url } } }
+        indianParticipants { id fullName }
+        gamesParticipations { id }
         calendarEvent {
           id
           title: name
@@ -480,6 +546,7 @@ const EVENT_HUB_SCHEDULE_QUERY = gql`
         participationStatus
         timingPrecision
         certainty
+        notes
         status
         result
         liveCoverage {
@@ -557,15 +624,22 @@ const UPCOMING_GAMES_SCHEDULE_QUERY = gql`
 `;
 
 const EVENT_HUB_PARTICIPATIONS_QUERY = gql`
-  query GetEventHubParticipations($gamesKey: String!) {
+  query GetEventHubParticipations($gamesKey: String!, $page: Int!) {
     GamesParticipations(
       where: { gamesKey: { equals: $gamesKey } }
-      sort: "rosterOrder"
-      limit: 200
+      sort: "id"
+      page: $page
+      limit: 250
     ) {
+      hasNextPage
+      nextPage
+      page
+      totalDocs
       docs {
         id
         gamesKey
+        sourceId
+        selectionStatus
         competitionName
         editionName
         sourceName
@@ -579,6 +653,14 @@ const EVENT_HUB_PARTICIPATIONS_QUERY = gql`
         status
         editorialPriority
         publicNote
+        gamesProgrammeEvent { id officialName }
+        sport {
+          id
+          name
+          slug
+          pictogram { url }
+          parentSport { id name slug pictogram { url } }
+        }
         athlete {
           id
           fullName
@@ -589,6 +671,38 @@ const EVENT_HUB_PARTICIPATIONS_QUERY = gql`
           label
           url
           capturedDate
+        }
+      }
+    }
+  }
+`;
+
+const EVENT_HUB_PROGRAMME_QUERY = gql`
+  query GetEventHubProgramme($gamesKey: String!, $page: Int!) {
+    GamesProgrammeEvents(
+      where: { gamesKey: { equals: $gamesKey } }
+      sort: "competitionEventKey"
+      page: $page
+      limit: 250
+    ) {
+      hasNextPage
+      nextPage
+      page
+      totalDocs
+      docs {
+        id
+        gamesKey
+        competitionEventKey
+        officialName
+        gender
+        eventType
+        isMedalEvent
+        sport {
+          id
+          name
+          slug
+          pictogram { url }
+          parentSport { id name slug pictogram { url } }
         }
       }
     }
@@ -1503,8 +1617,11 @@ export class PayloadService {
   getCalendarEvents(options?: {
     sportId?: string;
     status?: string;
+    hubKey?: string;
     isQualifier?: boolean;
     isQualificationEvent?: boolean;
+    startDateFrom?: string;
+    activeAfter?: string;
     limit?: number;
   }): Observable<CalendarEvent[]> {
     let where: any = {};
@@ -1514,9 +1631,22 @@ export class PayloadService {
     if (options?.status) {
       where.status = { equals: options.status };
     }
+    if (options?.hubKey) {
+      where.hubKey = { equals: options.hubKey };
+    }
     const qualificationFlag = options?.isQualificationEvent ?? options?.isQualifier;
     if (qualificationFlag !== undefined) {
       where.isQualificationEvent = { equals: qualificationFlag };
+    }
+    if (options?.startDateFrom) {
+      where.startDate = { greater_than_equal: options.startDateFrom };
+    }
+    if (options?.activeAfter) {
+      // Include long-running competitions that started before the Home window.
+      where.OR = [
+        { startDate: { greater_than_equal: options.activeAfter } },
+        { endDate: { greater_than_equal: options.activeAfter } },
+      ];
     }
 
     return this.apollo.query<{ CalendarEvents: { docs: CalendarEvent[] } }>({
@@ -1656,13 +1786,14 @@ export class PayloadService {
       return of([]);
     }
 
-    return this.apollo
-      .query<{ GamesSchedules: { docs: GamesScheduleRow[] } }>({
-        query: EVENT_HUB_SCHEDULE_QUERY,
-        variables: { gamesKey: gamesKey.trim() },
-        fetchPolicy: 'network-only',
-      })
-      .pipe(map((result) => this.normalizeGamesScheduleRows(result.data?.GamesSchedules?.docs || [])));
+    const params = new HttpParams()
+      .set('gamesKey', gamesKey.trim())
+      .set('format', 'full');
+    return this.http.get<PayloadListResponse<GamesScheduleRow>>(
+      `${environment.payload_url}/api/games-schedule/hub`,
+      { params },
+    ).pipe(map(response => this.normalizeGamesScheduleRows(response.docs || [])
+      .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id))));
   }
 
   getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {
@@ -1678,18 +1809,58 @@ export class PayloadService {
   getEventHubParticipations(gamesKey: string): Observable<GamesParticipationRow[]> {
     if (!gamesKey?.trim()) return of([]);
 
-    return this.apollo
-      .query<{ GamesParticipations: { docs: GamesParticipationRow[] } }>({
-        query: EVENT_HUB_PARTICIPATIONS_QUERY,
-        variables: { gamesKey: gamesKey.trim() },
-        fetchPolicy: 'network-only',
-      })
-      .pipe(map((result) => result.data?.GamesParticipations?.docs || []));
+    const params = new HttpParams()
+      .set('gamesKey', gamesKey.trim())
+      .set('limit', '1000')
+      .set('page', '1');
+    return this.http.get<PayloadListResponse<GamesParticipationRow>>(
+      `${environment.payload_url}/api/games-participations/hub`,
+      { params },
+    ).pipe(map((response) => (response.docs || []).map((row) => ({
+        ...row,
+        selectionStatus: row.selectionStatus?.replace(/_/g, '-') as GamesParticipationRow['selectionStatus'],
+      })).sort((a, b) => (a.rosterOrder ?? Number.MAX_SAFE_INTEGER) - (b.rosterOrder ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id))));
+  }
+
+  getEventHubProgramme(gamesKey: string): Observable<GamesProgrammeEventRow[]> {
+    if (!gamesKey?.trim()) return of([]);
+
+    return this.getAllHubPages<GamesProgrammeEventRow>(EVENT_HUB_PROGRAMME_QUERY, 'GamesProgrammeEvents', gamesKey);
+  }
+
+  /** Do not publish a partial Games inventory when the last page fails. */
+  private getAllHubPages<T extends { id: string }>(query: DocumentNode, field: string, gamesKey: string): Observable<T[]> {
+    type Page = { docs: T[]; page: number; hasNextPage: boolean; nextPage: number | null; totalDocs: number };
+    const readPage = (page: number) => this.apollo.query<Record<string, Page>>({
+      query, variables: { gamesKey: gamesKey.trim(), page }, fetchPolicy: 'network-only', errorPolicy: 'none',
+    }).pipe(map(result => {
+      const data = result.data?.[field];
+      if (!data || data.page !== page || !Array.isArray(data.docs) ||
+        (data.hasNextPage && (!data.nextPage || data.nextPage <= page || !data.docs.length))) {
+        throw new Error(`Incomplete Games page: ${field}`);
+      }
+      return data;
+    }));
+    return readPage(1).pipe(
+      expand(page => page.hasNextPage ? readPage(page.nextPage!) : EMPTY, 1),
+      reduce((state, page) => ({ rows: [...state.rows, ...page.docs], total: page.totalDocs }), { rows: [] as T[], total: 0 }),
+      map(({ rows, total }) => {
+        const unique = new Map(rows.map(row => [row.id, row]));
+        if (unique.size !== total || rows.length !== total) throw new Error(`Games inventory changed while loading: ${field}`);
+        return rows;
+      }),
+    );
   }
 
   private normalizeGamesScheduleRows(rows: GamesScheduleRow[]): GamesScheduleRow[] {
     return rows.map((row) => ({
       ...row,
+      calendarEvent: row.calendarEvent && typeof row.calendarEvent === 'object'
+        ? {
+          ...row.calendarEvent,
+          title: row.calendarEvent.title || (row.calendarEvent as GamesScheduleRow['calendarEvent'] & { name?: string }).name || '',
+        }
+        : row.calendarEvent,
       phase: row.phase?.replace(/_/g, '-'),
       participationStatus: row.participationStatus?.replace(/_/g, '-'),
       timingPrecision: row.timingPrecision?.replace(/_/g, '-') as GamesScheduleRow['timingPrecision'],

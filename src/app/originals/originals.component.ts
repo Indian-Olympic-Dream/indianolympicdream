@@ -6,9 +6,10 @@ import { forkJoin } from "rxjs";
 import { map } from "rxjs/operators";
 import { FormatDurationPipe } from "../shared/pipes/format-duration.pipe";
 import { SafeResourceUrlPipe } from "../shared/pipes/safe-resource-url.pipe";
-import { OriginalsService, Video } from "./originals.service";
+import { OriginalsService, Video, resolveYouTubeVideoId } from "./originals.service";
+import { broadcastLabel, broadcastTimeLabel } from './broadcast-presentation';
 
-type OriginalsTab = "ground" | "podcast" | "interview" | "short" | "clip";
+type OriginalsTab = "ground" | "podcast" | "interview" | "short" | "clip" | "live" | "video";
 type OriginalsTypeFilter = "all" | OriginalsTab;
 
 interface OriginalsSportFilterOption {
@@ -27,6 +28,8 @@ interface OriginalsVideoView extends Video {
 }
 
 interface TabVideoCache {
+  live: OriginalsVideoView[];
+  video: OriginalsVideoView[];
   ground: OriginalsVideoView[];
   podcast: OriginalsVideoView[];
   short: OriginalsVideoView[];
@@ -49,6 +52,8 @@ interface TabVideoCache {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OriginalsComponent implements OnInit {
+  readonly broadcastLabel = broadcastLabel;
+  readonly broadcastTimeLabel = broadcastTimeLabel;
   private originalsService = inject(OriginalsService);
   private thumbnailFallbackIndex = new Map<string, number>();
 
@@ -64,6 +69,8 @@ export class OriginalsComponent implements OnInit {
 
   readonly typeFilters: { id: OriginalsTypeFilter; label: string; icon: string }[] = [
     { id: "all", label: "All", icon: "apps" },
+    { id: "live", label: "Live & replays", icon: "live_tv" },
+    { id: "video", label: "Videos", icon: "video_library" },
     { id: "ground", label: "IOD On Ground", icon: "videocam" },
     { id: "podcast", label: "Podcasts", icon: "podcasts" },
     { id: "interview", label: "Interviews", icon: "mic" },
@@ -72,6 +79,8 @@ export class OriginalsComponent implements OnInit {
   ];
 
   private tabVideos = signal<TabVideoCache>({
+    live: [],
+    video: [],
     ground: [],
     podcast: [],
     short: [],
@@ -184,6 +193,8 @@ export class OriginalsComponent implements OnInit {
   getActiveTypeLabel(): string {
     const labels: Record<OriginalsTypeFilter, string> = {
       all: "Videos",
+      live: "Live shows & replays",
+      video: "Videos",
       ground: "On Ground",
       podcast: "Podcasts",
       clip: "Clips",
@@ -256,6 +267,9 @@ export class OriginalsComponent implements OnInit {
   private preloadAllTabs() {
     const limit = 140;
     return forkJoin({
+      live: this.originalsService.getVideosByType("live", limit),
+      video: this.originalsService.getVideosByType("video", limit),
+      vlogs: this.originalsService.getVideosByType("vlogs", limit),
       podcast: this.originalsService.getVideosByType("podcast", limit),
       documentary: this.originalsService.getVideosByType("documentary", limit),
       interview: this.originalsService.getVideosByType("interview", limit),
@@ -265,7 +279,10 @@ export class OriginalsComponent implements OnInit {
       short: this.originalsService.getVideosByType("short", limit),
     }).pipe(
       map((source) => ({
+        live: this.normalizeTabVideos(Object.values(source).flat(), "live"),
+        video: this.normalizeTabVideos(source.video, "video"),
         ground: this.normalizeTabVideos([
+          ...source.vlogs,
           ...source.mixedZone,
           ...source.highlight,
           ...source.podcast,
@@ -289,17 +306,11 @@ export class OriginalsComponent implements OnInit {
   }
 
   private isOnGroundFamilyVideo(video: Video): boolean {
-    if (video.type === "mixedZone") return true;
-    if (this.isShortFormVideo(video)) return false;
-    if (video.type === "highlight") return true;
-    return video.type === "podcast" && this.isOnGroundTitle(video.title);
+    return ['mixedZone', 'highlight', 'vlogs'].includes(video.type);
   }
 
   private isPodcastFamilyVideo(video: Video): boolean {
-    if (video.type === "documentary") return true;
-    if (video.type !== "podcast") return false;
-    if (this.isOnGroundTitle(video.title)) return false;
-    return !this.isClipLikeTitle(video.title);
+    return video.type === 'documentary' || video.type === 'podcast';
   }
 
   private isClipFamilyVideo(video: Video): boolean {
@@ -307,8 +318,7 @@ export class OriginalsComponent implements OnInit {
   }
 
   private isShortFamilyVideo(video: Video): boolean {
-    if (video.type === "short") return true;
-    return video.type === "highlight" && this.isShortFormVideo(video);
+    return video.type === "short";
   }
 
   private filterVideosBySport(videos: OriginalsVideoView[]): OriginalsVideoView[] {
@@ -319,6 +329,10 @@ export class OriginalsComponent implements OnInit {
 
   private isVideoInTab(video: Video, tab: OriginalsTab): boolean {
     switch (tab) {
+      case 'live':
+        return video.type === 'live' || !!video.broadcast?.status;
+      case 'video':
+        return video.type === 'video';
       case "ground":
         return this.isOnGroundFamilyVideo(video);
       case "podcast":
@@ -335,6 +349,8 @@ export class OriginalsComponent implements OnInit {
   }
 
   private getTypeFamilyLabel(video: Video): string {
+    if (video.broadcast?.status) return broadcastLabel(video);
+    if (video.type === 'live') return 'Live show';
     if (this.isOnGroundFamilyVideo(video)) return "On Ground";
     if (this.isInterviewFamilyVideo(video)) return "Interviews";
     if (this.isPodcastFamilyVideo(video)) return "Podcasts";
@@ -344,6 +360,7 @@ export class OriginalsComponent implements OnInit {
   }
 
   private getTypeFamilyIcon(video: Video): string {
+    if (video.type === 'live' || video.broadcast?.status) return 'live_tv';
     if (this.isOnGroundFamilyVideo(video)) return "videocam";
     if (this.isInterviewFamilyVideo(video)) return "mic";
     if (this.isPodcastFamilyVideo(video)) return "podcasts";
@@ -368,7 +385,7 @@ export class OriginalsComponent implements OnInit {
       const viewVideo = this.toViewVideo(video);
       if (!this.isVideoInTab(viewVideo, tab)) return;
 
-      const dedupeKey = this.getDiscoveryKey(viewVideo, tab);
+      const dedupeKey = viewVideo.resolvedYoutubeId || viewVideo.id;
       const existing = dedupe.get(dedupeKey);
       if (!existing || this.getPreferredVideoScore(viewVideo, tab) > this.getPreferredVideoScore(existing, tab)) {
         dedupe.set(dedupeKey, viewVideo);
@@ -419,10 +436,7 @@ export class OriginalsComponent implements OnInit {
   }
 
   private isShortFormVideo(video: Video): boolean {
-    const duration = video.duration || 0;
-    if (video.type === "short") return true;
-    if (duration > 0 && duration <= 95) return true;
-    return this.isClipLikeTitle(video.title) && duration > 0 && duration <= 180;
+    return video.type === 'short';
   }
 
   private getDiscoveryKey(video: OriginalsVideoView, tab: OriginalsTab): string {
@@ -487,7 +501,7 @@ export class OriginalsComponent implements OnInit {
   }
 
   private toViewVideo(video: Video): OriginalsVideoView {
-    const resolvedYoutubeId = this.resolveYoutubeId(video);
+    const resolvedYoutubeId = resolveYouTubeVideoId(video);
     const mediaUrl = this.normalizeMediaUrl(video.thumbnail?.url || "");
     const youtubeFallbacks = resolvedYoutubeId
       ? this.buildYouTubeThumbnailFallbacks(resolvedYoutubeId, video.type === "short")

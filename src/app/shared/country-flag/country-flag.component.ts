@@ -5,26 +5,21 @@ import { NgIf } from '@angular/common';
 // alpha-3 codes. FlagCDN uses ISO alpha-2 (plus the UK home-nation codes), so
 // keep the translation in the shared flag primitive rather than every sport UI.
 const FLAG_CODES: Record<string, string> = {
-  ALG: 'dz', ARG: 'ar', AUS: 'au', AUT: 'at', AZE: 'az',
-  BAN: 'bd', BEL: 'be', BGR: 'bg', BRA: 'br', BUL: 'bg',
-  CAN: 'ca', CHI: 'cl', CHL: 'cl', CHN: 'cn', CZE: 'cz',
+  AFG: 'af', ALG: 'dz', ARG: 'ar', AUS: 'au', AUT: 'at', AZE: 'az',
+  BAN: 'bd', BEL: 'be', BGR: 'bg', BHR: 'bh', BHU: 'bt', BRA: 'br', BRN: 'bh', BRU: 'bn', BUL: 'bg',
+  CAM: 'kh', CAN: 'ca', CHI: 'cl', CHL: 'cl', CHN: 'cn', CZE: 'cz',
   DEN: 'dk', DEU: 'de', EGY: 'eg', ENG: 'gb-eng', ESA: 'sv', ESP: 'es', EST: 'ee',
   FIN: 'fi', FRA: 'fr', GBR: 'gb', GER: 'de', GRN: 'gd', GUA: 'gt',
-  HKG: 'hk', HUN: 'hu', IDN: 'id', INA: 'id', IND: 'in', IRL: 'ie', ISR: 'il', ITA: 'it',
-  JPN: 'jp', KAZ: 'kz', KEN: 'ke', KOR: 'kr',
-  MAC: 'mo', MAS: 'my', MDV: 'mv', MEX: 'mx', MMR: 'mm', MRI: 'mu', MYA: 'mm', MYS: 'my',
-  NED: 'nl', NEP: 'np', NGR: 'ng', NOR: 'no', NZL: 'nz',
-  PAK: 'pk', PER: 'pe', POL: 'pl', POR: 'pt',
+  HKG: 'hk', HUN: 'hu', IDN: 'id', INA: 'id', IND: 'in', IRI: 'ir', IRL: 'ie', IRQ: 'iq', ISR: 'il', ITA: 'it',
+  JOR: 'jo', JPN: 'jp', KAZ: 'kz', KEN: 'ke', KGZ: 'kg', KOR: 'kr', KSA: 'sa', KUW: 'kw',
+  LAO: 'la', LBN: 'lb', MAC: 'mo', MAS: 'my', MDV: 'mv', MEX: 'mx', MGL: 'mn', MMR: 'mm', MRI: 'mu', MYA: 'mm', MYS: 'my',
+  NED: 'nl', NEP: 'np', NGR: 'ng', NOR: 'no', NZL: 'nz', OMA: 'om',
+  PAK: 'pk', PER: 'pe', PHI: 'ph', PLE: 'ps', POL: 'pl', POR: 'pt', PRK: 'kp',
+  QAT: 'qa',
   ROU: 'ro', RSA: 'za', SCO: 'gb-sct', SGP: 'sg', SIN: 'sg', SLO: 'si', SRI: 'lk',
-  SUI: 'ch', SUR: 'sr', SVK: 'sk', SWE: 'se',
-  THA: 'th', TPE: 'tw', TTO: 'tt', TUR: 'tr',
-  UKR: 'ua', USA: 'us', VIE: 'vn', WAL: 'gb-wls',
-};
-
-const HOME_NATION_EMOJI: Record<string, string> = {
-  ENG: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  SCO: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  WAL: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
+  SUI: 'ch', SUR: 'sr', SVK: 'sk', SWE: 'se', SYR: 'sy',
+  THA: 'th', TJK: 'tj', TKM: 'tm', TLS: 'tl', TPE: 'tw', TTO: 'tt', TUR: 'tr',
+  UAE: 'ae', UKR: 'ua', USA: 'us', UZB: 'uz', VIE: 'vn', WAL: 'gb-wls', YEM: 'ye',
 };
 
 @Component({
@@ -61,20 +56,10 @@ export class CountryFlagComponent {
 
   get url(): string | null {
     const assetCode = FLAG_CODES[this.countryCode];
-    return assetCode ? `https://flagcdn.com/w80/${assetCode}.png` : null;
+    return assetCode ? `https://flagcdn.com/${assetCode}.svg` : null;
   }
 
   get fallbackLabel(): string {
-    const homeNation = HOME_NATION_EMOJI[this.countryCode];
-    if (homeNation) return homeNation;
-
-    const assetCode = FLAG_CODES[this.countryCode];
-    if (assetCode && /^[a-z]{2}$/.test(assetCode)) {
-      return [...assetCode.toUpperCase()]
-        .map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0)))
-        .join('');
-    }
-
     return this.countryCode.slice(0, 3) || '—';
   }
 

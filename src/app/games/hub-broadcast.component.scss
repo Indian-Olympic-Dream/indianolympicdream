@@ -1,0 +1,23 @@
+:host { display: block; min-width: 0; }
+.broadcast { overflow: hidden; border: 1px solid #ffffff1c; border-radius: 14px; background: #0c0e13; box-shadow: inset 0 1px #ffffff0a, 0 16px 38px #0004; }
+.player { position: relative; aspect-ratio: 16/9; background: radial-gradient(ellipse at top right, #82adf728, transparent 75%), #111620; }
+.poster { position: absolute; inset: 0; width: 100%; padding: 0; border: 0; cursor: pointer; background: transparent; color: white; }
+.poster::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 60%, #030509c9); }
+img { width: 100%; height: 100%; object-fit: cover; }
+.play { display: grid; place-items: center; position: absolute; z-index: 1; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 52px; height: 52px; border-radius: 50%; border: 1px solid #ffffff80; background: #08090cb0; transition: background .18s; }
+.play mat-icon { font-size: 32px; width: 32px; height: 32px; }
+.poster:hover .play { background: #b52727; }
+.status { display: inline-flex; align-items: center; gap: 7px; position: absolute; z-index: 1; left: 15px; bottom: 14px; font: 600 10px 'Geist Mono', monospace; text-transform: uppercase; letter-spacing: .1em; }
+.is-live { border-color: #f871714d; }
+.is-live .status { color: #ffaaaa; }
+i { width: 6px; height: 6px; border-radius: 50%; background: #f87171; box-shadow: 0 0 0 4px #f8717128; }
+iframe { width: 100%; height: 100%; position: absolute; inset: 0; border: 0; }
+.close { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 36px; height: 36px; color: #fff; background: #080a0edc; border: 1px solid #ffffff40; border-radius: 50%; cursor: pointer; }
+.copy { padding: 16px 18px; }
+.meta { display: flex; flex-wrap: wrap; gap: 5px 12px; justify-content: space-between; color: #ffffff70; font: 500 9px/1.6 'Geist Mono', monospace; }
+time { color: #f3c85c; }
+h2 { margin: 7px 0 13px; color: #f4f4f7; font: 630 17px/1.3 'Geist Sans',sans-serif; letter-spacing: -.025em; }
+a { display: inline-flex; align-items: center; gap: 7px; color: #82adf7; font: 600 11px 'Geist Mono', monospace; text-decoration: none; }
+a mat-icon { width: 15px; height: 15px; font-size: 15px; }
+button:focus-visible,a:focus-visible { outline: 2px solid #f3c85c; outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) { .play { transition: none; } }

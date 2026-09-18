@@ -1,14 +1,22 @@
 <mat-toolbar class="bottom-nav">
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/" [class.active-link]="isHomeActive()">
+    <a class="nav-link" routerLink="/sports" [class.active-link]="isSportsActive()" [attr.aria-current]="isSportsActive() ? 'page' : null">
       <span class="nav-icon-col">
-        <img class="nav-inline-image nav-logo-icon" src="assets/images/logo.png" alt="" aria-hidden="true">
+        <img class="nav-inline-image nav-logo-icon" src="assets/images/logo.png" alt="Sports" aria-hidden="true">
       </span>
-      <span class="nav-label">Home</span>
+      <span class="nav-label">Sports</span>
     </a>
   </div>
   <div class="nav-item-container">
-    <a class="nav-link" routerLink="/calendar" [class.active-link]="isCalendarActive()">
+    <a class="nav-link" routerLink="/games/asian-games-2026" routerLinkActive="active-link" ariaCurrentWhenActive="page">
+      <span class="nav-icon-col">
+        <img class="nav-inline-image nav-games-icon" src="assets/images/ag-2026/logo.webp" alt="" aria-hidden="true">
+      </span>
+      <span class="nav-label">Asian Games</span>
+    </a>
+  </div>
+  <div class="nav-item-container">
+    <a class="nav-link" routerLink="/calendar" [class.active-link]="isCalendarActive()" [attr.aria-current]="isCalendarActive() ? 'page' : null">
       <span class="nav-icon-col">
         <img class="nav-inline-image nav-premium-icon nav-premium-icon-calendar" src="assets/icons/calendar.svg" alt=""
           aria-hidden="true">
