@@ -554,6 +554,7 @@ export class AsianGames2026HubComponent implements OnInit {
 
   sessionTimingValue(row: GamesScheduleRow): string {
     const matches = Array.isArray(row.result?.matches) ? row.result.matches.length : 0;
+    if (row.result?.summary && row.result?.official === false) return matches > 1 ? `${matches} unofficial results` : 'Unofficial result';
     if (row.result?.summary) return matches > 1 ? `${matches} matches final` : 'Official result';
     if (row.status === 'eliminated') return 'Complete';
     if (row.status === 'completed') return 'Completed';
