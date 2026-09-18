@@ -78,9 +78,8 @@ export function getLa28QuotaInfo(slug?: string | null): La28QuotaInfo | null {
       return {
         tagline: 'Primary Continental Allocation',
         shortLabel: 'LA28 Quota',
-        description: 'Direct quota places awarded across recurve teams, mixed teams, compound mixed team, and individual events.',
+        description: 'The Asian Games awards direct places through the recurve individual and mixed-team events, plus the compound mixed-team event.',
         quotaBreakdown: [
-          "Recurve Men's & Women's Team: 1 Team quota per gender (3 athletes each)",
           "Recurve Mixed Team: 1 Man & 1 Woman quota place (2 quotas)",
           "Compound Mixed Team: 1 Man & 1 Woman quota place (2 quotas · Olympic Debut)",
           "Recurve Individual: Top 2 eligible athletes per gender from different NOCs",
@@ -124,7 +123,7 @@ export function getLa28QuotaNote(slug?: string | null): string | null {
 
 /**
  * Checks if a specific event within a sport qualifies for a direct LA28 Olympic quota at the Asian Games:
- * - Archery: Exactly 6 events (5 Recurve events: Men's Individual, Women's Individual, Men's Team, Women's Team, Mixed Team + Compound Mixed Team).
+ * - Archery: Recurve Men's Individual, Recurve Women's Individual, Recurve Mixed Team, and Compound Mixed Team.
  * - Squash: Strictly Men's Singles and Women's Singles (no team events, no doubles).
  * - Tennis: Strictly Men's Singles and Women's Singles (no doubles).
  * - Hockey: Men's Tournament and Women's Tournament.
@@ -141,8 +140,10 @@ export function isLa28QuotaEventName(eventName: string, sportSlug?: string | nul
       return name.includes('singles') && !name.includes('doubles') && !name.includes('team');
 
     case 'archery':
-      // Exactly 6 events: 5 Recurve events + Compound Mixed Team
-      if (name.includes('recurve')) return true;
+      // Recurve team finals are medal events but do not award an LA28 quota at these Asian Games.
+      if (name.includes('recurve')) {
+        return name.includes('individual') || (name.includes('mixed') && name.includes('team'));
+      }
       if (name.includes('compound') && name.includes('mixed') && name.includes('team')) return true;
       return false;
 
