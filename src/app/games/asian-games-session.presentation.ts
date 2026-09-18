@@ -73,6 +73,7 @@ export function asianSessionBadge(row: GamesScheduleRow): { label: string; type:
   if (row.status === 'postponed') return { label: 'Postponed', type: 'cancelled' };
   if (row.status === 'live') return { label: 'Live', type: 'live' };
   if (row.status === 'eliminated') return { label: 'Eliminated', type: 'result' };
+  if (row.result?.summary && row.result?.official === false) return { label: 'Unofficial', type: 'window' };
   if (row.status === 'completed' || row.result?.summary) return { label: row.result?.summary ? 'Result' : 'Completed', type: 'result' };
   if (hasIndiaAppearance(row)) return { label: 'Confirmed', type: 'confirmed' };
   if (asianParticipation(row) === 'conditional') return { label: 'If qualified', type: 'conditional' };

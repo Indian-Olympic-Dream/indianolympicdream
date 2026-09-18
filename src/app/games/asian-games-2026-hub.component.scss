@@ -1354,7 +1354,6 @@ img.la28-transparent-logo {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  min-width: 22px;
   min-height: 18px;
   padding: 2px 4px;
   border: 1px solid rgba(126, 174, 218, .5);
@@ -1503,7 +1502,6 @@ img.la28-transparent-logo {
 }
 
 .event-detail-list {
-  margin-top: 22px;
 
   h4 {
     color: $muted;
@@ -2903,7 +2901,6 @@ img.la28-transparent-logo {
   position: relative;
   display: grid;
   gap: 12px;
-  margin-top: 24px;
   padding-left: 0;
 
   .drawer-section-title {
@@ -3080,7 +3077,7 @@ img.la28-transparent-logo {
 .matchup-board {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
-  align-items: stretch;
+  align-items: start;
   gap: 8px;
 
   &.single-side {
@@ -3091,7 +3088,7 @@ img.la28-transparent-logo {
 .matchup-side {
   position: relative;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-content: start;
   align-items: center;
   gap: 10px;
@@ -3102,29 +3099,51 @@ img.la28-transparent-logo {
   background: rgba(2, 4, 7, .52);
 
   app-country-flag {
+    grid-column: 1;
+    grid-row: 1;
     --flag-width: 36px;
     --flag-height: 25px;
   }
 
-  &.is-india {
-    border-color: rgba($gold, .32);
-    background: linear-gradient(145deg, rgba($gold, .105), rgba(2, 4, 7, .58));
-    box-shadow: inset 0 0 0 1px rgba($gold, .035);
-  }
-
-  &.is-winner::after {
-    content: '';
-    position: absolute;
-    inset: 7px 7px auto auto;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #73c391;
-    box-shadow: 0 0 12px rgba(115, 195, 145, .5);
+  &.is-winner {
+    border-color: rgba(115, 195, 145, .42);
+    background: linear-gradient(145deg, rgba(115, 195, 145, .085), rgba(2, 4, 7, .58));
+    box-shadow: inset 0 0 0 1px rgba(115, 195, 145, .025);
   }
 }
 
+.matchup-side-status {
+  grid-column: 3;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.matchup-winner-label {
+  padding: 2px 7px;
+  border: 1px solid rgba(115, 195, 145, .28);
+  border-radius: 999px;
+  color: #a9dfba;
+  background: rgba(115, 195, 145, .09);
+  font: 650 8.5px/1.2 'Geist Mono', monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.matchup-score {
+  color: #f1d98e;
+  font: 650 15px/1.2 'Geist Mono', monospace;
+  white-space: nowrap;
+}
+
 .matchup-country {
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
 
   >span {
@@ -3148,6 +3167,7 @@ img.la28-transparent-logo {
 
 .matchup-athletes {
   grid-column: 1 / -1;
+  grid-row: 2;
   display: grid;
   gap: 3px;
   padding-top: 8px;
@@ -3160,12 +3180,102 @@ img.la28-transparent-logo {
   }
 }
 
-.matchup-score {
-  position: absolute;
-  right: 10px;
-  bottom: 9px;
-  color: #f1d98e;
-  font: 650 16px 'Geist Mono', monospace;
+.matchup-roster {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, .065);
+
+  .matchup-roster-toggle {
+    width: 100%;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+
+    strong {
+      color: #d8dde5;
+      font-size: 10.5px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    span {
+      overflow: hidden;
+      color: #828c99;
+      font-size: 9.5px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      text-align: right;
+    }
+
+    mat-icon {
+      width: 16px;
+      height: 16px;
+      color: #aeb6c1;
+      font-size: 16px;
+      line-height: 16px;
+      flex-shrink: 0;
+    }
+
+    &:focus-visible {
+      outline: 1px solid rgba($gold, .55);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+  }
+
+  .matchup-athletes {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, .04);
+  }
+}
+
+.event-result-summary {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(255, 255, 255, .18);
+  border-radius: 0 9px 9px 0;
+  background: rgba(255, 255, 255, .025);
+
+  >span {
+    color: #8f98a5;
+    font: 650 8.5px/1.25 'Geist Mono', monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  >strong {
+    color: #dce1e8;
+    font-size: 11px;
+    font-weight: 560;
+    line-height: 1.45;
+  }
+
+  &.is-win {
+    border-left-color: rgba(115, 195, 145, .65);
+
+    >span {
+      color: #91d2a7;
+    }
+  }
+
+  &.is-loss {
+    border-left-color: rgba(215, 130, 130, .55);
+
+    >span {
+      color: #d89c9c;
+    }
+  }
 }
 
 .india-entry-block {
@@ -3268,6 +3378,8 @@ img.la28-transparent-logo {
 .matchup-vs {
   display: grid;
   place-items: center;
+  align-self: start;
+  margin-top: 14px;
   color: #697381;
   font: 650 10.5px 'Geist Mono', monospace;
 }
@@ -3874,7 +3986,7 @@ img.la28-transparent-logo {
   }
 
   .matchup-side {
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: 28px minmax(0, 1fr) auto;
     gap: 7px;
     padding: 10px 8px;
 
@@ -3903,9 +4015,43 @@ img.la28-transparent-logo {
     font-size: 11px;
   }
 
+  .matchup-roster-toggle {
+    grid-template-columns: max-content 16px;
+
+    >span {
+      display: none;
+    }
+  }
+
   .games-detail-drawer .drawer-session,
   .games-detail-drawer .drawer-session:first-of-type {
     padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .matchup-board,
+  .matchup-board.single-side {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .matchup-vs {
+    min-height: 16px;
+    justify-self: center;
+    align-self: center;
+    margin-top: 0;
+    font-size: 9px;
+  }
+
+  .matchup-side {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    padding: 10px;
+
+    app-country-flag {
+      --flag-width: 32px;
+      --flag-height: 22px;
+    }
   }
 }
 
