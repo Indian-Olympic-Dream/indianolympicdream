@@ -413,8 +413,9 @@ h3 {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px 24px;
-  margin-top: 24px;
-  margin-bottom: 12px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
 
   &.matrix-toolbar {
     .matrix-toolbar-title {
@@ -476,6 +477,11 @@ h3 {
       font-size: 18px;
     }
   }
+}
+
+.legend-dot.is-live {
+  background: #ef5a5a;
+  box-shadow: 0 0 0 3px rgba(239, 90, 90, .12);
 }
 
 // ===== Schedule Timeline Section =====
@@ -1962,15 +1968,35 @@ img.la28-transparent-logo {
   .hub-navigation {
     margin-top: 16px;
     margin-bottom: 10px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    display: grid;
+    align-items: start;
+    gap: 6px;
   }
 
-  .view-toggle button {
-    min-height: 44px;
-    padding: 10px 0;
-    font-size: 12px;
+  .view-toggle {
+    gap: 20px;
+
+    button {
+      min-height: 42px;
+      padding: 9px 0;
+      font-size: 12px;
+    }
+  }
+
+  .hub-navigation .matrix-legend {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 3px 0 8px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    >span {
+      flex: 0 0 auto;
+    }
   }
 
   // Date Filter Pills
@@ -2629,6 +2655,76 @@ img.la28-transparent-logo {
 
     .cluster-event-time {
       font-size: 12px;
+    }
+  }
+}
+
+// A day is one continuous chronological surface. Sport and session changes are
+// waypoints on the same spine, rather than separate cards the reader must enter.
+.vertical-timeline-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .022), rgba(255, 255, 255, .01));
+
+  &::before {
+    top: 0;
+    bottom: 0;
+  }
+
+  >.timeline-item,
+  >.timeline-cluster {
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .075);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  >.timeline-item {
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, .075);
+      background: rgba(255, 255, 255, .018);
+    }
+
+    &.live-item {
+      background: linear-gradient(90deg, rgba(239, 68, 68, .07), transparent 54%);
+    }
+
+    &.medal-item:not(.live-item) {
+      background: linear-gradient(90deg, rgba($gold, .04), transparent 48%);
+    }
+  }
+
+  >.timeline-cluster {
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    &.live-item {
+      background: linear-gradient(90deg, rgba(239, 68, 68, .07), transparent 54%);
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .vertical-timeline-list {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    background: transparent;
+
+    >.timeline-item,
+    >.timeline-cluster {
+      padding-top: 18px;
+      padding-bottom: 18px;
     }
   }
 }
@@ -4083,31 +4179,24 @@ button.timeline-item {
 
 .timeline-programme {
   display: grid;
-  margin-top: 9px;
-  border-top: 1px solid rgba(255, 255, 255, .07);
+  margin-top: 5px;
 }
 
 .timeline-programme-row {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, .055);
-
-  >time {
-    padding-top: 1px;
-    color: $gold;
-    font: 600 10px/1.5 'Geist Mono', monospace;
-    white-space: nowrap;
-  }
+  gap: 14px;
+  padding: 3px 0 8px;
+  border: 0;
 
   &.is-ceremony {
     opacity: .68;
+  }
 
-    >time {
-      color: #aeb6c1;
-    }
+  +.timeline-programme-row {
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, .055);
   }
 }
 
@@ -4118,9 +4207,9 @@ button.timeline-item {
 
   strong {
     color: #f0f2f5;
-    font-size: 12px;
-    font-weight: 580;
-    line-height: 1.4;
+    font-size: 14px;
+    font-weight: 630;
+    line-height: 1.35;
   }
 
   small {
@@ -4318,12 +4407,8 @@ button.timeline-item {
   }
 
   .timeline-programme-row {
-    grid-template-columns: 62px minmax(0, 1fr);
-    gap: 8px;
-
-    >time {
-      font-size: 10.5px;
-    }
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
   }
 
   .timeline-programme-copy {
@@ -4337,7 +4422,7 @@ button.timeline-item {
   }
 
   .timeline-medal {
-    grid-column: 2;
+    grid-column: 1;
     font-size: 10.5px;
   }
 

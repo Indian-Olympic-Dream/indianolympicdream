@@ -60,9 +60,22 @@
         </div>
 
         <div class="hub-navigation matrix-toolbar">
+          <div class="view-toggle" role="group" aria-label="Schedule view">
+            <button type="button" [class.active]="selectedView() === 'schedule'"
+              [attr.aria-pressed]="selectedView() === 'schedule'" (click)="selectView('schedule')">
+              <mat-icon aria-hidden="true">view_timeline</mat-icon>
+              Timeline
+            </button>
+            <button type="button" [class.active]="selectedView() === 'matrix'"
+              [attr.aria-pressed]="selectedView() === 'matrix'" (click)="selectView('matrix')">
+              <mat-icon aria-hidden="true">grid_view</mat-icon>
+              Matrix
+            </button>
+          </div>
           <div class="matrix-legend" role="group" aria-label="Schedule legend">
-            <span class="legend-count"><i class="legend-dot is-session" aria-hidden="true"></i>Scheduled
-              programme</span>
+            <span *ngIf="selectedView() === 'schedule'"><i class="legend-dot is-live" aria-hidden="true"></i>Live</span>
+            <span *ngIf="selectedView() === 'matrix'" class="legend-count"><i class="legend-dot is-session"
+                aria-hidden="true"></i>Scheduled programme</span>
             <span title="Distinct events awarding medals; Indian finalists may not yet be confirmed"><img
                 class="ag-gold-medal legend-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">Medal
               events</span>
@@ -115,7 +128,7 @@
                 <span class="timeline-clock">
                   <span class="next-row-label" *ngIf="nextTimelineRow()?.id === row.id">{{ isSessionLive(row) ? 'Live
                     now' : 'Next up' }}</span>
-                  <time>{{ getScheduleTiming(row) }}</time>
+                  <time>{{ getTimelineTime(row) }}</time>
                   <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
                 </span>
 
@@ -133,13 +146,14 @@
                   <span class="session-header-line">
                     <span class="sport-name">{{ rowSport(row)?.name || 'Asian Games' }}</span>
 
-                    <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
+                    <ng-container *ngIf="showTimelineSessionBadge(row)"
+                      [ngTemplateOutlet]="sessionBadges" [ngTemplateOutletContext]="{ $implicit: row }"></ng-container>
                   </span>
 
-                  <strong class="timeline-event-title" *ngIf="!row.sessionDetails?.length">{{ drawerSessionTitle(row)
+                  <strong class="timeline-event-title" *ngIf="!timelineDetails(row).length">{{ drawerSessionTitle(row)
                     }}</strong>
 
-                  <span class="timeline-stage-line" *ngIf="!row.sessionDetails?.length">
+                  <span class="timeline-stage-line" *ngIf="!timelineDetails(row).length">
                     <span class="stage-tag">{{ getStageLabel(row) }}</span>
                   </span>
 
@@ -187,9 +201,10 @@
                       <span class="cluster-event-copy">
                         <span class="session-header-line">
                           <span class="sport-name">{{ rowSport(row)?.name }}</span>
-                          <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
+                          <ng-container *ngIf="showTimelineSessionBadge(row)"
+                            [ngTemplateOutlet]="sessionBadges" [ngTemplateOutletContext]="{ $implicit: row }"></ng-container>
                         </span>
-                        <strong class="cluster-event-title" *ngIf="!row.sessionDetails?.length">{{
+                        <strong class="cluster-event-title" *ngIf="!timelineDetails(row).length">{{
                           drawerSessionTitle(row) }}</strong>
                         <ng-container *ngTemplateOutlet="inlineProgramme; context: { $implicit: row }"></ng-container>
                       </span>
@@ -218,18 +233,17 @@
           </ng-template>
 
           <ng-template #inlineProgramme let-row>
-            <div class="timeline-programme" *ngIf="row.sessionDetails?.length">
+            <div class="timeline-programme" *ngIf="timelineDetails(row).length">
               <div class="timeline-programme-row" *ngFor="let detail of visibleTimelineDetails(row)"
                 [class.is-ceremony]="isCeremonyDetail(detail)">
-                <time>{{ detail.timeIST || 'Time TBC' }}</time>
                 <span class="timeline-programme-copy">
                   <strong>{{ detail.event }}</strong>
                   <small *ngIf="sessionDetailSubtitle(detail)">{{ sessionDetailSubtitle(detail) }}</small>
                   <small *ngIf="detail.competitors?.length || detail.organisations?.length">{{
                     (detail.competitors?.length ? detail.competitors! : detail.organisations!).join(' v ') }}</small>
                 </span>
-                <span class="timeline-programme-meta" *ngIf="detail.conditional || detail.medal">
-                  <span class="timeline-condition" *ngIf="detail.conditional">If qualified</span>
+                <span class="timeline-programme-meta" *ngIf="detail.conditional || isConditionalRow(row) || detail.medal">
+                  <span class="timeline-condition" *ngIf="detail.conditional || isConditionalRow(row)">If qualified</span>
                   <span class="timeline-medal" *ngIf="detail.medal"><img class="ag-gold-medal event-medal"
                       src="assets/images/ag-2026/gold-medal.svg" alt="">Medal</span>
                 </span>

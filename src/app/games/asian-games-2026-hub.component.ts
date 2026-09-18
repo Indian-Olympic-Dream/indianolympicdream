@@ -96,7 +96,7 @@ export class AsianGames2026HubComponent implements OnInit {
   ].filter(section => section.rows.length));
   readonly la28Only = signal(false);
   readonly iodCoverageOnly = signal(true);
-  readonly selectedView = signal<'schedule' | 'matrix'>('matrix');
+  readonly selectedView = signal<'schedule' | 'matrix'>('schedule');
   readonly coverage = signal<'iod' | 'la28' | 'all'>('iod');
   readonly medalOnly = signal(false);
   private returnFocus: HTMLElement | null = null;
@@ -329,9 +329,12 @@ export class AsianGames2026HubComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const view = params.get('view');
+      const display = params.get('display');
       if (view === 'iod' || view === 'la28' || view === 'all') this.setCoverage(view);
       else if (view === 'squad') this.openSquadDialog();
-      else this.selectedView.set('matrix');
+      if (display === 'matrix') this.selectedView.set('matrix');
+      else if (display === 'timeline') this.selectedView.set('schedule');
+      else this.selectedView.set(this.defaultScheduleView());
     });
     this.load();
     interval(60_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.now.set(new Date()));
@@ -412,7 +415,9 @@ export class AsianGames2026HubComponent implements OnInit {
 
   readonly isCeremonyDetail = isCeremonyDetail;
   readonly sessionDetailSubtitle = sessionDetailSubtitle;
-  timelineDetails(row: GamesScheduleRow): GamesSessionDetail[] { return row.sessionDetails || []; }
+  timelineDetails(row: GamesScheduleRow): GamesSessionDetail[] {
+    return (row.sessionDetails || []).filter(detail => !isCeremonyDetail(detail));
+  }
   isTimelineProgrammeExpanded(row: GamesScheduleRow): boolean { return this.expandedTimelineProgrammes().has(row.id); }
   visibleTimelineDetails(row: GamesScheduleRow): GamesSessionDetail[] {
     const details = this.timelineDetails(row);
@@ -567,6 +572,13 @@ export class AsianGames2026HubComponent implements OnInit {
     this.selectedView.set(view);
   }
 
+  private defaultScheduleView(): 'schedule' | 'matrix' {
+    const now = this.now().getTime();
+    return now >= Date.parse(this.games.competitionStart) && now <= Date.parse(this.games.end)
+      ? 'schedule'
+      : 'matrix';
+  }
+
   matrixCellLabel(cell: MatrixCell | null): string {
     if (!cell) return '';
     const parts: string[] = ['Scheduled programme'];
@@ -687,6 +699,15 @@ export class AsianGames2026HubComponent implements OnInit {
 
   getScheduleTiming(row: GamesScheduleRow): string {
     return scheduleTiming(row);
+  }
+
+  getTimelineTime(row: GamesScheduleRow): string {
+    return this.getScheduleTiming(row).replace(/^(?:from|starts)\s+/i, '');
+  }
+
+  showTimelineSessionBadge(row: GamesScheduleRow): boolean {
+    if (!this.timelineDetails(row).length) return true;
+    return ['live', 'cancelled', 'postponed'].includes(row.status || '');
   }
 
   sessionSourceUrl(row: GamesScheduleRow): string {

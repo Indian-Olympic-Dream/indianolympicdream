@@ -86,7 +86,7 @@ export function resolveTimelineDate(days: string[], requested: string, today: st
   if (requested) return requested;
   const dates = [...new Set(days)].sort();
   if (!dates.length) return today;
-  if (today >= dates[0] && today <= gamesEnd) return today;
+  if (dates.includes(today) && today <= gamesEnd) return today;
   return dates.find(day => day >= today) || dates.at(-1)!;
 }
 
