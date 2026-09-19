@@ -11,11 +11,11 @@ import { HubBroadcastComponent } from './hub-broadcast.component';
 import { CalendarEvent, GamesParticipationRow, GamesProgrammeEventRow, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
-import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail } from './asian-games-session.presentation';
+import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail } from './asian-games-session.presentation';
 import { compareMatrixSportStarts, hasIndiaAppearance, indiaDateKey, scheduleTiming } from './games-hub.presentation';
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, continuousGamesDates, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
-import { hasPublishedIndiaParticipants, indianEntriesForSessionDetail } from './asian-games-entry.presentation';
+import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
 
 export interface DrawerCompetitorSide {
   code: string;
@@ -25,6 +25,7 @@ export interface DrawerCompetitorSide {
   score?: string | number | null;
   isWinner?: boolean;
 }
+
 
 interface DrawerEventEntry {
   detail: GamesSessionDetail;
@@ -716,8 +717,67 @@ export class AsianGames2026HubComponent implements OnInit {
     return 'https://results.asiangames2026.org/#/schedule/daily/' + indiaDateKey(row.startTime);
   }
 
+  detailIsHeadToHead(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+    return isHeadToHeadDetail(detail, this.rowSport(row)?.slug);
+  }
+
+  private isGenericNocName(name?: string | null): boolean {
+    if (!name) return true;
+    const clean = name.trim().toLowerCase();
+    return clean === 'india' || clean === 'ind' || clean === 'republic of india';
+  }
+
+  startListIndiaAthletes(detail: GamesSessionDetail, row: GamesScheduleRow): string[] {
+    if (!detail || !row) return [];
+    // User direction: skip showing athletes in "If qualified" rows
+    if (this.isConditionalDetail(detail, row)) return [];
+
+    // 1. Check official start list in detail.sides (published lineup)
+    const indiaSide = (detail.sides || []).find(s => (s.code || '').toUpperCase() === 'IND');
+    if (indiaSide?.participants?.length) {
+      const valid = indiaSide.participants.filter(p => !this.isGenericNocName(p));
+      if (valid.length) return valid;
+    }
+
+    // 2. Check official start list in detail.organisations & detail.competitors
+    const orgs = detail.organisations || [];
+    const competitors = detail.competitors || [];
+    const startListAthletes: string[] = [];
+    orgs.forEach((org, index) => {
+      if ((org || '').toUpperCase() === 'IND') {
+        const comp = competitors[index];
+        if (comp && !this.isGenericNocName(comp)) {
+          startListAthletes.push(comp);
+        }
+      }
+    });
+    if (startListAthletes.length) {
+      return [...new Set(startListAthletes)];
+    }
+
+    // 3. Use event-specific participation mappings. For a numbered heat, only
+    // show a mapped name when that event has one Indian entrant; several names
+    // would imply an assignment the published start list has not established.
+    const entries = this.detailIndiaEntries(detail, row) || [];
+    const isNumberedHeat = /\bheat\s*\d+\b/i.test(`${detail.unit || ''} ${detail.phase || ''}`);
+    if (entries.length && (!isNumberedHeat || entries.length === 1)) return entries;
+
+    // Never fall back to session-wide row.indianParticipants
+    return [];
+  }
+
+  timelineDetailContext(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
+    if (detail.conditional || this.isConditionalRow(row)) return null;
+    if (this.detailIsHeadToHead(detail, row)) {
+      const labels = detail.competitors?.length ? detail.competitors : detail.organisations;
+      return labels?.length ? labels.join(' v ') : null;
+    }
+    const athletes = this.startListIndiaAthletes(detail, row);
+    return athletes.length ? athletes.join(' · ') : null;
+  }
+
   detailSides(detail: GamesSessionDetail, row: GamesScheduleRow): DrawerCompetitorSide[] {
-    if (isCeremonyDetail(detail)) return [];
+    if (isCeremonyDetail(detail) || !this.detailIsHeadToHead(detail, row)) return [];
     if (detail.sides?.length) return detail.sides.map(side => {
       const code = (side.code || '').toUpperCase();
       const publishedParticipants = side.participants || [];
@@ -734,23 +794,26 @@ export class AsianGames2026HubComponent implements OnInit {
 
     const codes = detail.organisations || [];
     const labels = detail.competitors || [];
-    return codes.map((code, index) => ({
-      code: code.toUpperCase(),
-      label: labels[index] || code,
-      participants: code.toUpperCase() === 'IND'
-        ? (row.indianParticipants || []).map(athlete => athlete.fullName).filter(Boolean)
-        : [],
-      participantsAreRoster: code.toUpperCase() === 'IND',
-    }));
+    return codes.map((code, index) => {
+      const isInd = code.toUpperCase() === 'IND';
+      const label = labels[index] || code;
+      const labelIsAthlete = isInd && !this.isGenericNocName(label);
+      const roster = isInd ? this.detailIndiaEntries(detail, row) : [];
+      const participants = labelIsAthlete
+        ? [label]
+        : (roster.length ? roster : []);
+      return {
+        code: code.toUpperCase(),
+        label,
+        participants,
+        participantsAreRoster: isInd && !labelIsAthlete && roster.length > 0,
+      };
+    });
   }
 
   detailIndiaEntries(detail: GamesSessionDetail, row: GamesScheduleRow): string[] {
     if (isCeremonyDetail(detail)) return [];
     return indianEntriesForSessionDetail(detail, row, this.participations());
-  }
-
-  showDerivedIndiaEntries(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
-    return !isCeremonyDetail(detail) && !this.detailSides(detail, row).length && !hasPublishedIndiaParticipants(detail, row);
   }
 
   detailResultSummary(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
@@ -775,13 +838,6 @@ export class AsianGames2026HubComponent implements OnInit {
     if (/\bbeat\b/i.test(summary)) return 'win';
     if (/\blost to\b/i.test(summary)) return 'loss';
     return 'neutral';
-  }
-
-  derivedIndiaEntryNote(detail: GamesSessionDetail): string {
-    const hasPublishedSides = Boolean(detail.sides?.length || detail.organisations?.length);
-    return hasPublishedSides
-      ? 'India roster · playing lineup pending publication'
-      : 'Rostered for this event · exact start assignment pending publication';
   }
 
   isConditionalDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
@@ -873,9 +929,7 @@ export class AsianGames2026HubComponent implements OnInit {
   isSingleFixture(row: GamesScheduleRow): boolean {
     const details = this.competitionDetails(row);
     if (details.length === 1) {
-      const sides = this.detailSides(details[0], row);
-      if (sides.length >= 2) return true;
-      if (details[0].unit || details[0].phase) return true;
+      if (this.detailIsHeadToHead(details[0], row)) return true;
       if (/\bv\b|\bvs\b/i.test(row.name || row.eventName || '')) return true;
     }
     return false;

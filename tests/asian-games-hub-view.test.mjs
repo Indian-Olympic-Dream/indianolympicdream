@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSync } from 'esbuild';
 const compiled = buildSync({entryPoints:['src/app/games/asian-games-session.presentation.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const { asianSessionBadge, asianSessionMedal, asianMedalEventCount, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle } = await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const { asianSessionBadge, asianSessionMedal, asianMedalEventCount, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, isHeadToHeadDetail, isStartListDetail } = await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const entryCompiled = buildSync({entryPoints:['src/app/games/asian-games-entry.presentation.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const { asianGamesEventsEquivalent, indianEntriesForSessionDetail } = await import('data:text/javascript;base64,'+Buffer.from(entryCompiled.outputFiles[0].text).toString('base64'));
 const fixture = {id:'india',startTime:'2026-09-18T05:00:00Z',participationStatus:'confirmed',gamesParticipations:[{id:'team-india'}],timingPrecision:'exact'};
@@ -37,6 +37,7 @@ test('drawer separates ceremonies and removes repeated official titles without d
   const final={event:'10m Air Rifle Women Individual',phase:'Final',unit:"10m Air Rifle Women's Final"};
   assert.equal(isCeremonyDetail(final),false);
   assert.equal(sessionDetailSubtitle(final),'Final');
+  assert.equal(sessionDetailSubtitle({event:'10m Air Rifle Women Individual',phase:'Qualification',unit:'Qualification'}),'Qualification');
   assert.equal(isCeremonyDetail({...final,phase:'Victory Ceremony'}),true);
   assert.equal(sessionDetailSubtitle({event:'10m Air Rifle Women Team',phase:'Victory Ceremony',unit:'10m Air Rifle Team Women Victory Ceremony'}),'Victory Ceremony');
   assert.equal(sessionDetailSubtitle({event:'100m Men',phase:'Round 1',unit:'Heat 2'}),'Round 1 · Heat 2');
@@ -81,4 +82,42 @@ test('victory ceremonies never inherit athletes from their medal event', () => {
   const entries = [{id:'1',gamesKey:'asian-games-2026',sport,athlete:{id:'a',fullName:'India Lifter'},eventBucket:"Women's +87kg",selectionStatus:'approved'}];
   const ceremony = {event:"Women's +87kg",phase:'Victory Ceremony',unit:"Women's +87kg Victory Ceremony"};
   assert.deepEqual(indianEntriesForSessionDetail(ceremony,{...fixture,sport},entries),[]);
+});
+
+test('distinguishes head-to-head fixtures from multi-entry start lists', () => {
+  const shootingQual = {
+    event: '10m Air Rifle Women Individual',
+    phase: 'Qualification',
+    unit: 'Qualification',
+    organisations: ['MGL', 'KOR', 'JPN', 'QAT', 'TPE', 'MAS', 'MDV', 'IND', 'THA', 'VIE', 'INA', 'KGZ']
+  };
+  assert.equal(isHeadToHeadDetail(shootingQual, 'shooting'), false);
+  assert.equal(isStartListDetail(shootingQual, 'shooting'), true);
+
+  const cricketMatch = {
+    event: 'Women',
+    phase: 'Quarterfinals',
+    unit: 'Quarterfinal 4',
+    sides: [{ code: 'IND', label: 'India' }, { code: 'JPN', label: 'Japan' }]
+  };
+  assert.equal(isHeadToHeadDetail(cricketMatch, 'cricket'), true);
+  assert.equal(isStartListDetail(cricketMatch, 'cricket'), false);
+
+  const athleticsHeat = {
+    event: '100m Men',
+    phase: 'Round 1',
+    unit: 'Heat 2',
+    organisations: ['IND', 'JPN', 'CHN', 'KOR', 'QAT', 'THA', 'MAS', 'KAZ']
+  };
+  assert.equal(isHeadToHeadDetail(athleticsHeat, 'athletics'), false);
+  assert.equal(isStartListDetail(athleticsHeat, 'athletics'), true);
+
+  const boxingBout = {
+    event: "Women's 54kg",
+    phase: 'Round of 16',
+    unit: 'Bout 12',
+    organisations: ['IND', 'UZB']
+  };
+  assert.equal(isHeadToHeadDetail(boxingBout, 'boxing'), true);
+  assert.equal(isStartListDetail(boxingBout, 'boxing'), false);
 });

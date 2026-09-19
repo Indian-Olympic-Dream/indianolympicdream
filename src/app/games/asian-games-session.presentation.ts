@@ -86,7 +86,7 @@ export function resolveTimelineDate(days: string[], requested: string, today: st
   if (requested) return requested;
   const dates = [...new Set(days)].sort();
   if (!dates.length) return today;
-  if (dates.includes(today) && today <= gamesEnd) return today;
+  if (today >= dates[0] && today <= gamesEnd) return today;
   return dates.find(day => day >= today) || dates.at(-1)!;
 }
 
@@ -99,6 +99,41 @@ export function sessionDetailSubtitle(detail: GamesSessionDetail): string {
   const normalize = (value: string) => value.toLowerCase().replace(/[’']/g, '').replace(/women\b/g, 'womens').replace(/(?<!wo)men\b/g, 'mens').replace(/individual/g, '').replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).sort().join(' ');
   const unit = detail.unit || '';
   const phase = detail.phase || '';
-  const extra = normalize(unit) && normalize(unit) !== normalize(detail.event) && normalize(unit) !== normalize(detail.event + ' ' + phase);
+  const extra = normalize(unit)
+    && normalize(unit) !== normalize(phase)
+    && normalize(unit) !== normalize(detail.event)
+    && normalize(unit) !== normalize(detail.event + ' ' + phase);
   return [phase, extra ? unit : ''].filter(Boolean).join(' · ');
+}
+
+const START_LIST_SPORTS = new Set([
+  'shooting', 'athletics', 'aquatics', 'swimming', 'diving', 'artistic-swimming',
+  'weightlifting', 'gymnastics', 'cycling', 'rowing', 'canoe', 'kayak', 'sailing',
+  'golf', 'triathlon', 'modern-pentathlon', 'equestrian', 'roller-sports', 'skateboarding'
+]);
+
+export function isHeadToHeadDetail(detail: GamesSessionDetail, sportSlug?: string): boolean {
+  if (!detail || isCeremonyDetail(detail)) return false;
+  if (detail.sides?.length) {
+    return detail.sides.length <= 2;
+  }
+  const orgs = detail.organisations || [];
+  if (orgs.length === 0 || orgs.length > 2) return false;
+
+  const slug = (sportSlug || '').toLowerCase();
+  if (slug && START_LIST_SPORTS.has(slug)) return false;
+
+  const text = `${detail.event || ''} ${detail.phase || ''} ${detail.unit || ''}`.toLowerCase();
+  if (/\b(?:qualification|heats?|ranking round|stroke play|time trial|qualifying)\b/i.test(text)) {
+    return false;
+  }
+  return true;
+}
+
+export function isStartListDetail(detail: GamesSessionDetail, sportSlug?: string): boolean {
+  if (!detail || isCeremonyDetail(detail)) return false;
+  if (isHeadToHeadDetail(detail, sportSlug)) return false;
+  const orgs = detail.organisations || [];
+  const competitors = detail.competitors || [];
+  return orgs.length > 0 || competitors.length > 0;
 }

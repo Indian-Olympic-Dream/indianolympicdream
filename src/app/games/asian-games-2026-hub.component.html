@@ -239,8 +239,7 @@
                 <span class="timeline-programme-copy">
                   <strong>{{ detail.event }}</strong>
                   <small *ngIf="sessionDetailSubtitle(detail)">{{ sessionDetailSubtitle(detail) }}</small>
-                  <small *ngIf="detail.competitors?.length || detail.organisations?.length">{{
-                    (detail.competitors?.length ? detail.competitors! : detail.organisations!).join(' v ') }}</small>
+                  <small *ngIf="timelineDetailContext(detail, row) as context">{{ context }}</small>
                 </span>
                 <span class="timeline-programme-meta" *ngIf="detail.conditional || isConditionalRow(row) || detail.medal">
                   <span class="timeline-condition" *ngIf="detail.conditional || isConditionalRow(row)">If qualified</span>
@@ -382,32 +381,6 @@
       <span *ngIf="awaitingUpdate(row)" class="update-pending">Awaiting update</span>
     </ng-template>
 
-    <ng-template #indiaEntries let-detail let-row="row">
-      @if (detailIndiaEntries(detail, row); as entryNames) {
-      <div *ngIf="entryNames.length && showDerivedIndiaEntries(detail, row)" class="india-entry-block"
-        [class.is-conditional-entry]="isConditionalDetail(detail, row)">
-        <app-country-flag code="IND" label="India"></app-country-flag>
-        <div class="india-entry-copy">
-          <span class="india-entry-heading">
-            <strong>{{ isConditionalDetail(detail, row) ? 'Possible India entry' : 'India entry' }}</strong>
-            <small>{{ entryNames.length }} {{ entryNames.length === 1 ? 'athlete' : 'athletes' }}</small>
-          </span>
-          <div class="india-entry-names">
-            <span *ngFor="let athlete of entryNames | slice:0:4">{{ athlete | titlecase }}</span>
-          </div>
-          <details *ngIf="entryNames.length > 4" class="india-entry-more">
-            <summary>Show {{ entryNames.length - 4 }} more</summary>
-            <div class="india-entry-names">
-              <span *ngFor="let athlete of entryNames | slice:4">{{ athlete | titlecase }}</span>
-            </div>
-          </details>
-          <p>{{ isConditionalDetail(detail, row)
-            ? 'Rostered athletes · appearance depends on India advancing'
-            : derivedIndiaEntryNote(detail) }}</p>
-        </div>
-      </div>
-      }
-    </ng-template>
 
     <ng-template #eventDetail let-detail let-row="row">
       <article class="drawer-event-card" [class.is-conditional]="isConditionalDetail(detail, row)"
@@ -470,14 +443,12 @@
         </div>
         }
 
-        <div *ngIf="isConditionalDetail(detail, row) && !detailSides(detail, row).length && !detailIndiaEntries(detail, row).length"
-          class="conditional-path">
-          <mat-icon aria-hidden="true">route</mat-icon>
-          <div><strong>Possible Indian appearance</strong><span>Opponent and participants depend on earlier
-              results.</span></div>
+        <!-- Individual / field events: athlete names support the event hierarchy without a second card. -->
+        <div *ngIf="!detailSides(detail, row).length" class="event-athletes-list">
+          @if (startListIndiaAthletes(detail, row); as athletes) {
+          <span *ngFor="let athlete of athletes" class="event-athlete-name">{{ athlete | titlecase }}</span>
+          }
         </div>
-
-        <ng-container *ngTemplateOutlet="indiaEntries; context: { $implicit: detail, row: row }"></ng-container>
 
         @if (detailResultSummary(detail, row); as resultSummary) {
         <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
