@@ -99,6 +99,32 @@ export function sessionDetailSubtitle(detail: GamesSessionDetail): string {
   const normalize = (value: string) => value.toLowerCase().replace(/[’']/g, '').replace(/women\b/g, 'womens').replace(/(?<!wo)men\b/g, 'mens').replace(/individual/g, '').replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).sort().join(' ');
   const unit = detail.unit || '';
   const phase = detail.phase || '';
-  const extra = normalize(unit) && normalize(unit) !== normalize(detail.event) && normalize(unit) !== normalize(detail.event + ' ' + phase);
+  const extra = normalize(unit)
+    && normalize(unit) !== normalize(phase)
+    && normalize(unit) !== normalize(detail.event)
+    && normalize(unit) !== normalize(detail.event + ' ' + phase);
   return [phase, extra ? unit : ''].filter(Boolean).join(' · ');
+}
+
+const START_LIST_SPORTS = new Set([
+  'shooting', 'athletics', 'aquatics', 'swimming', 'diving', 'artistic-swimming',
+  'weightlifting', 'gymnastics', 'artistic-gymnastics', 'rhythmic-gymnastics',
+  'trampoline-gymnastics', 'cycling', 'rowing', 'canoe', 'canoe-sprint',
+  'canoe-slalom', 'kayak', 'sailing', 'golf', 'triathlon', 'modern-pentathlon',
+  'equestrian', 'roller-sports', 'skateboarding'
+]);
+
+/** True only when a detail represents opposing sides rather than a start list. */
+export function isHeadToHeadDetail(detail: GamesSessionDetail, sportSlug?: string): boolean {
+  if (!detail || isCeremonyDetail(detail)) return false;
+
+  const slug = (sportSlug || '').toLowerCase();
+  const text = `${detail.event || ''} ${detail.phase || ''} ${detail.unit || ''}`.toLowerCase();
+  if (START_LIST_SPORTS.has(slug) || /\b(?:qualification|heats?|ranking round|stroke play|time trial|qualifying)\b/i.test(text)) {
+    return false;
+  }
+
+  if (detail.sides?.length) return detail.sides.length <= 2;
+  const organisations = detail.organisations || [];
+  return organisations.length > 0 && organisations.length <= 2;
 }

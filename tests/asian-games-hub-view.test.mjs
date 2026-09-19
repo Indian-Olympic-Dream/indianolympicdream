@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSync } from 'esbuild';
 const compiled = buildSync({entryPoints:['src/app/games/asian-games-session.presentation.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const { asianSessionBadge, asianSessionMedal, asianMedalEventCount, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle } = await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const { asianSessionBadge, asianSessionMedal, asianMedalEventCount, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, isHeadToHeadDetail } = await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const entryCompiled = buildSync({entryPoints:['src/app/games/asian-games-entry.presentation.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const { asianGamesEventsEquivalent, indianEntriesForSessionDetail } = await import('data:text/javascript;base64,'+Buffer.from(entryCompiled.outputFiles[0].text).toString('base64'));
 const fixture = {id:'india',startTime:'2026-09-18T05:00:00Z',participationStatus:'confirmed',gamesParticipations:[{id:'team-india'}],timingPrecision:'exact'};
@@ -40,6 +40,14 @@ test('drawer separates ceremonies and removes repeated official titles without d
   assert.equal(isCeremonyDetail({...final,phase:'Victory Ceremony'}),true);
   assert.equal(sessionDetailSubtitle({event:'10m Air Rifle Women Team',phase:'Victory Ceremony',unit:'10m Air Rifle Team Women Victory Ceremony'}),'Victory Ceremony');
   assert.equal(sessionDetailSubtitle({event:'100m Men',phase:'Round 1',unit:'Heat 2'}),'Round 1 · Heat 2');
+  assert.equal(sessionDetailSubtitle({event:'10m Air Rifle Women Individual',phase:'Qualification',unit:'Qualification'}),'Qualification');
+});
+
+test('individual start lists never render as versus fixtures', () => {
+  assert.equal(isHeadToHeadDetail({event:'200m Freestyle Women',phase:'Heat 1',organisations:['IND','JPN']},'swimming'),false);
+  assert.equal(isHeadToHeadDetail({event:'10m Air Rifle Women Individual',phase:'Qualification',organisations:['IND','KOR']},'shooting'),false);
+  assert.equal(isHeadToHeadDetail({event:'Women',phase:'Quarterfinal',sides:[{code:'IND'},{code:'JPN'}]},'cricket'),true);
+  assert.equal(isHeadToHeadDetail({event:'Men 75kg',phase:'Quarterfinal',organisations:['IND','KAZ']},'boxing'),true);
 });
 test('matrix medal totals count events inside sessions and collapse bronze/gold phases', () => {
   const shooting = {...fixture,sport:{id:'shooting'},sessionDetails:[
