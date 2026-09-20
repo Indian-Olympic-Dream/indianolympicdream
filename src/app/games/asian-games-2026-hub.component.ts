@@ -8,10 +8,10 @@ import { Observable, catchError, interval, of } from 'rxjs';
 import { OriginalsService, Video } from '../originals/originals.service';
 import { selectHubVideo } from '../originals/broadcast-presentation';
 import { HubBroadcastComponent } from './hub-broadcast.component';
-import { CalendarEvent, GamesParticipationRow, GamesProgrammeEventRow, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
+import { CalendarEvent, GamesParticipationRow, GamesProgrammeEventRow, GamesRankedResultEntry, GamesResultMatch, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
-import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail } from './asian-games-session.presentation';
+import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, resultMatchForDetail, resultRankLabel, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
 import { compareMatrixSportStarts, hasIndiaAppearance, indiaDateKey, scheduleTiming } from './games-hub.presentation';
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, continuousGamesDates, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
@@ -511,6 +511,10 @@ export class AsianGames2026HubComponent implements OnInit {
     }).sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime));
   }
 
+  standaloneCellResults(cell: { sessions: GamesScheduleRow[] }): GamesScheduleRow[] {
+    return cell.sessions.filter(row => !this.competitionDetails(row).length && Boolean(row.result?.summary));
+  }
+
   formatDialogDate(dateKey: string): string {
     if (!dateKey) return '';
     const d = new Date(`${dateKey}T12:00:00+05:30`);
@@ -760,21 +764,26 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   detailResultSummary(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
-    const matches = Array.isArray(row.result?.matches) ? row.result.matches : [];
-    const officialKey = String(detail.sourceUrl || '').match(/\/results\/([^/?#]+)/)?.[1];
-    const exact = officialKey ? matches.find((match: any) => match?.officialKey === officialKey) : null;
-    if (exact?.summary) return exact.summary;
-
-    const normalize = (value: unknown) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const detailText = normalize(`${detail.event} ${detail.phase || ''} ${detail.unit || ''}`);
-    const semantic = matches.find((match: any) => {
-      const event = normalize(match?.event);
-      const phase = normalize(match?.phase);
-      const unit = normalize(match?.unit);
-      return (!event || detailText.includes(event)) && (!phase || detailText.includes(phase)) && (!unit || detailText.includes(unit));
-    });
-    if (semantic?.summary) return semantic.summary;
+    const match = resultMatchForDetail(detail, row);
+    if (match?.summary) return match.summary;
     return this.competitionDetails(row).length === 1 ? row.result?.summary || null : null;
+  }
+
+  detailRankedResult(detail: GamesSessionDetail, row: GamesScheduleRow): GamesResultMatch | null {
+    const match = resultMatchForDetail(detail, row);
+    return match?.format === 'ranked' && match.entries?.length ? match : null;
+  }
+
+  rankedEntryLabel(entry: GamesRankedResultEntry): string {
+    return entry.medal || resultRankLabel(entry.rank);
+  }
+
+  rankedEntryClass(entry: GamesRankedResultEntry): string {
+    return entry.medal ? `is-${entry.medal.toLowerCase()}` : '';
+  }
+
+  timelineResultSummary(row: GamesScheduleRow): string | null {
+    return compactTimelineResultSummary(row);
   }
 
   detailResultOutcome(summary: string): 'win' | 'loss' | 'neutral' {

@@ -143,7 +143,7 @@
                     <span class="stage-tag">{{ getStageLabel(row) }}</span>
                   </span>
 
-                  <span class="result-summary-line" *ngIf="row.result?.summary">{{ row.result?.summary }}</span>
+                  <span class="result-summary-line" *ngIf="timelineResultSummary(row) as resultSummary">{{ resultSummary }}</span>
                   <ng-container *ngTemplateOutlet="inlineProgramme; context: { $implicit: row }"></ng-container>
                 </span>
 
@@ -435,12 +435,23 @@
           }
         </div>
 
-        @if (detailResultSummary(detail, row); as resultSummary) {
-        <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
-          [class.is-loss]="detailResultOutcome(resultSummary) === 'loss'">
-          <span>Result</span>
-          <strong>{{ resultSummary }}</strong>
-        </div>
+        @if (detailRankedResult(detail, row); as rankedResult) {
+        <section class="event-ranked-result" aria-label="Official India result">
+          <header><span>Official result</span><small>{{ rankedResult.entries?.length }} India {{ rankedResult.entries?.length === 1 ? 'entry' : 'entries' }}</small></header>
+          <div class="ranked-result-row" *ngFor="let entry of rankedResult.entries">
+            <span class="ranked-place" [ngClass]="rankedEntryClass(entry)">{{ rankedEntryLabel(entry) }}</span>
+            <span class="ranked-athlete"><strong>{{ entry.name | titlecase }}</strong><small *ngIf="entry.qualification">{{ entry.qualification === 'Q' ? 'Qualified' : entry.qualification }}</small></span>
+            <strong class="ranked-performance">{{ entry.result || '—' }}</strong>
+          </div>
+        </section>
+        } @else {
+          @if (detailResultSummary(detail, row); as resultSummary) {
+          <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
+            [class.is-loss]="detailResultOutcome(resultSummary) === 'loss'">
+            <span>Result</span>
+            <strong>{{ resultSummary }}</strong>
+          </div>
+          }
         }
 
         <details *ngIf="detail.units && detail.units.length > 1" class="drawer-units">
@@ -583,7 +594,23 @@
                 *ngTemplateOutlet="eventDetail; context: { $implicit: event.detail, row: event.row }"></ng-container></ng-container>
           </section>
           <ng-template #programmePending>
-            <p class="timing-note">Detailed competition programme awaiting publication.</p>
+            @if (standaloneCellResults(cell); as resultRows) {
+              @if (resultRows.length) {
+              <section class="standalone-results" aria-label="Official India results">
+                <div class="drawer-section-title">
+                  <h4>Official result</h4><span>{{ resultRows.length }}</span>
+                </div>
+                <article class="standalone-result-card" *ngFor="let row of resultRows">
+                  <span>{{ row.eventName || row.phase || 'India result' }}</span>
+                  <strong>{{ timelineResultSummary(row) || row.result?.summary }}</strong>
+                  <a *ngIf="row.result?.sourceUrl" [href]="row.result?.sourceUrl" target="_blank"
+                    rel="noopener noreferrer">Official result <mat-icon aria-hidden="true">north_east</mat-icon></a>
+                </article>
+              </section>
+              } @else {
+              <p class="timing-note">Detailed competition programme awaiting publication.</p>
+              }
+            }
           </ng-template>
           }
 

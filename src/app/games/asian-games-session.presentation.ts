@@ -1,4 +1,4 @@
-import type { GamesScheduleRow, GamesSessionDetail } from '../services/payload.service';
+import type { GamesResultMatch, GamesScheduleRow, GamesSessionDetail } from '../services/payload.service';
 import { hasIndiaAppearance } from './games-hub.presentation';
 
 export function uniqueSessionRows(rows: GamesScheduleRow[]): GamesScheduleRow[] {
@@ -127,4 +127,44 @@ export function isHeadToHeadDetail(detail: GamesSessionDetail, sportSlug?: strin
   if (detail.sides?.length) return detail.sides.length <= 2;
   const organisations = detail.organisations || [];
   return organisations.length > 0 && organisations.length <= 2;
+}
+
+const normalizeResultText = (value: unknown): string => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+/** Resolve an official result unit to the exact nested programme detail. */
+export function resultMatchForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): GamesResultMatch | null {
+  const matches = row.result?.matches || [];
+  const officialKey = String(detail.sourceUrl || '').match(/\/results\/([^/?#]+)/)?.[1];
+  const exact = officialKey ? matches.find(match => match.officialKey === officialKey) : null;
+  if (exact) return exact;
+
+  const detailText = normalizeResultText(`${detail.event} ${detail.phase || ''} ${detail.unit || ''}`);
+  return matches.find(match => {
+    const event = normalizeResultText(match.event);
+    const phase = normalizeResultText(match.phase);
+    const unit = normalizeResultText(match.unit);
+    return (!event || detailText.includes(event)) && (!phase || detailText.includes(phase)) && (!unit || detailText.includes(unit));
+  }) || null;
+}
+
+export function resultRankLabel(rank?: number | null): string {
+  if (!rank) return '—';
+  const mod100 = rank % 100;
+  const suffix = mod100 >= 11 && mod100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[rank % 10] || 'th');
+  return `${rank}${suffix}`;
+}
+
+/** Keep timeline rows compact; full ranked fields live in the detail drawer. */
+export function timelineResultSummary(row: GamesScheduleRow): string | null {
+  const ranked = (row.result?.matches || []).filter(match => match.format === 'ranked');
+  if (!ranked.length) return row.result?.summary || null;
+  const entries = ranked.flatMap(match => match.entries || []);
+  const medals = entries.filter(entry => entry.medal);
+  if (medals.length) {
+    const medalCounts = new Map<string, number>();
+    medals.forEach(entry => medalCounts.set(entry.medal!, (medalCounts.get(entry.medal!) || 0) + 1));
+    const medalText = [...medalCounts].map(([medal, count]) => `${count} ${medal.toLowerCase()}${count === 1 ? '' : 's'}`).join(' · ');
+    return `${medalText} · ${entries.length} India result${entries.length === 1 ? '' : 's'}`;
+  }
+  return `${entries.length} India result${entries.length === 1 ? '' : 's'}`;
 }

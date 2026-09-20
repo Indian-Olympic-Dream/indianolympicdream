@@ -267,6 +267,37 @@ export interface GamesSessionDetail {
   sourceUrl?: string;
 }
 
+export interface GamesRankedResultEntry {
+  name: string;
+  organisation?: string;
+  rank?: number | null;
+  result?: string | null;
+  qualification?: string | null;
+  medal?: 'Gold' | 'Silver' | 'Bronze' | string | null;
+  status?: string | null;
+}
+
+export interface GamesResultMatch {
+  officialKey?: string;
+  format?: 'head-to-head' | 'ranked';
+  event?: string;
+  phase?: string;
+  unit?: string;
+  summary?: string;
+  entries?: GamesRankedResultEntry[];
+  status?: string;
+}
+
+export interface GamesScheduleResult {
+  summary?: string;
+  outcome?: 'win' | 'loss' | 'draw' | 'mixed' | null;
+  matches?: GamesResultMatch[];
+  sourceUrl?: string;
+  official?: boolean;
+  provisional?: boolean;
+  [key: string]: any;
+}
+
 export interface GamesScheduleRow {
   sourceId?: string;
   sourceBasis?: string;
@@ -297,7 +328,7 @@ export interface GamesScheduleRow {
   certainty?: string;
   notes?: string;
   status?: string;
-  result?: any;
+  result?: GamesScheduleResult;
   liveCoverage?: LiveScoreCoverage | null;
   /** Sanitized point-by-point updates supplied by the live SSE publication. */
   liveUpdates?: LiveScoreUpdate[];

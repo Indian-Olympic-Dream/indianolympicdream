@@ -2673,6 +2673,10 @@ img.la28-transparent-logo {
       flex: 1;
       min-width: 0;
 
+      &:not(:has(.drawer-pictogram-tile)) {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       .drawer-pictogram-tile {
         width: 60px;
         height: 60px;
@@ -3276,6 +3280,130 @@ img.la28-transparent-logo {
       color: #d89c9c;
     }
   }
+}
+
+.standalone-results {
+  display: grid;
+  gap: 10px;
+}
+
+.standalone-result-card {
+  display: grid;
+  gap: 7px;
+  padding: 13px 14px;
+  border: 1px solid rgba(119, 164, 226, .18);
+  border-left: 2px solid rgba(119, 164, 226, .72);
+  border-radius: 0 11px 11px 0;
+  background: linear-gradient(135deg, rgba(60, 102, 168, .09), rgba(255, 255, 255, .02));
+
+  >span {
+    color: #91bdf6;
+    font: 650 9px/1.3 'Geist Mono', monospace;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  >strong {
+    color: #e3e8ef;
+    font-size: 12px;
+    font-weight: 580;
+    line-height: 1.5;
+  }
+
+  >a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    color: #8dbbfa;
+    font-size: 11px;
+    text-decoration: none;
+
+    mat-icon {
+      width: 13px;
+      height: 13px;
+      font-size: 13px;
+      line-height: 13px;
+    }
+  }
+}
+
+.event-ranked-result {
+  overflow: hidden;
+  border: 1px solid rgba(119, 164, 226, .16);
+  border-radius: 10px;
+  background: rgba(8, 13, 21, .52);
+
+  >header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 11px;
+    border-bottom: 1px solid rgba(255, 255, 255, .055);
+    color: #91bdf6;
+    font: 650 8.5px/1.25 'Geist Mono', monospace;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+
+    small {
+      color: #747f8d;
+      font: inherit;
+      letter-spacing: .04em;
+    }
+  }
+}
+
+.ranked-result-row {
+  display: grid;
+  grid-template-columns: minmax(46px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 45px;
+  padding: 7px 11px;
+
+  & + & {
+    border-top: 1px solid rgba(255, 255, 255, .045);
+  }
+}
+
+.ranked-place {
+  min-width: 36px;
+  color: #aeb7c3;
+  font: 650 10px/1 'Geist Mono', monospace;
+  letter-spacing: .03em;
+
+  &.is-gold { color: #f1c85a; }
+  &.is-silver { color: #d6dce7; }
+  &.is-bronze { color: #d69a68; }
+}
+
+.ranked-athlete {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    color: #e5e9ef;
+    font-size: 11.5px;
+    font-weight: 580;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: #86c59c;
+    font: 650 8px/1.2 'Geist Mono', monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+}
+
+.ranked-performance {
+  color: #f3f5f8;
+  font: 680 12px/1 'Geist Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .event-athletes-list {
