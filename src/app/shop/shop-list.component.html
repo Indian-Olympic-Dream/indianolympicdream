@@ -1,0 +1,51 @@
+<section class="shop">
+  <header class="shop__header">
+    <h1>Shop</h1>
+    <p class="shop__subtitle">Prints and merchandise from Indian Olympic Dream.</p>
+
+    <a
+      class="shop__cart-link"
+      routerLink="/shop/cart"
+      mat-stroked-button
+      [attr.aria-label]="'Cart, ' + cart.count() + ' items'"
+    >
+      <mat-icon>shopping_cart</mat-icon>
+      Cart ({{ cart.count() }})
+    </a>
+  </header>
+
+  @if (loading()) {
+    <p class="shop__status">Loading…</p>
+  } @else if (error()) {
+    <p class="shop__status shop__status--error">{{ error() }}</p>
+  } @else if (products().length === 0) {
+    <p class="shop__status">Nothing is on sale just yet. Check back soon.</p>
+  } @else {
+    <ul class="shop__grid">
+      @for (product of products(); track product.id) {
+        <li class="card">
+          <a class="card__link" [routerLink]="['/shop', product.slug]">
+            @if (imageFor(product); as image) {
+              <img class="card__image" [src]="image" [alt]="product.title" loading="lazy" />
+            } @else {
+              <div class="card__image card__image--placeholder" aria-hidden="true"></div>
+            }
+
+            <h2 class="card__title">{{ product.title }}</h2>
+
+            <p class="card__price">
+              @if (product.units.length > 1) {
+                <span class="card__from">from</span>
+              }
+              {{ formatPaise(fromPricePaise(product)) }}
+            </p>
+
+            @if (isSoldOut(product)) {
+              <p class="card__sold-out">Sold out</p>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -1,0 +1,66 @@
+<section class="order">
+  @if (loading()) {
+    <p class="order__status">Loading your order…</p>
+  } @else if (error()) {
+    <p class="order__status order__status--error">{{ error() }}</p>
+    <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+  } @else {
+    @if (order(); as view) {
+    <h1>Order {{ view.orderNumber }}</h1>
+    <p class="order__state">{{ statusLabel(view.status) }}</p>
+
+    @if (view.tracking.trackingUrl) {
+      <p class="order__tracking">
+        <a [href]="view.tracking.trackingUrl" target="_blank" rel="noopener noreferrer">
+          Track your parcel
+        </a>
+        @if (view.tracking.courier) {
+          <span class="order__courier">({{ view.tracking.courier }})</span>
+        }
+      </p>
+    }
+
+    <ul class="order__lines">
+      @for (line of view.lines; track line.title + (line.variantName ?? "")) {
+        <li>
+          <span class="order__line-title">
+            {{ line.title }}
+            @if (line.variantName) {
+              — {{ line.variantName }}
+            }
+          </span>
+          <span class="order__line-qty">x{{ line.quantity }}</span>
+          <span class="order__line-total">{{ formatPaise(line.lineTotalPaise) }}</span>
+        </li>
+      }
+    </ul>
+
+    <dl class="order__totals">
+      <dt>Subtotal</dt>
+      <dd>{{ formatPaise(view.subtotalPaise) }}</dd>
+      <dt>Shipping</dt>
+      <dd>{{ formatPaise(view.shippingPaise) }}</dd>
+      @if (view.taxPaise > 0) {
+        <dt>Tax</dt>
+        <dd>{{ formatPaise(view.taxPaise) }}</dd>
+      }
+      <dt class="order__grand">Total</dt>
+      <dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
+    </dl>
+
+    <address class="order__address">
+      {{ view.shippingAddress.line1 }}<br />
+      @if (view.shippingAddress.line2) {
+        {{ view.shippingAddress.line2 }}<br />
+      }
+      {{ view.shippingAddress.city }}, {{ view.shippingAddress.state }}
+      {{ view.shippingAddress.postalCode }}<br />
+      {{ view.shippingAddress.country }}
+    </address>
+
+    <p class="order__keep">
+      Keep this page bookmarked — it is the link to your order.
+    </p>
+    }
+  }
+</section>
