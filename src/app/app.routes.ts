@@ -125,6 +125,15 @@ export const routes: Routes = [
     redirectTo: "history/sport/:sportname",
   },
   {
+    path: "shop",
+    loadChildren: () => import("./shop/shop.routes").then((m) => m.SHOP_ROUTES),
+    data: {
+      animation: "ShopPage",
+      order: 7,
+      transitionType: "bottom-to-top",
+    },
+  },
+  {
     path: "internal-error",
     loadComponent: () =>
       import("./server-error/server-error.component").then(

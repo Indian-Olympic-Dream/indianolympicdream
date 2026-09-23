@@ -1,0 +1,97 @@
+<section class="checkout">
+  <h1>Checkout</h1>
+
+  @if (cart.items().length === 0) {
+    <p>Your cart is empty.</p>
+    <a routerLink="/shop" mat-flat-button color="primary">Browse the shop</a>
+  } @else {
+    <p class="checkout__guest">
+      No account needed. We will give you a private link to follow your order.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="checkout__form" novalidate>
+      <fieldset>
+        <legend>Your details</legend>
+
+        <label>
+          Full name
+          <input type="text" formControlName="name" autocomplete="name" />
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email" autocomplete="email" />
+          <small>Your order link is sent here.</small>
+        </label>
+
+        <label>
+          Phone
+          <input type="tel" formControlName="phone" autocomplete="tel" />
+          <small>The courier needs this for delivery.</small>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Delivery address</legend>
+
+        <label>
+          Address
+          <input type="text" formControlName="line1" autocomplete="address-line1" />
+        </label>
+
+        <label>
+          Address line 2 <span class="optional">(optional)</span>
+          <input type="text" formControlName="line2" autocomplete="address-line2" />
+        </label>
+
+        <div class="checkout__row">
+          <label>
+            City
+            <input type="text" formControlName="city" autocomplete="address-level2" />
+          </label>
+
+          <label>
+            State
+            <input type="text" formControlName="state" autocomplete="address-level1" />
+          </label>
+        </div>
+
+        <div class="checkout__row">
+          <label>
+            PIN code
+            <input type="text" formControlName="postalCode" inputmode="numeric" autocomplete="postal-code" />
+          </label>
+
+          <label>
+            Country
+            <input type="text" formControlName="country" autocomplete="country-name" readonly />
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="checkout__summary">
+        <p>
+          <span>Cart subtotal</span>
+          <strong>{{ formatPaise(cart.subtotalPaise()) }}</strong>
+        </p>
+        <!-- The final figure comes back from the server and is shown in the
+             Razorpay window; nothing here is what gets charged. -->
+        <small>Shipping and any tax are added on the payment screen.</small>
+      </div>
+
+      @if (error()) {
+        <p class="checkout__error" role="alert">{{ error() }}</p>
+      }
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          Opening payment…
+        } @else {
+          Pay now
+        }
+      </button>
+
+      <a routerLink="/shop/cart" mat-stroked-button>Back to cart</a>
+    </form>
+  }
+</section>

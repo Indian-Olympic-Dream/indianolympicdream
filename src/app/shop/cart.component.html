@@ -1,0 +1,56 @@
+<section class="cart">
+  <h1>Your cart</h1>
+
+  @if (cart.items().length === 0) {
+    <p class="cart__empty">Your cart is empty.</p>
+    <a routerLink="/shop" mat-flat-button color="primary">Browse the shop</a>
+  } @else {
+    <ul class="cart__list">
+      @for (item of cart.items(); track item.productId + (item.variantId ?? "")) {
+        <li class="line">
+          <div class="line__main">
+            <a class="line__title" [routerLink]="['/shop', item.slug]">{{ item.title }}</a>
+            @if (item.variantName) {
+              <span class="line__variant">{{ item.variantName }}</span>
+            }
+            <span class="line__unit">{{ formatPaise(item.unitPricePaise) }} each</span>
+          </div>
+
+          <div class="line__quantity">
+            <button mat-icon-button type="button" aria-label="Decrease" (click)="decrease(item)">
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span class="line__count">{{ item.quantity }}</span>
+            <button mat-icon-button type="button" aria-label="Increase" (click)="increase(item)">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+
+          <div class="line__total">
+            {{ formatPaise(item.unitPricePaise * item.quantity) }}
+          </div>
+
+          <button mat-icon-button type="button" aria-label="Remove" (click)="remove(item)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="cart__summary">
+      <p class="cart__subtotal">
+        <span>Subtotal</span>
+        <strong>{{ formatPaise(cart.subtotalPaise()) }}</strong>
+      </p>
+      <!--
+        Shipping and tax are deliberately absent here. They are decided by the
+        server at checkout, and showing a guess that later changes is worse than
+        showing nothing.
+      -->
+      <p class="cart__note">Shipping and any tax are calculated at checkout.</p>
+
+      <a routerLink="/shop/checkout" mat-flat-button color="primary">Checkout</a>
+      <a routerLink="/shop" mat-stroked-button>Keep shopping</a>
+    </div>
+  }
+</section>

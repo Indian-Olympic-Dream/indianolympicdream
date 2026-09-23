@@ -1,0 +1,90 @@
+<section class="detail">
+  @if (loading()) {
+    <p class="detail__status">Loading…</p>
+  } @else if (error()) {
+    <p class="detail__status detail__status--error">{{ error() }}</p>
+    <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+  } @else {
+    @if (product(); as item) {
+    <a class="detail__back" routerLink="/shop">
+      <mat-icon>arrow_back</mat-icon> Shop
+    </a>
+
+    <div class="detail__body">
+      <div class="detail__media">
+        @if (imageFor(item); as image) {
+          <img [src]="image" [alt]="item.title" />
+        } @else {
+          <div class="detail__placeholder" aria-hidden="true"></div>
+        }
+      </div>
+
+      <div class="detail__info">
+        <h1>{{ item.title }}</h1>
+
+        @if (selectedUnit(); as unit) {
+          <p class="detail__price">{{ formatPaise(unit.unitPricePaise) }}</p>
+        }
+
+        @if (item.units.length > 1) {
+          <fieldset class="detail__variants">
+            <legend>Options</legend>
+            @for (unit of item.units; track unit.variantId; let i = $index) {
+              <button
+                type="button"
+                class="detail__variant"
+                [class.detail__variant--active]="selectedIndex() === i"
+                [disabled]="unit.availableQuantity < 1"
+                (click)="selectUnit(i)"
+              >
+                {{ unit.variantName }}
+                <span class="detail__variant-price">{{ formatPaise(unit.unitPricePaise) }}</span>
+                @if (unit.availableQuantity < 1) {
+                  <span class="detail__variant-note">sold out</span>
+                }
+              </button>
+            }
+          </fieldset>
+        }
+
+        @if (item.metadata?.dimensions || item.metadata?.resolution) {
+          <dl class="detail__meta">
+            @if (item.metadata?.dimensions) {
+              <dt>Size</dt>
+              <dd>{{ item.metadata?.dimensions }}</dd>
+            }
+            @if (item.metadata?.resolution) {
+              <dt>Print resolution</dt>
+              <dd>{{ item.metadata?.resolution }}</dd>
+            }
+          </dl>
+        }
+
+        <div class="detail__actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="remaining() < 1"
+            (click)="addToCart()"
+          >
+            @if (remaining() < 1) {
+              Sold out
+            } @else {
+              Add to cart
+            }
+          </button>
+
+          @if (added()) {
+            <a routerLink="/shop/cart" mat-stroked-button>View cart ({{ cart.count() }})</a>
+          }
+        </div>
+
+        @if (remaining() > 0 && remaining() <= 3) {
+          <p class="detail__low-stock">Only {{ remaining() }} left.</p>
+        }
+      </div>
+    </div>
+    }
+  }
+</section>
