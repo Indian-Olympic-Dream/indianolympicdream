@@ -65,10 +65,12 @@
             mat-flat-button
             color="primary"
             type="button"
-            [disabled]="remaining() < 1"
+            [disabled]="item.comingSoon || remaining() < 1"
             (click)="addToCart()"
           >
-            @if (remaining() < 1) {
+            @if (item.comingSoon) {
+              Coming soon
+            } @else if (remaining() < 1) {
               Sold out
             } @else {
               Add to cart
@@ -80,7 +82,9 @@
           }
         </div>
 
-        @if (remaining() > 0 && remaining() <= 3) {
+        @if (item.comingSoon) {
+          <p class="detail__low-stock">This one is not on sale yet — check back soon.</p>
+        } @else if (remaining() > 0 && remaining() <= 3) {
           <p class="detail__low-stock">Only {{ remaining() }} left.</p>
         }
       </div>

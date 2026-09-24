@@ -77,6 +77,15 @@
     margin-right: 0.25rem;
   }
 
+  &__coming-soon {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    color: #d4af37;
+  }
+
   &__sold-out {
     margin: 0.25rem 0 0;
     font-size: 0.85rem;

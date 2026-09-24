@@ -17,6 +17,8 @@ export interface CatalogueProduct {
   slug: string;
   title: string;
   type: "infographic" | "merch";
+  /** Listed in the shop but not yet on sale. Never purchasable. */
+  comingSoon: boolean;
   images: Array<{ url: string | null; alt: string }>;
   metadata: { dimensions?: string; resolution?: string } | null;
   units: CatalogueUnit[];

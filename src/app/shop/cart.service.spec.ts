@@ -7,6 +7,7 @@ const product: CatalogueProduct = {
   slug: "poster",
   title: "Poster",
   type: "infographic",
+  comingSoon: false,
   images: [],
   metadata: null,
   units: [],
@@ -92,3 +93,24 @@ describe("CartService", () => {
     expect(raw).toContain("p1");
   });
 })
+
+describe("CartService — coming soon", () => {
+  let service: CartService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(CartService);
+    service.clear();
+  });
+
+  it("refuses to add a product that has not launched", () => {
+    service.add({ ...product, comingSoon: true }, unit(), 1);
+    expect(service.count()).toBe(0);
+  });
+
+  it("still adds one that has launched", () => {
+    service.add({ ...product, comingSoon: false }, unit(), 1);
+    expect(service.count()).toBe(1);
+  });
+});
