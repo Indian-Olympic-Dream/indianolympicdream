@@ -39,7 +39,10 @@ export class CartService {
   }
 
   add(product: CatalogueProduct, unit: CatalogueUnit, quantity = 1): void {
-    if (!Number.isInteger(quantity) || quantity < 1) return;
+    if (!Number.isInteger(quantity) || quantity < 1) return
+    /* A product that has not launched can never enter the cart, even if a
+     * component forgets to disable its button. The server refuses it too. */
+    if (product.comingSoon) return;
 
     const key: string = this.keyOf(product.id, unit.variantId);
     const existing = this.itemsSignal().find(

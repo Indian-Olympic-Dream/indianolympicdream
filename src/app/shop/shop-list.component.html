@@ -40,7 +40,14 @@
               {{ formatPaise(fromPricePaise(product)) }}
             </p>
 
-            @if (isSoldOut(product)) {
+            <!--
+              Coming soon is checked first: a product that has not launched has
+              no stock either, so it would otherwise read "Sold out", which says
+              the opposite of what is true.
+            -->
+            @if (product.comingSoon) {
+              <p class="card__coming-soon">Coming soon</p>
+            } @else if (isSoldOut(product)) {
               <p class="card__sold-out">Sold out</p>
             }
           </a>

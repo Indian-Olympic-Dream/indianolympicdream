@@ -77,7 +77,7 @@ export class ProductDetailComponent {
   addToCart(): void {
     const product = this.product();
     const unit = this.selectedUnit();
-    if (!product || !unit || this.remaining() < 1) return;
+    if (!product || product.comingSoon || !unit || this.remaining() < 1) return;
 
     this.cart.add(product, unit, 1);
     this.added.set(true);
