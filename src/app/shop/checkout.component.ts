@@ -67,11 +67,65 @@ export class CheckoutComponent {
     });
   }
 
+
+  /**
+   * The message for a field, or null when there is nothing to say.
+   *
+   * Written out per field rather than generated from the validator name,
+   * because "pattern mismatch" is not something a customer can act on. Each
+   * message says what to do, not what is wrong.
+   *
+   * Shown only once a field has been touched, so the form does not greet
+   * someone with a wall of red before they have typed anything.
+   */
+  errorFor(field: string): string | null {
+    const control = this.form.get(field);
+    if (!control || !control.errors || !(control.touched || control.dirty)) return null;
+
+    const messages: Record<string, Record<string, string>> = {
+      name: { required: "Please enter your name." },
+      email: {
+        required: "We need an email address — your order link is sent there.",
+        email: "That does not look like an email address.",
+      },
+      phone: {
+        required: "The courier needs a phone number.",
+        pattern: "Enter a phone number of at least 10 digits.",
+      },
+      line1: { required: "Please enter the street address." },
+      city: { required: "Please enter the city." },
+      state: { required: "Please enter the state." },
+      postalCode: {
+        required: "Please enter the PIN code.",
+        pattern: "A PIN code is 6 digits and cannot start with 0.",
+      },
+      country: { required: "Please enter the country." },
+    };
+
+    const forField = messages[field] ?? {};
+    for (const key of Object.keys(control.errors)) {
+      if (forField[key]) return forField[key];
+    }
+    if (control.errors["maxlength"]) return "That is longer than we can store.";
+    return "Please check this field.";
+  }
+
+  /** True once the customer has pressed Pay and the form was not usable. */
+  readonly showSummary = signal<boolean>(false);
+
+  get invalidCount(): number {
+    return Object.keys(this.form.controls).filter((k) => this.form.get(k)?.invalid).length;
+  }
+
   async submit(): Promise<void> {
     if (this.form.invalid || this.cart.items().length === 0) {
+      /* Touch everything so every message appears at once, rather than making
+       * someone discover the problems one submit at a time. */
       this.form.markAllAsTouched();
+      this.showSummary.set(true);
       return;
     }
+    this.showSummary.set(false);
 
     this.submitting.set(true);
     this.error.set(null);
