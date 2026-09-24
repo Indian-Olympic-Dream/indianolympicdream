@@ -45,6 +45,19 @@
         margin-top: 0.25rem;
         opacity: 0.65;
       }
+
+      /* Not colour alone: the message itself says what to do, and the field
+       * carries aria-invalid, so this reads for someone who cannot see red. */
+      small.field__error {
+        color: #ff6b6b;
+        opacity: 1;
+        font-weight: 500;
+      }
+
+      input.field--invalid {
+        border-color: #ff6b6b;
+        border-width: 2px;
+      }
     }
   }
 

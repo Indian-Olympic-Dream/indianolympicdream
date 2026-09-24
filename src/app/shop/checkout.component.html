@@ -15,19 +15,48 @@
 
         <label>
           Full name
-          <input type="text" formControlName="name" autocomplete="name" />
+          <input
+            type="text"
+            formControlName="name"
+            autocomplete="name"
+            [class.field--invalid]="errorFor('name')"
+            [attr.aria-invalid]="errorFor('name') ? 'true' : null"
+          />
+          @if (errorFor("name"); as message) {
+            <small class="field__error" role="alert">{{ message }}</small>
+          }
         </label>
 
         <label>
           Email
-          <input type="email" formControlName="email" autocomplete="email" />
-          <small>Your order link is sent here.</small>
+          <input
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            [class.field--invalid]="errorFor('email')"
+            [attr.aria-invalid]="errorFor('email') ? 'true' : null"
+          />
+          @if (errorFor("email"); as message) {
+            <small class="field__error" role="alert">{{ message }}</small>
+          } @else {
+            <small>Your order link is sent here.</small>
+          }
         </label>
 
         <label>
           Phone
-          <input type="tel" formControlName="phone" autocomplete="tel" />
-          <small>The courier needs this for delivery.</small>
+          <input
+            type="tel"
+            formControlName="phone"
+            autocomplete="tel"
+            [class.field--invalid]="errorFor('phone')"
+            [attr.aria-invalid]="errorFor('phone') ? 'true' : null"
+          />
+          @if (errorFor("phone"); as message) {
+            <small class="field__error" role="alert">{{ message }}</small>
+          } @else {
+            <small>The courier needs this for delivery.</small>
+          }
         </label>
       </fieldset>
 
@@ -36,7 +65,16 @@
 
         <label>
           Address
-          <input type="text" formControlName="line1" autocomplete="address-line1" />
+          <input
+            type="text"
+            formControlName="line1"
+            autocomplete="address-line1"
+            [class.field--invalid]="errorFor('line1')"
+            [attr.aria-invalid]="errorFor('line1') ? 'true' : null"
+          />
+          @if (errorFor("line1"); as message) {
+            <small class="field__error" role="alert">{{ message }}</small>
+          }
         </label>
 
         <label>
@@ -47,19 +85,47 @@
         <div class="checkout__row">
           <label>
             City
-            <input type="text" formControlName="city" autocomplete="address-level2" />
+            <input
+              type="text"
+              formControlName="city"
+              autocomplete="address-level2"
+              [class.field--invalid]="errorFor('city')"
+              [attr.aria-invalid]="errorFor('city') ? 'true' : null"
+            />
+            @if (errorFor("city"); as message) {
+              <small class="field__error" role="alert">{{ message }}</small>
+            }
           </label>
 
           <label>
             State
-            <input type="text" formControlName="state" autocomplete="address-level1" />
+            <input
+              type="text"
+              formControlName="state"
+              autocomplete="address-level1"
+              [class.field--invalid]="errorFor('state')"
+              [attr.aria-invalid]="errorFor('state') ? 'true' : null"
+            />
+            @if (errorFor("state"); as message) {
+              <small class="field__error" role="alert">{{ message }}</small>
+            }
           </label>
         </div>
 
         <div class="checkout__row">
           <label>
             PIN code
-            <input type="text" formControlName="postalCode" inputmode="numeric" autocomplete="postal-code" />
+            <input
+              type="text"
+              formControlName="postalCode"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              [class.field--invalid]="errorFor('postalCode')"
+              [attr.aria-invalid]="errorFor('postalCode') ? 'true' : null"
+            />
+            @if (errorFor("postalCode"); as message) {
+              <small class="field__error" role="alert">{{ message }}</small>
+            }
           </label>
 
           <label>
@@ -79,10 +145,27 @@
         <small>Shipping and any tax are added on the payment screen.</small>
       </div>
 
+      <!--
+        Shown only after a failed submit. Before that the per-field messages are
+        enough, and a running tally of what is still wrong reads as nagging
+        while someone is halfway through typing.
+      -->
+      @if (showSummary() && invalidCount > 0) {
+        <p class="checkout__error" role="alert">
+          {{ invalidCount === 1 ? "One field needs" : invalidCount + " fields need" }} attention
+          before you can pay — see the messages above.
+        </p>
+      }
+
       @if (error()) {
         <p class="checkout__error" role="alert">{{ error() }}</p>
       }
 
+      <!--
+        Deliberately NOT disabled while the form is invalid. A dead button with
+        no explanation leaves someone guessing; pressing it reveals every
+        message at once, which is the thing they actually need.
+      -->
       <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
         @if (submitting()) {
           Opening payment…
