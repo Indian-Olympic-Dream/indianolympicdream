@@ -1,7 +1,7 @@
 import { CommonModule, isPlatformBrowser } from "@angular/common";
 import { Component, PLATFORM_ID, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { CartService } from "./cart.service";
 import { ShopService } from "./shop.service";
@@ -23,7 +23,6 @@ const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 export class CheckoutComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
   private readonly shop = inject(ShopService);
   readonly cart = inject(CartService);
 
@@ -116,6 +115,28 @@ export class CheckoutComponent {
   private openPaymentWindow(checkout: CheckoutResponse): void {
     const value = this.form.getRawValue();
 
+    /*
+     * Redirect flow, not the JavaScript handler.
+     *
+     * The handler only runs if the browser is still on this page when payment
+     * finishes — and a card paid through 3-D Secure leaves the page entirely
+     * (a bank OTP screen in production, the Success/Failure simulation in test
+     * mode). When it comes back it lands on Razorpay's own callback URL with
+     * this page gone, so the handler never fires and the server is never told.
+     *
+     * That is not hypothetical: it happened on the very first real payment.
+     * Razorpay captured the money and the order stayed unpaid until the
+     * reconciliation sweep found it.
+     *
+     * Setting callback_url makes Razorpay always redirect, so there is one path
+     * instead of two and it does not depend on what Razorpay chooses to do
+     * internally. The cart is cleared before opening, because from here the
+     * browser may never return to this component.
+     */
+    const returnUrl = `${window.location.origin}/api/shop/orders/${checkout.lookupToken}/return`;
+
+    this.cart.clear();
+
     const razorpay = new Razorpay({
       key: checkout.razorpayKeyId,
       amount: checkout.amountPaise,
@@ -124,33 +145,15 @@ export class CheckoutComponent {
       name: "Indian Olympic Dream",
       description: `Order ${checkout.orderNumber}`,
       prefill: { name: value.name, email: value.email, contact: value.phone },
-      handler: (result: {
-        razorpay_payment_id: string;
-        razorpay_signature: string;
-      }) => {
-        /*
-         * Tell the server, but do not depend on it. If this call fails, the
-         * webhook and the reconciliation sweep still settle the order (ADR-006),
-         * so the customer is sent to their order page either way rather than
-         * being shown an error about money they have already paid.
-         */
-        this.shop
-          .verifyPayment(
-            checkout.lookupToken,
-            result.razorpay_payment_id,
-            result.razorpay_signature,
-          )
-          .subscribe({
-            next: () => this.finish(checkout.lookupToken),
-            error: () => this.finish(checkout.lookupToken),
-          });
-      },
+      callback_url: returnUrl,
+      redirect: true,
       modal: {
         ondismiss: () => {
-          /* They closed the payment window. The order exists and its stock is
-           * held for a few minutes; the sweep releases it if they never return. */
+          /* They closed the payment window without paying. The order exists and
+           * its stock is held for a few minutes; the sweep releases it if they
+           * never come back. */
           this.submitting.set(false);
-          this.error.set("Payment was cancelled. Your cart has been kept.");
+          this.error.set("Payment was cancelled. Your order is saved if you want to try again.");
         },
       },
     });
@@ -158,9 +161,4 @@ export class CheckoutComponent {
     razorpay.open();
   }
 
-  private finish(token: string): void {
-    this.cart.clear();
-    this.submitting.set(false);
-    void this.router.navigate(["/shop/orders", token]);
-  }
 }
