@@ -131,6 +131,20 @@ export function isHeadToHeadDetail(detail: GamesSessionDetail, sportSlug?: strin
 
 const normalizeResultText = (value: unknown): string => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+const identityTokens = (value: unknown): string[] => normalizeResultText(value)
+  .split(' ')
+  .filter(token => token.length > 1);
+
+function namesShareIdentity(left: unknown, right: unknown): boolean {
+  const leftTokens = identityTokens(left);
+  const rightTokens = identityTokens(right);
+  if (!leftTokens.length || !rightTokens.length) return false;
+  const rightSet = new Set(rightTokens);
+  const shared = leftTokens.filter(token => rightSet.has(token));
+  return shared.length >= Math.min(2, leftTokens.length, rightTokens.length)
+    || shared.some(token => token.length >= 4);
+}
+
 /** Resolve an official result unit to the exact nested programme detail. */
 export function resultMatchForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): GamesResultMatch | null {
   const matches = row.result?.matches || [];
@@ -145,6 +159,94 @@ export function resultMatchForDetail(detail: GamesSessionDetail, row: GamesSched
     const unit = normalizeResultText(match.unit);
     return (!event || detailText.includes(event)) && (!phase || detailText.includes(phase)) && (!unit || detailText.includes(unit));
   }) || null;
+}
+
+/**
+ * Entrant fixtures use an athlete or pair as the side identity. Team fixtures
+ * use a country/team identity and may legitimately show a roster below it.
+ */
+export function isEntrantHeadToHeadDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  const sides = detail.sides || [];
+  if (sides.length !== 2) return false;
+
+  const sideIdentityIsPublished = sides.some(side =>
+    (side.participants || []).some(participant => namesShareIdentity(side.label, participant))
+  );
+  if (sideIdentityIsPublished) return true;
+
+  const match = resultMatchForDetail(detail, row);
+  return (match?.entries || []).some(entry =>
+    sides.some(side => namesShareIdentity(side.label, entry.name))
+  );
+}
+
+function resultScoreParts(summary?: string): { first: string; second: string; suffix: string } | null {
+  const score = String(summary || '').match(/(\d+(?:\/\d+)?)\s*[–-]\s*(\d+(?:\/\d+)?)(.*)$/);
+  return score ? { first: score[1], second: score[2], suffix: score[3].trim() } : null;
+}
+
+/** Use athlete/pair names for entrant results while preserving country-first team copy. */
+export function resultSummaryForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
+  const match = resultMatchForDetail(detail, row);
+  const fallback = match?.summary || ((row.sessionDetails || []).filter(item => !isCeremonyDetail(item)).length === 1
+    ? row.result?.summary || null
+    : null);
+  if (!match?.summary || !isEntrantHeadToHeadDetail(detail, row)) return fallback;
+
+  const sides = detail.sides || [];
+  const parsed = resultScoreParts(match.summary);
+  const indiaSides = sides.filter(side => side.code?.toUpperCase() === 'IND');
+  const directWinner = sides.find(side => side.isWinner);
+  const numericWinner = sides.find(side => {
+    const other = sides.find(candidate => candidate !== side);
+    return Number.isFinite(Number(side.score)) && Number(side.score) > Number(other?.score);
+  });
+
+  let subject = sides[0];
+  let opponent = sides[1];
+  let verb = 'beat';
+
+  if (indiaSides.length === 1) {
+    subject = indiaSides[0];
+    opponent = sides.find(side => side !== subject)!;
+    const subjectWon = subject.isWinner === true
+      || (subject.isWinner === undefined && /\bindia\s+beat\b/i.test(match.summary));
+    verb = subjectWon ? 'beat' : 'lost to';
+  } else {
+    subject = directWinner || numericWinner || sides[0];
+    opponent = sides.find(side => side !== subject)!;
+  }
+
+  const subjectScore = subject.score ?? (indiaSides.length === 1 ? parsed?.first : sides.indexOf(subject) === 0 ? parsed?.first : parsed?.second);
+  const opponentScore = opponent.score ?? (indiaSides.length === 1 ? parsed?.second : sides.indexOf(opponent) === 0 ? parsed?.first : parsed?.second);
+  const score = subjectScore !== null && subjectScore !== undefined && opponentScore !== null && opponentScore !== undefined
+    ? ` ${subjectScore}–${opponentScore}`
+    : '';
+  const suffix = parsed?.suffix ? ` ${parsed.suffix}` : '';
+  return `${subject.label} ${verb} ${opponent.label}${score}${suffix}`;
+}
+
+export function resultMedalsForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): string[] {
+  const match = resultMatchForDetail(detail, row);
+  if (!match) return [];
+  const summaryMedal = String(match.summary || '').match(/\b(Gold|Silver|Bronze)\b/i)?.[1];
+  const values = [match.medal, ...(match.entries || []).map(entry => entry.medal), summaryMedal]
+    .filter((medal): medal is string => Boolean(medal))
+    .map(medal => medal.charAt(0).toUpperCase() + medal.slice(1).toLowerCase())
+    .filter(medal => ['Gold', 'Silver', 'Bronze'].includes(medal));
+  const order = new Map([['Gold', 0], ['Silver', 1], ['Bronze', 2]]);
+  return [...new Set(values)].sort((left, right) => order.get(left)! - order.get(right)!);
+}
+
+/** Results drawers are India views; do not surface adjacent non-India fixtures from the same session. */
+export function hasIndiaResultForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  const match = resultMatchForDetail(detail, row);
+  const publishedCodes = (detail.sides || []).map(side => side.code?.toUpperCase()).filter(Boolean);
+  const organisationCodes = (detail.organisations || []).map(code => code.toUpperCase()).filter(Boolean);
+  const detailCodes = publishedCodes.length ? publishedCodes : organisationCodes;
+  if (detailCodes.length) return detailCodes.includes('IND');
+  return (match?.entries || []).some(entry => entry.organisation?.toUpperCase() === 'IND')
+    || /\bindia\b/i.test(match?.summary || '');
 }
 
 export function resultRankLabel(rank?: number | null): string {

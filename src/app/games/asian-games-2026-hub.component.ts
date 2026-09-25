@@ -11,7 +11,7 @@ import { HubBroadcastComponent } from './hub-broadcast.component';
 import { CalendarEvent, GamesHubMedalSummary, GamesParticipationRow, GamesProgrammeEventRow, GamesRankedResultEntry, GamesResultMatch, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
-import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, resultMatchForDetail, resultRankLabel, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
+import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, isEntrantHeadToHeadDetail, hasIndiaResultForDetail, resultMatchForDetail, resultMedalsForDetail, resultRankLabel, resultSummaryForDetail, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
 import { compareMatrixSportStarts, hasIndiaAppearance, hasOfficialResult, indiaDateKey, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
@@ -206,9 +206,9 @@ export class AsianGames2026HubComponent implements OnInit {
   /** Only identical database IDs are duplicates; parallel venues remain distinct. */
   readonly deduplicatedSchedule = computed(() => uniqueSessionRows(this.schedule()));
   readonly coverageOptions = computed(() => [
-    { key: 'iod' as const, label: 'IOD In Depth', count: this.allSports().filter(s => IOD_COVERAGE_SPORTS.has(s.slug)).length, note: 'India’s medal sports + cricket, squash, archery & table tennis' },
-    { key: 'la28' as const, label: 'LA28 Sports', count: this.allSports().filter(s => LA28_SPORT_GROUPS.has(s.slug)).length, note: 'India’s Asian Games sports on the Los Angeles programme' },
-    { key: 'all' as const, label: 'All Sports', count: this.allSports().length, note: 'Explore all 36 sports in India’s Games programme' },
+    { key: 'iod' as const, label: 'IOD In Depth', count: this.allSports().filter(s => IOD_COVERAGE_SPORTS.has(s.slug)).length, note: 'India’s medal contenders and the sports we are following most closely' },
+    { key: 'la28' as const, label: 'LA28 Sports', count: this.allSports().filter(s => LA28_SPORT_GROUPS.has(s.slug)).length, note: 'Asian Games sports on the official Los Angeles 2028 programme' },
+    { key: 'all' as const, label: 'All Sports', count: this.allSports().length, note: 'Every sport in India’s Asian Games programme' },
   ]);
   readonly coverageNote = computed(() => this.coverageOptions().find(o => o.key === this.coverage())?.note || '');
   readonly todayKey = computed(() => indiaDateKey(this.now().toISOString()));
@@ -588,8 +588,9 @@ export class AsianGames2026HubComponent implements OnInit {
         order: this.drawerEventOrder(detail, row, rowIndex, detailIndex),
       })))
       .filter(entry => !resultsOnly || Boolean(
-        this.detailRankedResult(entry.detail, entry.row)
-        || this.detailResultSummary(entry.detail, entry.row),
+        hasIndiaResultForDetail(entry.detail, entry.row)
+        && (this.detailRankedResult(entry.detail, entry.row)
+          || this.detailResultSummary(entry.detail, entry.row)),
       ))
       .sort((a, b) => a.order - b.order);
   }
@@ -899,6 +900,7 @@ export class AsianGames2026HubComponent implements OnInit {
 
   detailSides(detail: GamesSessionDetail, row: GamesScheduleRow): DrawerCompetitorSide[] {
     if (isCeremonyDetail(detail) || !this.detailIsHeadToHead(detail, row)) return [];
+    const entrantFixture = isEntrantHeadToHeadDetail(detail, row);
     if (detail.sides?.length) return detail.sides.map(side => {
       const code = (side.code || '').toUpperCase();
       const publishedParticipants = side.participants || [];
@@ -906,8 +908,8 @@ export class AsianGames2026HubComponent implements OnInit {
       return {
         code,
         label: side.label || side.code,
-        participants: publishedParticipants.length ? publishedParticipants : roster,
-        participantsAreRoster: !publishedParticipants.length && roster.length > 0,
+        participants: entrantFixture ? [] : publishedParticipants.length ? publishedParticipants : roster,
+        participantsAreRoster: !entrantFixture && !publishedParticipants.length && roster.length > 0,
         score: side.score,
         isWinner: side.isWinner,
       };
@@ -923,8 +925,8 @@ export class AsianGames2026HubComponent implements OnInit {
       return {
         code: code.toUpperCase(),
         label,
-        participants: labelIsAthlete ? [label] : roster,
-        participantsAreRoster: isIndia && !labelIsAthlete && roster.length > 0,
+        participants: entrantFixture ? [] : labelIsAthlete ? [label] : roster,
+        participantsAreRoster: !entrantFixture && isIndia && !labelIsAthlete && roster.length > 0,
       };
     });
   }
@@ -938,14 +940,15 @@ export class AsianGames2026HubComponent implements OnInit {
     const indiaWon = /\bindia\s+beat\b/i.test(match.summary);
     const indiaLost = /\bindia\s+lost\s+to\b/i.test(match.summary);
     const indiaIndex = sides.findIndex(side => side.code === 'IND');
+    const indiaSideCount = sides.filter(side => side.code === 'IND').length;
 
     return sides.map((side, index) => {
       const isIndia = side.code === 'IND';
-      const scoreIndex = indiaIndex >= 0 ? (isIndia ? 1 : 2) : index + 1;
+      const scoreIndex = indiaSideCount === 1 && indiaIndex >= 0 ? (isIndia ? 1 : 2) : index + 1;
       return {
         ...side,
-        score: score?.[scoreIndex] ?? side.score,
-        isWinner: isIndia ? indiaWon : indiaLost ? true : side.isWinner,
+        score: side.score ?? score?.[scoreIndex],
+        isWinner: side.isWinner ?? (indiaSideCount === 1 ? (isIndia ? indiaWon : indiaLost) : undefined),
       };
     });
   }
@@ -956,9 +959,20 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   detailResultSummary(detail: GamesSessionDetail, row: GamesScheduleRow): string | null {
+    return resultSummaryForDetail(detail, row);
+  }
+
+  detailResultMedals(detail: GamesSessionDetail, row: GamesScheduleRow): string[] {
+    const direct = resultMedalsForDetail(detail, row);
     const match = resultMatchForDetail(detail, row);
-    if (match?.summary) return match.summary;
-    return this.competitionDetails(row).length === 1 ? row.result?.summary || null : null;
+    const records = (this.medalSummary()?.records || []).filter(record =>
+      match?.officialKey
+        ? record.officialKey === match.officialKey
+        : record.sourceId === row.sourceId && record.event.toLowerCase() === detail.event.toLowerCase()
+    );
+    const labels = records.map(record => record.medal.charAt(0).toUpperCase() + record.medal.slice(1));
+    const order = new Map([['Gold', 0], ['Silver', 1], ['Bronze', 2]]);
+    return [...new Set([...direct, ...labels])].sort((left, right) => order.get(left)! - order.get(right)!);
   }
 
   detailRankedResult(detail: GamesSessionDetail, row: GamesScheduleRow): GamesResultMatch | null {

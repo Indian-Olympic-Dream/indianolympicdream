@@ -12,13 +12,15 @@
     <header class="games-hero">
       <div class="hero-copy">
         <div class="hero-eyebrow-badge">
-          <app-country-flag class="hero-flag" code="IND" label="India" size="small" aria-hidden="true"></app-country-flag>
+          <app-country-flag class="hero-flag" code="IND" label="India" size="small"
+            aria-hidden="true"></app-country-flag>
           <span class="hub-brand">IOD GAMES HUB</span>
           <span class="edition-divider" aria-hidden="true">·</span>
           <span class="edition-text">20TH ASIAN GAMES</span>
         </div>
         <h1>India’s Road to LA28<br><span class="hero-title-gradient">Begins at Aichi–Nagoya 2026.</span></h1>
-        <p class="hero-description">Follow India’s Olympic contenders, continental showdowns, and direct LA28 quotas.</p>
+        <p class="hero-description">Follow India’s Olympic contenders, continental showdowns, and direct LA28 quotas.
+        </p>
         <div class="hero-meta-row">
           <div class="hero-meta-pill">
             <mat-icon class="meta-icon" aria-hidden="true">calendar_today</mat-icon>
@@ -52,8 +54,8 @@
               <span>All</span>
               <span class="filter-count">{{ medalFilterCount('all') }}</span>
             </button>
-            <button type="button" [class.active]="medalFilter() === 'la28'" [attr.aria-pressed]="medalFilter() === 'la28'"
-              (click)="setMedalFilter('la28')">
+            <button type="button" [class.active]="medalFilter() === 'la28'"
+              [attr.aria-pressed]="medalFilter() === 'la28'" (click)="setMedalFilter('la28')">
               <span class="full-label">LA28 programme</span>
               <span class="short-label">LA28</span>
               <span class="filter-count">{{ medalFilterCount('la28') }}</span>
@@ -68,38 +70,44 @@
         </div>
 
         <div class="medal-header-actions">
-          <button type="button"
-                  class="medal-details-cta"
-                  (click)="toggleMedalDetails()"
-                  [attr.aria-expanded]="medalDetailsExpanded()"
-                  aria-controls="medal-breakdown"
-                  [attr.aria-label]="medalDetailsExpanded() ? 'Hide India medal details' : 'Show India medal details'">
+          <button type="button" class="medal-details-cta" (click)="toggleMedalDetails()"
+            [attr.aria-expanded]="medalDetailsExpanded()" aria-controls="medal-breakdown"
+            [attr.aria-label]="medalDetailsExpanded() ? 'Hide India medal details' : 'Show India medal details'">
             <span class="cta-label">{{ medalDetailsExpanded() ? 'Hide details' : 'Medal details' }}</span>
             <span class="cta-badge">{{ filteredMedals().total }}</span>
-            <mat-icon class="cta-arrow" [class.expanded]="medalDetailsExpanded()" aria-hidden="true">expand_more</mat-icon>
+            <mat-icon class="cta-arrow" [class.expanded]="medalDetailsExpanded()"
+              aria-hidden="true">expand_more</mat-icon>
           </button>
           <div class="medal-total"><strong>{{ filteredMedals().total }}</strong><span>Total</span></div>
         </div>
       </div>
 
       <dl class="medal-counts" aria-label="India medal counts">
-        <div class="medal-count gold"><dt><i aria-hidden="true"></i>Gold</dt><dd>{{ filteredMedals().gold }}</dd></div>
-        <div class="medal-count silver"><dt><i aria-hidden="true"></i>Silver</dt><dd>{{ filteredMedals().silver }}</dd></div>
-        <div class="medal-count bronze"><dt><i aria-hidden="true"></i>Bronze</dt><dd>{{ filteredMedals().bronze }}</dd></div>
+        <div class="medal-count gold">
+          <dt><i aria-hidden="true"></i>Gold</dt>
+          <dd>{{ filteredMedals().gold }}</dd>
+        </div>
+        <div class="medal-count silver">
+          <dt><i aria-hidden="true"></i>Silver</dt>
+          <dd>{{ filteredMedals().silver }}</dd>
+        </div>
+        <div class="medal-count bronze">
+          <dt><i aria-hidden="true"></i>Bronze</dt>
+          <dd>{{ filteredMedals().bronze }}</dd>
+        </div>
       </dl>
 
       <div class="medal-board-footer-bar">
         <span class="medal-updated" *ngIf="medalUpdatedLabel()">{{ medalUpdatedLabel() }}</span>
         <button type="button" class="mobile-details-trigger" (click)="toggleMedalDetails()"
           [attr.aria-expanded]="medalDetailsExpanded()" aria-controls="medal-breakdown">
-          <span>{{ medalDetailsExpanded() ? 'Hide medal details' : 'Medal details' }} ({{ filteredMedals().total }})</span>
+          <span>{{ medalDetailsExpanded() ? 'Hide medal details' : 'Medal details' }} ({{ filteredMedals().total
+            }})</span>
           <mat-icon [class.expanded]="medalDetailsExpanded()" aria-hidden="true">expand_more</mat-icon>
         </button>
-        <a href="https://results.asiangames2026.org/#/medals/standings"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="official-standings-link"
-           title="View official Asian Games 2026 medal standings on results.asiangames2026.org">
+        <a href="https://results.asiangames2026.org/#/medals/standings" target="_blank" rel="noopener noreferrer"
+          class="official-standings-link"
+          title="View official Asian Games 2026 medal standings on results.asiangames2026.org">
           <span>Official standings</span>
           <mat-icon class="link-arrow" aria-hidden="true">north_east</mat-icon>
         </a>
@@ -110,9 +118,12 @@
         <header class="medal-breakdown-heading">
           <div>
             <span class="eyebrow">MEDALS BY SPORT</span>
-            <p>{{ medalFilter() === 'all' ? 'All medal events' : medalFilter() === 'la28' ? 'LA28 programme events' : 'Asian Games-only events' }}</p>
+            <p>{{ medalFilter() === 'all' ? 'All medal events' : medalFilter() === 'la28' ? 'LA28 programme events' :
+              'Asian Games-only events' }}</p>
           </div>
-          <div class="medal-column-labels" aria-hidden="true"><span>G</span><span>S</span><span>B</span><span>Total</span></div>
+          <div class="medal-column-labels" aria-hidden="true">
+            <span>G</span><span>S</span><span>B</span><span>Total</span>
+          </div>
         </header>
 
         <div class="medal-sport-list" *ngIf="medalGroupedBySport().length; else noMedalsInView">
@@ -122,13 +133,17 @@
               [attr.aria-expanded]="expandedMedalSport() === group.sportSlug"
               [attr.aria-controls]="'medal-records-' + group.sportSlug">
               <span class="medal-sport-identity">
-                <span class="medal-sport-icon" *ngIf="group.icon"><img [src]="group.icon" alt="" aria-hidden="true"></span>
+                <span class="medal-sport-icon" *ngIf="group.icon"><img [src]="group.icon" alt=""
+                    aria-hidden="true"></span>
                 <strong>{{ group.sport }}</strong>
               </span>
               <span class="medal-sport-counts">
-                <span class="gold" [class.has-value]="group.gold" [attr.aria-label]="group.gold + ' gold'">{{ group.gold }}</span>
-                <span class="silver" [class.has-value]="group.silver" [attr.aria-label]="group.silver + ' silver'">{{ group.silver }}</span>
-                <span class="bronze" [class.has-value]="group.bronze" [attr.aria-label]="group.bronze + ' bronze'">{{ group.bronze }}</span>
+                <span class="gold" [class.has-value]="group.gold" [attr.aria-label]="group.gold + ' gold'">{{ group.gold
+                  }}</span>
+                <span class="silver" [class.has-value]="group.silver" [attr.aria-label]="group.silver + ' silver'">{{
+                  group.silver }}</span>
+                <span class="bronze" [class.has-value]="group.bronze" [attr.aria-label]="group.bronze + ' bronze'">{{
+                  group.bronze }}</span>
                 <strong [attr.aria-label]="group.total + ' total'">{{ group.total }}</strong>
               </span>
               <mat-icon class="medal-sport-chevron" aria-hidden="true">expand_more</mat-icon>
@@ -144,7 +159,7 @@
                 </div>
                 <span *ngIf="record.olympicCategory === 'la28' || record.olympicCategory === 'new_in_la28'"
                   class="record-la28" title="LA28 programme event">
-                  <img src="assets/images/olympics/la2028.png" alt="" aria-hidden="true">LA28
+                  LA28
                 </span>
                 <time *ngIf="record.dateKey">{{ formatMedalDate(record.dateKey) }}</time>
               </article>
@@ -164,9 +179,10 @@
       <ng-container *ngIf="!loading()">
         <div class="coverage-heading"><span class="eyebrow">CHOOSE YOUR GAMES</span><span>Three ways to follow
             India</span></div>
-        <div class="coverage-options" role="group" aria-label="Coverage layer">
-          <button *ngFor="let option of coverageOptions()" type="button" [class.active]="coverage() === option.key"
-            [attr.aria-pressed]="coverage() === option.key" (click)="setCoverage(option.key)">
+        <div class="coverage-options" role="radiogroup" aria-label="Sports coverage">
+          <button *ngFor="let option of coverageOptions()" type="button" role="radio"
+            [class.active]="coverage() === option.key" [attr.aria-checked]="coverage() === option.key"
+            [attr.title]="option.note" (click)="setCoverage(option.key)">
             <span class="coverage-top"><strong>{{ option.label }}</strong><span class="coverage-count">{{ option.count
                 }}</span></span>
             <small>{{ option.key === 'iod' ? 'Our closest coverage' : option.key === 'la28' ? 'The Olympic connection' :
@@ -175,30 +191,33 @@
           </button>
         </div>
 
-        <div class="hub-navigation matrix-toolbar">
-          <div class="view-toggle" role="group" aria-label="Choose schedule or results matrix">
-            <button type="button" [class.active]="matrixMode() === 'schedule'"
-              [attr.aria-pressed]="matrixMode() === 'schedule'" (click)="setMatrixMode('schedule')">
-              <mat-icon aria-hidden="true">calendar_month</mat-icon>Schedule
+        <div class="matrix-filter-bar">
+          <div class="view-toggle" role="tablist" aria-label="Choose schedule or results matrix">
+            <button type="button" role="tab" [class.active]="matrixMode() === 'schedule'"
+              [attr.aria-selected]="matrixMode() === 'schedule'" (click)="setMatrixMode('schedule')">
+              Schedule
             </button>
-            <button type="button" [class.active]="matrixMode() === 'results'"
-              [attr.aria-pressed]="matrixMode() === 'results'" (click)="setMatrixMode('results')">
-              <mat-icon aria-hidden="true">emoji_events</mat-icon>Results
+            <button type="button" role="tab" [class.active]="matrixMode() === 'results'"
+              [attr.aria-selected]="matrixMode() === 'results'" (click)="setMatrixMode('results')">
+              Results
             </button>
           </div>
-          <div class="matrix-legend" role="group" [attr.aria-label]="matrixMode() === 'schedule' ? 'Schedule legend' : 'Results legend'">
-            <ng-container *ngIf="matrixMode() === 'schedule'">
-              <span class="legend-count"><i class="legend-dot is-session" aria-hidden="true"></i>Programme</span>
-              <span title="Distinct events awarding medals; Indian finalists may not yet be confirmed"><img
-                  class="ag-gold-medal legend-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">Medal events</span>
-              <span><i class="legend-dot is-india" aria-hidden="true">✓</i>India confirmed</span>
-            </ng-container>
-            <ng-container *ngIf="matrixMode() === 'results'">
-              <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
-              <span class="result-medal-legend" aria-label="Medal colours"><i class="gold"></i><i class="silver"></i><i class="bronze"></i>Medal won</span>
-              <span>Tap a result to see every match, heat and ranking</span>
-            </ng-container>
-          </div>
+        </div>
+
+        <div class="matrix-legend" role="group"
+          [attr.aria-label]="matrixMode() === 'schedule' ? 'Schedule legend' : 'Results legend'">
+          <ng-container *ngIf="matrixMode() === 'schedule'">
+            <span class="legend-count"><i class="legend-dot is-session" aria-hidden="true"></i>Programme</span>
+            <span title="Distinct events awarding medals; Indian finalists may not yet be confirmed"><img
+                class="ag-gold-medal legend-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">Medal events</span>
+            <span><i class="legend-dot is-india" aria-hidden="true">✓</i>India confirmed</span>
+          </ng-container>
+          <ng-container *ngIf="matrixMode() === 'results'">
+            <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
+            <span class="result-medal-legend" aria-label="Medal colours"><i class="gold"></i><i class="silver"></i><i
+                class="bronze"></i>Medal won</span>
+            <span>Tap a result to see every match, heat and ranking</span>
+          </ng-container>
         </div>
 
         <section *ngIf="selectedView() === 'schedule'" aria-label="Games schedule timeline"
@@ -273,7 +292,8 @@
                     <span class="stage-tag">{{ getStageLabel(row) }}</span>
                   </span>
 
-                  <span class="result-summary-line" *ngIf="timelineResultSummary(row) as resultSummary">{{ resultSummary }}</span>
+                  <span class="result-summary-line" *ngIf="timelineResultSummary(row) as resultSummary">{{ resultSummary
+                    }}</span>
                   <ng-container *ngTemplateOutlet="inlineProgramme; context: { $implicit: row }"></ng-container>
                 </span>
 
@@ -396,7 +416,8 @@
                   <th scope="row" class="matrix-sport-cell" [class.is-quota-sport]="isQuotaSport(sport.slug)">
                     <div class="matrix-sport-name-wrap">
                       <img *ngIf="sport.icon" [src]="sport.icon" alt="" class="matrix-sport-icon">
-                      <span class="matrix-sport-title" [title]="sport.name">{{ matrixSportDisplayName(sport.name) }}</span>
+                      <span class="matrix-sport-title" [title]="sport.name">{{ matrixSportDisplayName(sport.name)
+                        }}</span>
                       <span *ngIf="isQuotaSport(sport.slug)" class="la28-quota-pill"
                         title="Direct LA28 Olympic Quota Sport · Medal events award qualification spots for Los Angeles 2028">
                         <img src="assets/images/olympics/la2028.png" class="la28-transparent-logo" alt="LA28">
@@ -412,11 +433,12 @@
                     [class.result-win]="matrixMode() === 'results' && cell?.outcome === 'win'"
                     [class.result-loss]="matrixMode() === 'results' && cell?.outcome === 'loss'"
                     [class.has-earned-medal]="matrixMode() === 'results' && !!cell?.medals?.total"><button
-                      *ngIf="cell && (matrixMode() === 'schedule' || cell.results)"
-                      type="button" (click)="openMatrixDayDialog(sport.slug, matrixDates()[i].key)"
+                      *ngIf="cell && (matrixMode() === 'schedule' || cell.results)" type="button"
+                      (click)="openMatrixDayDialog(sport.slug, matrixDates()[i].key)"
                       [attr.aria-label]="sport.name + ', ' + matrixDates()[i].key + ': ' + matrixCellLabel(cell)"><span
-                        *ngIf="matrixMode() === 'schedule' && !cell.medalEvents && !cell.india" class="matrix-activity-mark"
-                        aria-hidden="true"></span><span *ngIf="matrixMode() === 'schedule' && cell.medalEvents" class="matrix-medal-count"><img
+                        *ngIf="matrixMode() === 'schedule' && !cell.medalEvents && !cell.india"
+                        class="matrix-activity-mark" aria-hidden="true"></span><span
+                        *ngIf="matrixMode() === 'schedule' && cell.medalEvents" class="matrix-medal-count"><img
                           class="ag-gold-medal matrix-medal-icon" src="assets/images/ag-2026/gold-medal.svg"
                           alt=""><small>{{ cell.medalEvents }}</small></span><span
                         *ngIf="matrixMode() === 'results' && cell.results && !cell.medals.total"
@@ -424,10 +446,12 @@
                         [class.is-loss]="cell.outcome === 'loss'" aria-hidden="true"><strong>{{ matrixResultLabel(cell)
                           }}</strong><small *ngIf="cell.results > 1">{{ cell.results }}</small></span><span
                         *ngIf="matrixMode() === 'results' && cell.medals.total" class="matrix-earned-medals"
-                        aria-hidden="true"><span *ngIf="cell.medals.gold" class="earned-medal gold"><i></i><small>{{ cell.medals.gold }}</small></span><span
-                          *ngIf="cell.medals.silver" class="earned-medal silver"><i></i><small>{{ cell.medals.silver }}</small></span><span
-                          *ngIf="cell.medals.bronze" class="earned-medal bronze"><i></i><small>{{ cell.medals.bronze }}</small></span></span><span
-                        *ngIf="matrixMode() === 'schedule' && cell.india" class="matrix-india-dot" aria-hidden="true">✓</span></button></td>
+                        aria-hidden="true"><span *ngIf="cell.medals.gold" class="earned-medal gold"><i></i><small>{{
+                            cell.medals.gold }}</small></span><span *ngIf="cell.medals.silver"
+                          class="earned-medal silver"><i></i><small>{{ cell.medals.silver }}</small></span><span
+                          *ngIf="cell.medals.bronze" class="earned-medal bronze"><i></i><small>{{ cell.medals.bronze
+                            }}</small></span></span><span *ngIf="matrixMode() === 'schedule' && cell.india"
+                        class="matrix-india-dot" aria-hidden="true">✓</span></button></td>
                 </tr>
               </tbody>
             </table>
@@ -532,6 +556,10 @@
         <div class="drawer-event-copy">
           <strong>{{ groupedResult ? (sessionDetailSubtitle(detail) || 'Official result') : detail.event }}</strong>
           <p *ngIf="!groupedResult && sessionDetailSubtitle(detail)">{{ sessionDetailSubtitle(detail) }}</p>
+          <div *ngIf="detailResultMedals(detail, row).length" class="event-result-medals" aria-label="Medal result">
+            <span *ngFor="let medal of detailResultMedals(detail, row)" class="result-medal-badge"
+              [ngClass]="'is-' + medal.toLowerCase()"><i aria-hidden="true"></i>{{ medal }} medal</span>
+          </div>
         </div>
 
         @if (detailSides(detail, row); as sides) {
@@ -546,7 +574,8 @@
               </div>
               <div class="matchup-side-status">
                 <span *ngIf="side.isWinner" class="matchup-winner-label">Winner</span>
-                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score }}</strong>
+                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
+                  }}</strong>
               </div>
               <div *ngIf="side.participants.length && side.participants.length <= 4" class="matchup-athletes">
                 <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
@@ -558,7 +587,8 @@
                   (click)="toggleLineup(detail, row, side, sideIndex)">
                   <strong>{{ side.participants.length }} athletes</strong>
                   <span>{{ side.participantsAreRoster ? 'Squad · lineup pending' : 'View lineup' }}</span>
-                  <mat-icon aria-hidden="true">{{ isLineupExpanded(detail, row, side, sideIndex) ? 'expand_less' : 'expand_more'
+                  <mat-icon aria-hidden="true">{{ isLineupExpanded(detail, row, side, sideIndex) ? 'expand_less' :
+                    'expand_more'
                     }}</mat-icon>
                 </button>
                 <div *ngIf="isLineupExpanded(detail, row, side, sideIndex)" class="matchup-athletes">
@@ -583,7 +613,8 @@
               </div>
               <div class="matchup-side-status">
                 <span *ngIf="side.isWinner" class="matchup-winner-label">Winner</span>
-                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score }}</strong>
+                <strong *ngIf="side.score !== null && side.score !== undefined" class="matchup-score">{{ side.score
+                  }}</strong>
               </div>
               <div *ngIf="side.participants.length && side.participants.length <= 4" class="matchup-athletes">
                 <span *ngFor="let participant of side.participants">{{ participant | titlecase }}</span>
@@ -601,21 +632,24 @@
 
         @if (detailRankedResult(detail, row); as rankedResult) {
         <section class="event-ranked-result" aria-label="Official India result">
-          <header><span>Official result</span><small>{{ rankedResult.entries?.length }} India {{ rankedResult.entries?.length === 1 ? 'entry' : 'entries' }}</small></header>
+          <header><span>Official result</span><small>{{ rankedResult.entries?.length }} India {{
+              rankedResult.entries?.length === 1 ? 'entry' : 'entries' }}</small></header>
           <div class="ranked-result-row" *ngFor="let entry of rankedResult.entries">
             <span class="ranked-place" [ngClass]="rankedEntryClass(entry)">{{ rankedEntryLabel(entry) }}</span>
-            <span class="ranked-athlete"><strong>{{ entry.name | titlecase }}</strong><small *ngIf="entry.qualification">{{ entry.qualification === 'Q' ? 'Qualified' : entry.qualification }}</small></span>
+            <span class="ranked-athlete"><strong>{{ entry.name | titlecase }}</strong><small
+                *ngIf="entry.qualification">{{ entry.qualification === 'Q' ? 'Qualified' : entry.qualification
+                }}</small></span>
             <strong class="ranked-performance">{{ entry.result || '—' }}</strong>
           </div>
         </section>
         } @else {
-          @if ((!resultsOnly || !detailResultScorecardSides(detail, row).length) && detailResultSummary(detail, row); as resultSummary) {
-          <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
-            [class.is-loss]="detailResultOutcome(resultSummary) === 'loss'">
-            <span>Result</span>
-            <strong>{{ resultSummary }}</strong>
-          </div>
-          }
+        @if (detailResultSummary(detail, row); as resultSummary) {
+        <div class="event-result-summary" [class.is-win]="detailResultOutcome(resultSummary) === 'win'"
+          [class.is-loss]="detailResultOutcome(resultSummary) === 'loss'">
+          <span>Result</span>
+          <strong>{{ resultSummary }}</strong>
+        </div>
+        }
         }
 
         <details *ngIf="!resultsOnly && detail.units && detail.units.length > 1" class="drawer-units">
@@ -631,7 +665,8 @@
     </ng-template>
 
     <ng-template #sessionDetails let-row let-showEvents="showEvents">
-      <section class="event-detail-list drawer-linear-events" *ngIf="showEvents !== false && competitionDetails(row).length">
+      <section class="event-detail-list drawer-linear-events"
+        *ngIf="showEvents !== false && competitionDetails(row).length">
         <div class="drawer-section-title">
           <h4>Competition events</h4><span>{{ drawerDetailCount(row) }}</span>
         </div>
@@ -640,8 +675,10 @@
       </section>
       <p class="timing-note" *ngIf="showEvents !== false && !competitionDetails(row).length">Detailed competition
         programme awaiting publication.</p>
-      <div class="dialog-result" *ngIf="!competitionDetails(row).length && row.result?.summary"><span>Result</span><strong>{{
-          row.result.summary }}</strong></div>
+      <div class="dialog-result" *ngIf="!competitionDetails(row).length && row.result?.summary">
+        <span>Result</span><strong>{{
+          row.result.summary }}</strong>
+      </div>
     </ng-template>
 
     <div class="dialog-backdrop" *ngIf="selectedSessionRow() as row" (click)="closeSessionDialog()">
@@ -708,8 +745,8 @@
 
     <div class="dialog-backdrop" *ngIf="matrixSelectedCell() as cell" (click)="closeMatrixDayDialog()">
       <section class="session-dialog games-detail-drawer" [class.is-results-drawer]="cell.mode === 'results'"
-        role="dialog" aria-modal="true" aria-labelledby="day-title"
-        cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
+        role="dialog" aria-modal="true" aria-labelledby="day-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true"
+        (click)="$event.stopPropagation()">
         <header class="drawer-header">
           <div class="drawer-hero day-hero">
             <div class="drawer-pictogram-tile" *ngIf="cell.sportIcon">
@@ -781,21 +818,21 @@
           }
           <ng-template #programmePending>
             @if (standaloneCellResults(cell); as resultRows) {
-              @if (resultRows.length) {
-              <section class="standalone-results" aria-label="Official India results">
-                <div class="drawer-section-title">
-                  <h4>Official result</h4><span>{{ resultRows.length }}</span>
-                </div>
-                <article class="standalone-result-card" *ngFor="let row of resultRows">
-                  <span>{{ row.eventName || row.phase || 'India result' }}</span>
-                  <strong>{{ timelineResultSummary(row) || row.result?.summary }}</strong>
-                  <a *ngIf="row.result?.sourceUrl" [href]="row.result?.sourceUrl" target="_blank"
-                    rel="noopener noreferrer">Official result <mat-icon aria-hidden="true">north_east</mat-icon></a>
-                </article>
-              </section>
-              } @else {
-              <p class="timing-note">Detailed competition programme awaiting publication.</p>
-              }
+            @if (resultRows.length) {
+            <section class="standalone-results" aria-label="Official India results">
+              <div class="drawer-section-title">
+                <h4>Official result</h4><span>{{ resultRows.length }}</span>
+              </div>
+              <article class="standalone-result-card" *ngFor="let row of resultRows">
+                <span>{{ row.eventName || row.phase || 'India result' }}</span>
+                <strong>{{ timelineResultSummary(row) || row.result?.summary }}</strong>
+                <a *ngIf="row.result?.sourceUrl" [href]="row.result?.sourceUrl" target="_blank"
+                  rel="noopener noreferrer">Official result <mat-icon aria-hidden="true">north_east</mat-icon></a>
+              </article>
+            </section>
+            } @else {
+            <p class="timing-note">Detailed competition programme awaiting publication.</p>
+            }
             }
           </ng-template>
 
@@ -805,7 +842,8 @@
               <span>{{ cell.mode === 'results' ? 'Official Games results' : 'Official Games schedule' }}</span>
               <mat-icon class="external" aria-hidden="true">north_east</mat-icon>
             </a>
-            <p class="drawer-footer-note" *ngIf="cell.mode === 'schedule'">Programme times may change. “Confirmed” identifies a published Indian
+            <p class="drawer-footer-note" *ngIf="cell.mode === 'schedule'">Programme times may change. “Confirmed”
+              identifies a published Indian
               appearance.</p>
           </footer>
         </div>

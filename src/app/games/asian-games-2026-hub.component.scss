@@ -372,7 +372,9 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px 4px;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px 4px 2px;
 
   .medal-updated {
     color: #64748b;
@@ -387,19 +389,21 @@ h3 {
   .official-standings-link {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: #8392a5;
-    font: 500 11.5px 'Geist Sans', sans-serif;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    color: #aab6c6;
+    font: 600 14.5px/1 'Geist Sans', sans-serif;
     letter-spacing: -0.01em;
     text-decoration: none;
     transition: color 0.18s ease;
     white-space: nowrap;
 
     .link-arrow {
-      width: 13px;
-      height: 13px;
-      font-size: 13px;
-      color: #8392a5;
+      width: 17px;
+      height: 17px;
+      font-size: 17px;
+      color: #aab6c6;
       transition: color 0.18s ease, transform 0.18s ease;
     }
 
@@ -416,7 +420,7 @@ h3 {
 
 // ===== Inline medal breakdown =====
 .medal-breakdown {
-  padding: 18px 4px 22px;
+  padding: 22px 4px 24px;
   border-top: 1px solid rgba(255, 255, 255, .08);
   animation: medal-breakdown-in .22s cubic-bezier(.16, 1, .3, 1);
 }
@@ -439,13 +443,15 @@ h3 {
 
   .eyebrow {
     color: #8ebcf2;
-    font-size: 10px;
+    font-size: 13px;
+    line-height: 1.2;
+    letter-spacing: .16em;
   }
 
   p {
-    margin-top: 3px;
-    color: #718096;
-    font: 450 11px/1.3 'Geist Sans', sans-serif;
+    margin-top: 5px;
+    color: #8d9aad;
+    font: 450 14px/1.4 'Geist Sans', sans-serif;
   }
 }
 
@@ -460,7 +466,7 @@ h3 {
 
 .medal-column-labels {
   color: #64748b;
-  font: 600 9px/1 'Geist Mono', monospace;
+  font: 650 10.5px/1 'Geist Mono', monospace;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -498,7 +504,7 @@ h3 {
 
 .medal-sport-row {
   width: 100%;
-  min-height: 54px;
+  min-height: 60px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 24px;
   align-items: center;
@@ -523,7 +529,7 @@ h3 {
   strong {
     overflow: hidden;
     color: #e9edf3;
-    font: 620 14px/1.25 'Geist Sans', sans-serif;
+    font: 620 16px/1.25 'Geist Sans', sans-serif;
     letter-spacing: -.01em;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -547,7 +553,7 @@ h3 {
 
 .medal-sport-counts {
   color: #687587;
-  font: 550 13px/1 'Geist Mono', monospace;
+  font: 550 14px/1 'Geist Mono', monospace;
 
   .has-value.gold { color: #ffd978; }
   .has-value.silver { color: #e7edf5; }
@@ -560,10 +566,10 @@ h3 {
 }
 
 .medal-sport-chevron {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: #637083;
-  font-size: 18px;
+  font-size: 20px;
   transition: color .18s ease, transform .2s cubic-bezier(.16, 1, .3, 1);
 }
 
@@ -573,7 +579,7 @@ h3 {
 }
 
 .medal-record {
-  min-height: 50px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -585,13 +591,13 @@ h3 {
   }
 
   .record-medal {
-    width: 74px;
+    width: 82px;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    flex: 0 0 74px;
+    flex: 0 0 82px;
     color: #97a2b0;
-    font: 600 10px/1 'Geist Mono', monospace;
+    font: 600 10.5px/1 'Geist Mono', monospace;
     letter-spacing: .04em;
     text-transform: uppercase;
 
@@ -617,7 +623,7 @@ h3 {
     strong {
       overflow: hidden;
       color: #f3f5f8;
-      font: 600 13px/1.3 'Geist Sans', sans-serif;
+      font: 600 14px/1.35 'Geist Sans', sans-serif;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -625,7 +631,7 @@ h3 {
     > span {
       overflow: hidden;
       color: #8793a2;
-      font: 450 12px/1.3 'Geist Sans', sans-serif;
+      font: 450 13px/1.35 'Geist Sans', sans-serif;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -634,23 +640,21 @@ h3 {
   .record-la28 {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     flex: 0 0 auto;
-    color: #c9ad68;
-    font: 600 9px/1 'Geist Mono', monospace;
-    letter-spacing: .04em;
-
-    img {
-      width: auto;
-      height: 12px;
-    }
+    padding: 4px 7px;
+    border: 1px solid rgba(226, 189, 104, .26);
+    border-radius: 999px;
+    background: rgba(226, 189, 104, .06);
+    color: #d7bd7b;
+    font: 650 10px/1 'Geist Mono', monospace;
+    letter-spacing: .05em;
   }
 
   time {
     width: 54px;
     flex: 0 0 54px;
     color: #667386;
-    font: 500 10px/1 'Geist Mono', monospace;
+    font: 500 11px/1 'Geist Mono', monospace;
     text-align: right;
   }
 }
@@ -1410,7 +1414,7 @@ h3 {
   }
 }
 
-// ===== Choose Your Games (3 Coverage Options) =====
+// ===== Coverage choices =====
 .coverage-heading {
   display: flex;
   justify-content: space-between;
@@ -1418,8 +1422,8 @@ h3 {
   margin-bottom: 10px;
 
   >span:last-child {
-    font-size: 12px;
     color: $muted;
+    font-size: 12px;
   }
 }
 
@@ -1427,20 +1431,19 @@ h3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 0;
 
   button {
+    position: relative;
     padding: 18px 20px;
-    text-align: left;
     border: 1px solid $line;
     border-radius: 10px;
     background: #10141b;
-    position: relative;
+    text-align: left;
     transition: background .18s, border-color .18s;
 
     &:hover {
-      background: #181d26;
       border-color: rgba(255, 255, 255, .25);
+      background: #181d26;
     }
 
     &.active {
@@ -1449,7 +1452,7 @@ h3 {
 
       .coverage-count {
         color: $gold;
-        background: rgba($gold, 0.12);
+        background: rgba($gold, .12);
       }
 
       .coverage-check {
@@ -1472,26 +1475,32 @@ h3 {
 
   .coverage-count {
     padding: 2px 7px;
-    color: $muted;
-    background: rgba(255, 255, 255, 0.08);
     border-radius: 4px;
+    background: rgba(255, 255, 255, .08);
+    color: $muted;
     font: 11px 'Geist Mono', monospace;
   }
 
   small {
     display: block;
     margin-top: 7px;
-    font-size: 11px;
     color: $muted;
+    font-size: 11px;
   }
 
   .coverage-check {
     position: absolute;
-    right: 18px;
     top: 20px;
+    right: 18px;
     color: #4c535e;
     font-size: 13px;
   }
+}
+
+.matrix-filter-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
 }
 
 .hub-navigation {
@@ -1525,13 +1534,12 @@ h3 {
 
 .view-toggle {
   display: inline-flex;
-  gap: 24px;
+  gap: 28px;
 
   button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
     min-height: 44px;
     padding: 10px 0;
     background: transparent;
@@ -1540,7 +1548,7 @@ h3 {
     border-radius: 0;
     white-space: nowrap;
     color: $muted;
-    font-size: 13px;
+    font: 620 16.5px/1 'Geist Sans', sans-serif;
     transition: color .18s, border-color .18s;
 
     &:hover {
@@ -1557,11 +1565,6 @@ h3 {
       border-bottom-color: $gold;
     }
 
-    mat-icon {
-      width: 18px;
-      height: 18px;
-      font-size: 18px;
-    }
   }
 }
 
@@ -2396,7 +2399,7 @@ img.la28-transparent-logo {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 18px;
-  padding: 0;
+  padding: 9px 2px 7px;
   font-size: 11px;
   color: $muted;
 
@@ -3036,14 +3039,16 @@ img.la28-transparent-logo {
       align-items: center;
       gap: 4px;
       order: 3;
-      color: #8392a5;
-      font: 500 11px 'Geist Sans', sans-serif;
+      min-height: 36px;
+      margin-left: auto;
+      color: #aab6c6;
+      font: 600 13px/1 'Geist Sans', sans-serif;
       text-decoration: none;
 
       .link-arrow {
-        font-size: 12px;
-        width: 12px;
-        height: 12px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
       }
     }
   }
@@ -3078,9 +3083,8 @@ img.la28-transparent-logo {
     gap: 8px;
     padding: 0 9px 9px;
 
-    p {
-      font-size: 10px;
-    }
+    .eyebrow { font-size: 11px; }
+    p { font-size: 12px; }
   }
 
   .medal-column-labels,
@@ -3089,8 +3093,8 @@ img.la28-transparent-logo {
   }
 
   .medal-column-labels {
-    font-size: 8px;
-    letter-spacing: .02em;
+    font-size: 9.5px;
+    letter-spacing: .04em;
   }
 
   .medal-sport-list {
@@ -3102,7 +3106,7 @@ img.la28-transparent-logo {
   }
 
   .medal-sport-row {
-    min-height: 48px;
+    min-height: 54px;
     grid-template-columns: minmax(0, 1fr) auto 18px;
     gap: 8px;
     padding: 8px 9px;
@@ -3112,7 +3116,7 @@ img.la28-transparent-logo {
     gap: 7px;
 
     strong {
-      font-size: 12.5px;
+      font-size: 14px;
     }
   }
 
@@ -3128,7 +3132,7 @@ img.la28-transparent-logo {
   }
 
   .medal-sport-counts {
-    font-size: 11.5px;
+    font-size: 12.5px;
   }
 
   .medal-records {
@@ -3144,7 +3148,7 @@ img.la28-transparent-logo {
     .record-medal {
       width: auto;
       flex-basis: auto;
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .record-identity {
@@ -3159,13 +3163,14 @@ img.la28-transparent-logo {
         white-space: normal;
       }
 
-      strong { font-size: 12.5px; }
-      > span { font-size: 11.5px; }
+      strong { font-size: 14px; }
+      > span { font-size: 12.5px; }
     }
 
     .record-la28 {
       margin-left: auto;
-      font-size: 8.5px;
+      padding: 4px 7px;
+      font-size: 9.5px;
     }
 
     time {
@@ -3173,7 +3178,7 @@ img.la28-transparent-logo {
       width: auto;
       flex-basis: auto;
       margin-left: auto;
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .record-la28 + time {
@@ -3318,71 +3323,61 @@ img.la28-transparent-logo {
     }
   }
 
-  // Choose Your Games (3 Cards Side-by-Side matching approved UI)
   .coverage-heading {
     margin-bottom: 8px;
 
-    .eyebrow {
-      font-size: 12px;
-    }
-
-    span:last-child {
-      font-size: 12px;
-    }
+    .eyebrow { font-size: 12px; }
+    span:last-child { font-size: 12px; }
   }
 
   .coverage-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
-    margin-top: 0;
 
     button {
+      min-width: 0;
       padding: 10px 7px;
       border-radius: 8px;
-      min-width: 0;
     }
 
     .coverage-top {
-      gap: 4px;
       justify-content: space-between;
+      gap: 4px;
 
       strong {
         font-size: 11.5px;
-        letter-spacing: -0.02em;
+        letter-spacing: -.02em;
         white-space: nowrap;
       }
 
       .coverage-count {
-        font-size: 10.5px;
         padding: 1px 4px;
+        font-size: 10.5px;
       }
     }
 
     small {
+      min-height: 25px;
+      margin-top: 5px;
       font-size: 10.5px;
       line-height: 1.35;
-      margin-top: 5px;
-      min-height: 25px;
     }
 
-    .coverage-check {
-      display: none;
-    }
+    .coverage-check { display: none; }
   }
 
-  // Schedule View Toggle
-  .hub-navigation {
+  .matrix-filter-bar {
     margin-top: 16px;
-    margin-bottom: 10px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 
-  .view-toggle button {
-    min-height: 44px;
-    padding: 10px 0;
-    font-size: 12px;
+  .view-toggle {
+    gap: 24px;
+
+    button {
+      min-height: 44px;
+      padding: 10px 0;
+      font-size: 15px;
+    }
   }
 
   // Date Filter Pills
@@ -4572,6 +4567,56 @@ img.la28-transparent-logo {
     margin: 3px 0 0;
     color: #929ba9;
     font-size: 12px;
+  }
+}
+
+.event-result-medals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.result-medal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 999px;
+  color: #dce2ea;
+  background: rgba(255, 255, 255, .035);
+  font: 650 9px/1.2 'Geist Mono', monospace;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .15);
+  }
+
+  &.is-gold {
+    border-color: rgba(216, 182, 78, .3);
+    color: #f0d984;
+    background: rgba(216, 182, 78, .08);
+    i { background: #d8b64e; }
+  }
+
+  &.is-silver {
+    border-color: rgba(184, 193, 204, .28);
+    color: #d9e0e8;
+    background: rgba(184, 193, 204, .07);
+    i { background: #b8c1cc; }
+  }
+
+  &.is-bronze {
+    border-color: rgba(187, 121, 80, .32);
+    color: #e6b08e;
+    background: rgba(187, 121, 80, .09);
+    i { background: #bb7950; }
   }
 }
 
