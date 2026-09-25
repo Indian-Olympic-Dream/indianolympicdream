@@ -112,12 +112,10 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly coverage = signal<'iod' | 'la28' | 'all'>('iod');
   readonly medalOnly = signal(false);
   readonly filteredMedals = computed(() => medalView(this.medalSummary(), this.medalFilter()));
-  readonly isMedalDrawerOpen = signal(false);
-  readonly drawerMedalFilter = signal<GamesMedalFilter>('all');
-  readonly drawerSelectedMedalSport = signal<string>('all');
-  readonly drawerFilteredMedals = computed(() => medalView(this.medalSummary(), this.drawerMedalFilter()));
-  readonly drawerMedalSportsBreakdown = computed(() => {
-    const records = this.drawerFilteredMedals().records;
+  readonly medalDetailsExpanded = signal(false);
+  readonly expandedMedalSport = signal<string | null>(null);
+  readonly medalSportsBreakdown = computed(() => {
+    const records = this.filteredMedals().records;
     const map = new Map<string, {
       sport: string;
       sportSlug: string;
@@ -152,20 +150,13 @@ export class AsianGames2026HubComponent implements OnInit {
       if (record.medal === 'bronze') entry.bronze++;
     }
 
-    return [...map.values()].sort((a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.total - a.total || a.sport.localeCompare(b.sport));
+    return [...map.values()].sort((a, b) => a.sport.localeCompare(b.sport));
   });
-  readonly drawerMedalGroupedBySport = computed(() => {
-    const selected = this.drawerSelectedMedalSport();
-    const records = this.drawerFilteredMedals().records;
-    const sportsBreakdown = this.drawerMedalSportsBreakdown();
-
-    const targetSports = selected === 'all'
-      ? sportsBreakdown
-      : sportsBreakdown.filter(s => s.sportSlug === selected);
-
+  readonly medalGroupedBySport = computed(() => {
+    const records = this.filteredMedals().records;
     const order = { gold: 0, silver: 1, bronze: 2 };
 
-    return targetSports.map(s => {
+    return this.medalSportsBreakdown().map(s => {
       const sportRecords = records
         .filter(r => (r.sportSlug || 'other') === s.sportSlug)
         .sort((a, b) => (order[a.medal] ?? 3) - (order[b.medal] ?? 3) || a.event.localeCompare(b.event));
@@ -460,6 +451,10 @@ export class AsianGames2026HubComponent implements OnInit {
 
   setMedalFilter(filter: GamesMedalFilter): void {
     this.medalFilter.set(filter);
+    const expandedSport = this.expandedMedalSport();
+    if (expandedSport && !this.medalSportsBreakdown().some(sport => sport.sportSlug === expandedSport)) {
+      this.expandedMedalSport.set(null);
+    }
   }
 
   medalFilterCount(filter: GamesMedalFilter): number {
@@ -475,34 +470,12 @@ export class AsianGames2026HubComponent implements OnInit {
     return latestDate ? `Through ${this.formatMedalDate(latestDate)}` : 'Official results in IOD';
   }
 
-  openMedalDrawer(): void {
-    this.returnFocus = this.document.activeElement as HTMLElement;
-    this.drawerMedalFilter.set(this.medalFilter());
-    this.drawerSelectedMedalSport.set('all');
-    this.isMedalDrawerOpen.set(true);
+  toggleMedalDetails(): void {
+    this.medalDetailsExpanded.update(expanded => !expanded);
   }
 
-  closeMedalDrawer(): void {
-    this.isMedalDrawerOpen.set(false);
-    this.returnFocus?.focus();
-  }
-
-  setDrawerMedalFilter(filter: GamesMedalFilter): void {
-    this.drawerMedalFilter.set(filter);
-    if (this.drawerSelectedMedalSport() !== 'all') {
-      const breakdown = this.drawerMedalSportsBreakdown();
-      if (!breakdown.some(s => s.sportSlug === this.drawerSelectedMedalSport())) {
-        this.drawerSelectedMedalSport.set('all');
-      }
-    }
-  }
-
-  drawerMedalFilterCount(filter: GamesMedalFilter): number {
-    return medalView(this.medalSummary(), filter).total;
-  }
-
-  selectDrawerMedalSport(sportSlug: string): void {
-    this.drawerSelectedMedalSport.set(this.drawerSelectedMedalSport() === sportSlug ? 'all' : sportSlug);
+  toggleMedalSport(sportSlug: string): void {
+    this.expandedMedalSport.update(current => current === sportSlug ? null : sportSlug);
   }
 
   formatMedalDate(dateKey: string | null): string {
@@ -751,8 +724,7 @@ export class AsianGames2026HubComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   closeDialogs(): void {
-    if (this.isMedalDrawerOpen()) this.closeMedalDrawer();
-    else if (this.isSquadDialogOpen()) this.closeSquadDialog();
+    if (this.isSquadDialogOpen()) this.closeSquadDialog();
     else if (this.selectedSessionRow()) this.closeSessionDialog();
     else if (this.matrixSelectedCell()) this.closeMatrixDayDialog();
   }

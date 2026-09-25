@@ -327,6 +327,10 @@ h3 {
       font-size: 14px;
       color: #e2bd68;
       transition: transform 0.2s ease;
+
+      &.expanded {
+        transform: rotate(180deg);
+      }
     }
 
     &:hover {
@@ -336,7 +340,7 @@ h3 {
       transform: translateY(-1px);
       box-shadow: 0 4px 14px rgba(226, 189, 104, 0.15);
 
-      .cta-arrow {
+      .cta-arrow:not(.expanded) {
         transform: translateX(2px);
       }
     }
@@ -410,7 +414,255 @@ h3 {
   }
 }
 
-// ===== Medal Details Drawer (Unified with IOD Games Detail Drawer System) =====
+// ===== Inline medal breakdown =====
+.medal-breakdown {
+  padding: 18px 4px 22px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  animation: medal-breakdown-in .22s cubic-bezier(.16, 1, .3, 1);
+}
+
+@keyframes medal-breakdown-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.medal-breakdown-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  align-items: end;
+  gap: 14px;
+  padding: 0 14px 10px;
+
+  > div:first-child {
+    min-width: 0;
+  }
+
+  .eyebrow {
+    color: #8ebcf2;
+    font-size: 10px;
+  }
+
+  p {
+    margin-top: 3px;
+    color: #718096;
+    font: 450 11px/1.3 'Geist Sans', sans-serif;
+  }
+}
+
+.medal-column-labels,
+.medal-sport-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 36px) 54px;
+  align-items: center;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.medal-column-labels {
+  color: #64748b;
+  font: 600 9px/1 'Geist Mono', monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.medal-sport-list {
+  display: grid;
+  gap: 7px;
+}
+
+.medal-sport-accordion {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .075);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .018);
+  transition: border-color .18s ease, background .18s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, .12);
+  }
+
+  &.expanded {
+    border-color: rgba(226, 189, 104, .24);
+    background: rgba(226, 189, 104, .025);
+
+    .medal-sport-row {
+      background: rgba(226, 189, 104, .045);
+    }
+
+    .medal-sport-chevron {
+      color: #e2bd68;
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.medal-sport-row {
+  width: 100%;
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 14px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  transition: background .18s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, .025);
+  }
+}
+
+.medal-sport-identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  strong {
+    overflow: hidden;
+    color: #e9edf3;
+    font: 620 14px/1.25 'Geist Sans', sans-serif;
+    letter-spacing: -.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.medal-sport-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+
+  img {
+    width: 21px;
+    height: 21px;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(79%) sepia(40%) saturate(630%) hue-rotate(358deg) brightness(93%);
+  }
+}
+
+.medal-sport-counts {
+  color: #687587;
+  font: 550 13px/1 'Geist Mono', monospace;
+
+  .has-value.gold { color: #ffd978; }
+  .has-value.silver { color: #e7edf5; }
+  .has-value.bronze { color: #ee9a6f; }
+
+  strong {
+    color: #f8fafc;
+    font-weight: 700;
+  }
+}
+
+.medal-sport-chevron {
+  width: 18px;
+  height: 18px;
+  color: #637083;
+  font-size: 18px;
+  transition: color .18s ease, transform .2s cubic-bezier(.16, 1, .3, 1);
+}
+
+.medal-records {
+  padding: 0 14px 5px 53px;
+  border-top: 1px solid rgba(255, 255, 255, .065);
+}
+
+.medal-record {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, .055);
+
+  &:first-child {
+    border-top: 0;
+  }
+
+  .record-medal {
+    width: 74px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 74px;
+    color: #97a2b0;
+    font: 600 10px/1 'Geist Mono', monospace;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+
+    i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  }
+
+  &.is-gold .record-medal { color: #ffd978; }
+  &.is-silver .record-medal { color: #e7edf5; }
+  &.is-bronze .record-medal { color: #ee9a6f; }
+
+  .record-identity {
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    align-items: baseline;
+    gap: 10px;
+
+    strong {
+      overflow: hidden;
+      color: #f3f5f8;
+      font: 600 13px/1.3 'Geist Sans', sans-serif;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > span {
+      overflow: hidden;
+      color: #8793a2;
+      font: 450 12px/1.3 'Geist Sans', sans-serif;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .record-la28 {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    color: #c9ad68;
+    font: 600 9px/1 'Geist Mono', monospace;
+    letter-spacing: .04em;
+
+    img {
+      width: auto;
+      height: 12px;
+    }
+  }
+
+  time {
+    width: 54px;
+    flex: 0 0 54px;
+    color: #667386;
+    font: 500 10px/1 'Geist Mono', monospace;
+    text-align: right;
+  }
+}
+
+.medal-breakdown-empty {
+  padding: 18px 14px;
+  color: #8390a1;
+  font-size: 12px;
+}
+
+// Kept temporarily as migration reference; the drawer is no longer emitted.
+@if false {
 .games-detail-drawer.medal-detail-drawer {
   width: clamp(440px, 40vw, 640px);
   background:
@@ -854,6 +1106,7 @@ h3 {
       }
     }
   }
+}
 }
 
 .medal-counts {
@@ -2770,6 +3023,11 @@ img.la28-transparent-logo {
         font-size: 15px;
         width: 15px;
         height: 15px;
+        transition: transform .2s ease;
+
+        &.expanded {
+          transform: rotate(180deg);
+        }
       }
     }
 
@@ -2809,6 +3067,118 @@ img.la28-transparent-logo {
     dt { font-size: 11px; }
     dd { font-size: 26px; }
     &.gold dd { font-size: 28px; }
+  }
+
+  .medal-breakdown {
+    padding: 14px 0 18px;
+  }
+
+  .medal-breakdown-heading {
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    gap: 8px;
+    padding: 0 9px 9px;
+
+    p {
+      font-size: 10px;
+    }
+  }
+
+  .medal-column-labels,
+  .medal-sport-counts {
+    grid-template-columns: repeat(3, 23px) 38px;
+  }
+
+  .medal-column-labels {
+    font-size: 8px;
+    letter-spacing: .02em;
+  }
+
+  .medal-sport-list {
+    gap: 6px;
+  }
+
+  .medal-sport-accordion {
+    border-radius: 9px;
+  }
+
+  .medal-sport-row {
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    gap: 8px;
+    padding: 8px 9px;
+  }
+
+  .medal-sport-identity {
+    gap: 7px;
+
+    strong {
+      font-size: 12.5px;
+    }
+  }
+
+  .medal-sport-icon {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+
+    img {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .medal-sport-counts {
+    font-size: 11.5px;
+  }
+
+  .medal-records {
+    padding: 0 10px 4px;
+  }
+
+  .medal-record {
+    min-height: 0;
+    flex-wrap: wrap;
+    gap: 6px 9px;
+    padding: 10px 2px;
+
+    .record-medal {
+      width: auto;
+      flex-basis: auto;
+      font-size: 9px;
+    }
+
+    .record-identity {
+      order: 3;
+      width: 100%;
+      flex: 1 0 100%;
+      display: grid;
+      gap: 2px;
+
+      strong,
+      > span {
+        white-space: normal;
+      }
+
+      strong { font-size: 12.5px; }
+      > span { font-size: 11.5px; }
+    }
+
+    .record-la28 {
+      margin-left: auto;
+      font-size: 8.5px;
+    }
+
+    time {
+      order: 2;
+      width: auto;
+      flex-basis: auto;
+      margin-left: auto;
+      font-size: 9px;
+    }
+
+    .record-la28 + time {
+      margin-left: 0;
+    }
   }
 
   // Top Bar & Breadcrumbs & Squad CTA
@@ -3680,12 +4050,6 @@ img.la28-transparent-logo {
   background: rgba(2, 4, 8, .36);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
-}
-
-.dialog-backdrop:has(.medal-detail-drawer) {
-  background: rgba(2, 4, 8, .22);
-  backdrop-filter: blur(1.5px);
-  -webkit-backdrop-filter: blur(1.5px);
 }
 
 .games-detail-drawer {
@@ -5199,10 +5563,6 @@ img.la28-transparent-logo {
   .dialog-backdrop:has(.games-detail-drawer) {
     padding-top: 11dvh;
     background: rgba(1, 3, 6, .52);
-  }
-
-  .dialog-backdrop:has(.medal-detail-drawer) {
-    background: rgba(1, 3, 6, .35);
   }
 
   .games-detail-drawer {

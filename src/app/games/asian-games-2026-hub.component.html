@@ -70,11 +70,13 @@
         <div class="medal-header-actions">
           <button type="button"
                   class="medal-details-cta"
-                  (click)="openMedalDrawer()"
-                  aria-label="View India's medal details breakdown">
-            <span class="cta-label">Event details</span>
+                  (click)="toggleMedalDetails()"
+                  [attr.aria-expanded]="medalDetailsExpanded()"
+                  aria-controls="medal-breakdown"
+                  [attr.aria-label]="medalDetailsExpanded() ? 'Hide India medal details' : 'Show India medal details'">
+            <span class="cta-label">{{ medalDetailsExpanded() ? 'Hide details' : 'Medal details' }}</span>
             <span class="cta-badge">{{ filteredMedals().total }}</span>
-            <mat-icon class="cta-arrow" aria-hidden="true">chevron_right</mat-icon>
+            <mat-icon class="cta-arrow" [class.expanded]="medalDetailsExpanded()" aria-hidden="true">expand_more</mat-icon>
           </button>
           <div class="medal-total"><strong>{{ filteredMedals().total }}</strong><span>Total</span></div>
         </div>
@@ -88,9 +90,10 @@
 
       <div class="medal-board-footer-bar">
         <span class="medal-updated" *ngIf="medalUpdatedLabel()">{{ medalUpdatedLabel() }}</span>
-        <button type="button" class="mobile-details-trigger" (click)="openMedalDrawer()">
-          <span>View event details ({{ filteredMedals().total }})</span>
-          <mat-icon aria-hidden="true">chevron_right</mat-icon>
+        <button type="button" class="mobile-details-trigger" (click)="toggleMedalDetails()"
+          [attr.aria-expanded]="medalDetailsExpanded()" aria-controls="medal-breakdown">
+          <span>{{ medalDetailsExpanded() ? 'Hide medal details' : 'Medal details' }} ({{ filteredMedals().total }})</span>
+          <mat-icon [class.expanded]="medalDetailsExpanded()" aria-hidden="true">expand_more</mat-icon>
         </button>
         <a href="https://results.asiangames2026.org/#/medals/standings"
            target="_blank"
@@ -101,6 +104,58 @@
           <mat-icon class="link-arrow" aria-hidden="true">north_east</mat-icon>
         </a>
       </div>
+
+      <section class="medal-breakdown" id="medal-breakdown" *ngIf="medalDetailsExpanded()"
+        aria-label="India medals by sport">
+        <header class="medal-breakdown-heading">
+          <div>
+            <span class="eyebrow">MEDALS BY SPORT</span>
+            <p>{{ medalFilter() === 'all' ? 'All medal events' : medalFilter() === 'la28' ? 'LA28 programme events' : 'Asian Games-only events' }}</p>
+          </div>
+          <div class="medal-column-labels" aria-hidden="true"><span>G</span><span>S</span><span>B</span><span>Total</span></div>
+        </header>
+
+        <div class="medal-sport-list" *ngIf="medalGroupedBySport().length; else noMedalsInView">
+          <article class="medal-sport-accordion" *ngFor="let group of medalGroupedBySport()"
+            [class.expanded]="expandedMedalSport() === group.sportSlug">
+            <button type="button" class="medal-sport-row" (click)="toggleMedalSport(group.sportSlug)"
+              [attr.aria-expanded]="expandedMedalSport() === group.sportSlug"
+              [attr.aria-controls]="'medal-records-' + group.sportSlug">
+              <span class="medal-sport-identity">
+                <span class="medal-sport-icon" *ngIf="group.icon"><img [src]="group.icon" alt="" aria-hidden="true"></span>
+                <strong>{{ group.sport }}</strong>
+              </span>
+              <span class="medal-sport-counts">
+                <span class="gold" [class.has-value]="group.gold" [attr.aria-label]="group.gold + ' gold'">{{ group.gold }}</span>
+                <span class="silver" [class.has-value]="group.silver" [attr.aria-label]="group.silver + ' silver'">{{ group.silver }}</span>
+                <span class="bronze" [class.has-value]="group.bronze" [attr.aria-label]="group.bronze + ' bronze'">{{ group.bronze }}</span>
+                <strong [attr.aria-label]="group.total + ' total'">{{ group.total }}</strong>
+              </span>
+              <mat-icon class="medal-sport-chevron" aria-hidden="true">expand_more</mat-icon>
+            </button>
+
+            <div class="medal-records" [id]="'medal-records-' + group.sportSlug"
+              *ngIf="expandedMedalSport() === group.sportSlug">
+              <article class="medal-record" *ngFor="let record of group.records" [class]="'is-' + record.medal">
+                <span class="record-medal"><i aria-hidden="true"></i>{{ record.medal | titlecase }}</span>
+                <div class="record-identity">
+                  <strong>{{ record.recipient }}</strong>
+                  <span>{{ record.event }}</span>
+                </div>
+                <span *ngIf="record.olympicCategory === 'la28' || record.olympicCategory === 'new_in_la28'"
+                  class="record-la28" title="LA28 programme event">
+                  <img src="assets/images/olympics/la2028.png" alt="" aria-hidden="true">LA28
+                </span>
+                <time *ngIf="record.dateKey">{{ formatMedalDate(record.dateKey) }}</time>
+              </article>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #noMedalsInView>
+          <p class="medal-breakdown-empty">No medal records match this programme filter.</p>
+        </ng-template>
+      </section>
     </section>
     <section class="games-guide" id="games-guide" aria-label="Games guide">
       <div class="loading" *ngIf="loading()" role="status"><span></span> Loading India’s Games…</div>
@@ -799,112 +854,6 @@
             <h3>No athletes match these filters.</h3>
             <button type="button" (click)="athleteSearch.set(''); selectSport('all')">Clear filters</button>
           </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Medal Details Drawer (Unified with IOD Games Detail Drawer System) -->
-    <div class="dialog-backdrop" *ngIf="isMedalDrawerOpen()" (click)="closeMedalDrawer()">
-      <section class="session-dialog games-detail-drawer medal-detail-drawer" role="dialog" aria-modal="true"
-        aria-labelledby="medal-dialog-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true"
-        (click)="$event.stopPropagation()">
-
-        <!-- Clean, Dignified Header without redundant mini-tally -->
-        <header class="drawer-header medal-drawer-header">
-          <div class="medal-header-titles">
-            <span class="eyebrow">TEAM INDIA · AICHI–NAGOYA 2026</span>
-            <h2 id="medal-dialog-title">Medal Record</h2>
-          </div>
-          <button type="button" class="drawer-close-btn" cdkFocusInitial aria-label="Close medal details"
-            (click)="closeMedalDrawer()"><mat-icon>close</mat-icon></button>
-        </header>
-
-        <div class="dialog-body medal-drawer-body">
-          <!-- Pathway Scope Segmented Switch -->
-          <div class="drawer-scope-pill-bar" role="group" aria-label="Filter medals by pathway">
-            <button type="button" class="scope-pill" [class.active]="drawerMedalFilter() === 'all'"
-              (click)="setDrawerMedalFilter('all')">
-              <span>All medals</span>
-              <span class="pill-count">{{ drawerMedalFilterCount('all') }}</span>
-            </button>
-            <button type="button" class="scope-pill" [class.active]="drawerMedalFilter() === 'la28'"
-              (click)="setDrawerMedalFilter('la28')">
-              <span>LA28 programme</span>
-              <span class="pill-count">{{ drawerMedalFilterCount('la28') }}</span>
-            </button>
-            <button type="button" class="scope-pill" [class.active]="drawerMedalFilter() === 'asian-games'"
-              (click)="setDrawerMedalFilter('asian-games')">
-              <span>Asian Games-only</span>
-              <span class="pill-count">{{ drawerMedalFilterCount('asian-games') }}</span>
-            </button>
-          </div>
-
-          <!-- Medals Grouped by Sport -->
-          <section class="drawer-medals-by-sport" *ngIf="drawerMedalGroupedBySport().length">
-            <section *ngFor="let group of drawerMedalGroupedBySport()" class="sport-medal-section">
-              <header class="sport-section-header">
-                <div class="sport-heading-group">
-                  <div class="sport-heading-icon-wrap" *ngIf="group.icon">
-                    <img [src]="group.icon" alt="" class="sport-heading-icon" aria-hidden="true">
-                  </div>
-                  <h3>{{ group.sport }}</h3>
-                </div>
-              </header>
-
-              <!-- Dedicated Medal Citation Cards (Editorial Public Record) -->
-              <div class="medal-cards-stack">
-                <article class="medal-citation-card" *ngFor="let record of group.records" [class]="'is-' + record.medal">
-                  <div class="citation-primary">
-                    <div class="citation-identity">
-                      <h4 class="citation-recipient">{{ record.recipient }}</h4>
-                      <div class="citation-event-row">
-                        <span class="citation-event">{{ record.event }}</span>
-                        <span *ngIf="record.olympicCategory === 'la28' || record.olympicCategory === 'new_in_la28'"
-                              class="citation-la28-mark" title="Olympic programme event for LA28">
-                          <img src="assets/images/olympics/la2028.png" class="la28-icon" alt="">
-                          <span>LA28 programme</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="citation-medal-badge" [class]="'is-' + record.medal">
-                      <span class="medal-pip" aria-hidden="true"></span>
-                      <span class="medal-name">{{ record.medal }}</span>
-                    </div>
-                  </div>
-
-                  <div class="citation-footer" *ngIf="record.dateKey">
-                    <time class="citation-date">
-                      <mat-icon aria-hidden="true">calendar_today</mat-icon>
-                      <span>{{ formatMedalDate(record.dateKey) }}</span>
-                    </time>
-                  </div>
-                </article>
-              </div>
-            </section>
-          </section>
-
-          <!-- Empty state -->
-          <div class="drawer-empty-state" *ngIf="!drawerMedalGroupedBySport().length">
-            <mat-icon class="empty-icon" aria-hidden="true">military_tech</mat-icon>
-            <h3>No medals in this view</h3>
-            <p>No medal records match the selected pathway filter.</p>
-            <button type="button" class="drawer-reset-btn" (click)="setDrawerMedalFilter('all')">
-              View all medals ({{ drawerMedalFilterCount('all') }})
-            </button>
-          </div>
-
-          <!-- Footer with Verified Games Source -->
-          <footer class="drawer-footer">
-            <a class="drawer-footer-source" href="https://results.asiangames2026.org/#/medals/standings" target="_blank" rel="noopener noreferrer">
-              <mat-icon aria-hidden="true">verified</mat-icon>
-              <span>Official Games medal standings</span>
-              <mat-icon class="external" aria-hidden="true">north_east</mat-icon>
-            </a>
-            <p class="drawer-footer-note">
-              Official Team India standings verified with Aichi–Nagoya 2026 results service.
-            </p>
-          </footer>
         </div>
       </section>
     </div>
