@@ -8,14 +8,15 @@ import { Observable, catchError, interval, of } from 'rxjs';
 import { OriginalsService, Video } from '../originals/originals.service';
 import { selectHubVideo } from '../originals/broadcast-presentation';
 import { HubBroadcastComponent } from './hub-broadcast.component';
-import { CalendarEvent, GamesParticipationRow, GamesProgrammeEventRow, GamesRankedResultEntry, GamesResultMatch, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
+import { CalendarEvent, GamesHubMedalSummary, GamesParticipationRow, GamesProgrammeEventRow, GamesRankedResultEntry, GamesResultMatch, GamesScheduleRow, GamesSessionDetail, PayloadService, Sport } from '../services/payload.service';
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
 import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, resultMatchForDetail, resultRankLabel, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
-import { compareMatrixSportStarts, hasIndiaAppearance, indiaDateKey, scheduleTiming } from './games-hub.presentation';
-import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, continuousGamesDates, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
+import { compareMatrixSportStarts, hasIndiaAppearance, hasOfficialResult, indiaDateKey, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
+import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
 import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
+import { GamesMedalFilter, medalView } from './games-medal.presentation';
 
 export interface DrawerCompetitorSide {
   code: string;
@@ -29,6 +30,13 @@ export interface DrawerCompetitorSide {
 interface DrawerEventEntry {
   detail: GamesSessionDetail;
   row: GamesScheduleRow;
+  order: number;
+}
+
+interface DrawerResultEventGroup {
+  key: string;
+  title: string;
+  entries: DrawerEventEntry[];
   order: number;
 }
 
@@ -58,6 +66,7 @@ interface MatrixCell {
   india: number;
   results: number;
   outcome: 'win' | 'loss' | 'mixed' | null;
+  medals: { gold: number; silver: number; bronze: number; total: number };
 }
 
 @Component({
@@ -79,6 +88,8 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly failed = signal<string[]>([]);
   readonly events = signal<CalendarEvent[]>([]);
   readonly schedule = signal<GamesScheduleRow[]>([]);
+  readonly medalSummary = signal<GamesHubMedalSummary | null>(null);
+  readonly medalFilter = signal<GamesMedalFilter>('all');
   readonly participations = signal<GamesParticipationRow[]>([]);
   readonly programme = signal<GamesProgrammeEventRow[]>([]);
   readonly videos = signal<Video[]>([]);
@@ -97,8 +108,74 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly la28Only = signal(false);
   readonly iodCoverageOnly = signal(true);
   readonly selectedView = signal<'schedule' | 'matrix'>('matrix');
+  readonly matrixMode = signal<'schedule' | 'results'>('schedule');
   readonly coverage = signal<'iod' | 'la28' | 'all'>('iod');
   readonly medalOnly = signal(false);
+  readonly filteredMedals = computed(() => medalView(this.medalSummary(), this.medalFilter()));
+  readonly isMedalDrawerOpen = signal(false);
+  readonly drawerMedalFilter = signal<GamesMedalFilter>('all');
+  readonly drawerSelectedMedalSport = signal<string>('all');
+  readonly drawerFilteredMedals = computed(() => medalView(this.medalSummary(), this.drawerMedalFilter()));
+  readonly drawerMedalSportsBreakdown = computed(() => {
+    const records = this.drawerFilteredMedals().records;
+    const map = new Map<string, {
+      sport: string;
+      sportSlug: string;
+      icon: string | null;
+      gold: number;
+      silver: number;
+      bronze: number;
+      total: number;
+    }>();
+
+    for (const record of records) {
+      const slug = record.sportSlug || 'other';
+      if (!map.has(slug)) {
+        const sportObj = this.allSports().find(s => s.slug === slug)
+          || this.allSports().find(s => s.slug.toLowerCase() === slug.toLowerCase())
+          || this.allSports().find(s => s.name.toLowerCase() === (record.sport || '').toLowerCase())
+          || this.sports().find(s => s.slug === slug || s.name.toLowerCase() === (record.sport || '').toLowerCase());
+        map.set(slug, {
+          sport: record.sport,
+          sportSlug: slug,
+          icon: sportObj ? this.pictogram(sportObj) : null,
+          gold: 0,
+          silver: 0,
+          bronze: 0,
+          total: 0,
+        });
+      }
+      const entry = map.get(slug)!;
+      entry.total++;
+      if (record.medal === 'gold') entry.gold++;
+      if (record.medal === 'silver') entry.silver++;
+      if (record.medal === 'bronze') entry.bronze++;
+    }
+
+    return [...map.values()].sort((a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.total - a.total || a.sport.localeCompare(b.sport));
+  });
+  readonly drawerMedalGroupedBySport = computed(() => {
+    const selected = this.drawerSelectedMedalSport();
+    const records = this.drawerFilteredMedals().records;
+    const sportsBreakdown = this.drawerMedalSportsBreakdown();
+
+    const targetSports = selected === 'all'
+      ? sportsBreakdown
+      : sportsBreakdown.filter(s => s.sportSlug === selected);
+
+    const order = { gold: 0, silver: 1, bronze: 2 };
+
+    return targetSports.map(s => {
+      const sportRecords = records
+        .filter(r => (r.sportSlug || 'other') === s.sportSlug)
+        .sort((a, b) => (order[a.medal] ?? 3) - (order[b.medal] ?? 3) || a.event.localeCompare(b.event));
+
+      return {
+        ...s,
+        records: sportRecords,
+      };
+    }).filter(g => g.records.length > 0);
+  });
   private returnFocus: HTMLElement | null = null;
   readonly isSquadDialogOpen = signal(false);
   readonly selectedDay = signal('');
@@ -113,6 +190,7 @@ export class AsianGames2026HubComponent implements OnInit {
     sportIcon: string | null;
     dateKey: string;
     sessions: GamesScheduleRow[];
+    mode: 'schedule' | 'results';
   } | null>(null);
   readonly featuredVideo = computed(() => selectHubVideo(this.videos(), this.now()));
   readonly openingLabel = computed(() => {
@@ -198,10 +276,13 @@ export class AsianGames2026HubComponent implements OnInit {
   }).sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime)));
   readonly scopedSchedule = computed(() => this.deduplicatedSchedule().filter(row =>
     Number.isFinite(Date.parse(row.startTime)) && matchesGamesScope(this.rowSport(row)?.slug, this.la28Only(), 'all', this.iodCoverageOnly())));
-  /** Keep the whole date rail, including rest days, for the current sport scope. */
+  /** Dates are derived from the rows eligible for the selected matrix mode. */
   readonly matrixDates = computed(() => {
-    const keys = this.scopedSchedule().map((row) => indiaDateKey(row.startTime));
-    return continuousGamesDates(keys).map((key) => ({
+    const eligibleRows = this.scopedSchedule().filter(row => this.matrixMode() === 'results'
+      ? hasOfficialResult(row)
+      : isOpenScheduleRow(row));
+    return [...new Set(eligibleRows.map(row => indiaDateKey(row.startTime)))].sort()
+      .map((key) => ({
       key,
       day: new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(new Date(`${key}T12:00:00+05:30`)),
       date: new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric' }).format(new Date(`${key}T12:00:00+05:30`)),
@@ -212,17 +293,28 @@ export class AsianGames2026HubComponent implements OnInit {
   /** Sports × dates matrix. Earlier-starting sports lead; ties stay alphabetical. */
   readonly matrixSports = computed(() => {
     const dates = this.matrixDates();
-    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number; results: number; wins: number; losses: number }> }>();
+    const visibleDates = new Set(dates.map(date => date.key));
+    const medalRecordsBySourceAndDate = new Map<string, GamesHubMedalSummary['records']>();
+    for (const record of this.medalSummary()?.records || []) {
+      if (!record.sourceId) continue;
+      const key = `${record.sourceId}|${record.dateKey || ''}`;
+      const records = medalRecordsBySourceAndDate.get(key) || [];
+      records.push(record);
+      medalRecordsBySourceAndDate.set(key, records);
+    }
+    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number; results: number; wins: number; losses: number; medals: Map<string, 'gold' | 'silver' | 'bronze'> }> }>();
     for (const row of this.scopedSchedule()) {
       if (!Number.isFinite(Date.parse(row.startTime))) continue;
+      if (this.matrixMode() === 'results' ? !hasOfficialResult(row) : !isOpenScheduleRow(row)) continue;
       const sport = this.rowSport(row);
       const slug = sport?.slug || 'other';
       const name = sport?.name || 'Other';
       const dateKey = indiaDateKey(row.startTime);
+      if (!visibleDates.has(dateKey)) continue;
       if (!sportMap.has(slug)) sportMap.set(slug, { slug, name, firstDay: dateKey, icon: sport ? this.pictogram(sport) : null, cells: new Map() });
       const entry = sportMap.get(slug)!;
       if (dateKey < entry.firstDay) entry.firstDay = dateKey;
-      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0, results: 0, wins: 0, losses: 0 };
+      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0, results: 0, wins: 0, losses: 0, medals: new Map<string, 'gold' | 'silver' | 'bronze'>() };
       for (const key of asianMedalEventKeys(row)) cell.medalEventKeys.add(key);
       if (hasIndiaAppearance(row)) cell.india++;
       const resultCount = this.rowResultCount(row);
@@ -230,6 +322,10 @@ export class AsianGames2026HubComponent implements OnInit {
         cell.results += resultCount;
         if (row.result?.outcome === 'win') cell.wins += resultCount;
         if (row.result?.outcome === 'loss') cell.losses += resultCount;
+      }
+      const medalLookupKey = `${row.sourceId || row.id}|${dateKey}`;
+      for (const medal of medalRecordsBySourceAndDate.get(medalLookupKey) || []) {
+        cell.medals.set(medal.key, medal.medal);
       }
       entry.cells.set(dateKey, cell);
     }
@@ -247,10 +343,17 @@ export class AsianGames2026HubComponent implements OnInit {
             outcome: cell.results && cell.wins === cell.results ? 'win' as const
               : cell.results && cell.losses === cell.results ? 'loss' as const
                 : cell.results ? 'mixed' as const : null,
+            medals: {
+              gold: [...cell.medals.values()].filter(medal => medal === 'gold').length,
+              silver: [...cell.medals.values()].filter(medal => medal === 'silver').length,
+              bronze: [...cell.medals.values()].filter(medal => medal === 'bronze').length,
+              total: cell.medals.size,
+            },
           } : null;
         }),
       }));
   });
+  readonly visibleMatrixSports = computed(() => this.matrixSports());
 
   readonly roadToLaSports = computed(() => {
     const quotaSlugs = ['hockey', 'squash', 'tennis', 'surfing', 'archery'];
@@ -340,12 +443,80 @@ export class AsianGames2026HubComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.failed.set([]);
-    this.read('schedule', this.payload.getEventHubSchedule(this.games.gamesKey))
-      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((schedule) => {
+    this.payload.getEventHubScheduleData(this.games.gamesKey).pipe(
+      catchError(() => {
+        this.failed.update(keys => [...keys, 'schedule']);
+        return of(null);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((hub) => {
+      const schedule = hub?.docs || [];
       this.schedule.set(schedule);
+      this.medalSummary.set(hub?.medalSummary || null);
       this.loading.set(false);
       this.loadEditorial(schedule);
     });
+  }
+
+  setMedalFilter(filter: GamesMedalFilter): void {
+    this.medalFilter.set(filter);
+  }
+
+  medalFilterCount(filter: GamesMedalFilter): number {
+    return medalView(this.medalSummary(), filter).total;
+  }
+
+  medalUpdatedLabel(): string {
+    const latestDate = (this.medalSummary()?.records || [])
+      .map(record => record.dateKey || '')
+      .filter(Boolean)
+      .sort()
+      .at(-1);
+    return latestDate ? `Through ${this.formatMedalDate(latestDate)}` : 'Official results in IOD';
+  }
+
+  openMedalDrawer(): void {
+    this.returnFocus = this.document.activeElement as HTMLElement;
+    this.drawerMedalFilter.set(this.medalFilter());
+    this.drawerSelectedMedalSport.set('all');
+    this.isMedalDrawerOpen.set(true);
+  }
+
+  closeMedalDrawer(): void {
+    this.isMedalDrawerOpen.set(false);
+    this.returnFocus?.focus();
+  }
+
+  setDrawerMedalFilter(filter: GamesMedalFilter): void {
+    this.drawerMedalFilter.set(filter);
+    if (this.drawerSelectedMedalSport() !== 'all') {
+      const breakdown = this.drawerMedalSportsBreakdown();
+      if (!breakdown.some(s => s.sportSlug === this.drawerSelectedMedalSport())) {
+        this.drawerSelectedMedalSport.set('all');
+      }
+    }
+  }
+
+  drawerMedalFilterCount(filter: GamesMedalFilter): number {
+    return medalView(this.medalSummary(), filter).total;
+  }
+
+  selectDrawerMedalSport(sportSlug: string): void {
+    this.drawerSelectedMedalSport.set(this.drawerSelectedMedalSport() === sportSlug ? 'all' : sportSlug);
+  }
+
+  formatMedalDate(dateKey: string | null): string {
+    if (!dateKey) return '';
+    try {
+      const date = new Date(`${dateKey}T12:00:00+05:30`);
+      return new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'short',
+      }).format(date);
+    } catch {
+      return dateKey;
+    }
   }
 
   private loadEditorial(schedule: GamesScheduleRow[]): void {
@@ -436,14 +607,30 @@ export class AsianGames2026HubComponent implements OnInit {
     return parts.length > 1 ? parts.filter(part => !/ceremony/i.test(part)).join(' / ') || short : short;
   }
   competitionDetails(row: GamesScheduleRow): GamesSessionDetail[] { return (row.sessionDetails || []).filter(detail => !isCeremonyDetail(detail)); }
-  drawerCompetitionEntries(rows: GamesScheduleRow[]): DrawerEventEntry[] {
+  drawerCompetitionEntries(rows: GamesScheduleRow[], resultsOnly = false): DrawerEventEntry[] {
     return rows
       .flatMap((row, rowIndex) => this.competitionDetails(row).map((detail, detailIndex) => ({
         detail,
         row,
         order: this.drawerEventOrder(detail, row, rowIndex, detailIndex),
       })))
+      .filter(entry => !resultsOnly || Boolean(
+        this.detailRankedResult(entry.detail, entry.row)
+        || this.detailResultSummary(entry.detail, entry.row),
+      ))
       .sort((a, b) => a.order - b.order);
+  }
+  drawerResultEventGroups(rows: GamesScheduleRow[]): DrawerResultEventGroup[] {
+    const groups = new Map<string, DrawerResultEventGroup>();
+    for (const entry of this.drawerCompetitionEntries(rows, true)) {
+      const title = entry.detail.event?.trim() || 'India result';
+      const key = title.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const current = groups.get(key) || { key, title, entries: [], order: entry.order };
+      current.entries.push(entry);
+      current.order = Math.min(current.order, entry.order);
+      groups.set(key, current);
+    }
+    return [...groups.values()].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
   }
   trackDrawerEvent(_index: number, entry: DrawerEventEntry): string {
     return entry.detail.sourceUrl || `${entry.row.id}|${entry.detail.timeIST || ''}|${entry.detail.event}|${entry.detail.phase || ''}|${entry.detail.unit || ''}`;
@@ -482,7 +669,8 @@ export class AsianGames2026HubComponent implements OnInit {
 
   openMatrixDayDialog(sportSlug: string, dateKey: string): void {
     this.ensureParticipations();
-    const sessions = this.getSessionsForSportAndDate(sportSlug, dateKey);
+    const sessions = this.getSessionsForSportAndDate(sportSlug, dateKey)
+      .filter(row => this.matrixMode() === 'results' ? hasOfficialResult(row) : isOpenScheduleRow(row));
     const sport = this.sports().find(s => s.slug === sportSlug) || this.allSports().find(s => s.slug === sportSlug);
     if (!sessions.length && !sport) return;
 
@@ -493,6 +681,7 @@ export class AsianGames2026HubComponent implements OnInit {
       sportIcon: sport ? this.pictogram(sport) : null,
       dateKey,
       sessions,
+      mode: this.matrixMode(),
     });
   }
 
@@ -562,7 +751,8 @@ export class AsianGames2026HubComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   closeDialogs(): void {
-    if (this.isSquadDialogOpen()) this.closeSquadDialog();
+    if (this.isMedalDrawerOpen()) this.closeMedalDrawer();
+    else if (this.isSquadDialogOpen()) this.closeSquadDialog();
     else if (this.selectedSessionRow()) this.closeSessionDialog();
     else if (this.matrixSelectedCell()) this.closeMatrixDayDialog();
   }
@@ -571,12 +761,21 @@ export class AsianGames2026HubComponent implements OnInit {
     this.selectedView.set(view);
   }
 
+  setMatrixMode(mode: 'schedule' | 'results'): void {
+    this.matrixMode.set(mode);
+  }
+
   matrixCellLabel(cell: MatrixCell | null): string {
     if (!cell) return '';
-    const parts: string[] = ['Scheduled programme'];
+    const parts: string[] = this.matrixMode() === 'results' ? [] : ['Scheduled programme'];
     if (cell.results) parts.push(`${cell.results} official result${cell.results !== 1 ? 's' : ''}`);
-    if (cell.medalEvents) parts.push(`${cell.medalEvents} medal event${cell.medalEvents !== 1 ? 's' : ''}`);
-    if (cell.india && !cell.results) parts.push(`${cell.india} confirmed India session${cell.india !== 1 ? 's' : ''}`);
+    if (this.matrixMode() === 'results' && cell.medals.total) {
+      if (cell.medals.gold) parts.push(`${cell.medals.gold} gold`);
+      if (cell.medals.silver) parts.push(`${cell.medals.silver} silver`);
+      if (cell.medals.bronze) parts.push(`${cell.medals.bronze} bronze`);
+    }
+    if (this.matrixMode() === 'schedule' && cell.medalEvents) parts.push(`${cell.medalEvents} medal event${cell.medalEvents !== 1 ? 's' : ''}`);
+    if (this.matrixMode() === 'schedule' && cell.india) parts.push(`${cell.india} confirmed India session${cell.india !== 1 ? 's' : ''}`);
     return parts.join(' · ');
   }
 
@@ -754,6 +953,27 @@ export class AsianGames2026HubComponent implements OnInit {
         label,
         participants: labelIsAthlete ? [label] : roster,
         participantsAreRoster: isIndia && !labelIsAthlete && roster.length > 0,
+      };
+    });
+  }
+
+  detailResultScorecardSides(detail: GamesSessionDetail, row: GamesScheduleRow): DrawerCompetitorSide[] {
+    const match = resultMatchForDetail(detail, row);
+    const sides = this.detailSides(detail, row);
+    if (match?.format !== 'head-to-head' || !match.summary || sides.length < 2) return [];
+
+    const score = match.summary.match(/(\d+(?:\/\d+)?)\s*[–-]\s*(\d+(?:\/\d+)?)(?:\s*\(|$)/);
+    const indiaWon = /\bindia\s+beat\b/i.test(match.summary);
+    const indiaLost = /\bindia\s+lost\s+to\b/i.test(match.summary);
+    const indiaIndex = sides.findIndex(side => side.code === 'IND');
+
+    return sides.map((side, index) => {
+      const isIndia = side.code === 'IND';
+      const scoreIndex = indiaIndex >= 0 ? (isIndia ? 1 : 2) : index + 1;
+      return {
+        ...side,
+        score: score?.[scoreIndex] ?? side.score,
+        isWinner: isIndia ? indiaWon : indiaLost ? true : side.isWinner,
       };
     });
   }

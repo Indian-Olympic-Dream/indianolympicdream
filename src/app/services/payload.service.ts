@@ -285,6 +285,7 @@ export interface GamesResultMatch {
   unit?: string;
   summary?: string;
   entries?: GamesRankedResultEntry[];
+  medal?: 'Gold' | 'Silver' | 'Bronze' | string | null;
   status?: string;
 }
 
@@ -332,6 +333,49 @@ export interface GamesScheduleRow {
   liveCoverage?: LiveScoreCoverage | null;
   /** Sanitized point-by-point updates supplied by the live SSE publication. */
   liveUpdates?: LiveScoreUpdate[];
+}
+
+export interface GamesHubMedalRecord {
+  key: string;
+  medal: 'gold' | 'silver' | 'bronze';
+  sport: string;
+  sportSlug: string;
+  olympicStatus: SportLifecycle | null;
+  olympicCategory: 'la28' | 'new_in_la28' | 'non_olympic';
+  event: string;
+  recipient: string;
+  officialKey: string | null;
+  sourceId: string | null;
+  dateKey?: string | null;
+  source: 'official-medal' | 'official-rank' | 'result-summary';
+}
+
+export interface GamesHubMedalSummary {
+  verifiedAt: string | null;
+  total: number;
+  gold: number;
+  silver: number;
+  bronze: number;
+  records: GamesHubMedalRecord[];
+  bySport: Array<{
+    sport: string;
+    sportSlug: string;
+    olympicStatus: SportLifecycle | null;
+    olympicCategory: 'la28' | 'new_in_la28' | 'non_olympic';
+    total: number;
+    gold: number;
+    silver: number;
+    bronze: number;
+  }>;
+}
+
+export interface GamesHubScheduleResponse {
+  schemaVersion?: number;
+  gamesKey?: string;
+  docs: GamesScheduleRow[];
+  totalDocs: number;
+  generatedAt?: string;
+  medalSummary?: GamesHubMedalSummary;
 }
 
 export interface LiveScoreGame {
@@ -1813,18 +1857,25 @@ export class PayloadService {
   }
 
   getEventHubSchedule(gamesKey: string): Observable<GamesScheduleRow[]> {
+    return this.getEventHubScheduleData(gamesKey).pipe(map(response => response.docs));
+  }
+
+  getEventHubScheduleData(gamesKey: string): Observable<GamesHubScheduleResponse> {
     if (!gamesKey?.trim()) {
-      return of([]);
+      return of({ docs: [], totalDocs: 0 });
     }
 
     const params = new HttpParams()
       .set('gamesKey', gamesKey.trim())
       .set('format', 'full');
-    return this.http.get<PayloadListResponse<GamesScheduleRow>>(
+    return this.http.get<GamesHubScheduleResponse>(
       `${environment.payload_url}/api/games-schedule/hub`,
       { params },
-    ).pipe(map(response => this.normalizeGamesScheduleRows(response.docs || [])
-      .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id))));
+    ).pipe(map(response => ({
+      ...response,
+      docs: this.normalizeGamesScheduleRows(response.docs || [])
+        .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id)),
+    })));
   }
 
   getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {

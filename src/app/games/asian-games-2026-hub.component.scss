@@ -166,6 +166,787 @@ h3 {
   padding: 8px 0 32px;
 }
 
+.india-medal-board {
+  margin: 0 0 28px;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(126, 174, 218, .2);
+  border-bottom: 1px solid rgba(126, 174, 218, .14);
+  background: rgba(8, 12, 18, .28);
+}
+
+.medal-board-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 4px 16px;
+  flex-wrap: wrap;
+
+  .medal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .medal-title-group {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+
+    .eyebrow {
+      color: #8ebcf2;
+      font: 600 11px/1.2 'Geist Mono', monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-top: 3px;
+      color: #f0f3f7;
+      font: 650 23px/1.15 'Geist Sans', sans-serif;
+      letter-spacing: -.025em;
+      white-space: nowrap;
+    }
+  }
+
+  /* Filters placed directly in the empty space beside Team India / Medal tally */
+  .medal-filter-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .short-label {
+      display: inline;
+    }
+
+    .full-label {
+      display: none;
+    }
+
+    @media (min-width: 1200px) {
+      .short-label {
+        display: none;
+      }
+      .full-label {
+        display: inline;
+      }
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: #8392a5;
+      background: transparent;
+      font: 500 12px 'Geist Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+
+      .filter-count {
+        color: #64748b;
+        font: 600 10.5px 'Geist Mono', monospace;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1px 6px;
+        border-radius: 999px;
+        transition: all 0.18s ease;
+      }
+
+      &:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.05);
+
+        .filter-count {
+          color: #fff;
+        }
+      }
+
+      &.active {
+        color: #ffd978;
+        background: rgba(226, 189, 104, 0.12);
+        border-color: rgba(226, 189, 104, 0.38);
+        box-shadow: 0 1px 8px rgba(226, 189, 104, 0.1);
+
+        .filter-count {
+          color: #ffd978;
+          background: rgba(226, 189, 104, 0.2);
+        }
+      }
+    }
+  }
+
+  .medal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .medal-details-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(226, 189, 104, 0.06);
+    border: 1px solid rgba(226, 189, 104, 0.38);
+    border-radius: 999px;
+    color: #eef0f4;
+    font: 550 12px 'Geist Sans', sans-serif;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+
+    .cta-label {
+      font-weight: 550;
+      color: #f1f5f9;
+    }
+
+    .cta-badge {
+      background: rgba(226, 189, 104, 0.2);
+      color: #ffd978;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font: 600 11px/1.2 'Geist Mono', monospace;
+      border: 1px solid rgba(226, 189, 104, 0.35);
+    }
+
+    .cta-arrow {
+      width: 14px;
+      height: 14px;
+      font-size: 14px;
+      color: #e2bd68;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: rgba(226, 189, 104, 0.12);
+      border-color: rgba(226, 189, 104, 0.7);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(226, 189, 104, 0.15);
+
+      .cta-arrow {
+        transform: translateX(2px);
+      }
+    }
+  }
+
+  .medal-total {
+    display: grid;
+    justify-items: end;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255, 255, 255, .1);
+
+    strong {
+      color: #ffffff;
+      font: 750 34px/.92 'Geist Sans', sans-serif;
+      letter-spacing: -.04em;
+    }
+
+    span {
+      margin-top: 4px;
+      color: #8392a5;
+      font: 600 9.5px/1 'Geist Mono', monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.medal-board-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px 4px;
+
+  .medal-updated {
+    color: #64748b;
+    font: 500 10.5px/1 'Geist Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .mobile-details-trigger {
+    display: none;
+  }
+
+  .official-standings-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #8392a5;
+    font: 500 11.5px 'Geist Sans', sans-serif;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    transition: color 0.18s ease;
+    white-space: nowrap;
+
+    .link-arrow {
+      width: 13px;
+      height: 13px;
+      font-size: 13px;
+      color: #8392a5;
+      transition: color 0.18s ease, transform 0.18s ease;
+    }
+
+    &:hover {
+      color: #ffd978;
+
+      .link-arrow {
+        color: #ffd978;
+        transform: translate(1px, -1px);
+      }
+    }
+  }
+}
+
+// ===== Medal Details Drawer (Unified with IOD Games Detail Drawer System) =====
+.games-detail-drawer.medal-detail-drawer {
+  width: clamp(440px, 40vw, 640px);
+  background:
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(226, 189, 104, 0.1), transparent 65%),
+    rgba(8, 12, 18, 0.94);
+  backdrop-filter: blur(26px) saturate(1.3);
+  -webkit-backdrop-filter: blur(26px) saturate(1.3);
+  border-left: 1px solid rgba(226, 189, 104, 0.32);
+  box-shadow:
+    -20px 0 60px rgba(0, 0, 0, 0.65),
+    -1px 0 0 rgba(255, 255, 255, 0.05),
+    inset 1px 0 0 rgba(226, 189, 104, 0.14);
+
+  > header.medal-drawer-header {
+    background: rgba(8, 12, 18, 0.90);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    .medal-header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+
+      .eyebrow {
+        font: 600 11px/1 'Geist Mono', monospace;
+        letter-spacing: 0.12em;
+        color: #e2bd68;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #f8fafc;
+        letter-spacing: -0.02em;
+      }
+    }
+  }
+
+  .dialog-body.medal-drawer-body {
+    padding: 20px 24px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* Segmented Scope Pill Bar */
+  .drawer-scope-pill-bar {
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    .scope-pill {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #8fa0b5;
+      font: 550 12px/1 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+
+      .pill-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 19px;
+        height: 19px;
+        padding: 0 5px;
+        border-radius: 999px;
+        font: 600 11px/1 'Geist Mono', monospace;
+        color: #64748b;
+        background: rgba(255, 255, 255, 0.06);
+        transition: all 0.2s ease;
+      }
+
+      &:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      &.active {
+        background: linear-gradient(135deg, rgba(226, 189, 104, 0.2), rgba(226, 189, 104, 0.08));
+        border-color: rgba(226, 189, 104, 0.45);
+        color: #ffd978;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+        .pill-count {
+          background: rgba(226, 189, 104, 0.28);
+          color: #ffe8a3;
+        }
+      }
+    }
+  }
+
+  /* Sport Sections */
+  .drawer-medals-by-sport {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    .sport-medal-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+      &:first-of-type {
+        padding-top: 4px;
+        border-top: none;
+      }
+
+      .sport-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .sport-heading-group {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .sport-heading-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+
+            .sport-heading-icon {
+              width: 18px;
+              height: 18px;
+              object-fit: contain;
+              filter: brightness(0) invert(1);
+              opacity: 0.95;
+            }
+          }
+
+          h3 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 17px;
+            font-weight: 650;
+            line-height: 1.25;
+            letter-spacing: -0.015em;
+          }
+        }
+      }
+
+      /* Stack of Athlete Citation Cards */
+      .medal-cards-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .medal-citation-card {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding: 15px 18px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.028);
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.045);
+            border-color: rgba(255, 255, 255, 0.12);
+          }
+
+          &.is-gold {
+            border-left: 2.5px solid #e2bd68;
+            background: linear-gradient(90deg, rgba(226, 189, 104, 0.07) 0%, rgba(255, 255, 255, 0.022) 50%);
+          }
+
+          &.is-silver {
+            border-left: 2.5px solid #cbd5e1;
+            background: linear-gradient(90deg, rgba(203, 213, 225, 0.05) 0%, rgba(255, 255, 255, 0.022) 50%);
+          }
+
+          &.is-bronze {
+            border-left: 2.5px solid #d9895e;
+            background: linear-gradient(90deg, rgba(217, 137, 94, 0.06) 0%, rgba(255, 255, 255, 0.022) 50%);
+          }
+
+          .citation-primary {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+
+            .citation-identity {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              min-width: 0;
+
+              .citation-recipient {
+                margin: 0;
+                font-size: 17px;
+                font-weight: 650;
+                color: #f8fafc;
+                line-height: 1.3;
+                letter-spacing: -0.015em;
+                word-break: break-word;
+              }
+
+              .citation-event-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+
+                .citation-event {
+                  margin: 0;
+                  font-size: 13.5px;
+                  font-weight: 500;
+                  color: #94a3b8;
+                  line-height: 1.35;
+                }
+
+                .citation-la28-mark {
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                  padding: 2px 7px;
+                  border-radius: 999px;
+                  background: rgba(226, 189, 104, 0.12);
+                  border: 1px solid rgba(226, 189, 104, 0.3);
+                  color: #ffd978;
+                  font: 600 10.5px/1 'Geist Mono', monospace;
+
+                  img.la28-icon {
+                    height: 11px;
+                    width: auto;
+                  }
+                }
+              }
+            }
+
+            .citation-medal-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+              padding: 4px 10px;
+              border-radius: 999px;
+              font: 700 11px/1 'Geist Mono', monospace;
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+              flex-shrink: 0;
+
+              .medal-pip {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                flex-shrink: 0;
+              }
+
+              &.is-gold {
+                background: rgba(226, 189, 104, 0.15);
+                border: 1px solid rgba(226, 189, 104, 0.4);
+                color: #ffd978;
+                .medal-pip {
+                  background: #ffd978;
+                  box-shadow: 0 0 8px rgba(255, 217, 120, 0.9);
+                }
+              }
+
+              &.is-silver {
+                background: rgba(203, 213, 225, 0.12);
+                border: 1px solid rgba(203, 213, 225, 0.35);
+                color: #f1f5f9;
+                .medal-pip {
+                  background: #f1f5f9;
+                  box-shadow: 0 0 6px rgba(241, 245, 249, 0.8);
+                }
+              }
+
+              &.is-bronze {
+                background: rgba(217, 137, 94, 0.15);
+                border: 1px solid rgba(217, 137, 94, 0.4);
+                color: #fba879;
+                .medal-pip {
+                  background: #fba879;
+                  box-shadow: 0 0 8px rgba(251, 168, 121, 0.9);
+                }
+              }
+            }
+          }
+
+          .citation-footer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+            .citation-date {
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+              font: 500 11px/1 'Geist Mono', monospace;
+              color: #64748b;
+
+              mat-icon {
+                font-size: 13px;
+                width: 13px;
+                height: 13px;
+                color: #64748b;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Empty state */
+  .drawer-empty-state {
+    padding: 36px 20px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+
+    .empty-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #64748b;
+      margin: 0 auto 10px;
+    }
+
+    h3 {
+      font: 600 15px 'Geist Sans', sans-serif;
+      color: #e2e8f0;
+      margin: 0 0 4px;
+    }
+
+    p {
+      font: 400 12.5px 'Geist Sans', sans-serif;
+      color: #8e99a8;
+      margin: 0 0 14px;
+    }
+
+    .drawer-reset-btn {
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(226, 189, 104, 0.4);
+      background: rgba(226, 189, 104, 0.12);
+      color: #ffd978;
+      font: 550 12px 'Geist Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.18s ease;
+
+      &:hover {
+        background: rgba(226, 189, 104, 0.22);
+        color: #fff;
+      }
+    }
+  }
+
+  @media (max-width: 760px) {
+    width: calc(100% - 12px);
+
+    > header.medal-drawer-header {
+      padding: 14px 16px;
+
+      .medal-header-titles {
+        h2 { font-size: 19px; }
+      }
+    }
+
+    .dialog-body.medal-drawer-body {
+      padding: 16px 14px 28px;
+    }
+
+    .drawer-scope-pill-bar {
+      .scope-pill {
+        padding: 5px 8px;
+        font-size: 11px;
+        gap: 4px;
+
+        .pill-count {
+          min-width: 16px;
+          height: 16px;
+          font-size: 9.5px;
+          padding: 0 4px;
+        }
+      }
+    }
+
+    .drawer-medals-by-sport {
+      .sport-medal-section {
+        padding: 15px 0;
+
+        .sport-section-header {
+          .sport-heading-group h3 {
+            font-size: 15px;
+          }
+        }
+
+        .medal-cards-stack {
+          .medal-citation-card {
+            padding: 13px 14px;
+
+            .citation-primary {
+              .citation-identity {
+                .citation-recipient { font-size: 15px; }
+                .citation-event-row .citation-event { font-size: 12.5px; }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.medal-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.medal-count {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 24px;
+  border-right: 1px solid rgba(255, 255, 255, .08);
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  dt {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font: 600 12.5px 'Geist Sans', sans-serif;
+    letter-spacing: -0.01em;
+
+    i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 3px currentColor;
+      opacity: .88;
+    }
+  }
+
+  dd {
+    margin: 0;
+    font-family: 'Geist Sans', sans-serif;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  &.gold {
+    dt {
+      color: #e2bd68;
+      i {
+        box-shadow: 0 0 8px rgba(255, 217, 120, 0.6);
+      }
+    }
+    dd {
+      color: #ffd978;
+      font-size: 34px;
+      font-weight: 750;
+      text-shadow: 0 0 16px rgba(255, 217, 120, 0.25);
+    }
+  }
+
+  &.silver {
+    dt {
+      color: #cbd5e1;
+      i {
+        box-shadow: 0 0 8px rgba(241, 245, 249, 0.5);
+      }
+    }
+    dd {
+      color: #f1f5f9;
+      font-size: 31px;
+      font-weight: 650;
+      text-shadow: 0 0 12px rgba(241, 245, 249, 0.15);
+    }
+  }
+
+  &.bronze {
+    dt {
+      color: #d9895e;
+      i {
+        box-shadow: 0 0 8px rgba(251, 168, 121, 0.55);
+      }
+    }
+    dd {
+      color: #fba879;
+      font-size: 31px;
+      font-weight: 650;
+      text-shadow: 0 0 12px rgba(251, 168, 121, 0.18);
+    }
+  }
+}
+
 .hero-copy {
   flex: 1;
   min-width: 0;
@@ -181,6 +962,25 @@ h3 {
     font: 600 11.5px/1.3 'Geist Mono', monospace;
     letter-spacing: .06em;
     margin-bottom: 2px;
+
+    &.live-edition-badge {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+
+      .hub-brand {
+        color: #f87171;
+        letter-spacing: .08em;
+      }
+
+      .live-signal-beacon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 10px #ef4444;
+        animation: pulseLiveBeacon 1.8s infinite;
+      }
+    }
 
     .hero-flag {
       --flag-width: 20px;
@@ -248,6 +1048,8 @@ h3 {
     .hero-meta-pill {
       display: inline-flex;
       align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
       gap: 6px;
       padding: 5px 12px;
       border-radius: 999px;
@@ -265,6 +1067,38 @@ h3 {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+      }
+
+      &.live-active-pill {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #fca5a5;
+        font-weight: 600;
+
+        .live-pulse-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #ef4444;
+          box-shadow: 0 0 8px #ef4444;
+          display: inline-block;
+          animation: pulseLiveBeacon 1.8s infinite;
+        }
+      }
+
+      &.medal-tally-pill {
+        background: rgba(226, 189, 104, 0.1);
+        border-color: rgba(226, 189, 104, 0.3);
+        color: #ffd978;
+        font-weight: 600;
+
+        .medal-icon-badge {
+          font-size: 13px;
+        }
+
+        strong {
+          color: #fff;
+        }
       }
 
       &.status-pill {
@@ -1277,6 +2111,11 @@ img.la28-transparent-logo {
     box-shadow: inset 0 -2px 0 rgba(200, 132, 108, .5);
   }
 
+  &.has-result.has-earned-medal {
+    background: linear-gradient(145deg, rgba(99, 139, 184, .13), rgba(99, 139, 184, .025));
+    box-shadow: inset 0 -2px 0 rgba(126, 174, 218, .46);
+  }
+
   .matrix-india-dot {
     display: inline-block;
     width: 5px;
@@ -1350,6 +2189,18 @@ img.la28-transparent-logo {
   letter-spacing: .04em;
 }
 
+.result-medal-legend {
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+
+    &.gold { background: #d8b64e; }
+    &.silver { background: #b8c1cc; }
+    &.bronze { background: #bb7950; }
+  }
+}
+
 .matrix-result-mark {
   display: inline-flex;
   align-items: center;
@@ -1381,6 +2232,36 @@ img.la28-transparent-logo {
     color: #ddb09f;
     background: rgba(184, 112, 90, .1);
   }
+}
+
+.matrix-earned-medals {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 3px 5px;
+}
+
+.earned-medal {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .14);
+  }
+
+  small {
+    color: #cbd2dc;
+    font: 650 9px/1 'Geist Mono', monospace;
+  }
+
+  &.gold i { background: #d8b64e; }
+  &.silver i { background: #b8c1cc; }
+  &.bronze i { background: #bb7950; }
 }
 
 // ===== Dialogs & Modals =====
@@ -1777,6 +2658,159 @@ img.la28-transparent-logo {
     padding: 16px 14px 40px;
   }
 
+  .india-medal-board {
+    margin-bottom: 20px;
+    padding-top: 14px;
+  }
+
+  .medal-board-header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 0 12px;
+    flex-wrap: nowrap;
+
+    .medal-header-left {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .medal-title-group {
+      flex-shrink: 0;
+
+      h2 { font-size: 20px; }
+    }
+
+    .medal-filter-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 2px 3px;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+
+      .full-label {
+        display: none;
+      }
+
+      .short-label {
+        display: inline;
+      }
+
+      button {
+        padding: 4px 7px;
+        font-size: 11px;
+        gap: 3px;
+
+        .filter-count {
+          font-size: 9.5px;
+          padding: 1px 4px;
+        }
+      }
+    }
+
+    /* In mobile header, show only Total count */
+    .medal-header-actions {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      margin-left: auto;
+      flex-shrink: 0;
+
+      .medal-details-cta {
+        display: none;
+      }
+
+      .medal-total {
+        border-left: none;
+        padding-left: 0;
+
+        strong { font-size: 26px; }
+      }
+    }
+  }
+
+  .medal-board-footer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0 0;
+    flex-wrap: wrap;
+
+    .medal-updated {
+      font-size: 10px;
+      color: #64748b;
+      order: 2;
+    }
+
+    .mobile-details-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      order: 1;
+      width: 100%;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(226, 189, 104, 0.08);
+      border: 1px solid rgba(226, 189, 104, 0.35);
+      color: #ffd978;
+      font: 600 12px 'Geist Sans', sans-serif;
+      cursor: pointer;
+
+      mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+      }
+    }
+
+    .official-standings-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      order: 3;
+      color: #8392a5;
+      font: 500 11px 'Geist Sans', sans-serif;
+      text-decoration: none;
+
+      .link-arrow {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
+
+
+
+  .medal-counts {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, .075);
+  }
+
+  .medal-count {
+    display: grid;
+    justify-content: stretch;
+    gap: 7px;
+    padding: 10px 14px;
+    border-right: 1px solid rgba(255, 255, 255, .08);
+
+    &:first-child { padding-left: 0; }
+    &:last-child { padding-right: 0; border-right: 0; }
+    dt { font-size: 11px; }
+    dd { font-size: 26px; }
+    &.gold dd { font-size: 28px; }
+  }
+
   // Top Bar & Breadcrumbs & Squad CTA
   .hub-top-bar {
     gap: 8px;
@@ -1864,22 +2898,30 @@ img.la28-transparent-logo {
     }
 
     .hero-meta-row {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      overflow-x: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
       gap: 6px;
       margin-top: 8px;
 
       .hero-meta-pill {
-        font-size: 11.5px;
-        padding: 4px 9px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 11px;
+        padding: 4px 8px;
         gap: 5px;
 
         .meta-icon {
-          font-size: 12.5px;
-          width: 12.5px;
-          height: 12.5px;
+          font-size: 12px;
+          width: 12px;
+          height: 12px;
         }
 
         &.status-pill {
-          font-size: 11.5px;
+          font-size: 11px;
         }
       }
     }
@@ -2635,8 +3677,15 @@ img.la28-transparent-logo {
 
 // Premium Games detail drawer. The schedule stays visible behind a compact event dossier.
 .dialog-backdrop:has(.games-detail-drawer) {
-  background: rgba(1, 3, 6, .62);
-  backdrop-filter: blur(3px) saturate(.8);
+  background: rgba(2, 4, 8, .36);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.dialog-backdrop:has(.medal-detail-drawer) {
+  background: rgba(2, 4, 8, .22);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
 }
 
 .games-detail-drawer {
@@ -2913,6 +3962,76 @@ img.la28-transparent-logo {
   }
 }
 
+.drawer-results-by-event {
+  display: grid;
+  gap: 0;
+
+  >.drawer-section-title {
+    margin-bottom: 4px;
+  }
+}
+
+.result-event-group {
+  display: grid;
+  gap: 12px;
+  padding: 19px 0;
+  border-top: 1px solid rgba(255, 255, 255, .075);
+
+  &:first-of-type {
+    border-top-color: rgba(119, 164, 226, .2);
+  }
+
+  .drawer-event-card {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .drawer-event-card + .drawer-event-card {
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, .055);
+  }
+}
+
+.result-event-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+
+  h5 {
+    margin: 0;
+    color: #e8edf3;
+    font-size: 17px;
+    font-weight: 620;
+    line-height: 1.3;
+    letter-spacing: -.012em;
+  }
+
+  span {
+    flex: 0 0 auto;
+    color: #768292;
+    font: 9px/1.3 'Geist Mono', monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+}
+
+.result-event-group .drawer-event-copy >strong {
+  color: #91bdf6;
+  font: 600 10px/1.4 'Geist Mono', monospace;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.result-scorecard {
+  margin-top: 1px;
+}
+
 .games-detail-drawer .event-detail-list .drawer-event-card {
   position: relative;
   display: grid;
@@ -2989,6 +4108,20 @@ img.la28-transparent-logo {
 
     &::after {
       background: linear-gradient(90deg, #ffd978, rgba(226, 189, 104, 0.4));
+    }
+  }
+
+  &.is-result-view {
+    gap: 10px;
+    border-color: rgba(119, 164, 226, .12);
+    border-left-color: rgba(119, 164, 226, .55);
+    background: rgba(8, 13, 21, .4);
+    box-shadow: none;
+
+    &:hover {
+      border-color: rgba(119, 164, 226, .2);
+      border-left-color: rgba(119, 164, 226, .72);
+      background: rgba(10, 17, 27, .56);
     }
   }
 }
@@ -4044,10 +5177,32 @@ img.la28-transparent-logo {
   }
 }
 
+.is-results-drawer {
+  border-left-color: rgba(126, 174, 218, .28);
+
+  .drawer-close-btn {
+    border-color: rgba(126, 174, 218, .32);
+  }
+
+  .drawer-section-title h4,
+  .drawer-footer .drawer-footer-source,
+  .drawer-footer .drawer-footer-source mat-icon {
+    color: #8dbcf1;
+  }
+
+  .drawer-footer {
+    margin-top: 18px;
+  }
+}
+
 @media (max-width: 760px) {
   .dialog-backdrop:has(.games-detail-drawer) {
     padding-top: 11dvh;
-    background: rgba(1, 3, 6, .7);
+    background: rgba(1, 3, 6, .52);
+  }
+
+  .dialog-backdrop:has(.medal-detail-drawer) {
+    background: rgba(1, 3, 6, .35);
   }
 
   .games-detail-drawer {

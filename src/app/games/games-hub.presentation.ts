@@ -23,6 +23,17 @@ export function hasIndiaAppearance(row: GamesScheduleRow): boolean {
     && !['cancelled', 'eliminated', 'postponed'].includes(row.status || '');
 }
 
+/** A row enters Results only when the published result is explicitly official. */
+export function hasOfficialResult(row: GamesScheduleRow): boolean {
+  return row.result?.official === true && Boolean(row.result.summary?.trim());
+}
+
+/** Keep unfinished and provisional rows in Schedule, independent of other rows that day. */
+export function isOpenScheduleRow(row: GamesScheduleRow): boolean {
+  if (['cancelled', 'eliminated', 'postponed'].includes(row.status || '')) return false;
+  return !hasOfficialResult(row);
+}
+
 export function scheduleTiming(row: GamesScheduleRow): string {
   if (row.timingPrecision !== 'exact' && row.timingPrecision !== 'session-window') return 'Time TBC';
   const start = Date.parse(row.startTime);
