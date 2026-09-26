@@ -6,6 +6,10 @@ import type { DocumentNode } from 'graphql';
 import { environment } from '../../environments/environment';
 import { IndiaTier, SportLifecycle } from '../models/india-tier';
 import type { CwgGamesParticipation, PayloadListResponse } from '../games/cwg-2026.types';
+import {
+  assertGamesTimelineV2,
+  type GamesTimelineResponseV2,
+} from '../games/games-timeline-v2.types';
 
 /**
  * PayloadService - GraphQL client for Payload CMS
@@ -1876,6 +1880,27 @@ export class PayloadService {
       docs: this.normalizeGamesScheduleRows(response.docs || [])
         .sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime) || a.id.localeCompare(b.id)),
     })));
+  }
+
+  getGamesTimelineV2(gamesKey: string): Observable<GamesTimelineResponseV2> {
+    const normalizedGamesKey = gamesKey?.trim();
+    if (!normalizedGamesKey) {
+      throw new Error('A gamesKey is required to load the games timeline.');
+    }
+
+    const params = new HttpParams()
+      .set('gamesKey', normalizedGamesKey)
+      .set('format', 'timeline-v2');
+    return this.http.get<unknown>(
+      `${environment.payload_url}/api/games-schedule/hub`,
+      { params },
+    ).pipe(map(response => {
+      assertGamesTimelineV2(response);
+      if (response.gamesKey !== normalizedGamesKey) {
+        throw new Error(`Games timeline key mismatch: requested ${normalizedGamesKey}, received ${response.gamesKey}.`);
+      }
+      return response;
+    }));
   }
 
   getUpcomingGamesSchedule(startTime = new Date().toISOString(), limit = 100): Observable<GamesScheduleRow[]> {
