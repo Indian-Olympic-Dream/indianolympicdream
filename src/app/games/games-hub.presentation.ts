@@ -56,11 +56,19 @@ export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: Game
   });
 }
 
+/** A schedule drawer should contain only unresolved competition units. */
+export function isOpenScheduleDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  const identity = `${detail.event || ''} ${detail.phase || ''} ${detail.unit || ''}`;
+  if (/ceremony/i.test(identity)) return false;
+  if (/^(cancelled|canceled|postponed|eliminated|withdrawn|completed)$/i.test(detail.status || '')) return false;
+  return !hasOfficialResultForDetail(detail, row);
+}
+
 /** Keep unfinished and provisional rows in Schedule, independent of other rows that day. */
 export function isOpenScheduleRow(row: GamesScheduleRow): boolean {
   if (['cancelled', 'eliminated', 'postponed'].includes(row.status || '')) return false;
   if (row.sessionDetails?.length) {
-    return row.sessionDetails.some(detail => !hasOfficialResultForDetail(detail, row));
+    return row.sessionDetails.some(detail => isOpenScheduleDetail(detail, row));
   }
   return !hasOfficialResult(row);
 }

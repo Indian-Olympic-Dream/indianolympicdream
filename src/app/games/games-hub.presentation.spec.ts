@@ -1,5 +1,5 @@
 import type { GamesScheduleRow } from '../services/payload.service';
-import { hasOfficialResult, hasOfficialResultForDetail, isOpenScheduleRow } from './games-hub.presentation';
+import { hasOfficialResult, hasOfficialResultForDetail, isOpenScheduleDetail, isOpenScheduleRow } from './games-hub.presentation';
 
 const row = (overrides: Partial<GamesScheduleRow>): GamesScheduleRow => ({
   id: 'row',
@@ -54,7 +54,42 @@ describe('matrix schedule/results eligibility', () => {
     expect(hasOfficialResult(mixed)).toBe(true);
     expect(hasOfficialResultForDetail(completed, mixed)).toBe(true);
     expect(hasOfficialResultForDetail(upcoming, mixed)).toBe(false);
+    expect(isOpenScheduleDetail(upcoming, mixed)).toBe(true);
     expect(isOpenScheduleRow(mixed)).toBe(true);
+  });
+
+  it('does not reopen completed rows for unmatched ceremonies or withdrawn units', () => {
+    const result = {
+      official: true,
+      summary: 'India won Silver',
+      matches: [{
+        officialKey: 'M.RIFLE.FINAL',
+        event: '10m Air Rifle Men Individual',
+        phase: 'Final',
+        unit: 'Final',
+        summary: 'India won Silver',
+      }],
+    };
+
+    expect(isOpenScheduleRow(row({
+      result,
+      sessionDetails: [{
+        event: '10m Air Rifle Men Individual',
+        phase: 'Victory Ceremony',
+        unit: '10m Air Rifle Men Victory Ceremony',
+        status: 'Planned',
+      }],
+    }))).toBe(false);
+
+    expect(isOpenScheduleRow(row({
+      result,
+      sessionDetails: [{
+        event: "Men's Traditional -77kg",
+        phase: 'Quarterfinals',
+        unit: 'Bout 27',
+        status: 'Withdrawn',
+      }],
+    }))).toBe(false);
   });
 
   it('keeps an unofficial result operationally open', () => {
