@@ -28,14 +28,19 @@ export function hasOfficialResult(row: GamesScheduleRow): boolean {
   return row.result?.official === true && Boolean(row.result.summary?.trim());
 }
 
+/** A declared result belongs in Results even while the official feed marks it provisional. */
+export function hasPublishedResult(row: GamesScheduleRow): boolean {
+  return Boolean(row.result?.summary?.trim());
+}
+
 const normalizeResultIdentity = (value: unknown): string => String(value || '')
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, ' ')
   .trim();
 
-/** Resolve whether this exact nested fixture has an official published result. */
-export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
-  if (!hasOfficialResult(row)) return false;
+/** Resolve whether this exact nested fixture has a declared result. */
+export function hasPublishedResultForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  if (!hasPublishedResult(row)) return false;
   const matches = row.result?.matches || [];
   if (!matches.length) return (row.sessionDetails || []).length <= 1;
 
@@ -56,21 +61,26 @@ export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: Game
   });
 }
 
+/** Resolve whether this exact nested fixture has an official published result. */
+export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  return hasOfficialResult(row) && hasPublishedResultForDetail(detail, row);
+}
+
 /** A schedule drawer should contain only unresolved competition units. */
 export function isOpenScheduleDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
   const identity = `${detail.event || ''} ${detail.phase || ''} ${detail.unit || ''}`;
   if (/ceremony/i.test(identity)) return false;
   if (/^(cancelled|canceled|postponed|eliminated|withdrawn|completed)$/i.test(detail.status || '')) return false;
-  return !hasOfficialResultForDetail(detail, row);
+  return !hasPublishedResultForDetail(detail, row);
 }
 
-/** Keep unfinished and provisional rows in Schedule, independent of other rows that day. */
+/** Keep unfinished rows in Schedule, independent of other rows that day. */
 export function isOpenScheduleRow(row: GamesScheduleRow): boolean {
   if (['cancelled', 'eliminated', 'postponed'].includes(row.status || '')) return false;
   if (row.sessionDetails?.length) {
     return row.sessionDetails.some(detail => isOpenScheduleDetail(detail, row));
   }
-  return !hasOfficialResult(row);
+  return !hasPublishedResult(row);
 }
 
 export function scheduleTiming(row: GamesScheduleRow): string {

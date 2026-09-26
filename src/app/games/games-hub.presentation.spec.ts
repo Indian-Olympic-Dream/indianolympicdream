@@ -1,5 +1,12 @@
 import type { GamesScheduleRow } from '../services/payload.service';
-import { hasOfficialResult, hasOfficialResultForDetail, isOpenScheduleDetail, isOpenScheduleRow } from './games-hub.presentation';
+import {
+  hasOfficialResult,
+  hasOfficialResultForDetail,
+  hasPublishedResult,
+  hasPublishedResultForDetail,
+  isOpenScheduleDetail,
+  isOpenScheduleRow,
+} from './games-hub.presentation';
 
 const row = (overrides: Partial<GamesScheduleRow>): GamesScheduleRow => ({
   id: 'row',
@@ -92,11 +99,37 @@ describe('matrix schedule/results eligibility', () => {
     }))).toBe(false);
   });
 
-  it('keeps an unofficial result operationally open', () => {
-    const provisional = row({ status: 'completed', result: { official: false, summary: 'Provisional' } });
+  it('puts a completed provisional result in Results without calling it official', () => {
+    const detail = {
+      event: 'Mixed Dinghy',
+      phase: 'Opening Series',
+      unit: 'Race 1',
+      status: 'Unofficial',
+      sourceUrl: 'https://results.example/results/X.470.PREL.000100',
+    };
+    const provisional = row({
+      status: 'completed',
+      sessionDetails: [detail],
+      result: {
+        official: false,
+        provisional: true,
+        summary: 'India — 8th · 10 · DSQ',
+        matches: [{
+          officialKey: 'X.470.PREL.000100',
+          event: 'Mixed Dinghy',
+          phase: 'Opening Series',
+          unit: 'Race 1',
+          summary: 'India — 8th · 10 · DSQ',
+        }],
+      },
+    });
 
     expect(hasOfficialResult(provisional)).toBe(false);
-    expect(isOpenScheduleRow(provisional)).toBe(true);
+    expect(hasOfficialResultForDetail(detail, provisional)).toBe(false);
+    expect(hasPublishedResult(provisional)).toBe(true);
+    expect(hasPublishedResultForDetail(detail, provisional)).toBe(true);
+    expect(isOpenScheduleDetail(detail, provisional)).toBe(false);
+    expect(isOpenScheduleRow(provisional)).toBe(false);
   });
 
   it('does not present cancelled, eliminated, or postponed rows as upcoming', () => {

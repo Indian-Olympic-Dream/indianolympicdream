@@ -12,7 +12,7 @@ import { CalendarEvent, GamesHubMedalSummary, GamesParticipationRow, GamesProgra
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
 import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, isEntrantHeadToHeadDetail, hasIndiaResultForDetail, resultMatchForDetail, resultMedalsForDetail, resultRankLabel, resultSummaryForDetail, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
-import { compareMatrixSportStarts, hasIndiaAppearance, hasOfficialResult, indiaDateKey, isOpenScheduleDetail, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
+import { compareMatrixSportStarts, hasIndiaAppearance, hasPublishedResult, indiaDateKey, isOpenScheduleDetail, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
 import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
@@ -65,6 +65,7 @@ interface MatrixCell {
   medalEvents: number;
   india: number;
   results: number;
+  provisionalResults: number;
   outcome: 'win' | 'loss' | 'mixed' | null;
   medals: { gold: number; silver: number; bronze: number; total: number };
 }
@@ -270,7 +271,7 @@ export class AsianGames2026HubComponent implements OnInit {
   /** Dates are derived from the rows eligible for the selected matrix mode. */
   readonly matrixDates = computed(() => {
     const eligibleRows = this.scopedSchedule().filter(row => this.matrixMode() === 'results'
-      ? hasOfficialResult(row)
+      ? hasPublishedResult(row)
       : isOpenScheduleRow(row));
     return [...new Set(eligibleRows.map(row => indiaDateKey(row.startTime)))].sort()
       .map((key) => ({
@@ -293,10 +294,10 @@ export class AsianGames2026HubComponent implements OnInit {
       records.push(record);
       medalRecordsBySourceAndDate.set(key, records);
     }
-    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number; results: number; wins: number; losses: number; medals: Map<string, 'gold' | 'silver' | 'bronze'> }> }>();
+    const sportMap = new Map<string, { slug: string; name: string; firstDay: string; icon: string | null; cells: Map<string, { medalEventKeys: Set<string>; india: number; results: number; provisionalResults: number; wins: number; losses: number; medals: Map<string, 'gold' | 'silver' | 'bronze'> }> }>();
     for (const row of this.scopedSchedule()) {
       if (!Number.isFinite(Date.parse(row.startTime))) continue;
-      if (this.matrixMode() === 'results' ? !hasOfficialResult(row) : !isOpenScheduleRow(row)) continue;
+      if (this.matrixMode() === 'results' ? !hasPublishedResult(row) : !isOpenScheduleRow(row)) continue;
       const sport = this.rowSport(row);
       const slug = sport?.slug || 'other';
       const name = sport?.name || 'Other';
@@ -305,12 +306,13 @@ export class AsianGames2026HubComponent implements OnInit {
       if (!sportMap.has(slug)) sportMap.set(slug, { slug, name, firstDay: dateKey, icon: sport ? this.pictogram(sport) : null, cells: new Map() });
       const entry = sportMap.get(slug)!;
       if (dateKey < entry.firstDay) entry.firstDay = dateKey;
-      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0, results: 0, wins: 0, losses: 0, medals: new Map<string, 'gold' | 'silver' | 'bronze'>() };
+      const cell = entry.cells.get(dateKey) || { medalEventKeys: new Set<string>(), india: 0, results: 0, provisionalResults: 0, wins: 0, losses: 0, medals: new Map<string, 'gold' | 'silver' | 'bronze'>() };
       for (const key of asianMedalEventKeys(row)) cell.medalEventKeys.add(key);
       if (hasIndiaAppearance(row)) cell.india++;
       const resultCount = this.rowResultCount(row);
       if (resultCount) {
         cell.results += resultCount;
+        if (row.result?.official !== true) cell.provisionalResults += resultCount;
         if (row.result?.outcome === 'win') cell.wins += resultCount;
         if (row.result?.outcome === 'loss') cell.losses += resultCount;
       }
@@ -331,6 +333,7 @@ export class AsianGames2026HubComponent implements OnInit {
             medalEvents: cell.medalEventKeys.size,
             india: cell.india,
             results: cell.results,
+            provisionalResults: cell.provisionalResults,
             outcome: cell.results && cell.wins === cell.results ? 'win' as const
               : cell.results && cell.losses === cell.results ? 'loss' as const
                 : cell.results ? 'mixed' as const : null,
@@ -646,7 +649,7 @@ export class AsianGames2026HubComponent implements OnInit {
   openMatrixDayDialog(sportSlug: string, dateKey: string): void {
     this.ensureParticipations();
     const sessions = this.getSessionsForSportAndDate(sportSlug, dateKey)
-      .filter(row => this.matrixMode() === 'results' ? hasOfficialResult(row) : isOpenScheduleRow(row));
+      .filter(row => this.matrixMode() === 'results' ? hasPublishedResult(row) : isOpenScheduleRow(row));
     const sport = this.sports().find(s => s.slug === sportSlug) || this.allSports().find(s => s.slug === sportSlug);
     if (!sessions.length && !sport) return;
 
@@ -743,7 +746,9 @@ export class AsianGames2026HubComponent implements OnInit {
   matrixCellLabel(cell: MatrixCell | null): string {
     if (!cell) return '';
     const parts: string[] = this.matrixMode() === 'results' ? [] : ['Scheduled programme'];
-    if (cell.results) parts.push(`${cell.results} official result${cell.results !== 1 ? 's' : ''}`);
+    const officialResults = cell.results - cell.provisionalResults;
+    if (officialResults) parts.push(`${officialResults} official result${officialResults !== 1 ? 's' : ''}`);
+    if (cell.provisionalResults) parts.push(`${cell.provisionalResults} provisional result${cell.provisionalResults !== 1 ? 's' : ''}`);
     if (this.matrixMode() === 'results' && cell.medals.total) {
       if (cell.medals.gold) parts.push(`${cell.medals.gold} gold`);
       if (cell.medals.silver) parts.push(`${cell.medals.silver} silver`);
@@ -755,7 +760,12 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   matrixResultLabel(cell: MatrixCell): string {
+    if (cell.provisionalResults) return 'P';
     return cell.outcome === 'win' ? 'W' : cell.outcome === 'loss' ? 'L' : 'FT';
+  }
+
+  resultStatusLabel(row: GamesScheduleRow): string {
+    return row.result?.official === true ? 'Official result' : 'Provisional result';
   }
 
   sessionTimingLabel(row: GamesScheduleRow): string {

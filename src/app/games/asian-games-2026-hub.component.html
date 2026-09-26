@@ -214,6 +214,7 @@
           </ng-container>
           <ng-container *ngIf="matrixMode() === 'results'">
             <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
+            <span><i class="legend-result is-provisional" aria-hidden="true">P</i>Provisional result</span>
             <span class="result-medal-legend" aria-label="Medal colours"><i class="gold"></i><i class="silver"></i><i
                 class="bronze"></i>Medal won</span>
             <span>Tap a result to see every match, heat and ranking</span>
@@ -443,7 +444,8 @@
                           alt=""><small>{{ cell.medalEvents }}</small></span><span
                         *ngIf="matrixMode() === 'results' && cell.results && !cell.medals.total"
                         class="matrix-result-mark" [class.is-win]="cell.outcome === 'win'"
-                        [class.is-loss]="cell.outcome === 'loss'" aria-hidden="true"><strong>{{ matrixResultLabel(cell)
+                        [class.is-loss]="cell.outcome === 'loss'" [class.is-provisional]="cell.provisionalResults > 0"
+                        aria-hidden="true"><strong>{{ matrixResultLabel(cell)
                           }}</strong><small *ngIf="cell.results > 1">{{ cell.results }}</small></span><span
                         *ngIf="matrixMode() === 'results' && cell.medals.total" class="matrix-earned-medals"
                         aria-hidden="true"><span *ngIf="cell.medals.gold" class="earned-medal gold"><i></i><small>{{
@@ -554,7 +556,7 @@
         </div>
 
         <div class="drawer-event-copy">
-          <strong>{{ groupedResult ? (sessionDetailSubtitle(detail) || 'Official result') : detail.event }}</strong>
+          <strong>{{ groupedResult ? (sessionDetailSubtitle(detail) || resultStatusLabel(row)) : detail.event }}</strong>
           <p *ngIf="!groupedResult && sessionDetailSubtitle(detail)">{{ sessionDetailSubtitle(detail) }}</p>
           <div *ngIf="detailResultMedals(detail, row).length" class="event-result-medals" aria-label="Medal result">
             <span *ngFor="let medal of detailResultMedals(detail, row)" class="result-medal-badge"
@@ -631,8 +633,8 @@
         </div>
 
         @if (detailRankedResult(detail, row); as rankedResult) {
-        <section class="event-ranked-result" aria-label="Official India result">
-          <header><span>Official result</span><small>{{ rankedResult.entries?.length }} India {{
+        <section class="event-ranked-result" [attr.aria-label]="resultStatusLabel(row)">
+          <header><span>{{ resultStatusLabel(row) }}</span><small>{{ rankedResult.entries?.length }} India {{
               rankedResult.entries?.length === 1 ? 'entry' : 'entries' }}</small></header>
           <div class="ranked-result-row" *ngFor="let entry of rankedResult.entries">
             <span class="ranked-place" [ngClass]="rankedEntryClass(entry)">{{ rankedEntryLabel(entry) }}</span>
@@ -819,15 +821,15 @@
           <ng-template #programmePending>
             @if (standaloneCellResults(cell); as resultRows) {
             @if (resultRows.length) {
-            <section class="standalone-results" aria-label="Official India results">
+            <section class="standalone-results" aria-label="India results">
               <div class="drawer-section-title">
-                <h4>Official result</h4><span>{{ resultRows.length }}</span>
+                <h4>Results</h4><span>{{ resultRows.length }}</span>
               </div>
               <article class="standalone-result-card" *ngFor="let row of resultRows">
                 <span>{{ row.eventName || row.phase || 'India result' }}</span>
                 <strong>{{ timelineResultSummary(row) || row.result?.summary }}</strong>
                 <a *ngIf="row.result?.sourceUrl" [href]="row.result?.sourceUrl" target="_blank"
-                  rel="noopener noreferrer">Official result <mat-icon aria-hidden="true">north_east</mat-icon></a>
+                  rel="noopener noreferrer">Official source <mat-icon aria-hidden="true">north_east</mat-icon></a>
               </article>
             </section>
             } @else {

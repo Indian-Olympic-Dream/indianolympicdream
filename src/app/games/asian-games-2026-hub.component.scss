@@ -2443,6 +2443,12 @@ img.la28-transparent-logo {
   font: 700 10px/1 'Geist Mono', monospace;
   font-style: normal;
   letter-spacing: .04em;
+
+  &.is-provisional {
+    border-color: rgba(226, 189, 104, .48);
+    color: #ddc988;
+    background: rgba(226, 189, 104, .08);
+  }
 }
 
 .result-medal-legend {
@@ -2487,6 +2493,12 @@ img.la28-transparent-logo {
     border-color: rgba(200, 132, 108, .48);
     color: #ddb09f;
     background: rgba(184, 112, 90, .1);
+  }
+
+  &.is-provisional {
+    border-color: rgba(226, 189, 104, .48);
+    color: #ddc988;
+    background: rgba(226, 189, 104, .08);
   }
 }
 
