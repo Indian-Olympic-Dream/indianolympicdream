@@ -1,5 +1,5 @@
 import type { GamesScheduleRow } from '../services/payload.service';
-import { hasOfficialResult, isOpenScheduleRow } from './games-hub.presentation';
+import { hasOfficialResult, hasOfficialResultForDetail, isOpenScheduleRow } from './games-hub.presentation';
 
 const row = (overrides: Partial<GamesScheduleRow>): GamesScheduleRow => ({
   id: 'row',
@@ -21,6 +21,40 @@ describe('matrix schedule/results eligibility', () => {
 
     expect(hasOfficialResult(scheduled)).toBe(false);
     expect(isOpenScheduleRow(scheduled)).toBe(true);
+  });
+
+  it('splits a mixed programme session between Results and Schedule at fixture level', () => {
+    const completed = {
+      event: "Men's Singles",
+      phase: '2nd Round',
+      unit: 'Match 3',
+      sourceUrl: 'https://results.example/results/M.SINGLES.R32.000300',
+    };
+    const upcoming = {
+      event: "Women's Doubles",
+      phase: '2nd Round',
+      unit: 'Match 3',
+      sourceUrl: 'https://results.example/results/W.DOUBLES.R16.000300',
+    };
+    const mixed = row({
+      sessionDetails: [completed, upcoming],
+      result: {
+        official: true,
+        summary: 'SEN Lakshya lost to LOH Kean Yew 1–2',
+        matches: [{
+          officialKey: 'M.SINGLES.R32.000300',
+          event: "Men's Singles",
+          phase: '2nd Round',
+          unit: 'Match 3',
+          summary: 'SEN Lakshya lost to LOH Kean Yew 1–2',
+        }],
+      },
+    });
+
+    expect(hasOfficialResult(mixed)).toBe(true);
+    expect(hasOfficialResultForDetail(completed, mixed)).toBe(true);
+    expect(hasOfficialResultForDetail(upcoming, mixed)).toBe(false);
+    expect(isOpenScheduleRow(mixed)).toBe(true);
   });
 
   it('keeps an unofficial result operationally open', () => {

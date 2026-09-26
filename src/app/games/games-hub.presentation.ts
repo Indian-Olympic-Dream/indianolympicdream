@@ -1,4 +1,4 @@
-import type { GamesScheduleRow } from '../services/payload.service';
+import type { GamesScheduleRow, GamesSessionDetail } from '../services/payload.service';
 
 /** Match the matrix's day-based X axis, not query order or session volume. */
 export function compareMatrixSportStarts(
@@ -28,9 +28,40 @@ export function hasOfficialResult(row: GamesScheduleRow): boolean {
   return row.result?.official === true && Boolean(row.result.summary?.trim());
 }
 
+const normalizeResultIdentity = (value: unknown): string => String(value || '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+/** Resolve whether this exact nested fixture has an official published result. */
+export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
+  if (!hasOfficialResult(row)) return false;
+  const matches = row.result?.matches || [];
+  if (!matches.length) return (row.sessionDetails || []).length <= 1;
+
+  const officialKey = String(detail.sourceUrl || '').match(/\/results\/([^/?#]+)/)?.[1];
+  if (officialKey && matches.some(match => match.officialKey === officialKey && Boolean(match.summary?.trim()))) {
+    return true;
+  }
+
+  const detailText = normalizeResultIdentity(`${detail.event} ${detail.phase || ''} ${detail.unit || ''}`);
+  return matches.some(match => {
+    if (!match.summary?.trim()) return false;
+    const event = normalizeResultIdentity(match.event);
+    const phase = normalizeResultIdentity(match.phase);
+    const unit = normalizeResultIdentity(match.unit);
+    return (!event || detailText.includes(event))
+      && (!phase || detailText.includes(phase))
+      && (!unit || detailText.includes(unit));
+  });
+}
+
 /** Keep unfinished and provisional rows in Schedule, independent of other rows that day. */
 export function isOpenScheduleRow(row: GamesScheduleRow): boolean {
   if (['cancelled', 'eliminated', 'postponed'].includes(row.status || '')) return false;
+  if (row.sessionDetails?.length) {
+    return row.sessionDetails.some(detail => !hasOfficialResultForDetail(detail, row));
+  }
   return !hasOfficialResult(row);
 }
 

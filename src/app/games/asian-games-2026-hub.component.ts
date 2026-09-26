@@ -12,7 +12,7 @@ import { CalendarEvent, GamesHubMedalSummary, GamesParticipationRow, GamesProgra
 import { buildIndiaTimeline, timeUntilStart } from './india-timeline';
 import { ASIAN_GAMES_2026 } from './asian-games-2026.config';
 import { asianSessionStage, asianSessionMedal, asianParticipation, uniqueSessionRows, asianSessionBadge, resolveTimelineDate, isCeremonyDetail, sessionDetailSubtitle, asianMedalEventKeys, asianMedalEventCount, isBronzeDetail, isMedalDetail, isHeadToHeadDetail, isEntrantHeadToHeadDetail, hasIndiaResultForDetail, resultMatchForDetail, resultMedalsForDetail, resultRankLabel, resultSummaryForDetail, timelineResultSummary as compactTimelineResultSummary } from './asian-games-session.presentation';
-import { compareMatrixSportStarts, hasIndiaAppearance, hasOfficialResult, indiaDateKey, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
+import { compareMatrixSportStarts, hasIndiaAppearance, hasOfficialResult, hasOfficialResultForDetail, indiaDateKey, isOpenScheduleRow, scheduleTiming } from './games-hub.presentation';
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
 import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
@@ -587,11 +587,13 @@ export class AsianGames2026HubComponent implements OnInit {
         row,
         order: this.drawerEventOrder(detail, row, rowIndex, detailIndex),
       })))
-      .filter(entry => !resultsOnly || Boolean(
-        hasIndiaResultForDetail(entry.detail, entry.row)
-        && (this.detailRankedResult(entry.detail, entry.row)
-          || this.detailResultSummary(entry.detail, entry.row)),
-      ))
+      .filter(entry => resultsOnly
+        ? Boolean(
+          hasIndiaResultForDetail(entry.detail, entry.row)
+          && (this.detailRankedResult(entry.detail, entry.row)
+            || this.detailResultSummary(entry.detail, entry.row)),
+        )
+        : !hasOfficialResultForDetail(entry.detail, entry.row))
       .sort((a, b) => a.order - b.order);
   }
   drawerResultEventGroups(rows: GamesScheduleRow[]): DrawerResultEventGroup[] {
