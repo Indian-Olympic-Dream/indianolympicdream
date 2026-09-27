@@ -18,11 +18,11 @@ describe('games timeline V2 contract', () => {
     },
     units: [{
       id: 'asian-games-2026:official:FEN:M.FOIL.GPA.000300--',
-      source: {},
-      sport: {},
-      event: { name: "Men's Foil Individual" },
-      schedule: { sequence: 0 },
-      india: {},
+      source: { scheduleSourceId: 'session-1' },
+      sport: { name: 'Fencing', slug: 'fencing' },
+      event: { name: "Men's Foil Individual", kind: 'competition', medal: false },
+      schedule: { sequence: 0, timingType: 'fixed' },
+      india: { participants: ['SANASAM Hemash Singh'], sides: [] },
       result: null,
       programmeSession: { id: 'session-1' },
       viewState: 'scheduled',
@@ -41,5 +41,17 @@ describe('games timeline V2 contract', () => {
   it('rejects malformed competition units', () => {
     expect(() => assertGamesTimelineV2({ ...validResponse, units: [{ id: 'missing-fields' }] }))
       .toThrowError(/competition unit/);
+  });
+
+  it('rejects unknown timing and view states at the API boundary', () => {
+    const unit = validResponse.units[0];
+    expect(() => assertGamesTimelineV2({
+      ...validResponse,
+      units: [{ ...unit, schedule: { ...unit.schedule, timingType: 'guess' } }],
+    })).toThrowError(/competition unit/);
+    expect(() => assertGamesTimelineV2({
+      ...validResponse,
+      units: [{ ...unit, viewState: 'done-ish' }],
+    })).toThrowError(/competition unit/);
   });
 });

@@ -5782,6 +5782,66 @@ img.la28-transparent-logo {
   text-transform: none;
 }
 
+.timeline-unit {
+  &.ceremony-item {
+    opacity: .74;
+
+    .node-dot {
+      background: #7e8793;
+      box-shadow: none;
+    }
+  }
+
+  .timeline-unit-participants {
+    display: block;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, .7);
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .session-detail-link {
+    text-decoration: none;
+  }
+}
+
+.unit-state {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: #aeb6c1;
+  font: 600 9px/1.35 'Geist Mono', monospace;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+
+  &.is-live {
+    border-color: rgba(239, 68, 68, .48);
+    color: #fca5a5;
+  }
+
+  &.is-official {
+    border-color: rgba(74, 222, 128, .32);
+    color: #86efac;
+  }
+
+  &.is-provisional,
+  &.is-awaiting {
+    border-color: rgba(226, 189, 104, .28);
+    color: #d9c089;
+  }
+}
+
+.timeline-loading-state {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, .55);
+  font: 500 12px/1.5 'Geist Mono', monospace;
+}
+
 button.timeline-item {
   width: 100%;
   text-align: left;

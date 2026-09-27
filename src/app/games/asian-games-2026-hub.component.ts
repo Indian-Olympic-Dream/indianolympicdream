@@ -17,6 +17,7 @@ import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaS
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
 import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
 import { GamesMedalFilter, medalView } from './games-medal.presentation';
+import type { GamesTimelineIntegrityV2, GamesTimelineUnitV2 } from './games-timeline-v2.types';
 
 export interface DrawerCompetitorSide {
   code: string;
@@ -38,19 +39,6 @@ interface DrawerResultEventGroup {
   title: string;
   entries: DrawerEventEntry[];
   order: number;
-}
-
-export interface TimelineGroup {
-  id: string;
-  startMs: number;
-  endMs: number;
-  dayLabel: string;
-  dateLabel: string;
-  timeLabel: string;
-  rows: GamesScheduleRow[];
-  isLive: boolean;
-  hasMedal: boolean;
-  hasQuota: boolean;
 }
 
 export interface TimelineDateGroup {
@@ -89,6 +77,10 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly failed = signal<string[]>([]);
   readonly events = signal<CalendarEvent[]>([]);
   readonly schedule = signal<GamesScheduleRow[]>([]);
+  readonly timelineUnits = signal<GamesTimelineUnitV2[]>([]);
+  readonly timelineIntegrity = signal<GamesTimelineIntegrityV2 | null>(null);
+  readonly timelineLoading = signal(true);
+  readonly timelineFailed = signal(false);
   readonly medalSummary = signal<GamesHubMedalSummary | null>(null);
   readonly medalFilter = signal<GamesMedalFilter>('all');
   readonly participations = signal<GamesParticipationRow[]>([]);
@@ -108,7 +100,7 @@ export class AsianGames2026HubComponent implements OnInit {
   ].filter(section => section.rows.length));
   readonly la28Only = signal(false);
   readonly iodCoverageOnly = signal(true);
-  readonly selectedView = signal<'schedule' | 'matrix'>('matrix');
+  readonly selectedView = signal<'schedule' | 'matrix'>('schedule');
   readonly matrixMode = signal<'schedule' | 'results'>('schedule');
   readonly coverage = signal<'iod' | 'la28' | 'all'>('iod');
   readonly medalOnly = signal(false);
@@ -213,18 +205,23 @@ export class AsianGames2026HubComponent implements OnInit {
   ]);
   readonly coverageNote = computed(() => this.coverageOptions().find(o => o.key === this.coverage())?.note || '');
   readonly todayKey = computed(() => indiaDateKey(this.now().toISOString()));
+  readonly timelineCoverageUnits = computed(() => this.timelineUnits().filter(unit =>
+    matchesGamesScope(unit.sport.slug, this.la28Only(), this.selectedSport(), this.iodCoverageOnly())
+  ));
+  readonly timelineScopeUnits = computed(() => this.timelineCoverageUnits()
+    .filter(unit => !this.medalOnly() || unit.event.medal));
   readonly effectiveDateKey = computed(() => resolveTimelineDate(
-    this.scopedSchedule().map(row => indiaDateKey(row.startTime)),
+    this.timelineScopeUnits().map(unit => unit.schedule.dateKey).filter((key): key is string => Boolean(key)),
     this.selectedDateKey(), this.todayKey(), this.games.end.slice(0, 10),
   ));
-  readonly timelineScopeRows = computed(() => this.filteredSchedule().filter(row => !this.medalOnly() || this.isMedalRow(row)));
   readonly dayHeading = computed(() => this.effectiveDateKey() === 'all' ? 'All competition days' : this.formatDialogDate(this.effectiveDateKey()));
-  readonly dayContext = computed(() => this.effectiveDateKey() === 'all' ? 'THE GAMES' : this.effectiveDateKey() === this.todayKey() ? 'TODAY' : this.effectiveDateKey() > this.todayKey() ? 'COMING UP' : 'PAST SESSIONS');
-  readonly nextTimelineRow = computed(() => {
-    const rows = this.filteredTimelineSessions();
-    return rows.find(row => this.isSessionLive(row)) || rows.find(row =>
-      !['cancelled', 'postponed', 'completed', 'eliminated'].includes(row.status || '') && !row.result?.summary &&
-      ['exact', 'session-window'].includes(row.timingPrecision || '') && Date.parse(row.startTime) > this.now().getTime());
+  readonly dayContext = computed(() => this.effectiveDateKey() === 'all' ? 'THE GAMES' : this.effectiveDateKey() === this.todayKey() ? 'TODAY' : this.effectiveDateKey() > this.todayKey() ? 'COMING UP' : 'PAST EVENTS');
+  readonly nextTimelineUnit = computed(() => {
+    const units = this.filteredTimelineUnits();
+    return units.find(unit => unit.viewState === 'live') || units.find(unit =>
+      unit.viewState === 'scheduled'
+      && Boolean(unit.schedule.startsAt)
+      && Date.parse(unit.schedule.startsAt!) > this.now().getTime());
   });
   readonly selectedSessionEvents = computed(() => {
     const row = this.selectedSessionRow();
@@ -371,11 +368,12 @@ export class AsianGames2026HubComponent implements OnInit {
   });
 
   readonly timelineDateGroups = computed<TimelineDateGroup[]>(() => {
-    const rows = this.timelineScopeRows();
+    const units = this.timelineScopeUnits();
     const groupsMap = new Map<string, TimelineDateGroup>();
 
-    for (const row of rows) {
-      const key = indiaDateKey(row.startTime);
+    for (const unit of units) {
+      const key = unit.schedule.dateKey;
+      if (!key) continue;
       if (!groupsMap.has(key)) {
         const d = new Date(`${key}T12:00:00+05:30`);
         groupsMap.set(key, {
@@ -387,28 +385,24 @@ export class AsianGames2026HubComponent implements OnInit {
         });
       }
       const group = groupsMap.get(key)!;
-      if (this.isQuotaSport(this.rowSport(row)?.slug)) group.hasQuotaSport = true;
-    }
-
-    for (const [dateKey, group] of groupsMap) {
-      group.medalEventCount = asianMedalEventCount(rows.filter(row => indiaDateKey(row.startTime) === dateKey));
+      if (this.isQuotaSport(unit.sport.slug)) group.hasQuotaSport = true;
+      if (unit.event.medal) group.medalEventCount++;
     }
 
     return [...groupsMap.values()].sort((a, b) => a.dateKey.localeCompare(b.dateKey));
   });
 
-  readonly upcomingMedalEventsCount = computed(() => asianMedalEventCount(this.filteredSchedule()));
+  readonly upcomingMedalEventsCount = computed(() => this.timelineCoverageUnits()
+    .filter(unit => unit.event.medal).length);
 
-  readonly filteredTimelineSessions = computed<GamesScheduleRow[]>(() => {
+  readonly filteredTimelineUnits = computed<GamesTimelineUnitV2[]>(() => {
     const selectedKey = this.effectiveDateKey();
-    const all = this.timelineScopeRows();
+    const all = this.timelineScopeUnits();
     if (selectedKey === 'all') {
       return all;
     }
-    return all.filter(row => indiaDateKey(row.startTime) === selectedKey);
+    return all.filter(unit => unit.schedule.dateKey === selectedKey);
   });
-
-  readonly timelineGroups = computed<TimelineGroup[]>(() => this.buildTimelineGroups(this.filteredTimelineSessions()));
 
   readonly days = computed(() => [...new Set(this.filteredSchedule().map((row) => indiaDateKey(row.startTime)))].map((key) => ({
     key,
@@ -428,7 +422,6 @@ export class AsianGames2026HubComponent implements OnInit {
       const view = params.get('view');
       if (view === 'iod' || view === 'la28' || view === 'all') this.setCoverage(view);
       else if (view === 'squad') this.openSquadDialog();
-      else this.selectedView.set('matrix');
     });
     this.load();
     interval(60_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.now.set(new Date()));
@@ -437,6 +430,20 @@ export class AsianGames2026HubComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.failed.set([]);
+    this.timelineLoading.set(true);
+    this.timelineFailed.set(false);
+    this.payload.getGamesTimelineV2(this.games.gamesKey).pipe(
+      catchError(() => {
+        this.timelineFailed.set(true);
+        return of(null);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((timeline) => {
+      this.timelineUnits.set(timeline?.units || []);
+      this.timelineIntegrity.set(timeline?.integrity || null);
+      this.timelineLoading.set(false);
+    });
+
     this.payload.getEventHubScheduleData(this.games.gamesKey).pipe(
       catchError(() => {
         this.failed.update(keys => [...keys, 'schedule']);
@@ -740,6 +747,7 @@ export class AsianGames2026HubComponent implements OnInit {
   }
 
   setMatrixMode(mode: 'schedule' | 'results'): void {
+    this.selectedView.set('matrix');
     this.matrixMode.set(mode);
   }
 
@@ -868,9 +876,68 @@ export class AsianGames2026HubComponent implements OnInit {
     return ['completed', 'eliminated'].includes(row.status || '') || Boolean(row.result?.summary);
   }
 
-  isNextTimelineGroup(group: TimelineGroup): boolean {
-    const next = this.nextTimelineRow();
-    return !!next && group.rows.some(row => row.id === next.id);
+  isTimelineUnitLive(unit: GamesTimelineUnitV2): boolean {
+    return unit.viewState === 'live';
+  }
+
+  isTimelineUnitCompleted(unit: GamesTimelineUnitV2): boolean {
+    return ['awaiting-result', 'provisional-result', 'official-result', 'eliminated'].includes(unit.viewState);
+  }
+
+  isNextTimelineUnit(unit: GamesTimelineUnitV2): boolean {
+    return this.nextTimelineUnit()?.id === unit.id;
+  }
+
+  timelineUnitTime(unit: GamesTimelineUnitV2): string {
+    const display = (unit.schedule.displayTime || '').replace(/\s*IST$/i, '').trim();
+    if (unit.schedule.timingType === 'followed-by') return 'Follows';
+    if (unit.schedule.timingType === 'not-before') return display ? `Not before ${display}` : 'Not before';
+    if (unit.schedule.timingType === 'estimated') return display ? `Est. ${display}` : 'Order TBC';
+    if (unit.schedule.timingType === 'tbd') return 'Time TBC';
+    if (display) return display;
+    if (!unit.schedule.startsAt) return 'Time TBC';
+    return new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(new Date(unit.schedule.startsAt));
+  }
+
+  timelineUnitDateLabel(unit: GamesTimelineUnitV2): string {
+    const key = unit.schedule.dateKey;
+    if (!key) return '';
+    const date = new Date(`${key}T12:00:00+05:30`);
+    return new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    }).format(date);
+  }
+
+  timelineUnitStage(unit: GamesTimelineUnitV2): string {
+    const phase = unit.event.phase?.trim() || '';
+    const competitionUnit = unit.event.unit?.trim() || '';
+    if (!competitionUnit) return phase;
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    if (!phase || normalize(competitionUnit) === normalize(phase)) return competitionUnit;
+    return `${phase} · ${competitionUnit}`;
+  }
+
+  timelineUnitParticipants(unit: GamesTimelineUnitV2): string {
+    if (unit.india.sides.length === 2) {
+      return unit.india.sides.map(side => side.label).join(' vs ');
+    }
+    return unit.india.participants.filter(name => !this.isGenericNocName(name)).join(', ');
+  }
+
+  timelineUnitPictogram(unit: GamesTimelineUnitV2): string | null {
+    return unit.sport.pictogramUrl || unit.sport.parent?.pictogramUrl || null;
+  }
+
+  timelineUnitSourceUrl(unit: GamesTimelineUnitV2): string | null {
+    return unit.result?.sourceUrl || unit.source.url;
   }
 
   getScheduleTiming(row: GamesScheduleRow): string {
@@ -1165,66 +1232,6 @@ export class AsianGames2026HubComponent implements OnInit {
     if (name === 'Indoor Volleyball') return 'Volleyball';
     if (name === 'Mixed Martial Arts') return 'MMA';
     return name;
-  }
-
-  private buildTimelineGroups(rows: GamesScheduleRow[]): TimelineGroup[] {
-    const sorted = [...rows].sort((a, b) => this.compareTimelineRows(a, b));
-    const groups: TimelineGroup[] = [];
-    const maxGroupRows = 6;
-
-    for (const row of sorted) {
-      const startMs = this.getSessionStartMs(row);
-      const endMs = this.getSessionEndMs(row);
-      const activeEndMs = endMs > startMs ? endMs : startMs;
-      const currentGroup = groups[groups.length - 1];
-      const sameClockStart = Boolean(currentGroup && startMs === currentGroup.startMs);
-      const canJoinCurrentGroup = Boolean(
-        currentGroup &&
-        currentGroup.rows.length < maxGroupRows &&
-        sameClockStart
-      );
-
-      if (canJoinCurrentGroup && currentGroup) {
-        currentGroup.rows.push(row);
-        currentGroup.endMs = Math.max(currentGroup.endMs, activeEndMs);
-        currentGroup.id = currentGroup.rows.map(item => item.id).join('|');
-        currentGroup.timeLabel = this.getScheduleTiming(row);
-        currentGroup.isLive = currentGroup.rows.some(item => this.isSessionLive(item));
-        currentGroup.hasMedal = currentGroup.rows.some(item => this.isMedalRow(item));
-        currentGroup.hasQuota = currentGroup.rows.some(item => this.isQuotaSport(this.rowSport(item)?.slug));
-        continue;
-      }
-
-      const key = indiaDateKey(row.startTime);
-      const d = new Date(`${key}T12:00:00+05:30`);
-      const dayLabel = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(d);
-      const dateLabel = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' }).format(d);
-
-      groups.push({
-        id: row.id,
-        startMs,
-        endMs: activeEndMs,
-        dayLabel,
-        dateLabel,
-        timeLabel: this.getScheduleTiming(row),
-        rows: [row],
-        isLive: this.isSessionLive(row),
-        hasMedal: this.isMedalRow(row),
-        hasQuota: this.isQuotaSport(this.rowSport(row)?.slug),
-      });
-    }
-
-    return groups;
-  }
-
-  private compareTimelineRows(a: GamesScheduleRow, b: GamesScheduleRow): number {
-    const startDelta = this.getSessionStartMs(a) - this.getSessionStartMs(b);
-    if (startDelta !== 0) return startDelta;
-    const liveDelta = Number(this.isSessionLive(b)) - Number(this.isSessionLive(a));
-    if (liveDelta !== 0) return liveDelta;
-    const medalDelta = Number(this.isMedalRow(b)) - Number(this.isMedalRow(a));
-    if (medalDelta !== 0) return medalDelta;
-    return (a.name || '').localeCompare(b.name || '');
   }
 
   private matchesSport(sport?: Sport | null): boolean {

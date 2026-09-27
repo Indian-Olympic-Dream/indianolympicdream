@@ -143,6 +143,18 @@ export interface GamesTimelineResponseV2 {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+const TIMING_TYPES: readonly GamesTimelineTimingType[] = ['fixed', 'not-before', 'followed-by', 'estimated', 'tbd'];
+const VIEW_STATES: readonly GamesTimelineViewState[] = [
+  'scheduled',
+  'live',
+  'awaiting-result',
+  'provisional-result',
+  'official-result',
+  'postponed',
+  'cancelled',
+  'eliminated',
+];
+
 /** Fail at the API boundary instead of letting a silent contract drift corrupt the Timeline UI. */
 export function assertGamesTimelineV2(value: unknown): asserts value is GamesTimelineResponseV2 {
   if (!isRecord(value) || value['contract'] !== 'games-timeline' || value['schemaVersion'] !== 2) {
@@ -153,12 +165,22 @@ export function assertGamesTimelineV2(value: unknown): asserts value is GamesTim
   }
   const invalidUnit = value['units'].find(unit => {
     if (!isRecord(unit) || typeof unit['id'] !== 'string') return true;
+    const source = unit['source'];
+    const sport = unit['sport'];
     const event = unit['event'];
     const schedule = unit['schedule'];
+    const india = unit['india'];
     const session = unit['programmeSession'];
-    return !isRecord(event) || typeof event['name'] !== 'string'
+    return !isRecord(source) || typeof source['scheduleSourceId'] !== 'string'
+      || !isRecord(sport) || typeof sport['name'] !== 'string' || typeof sport['slug'] !== 'string'
+      || !isRecord(event) || typeof event['name'] !== 'string'
+      || (event['kind'] !== 'competition' && event['kind'] !== 'ceremony')
+      || typeof event['medal'] !== 'boolean'
       || !isRecord(schedule) || typeof schedule['sequence'] !== 'number'
-      || !isRecord(session) || typeof session['id'] !== 'string';
+      || !TIMING_TYPES.includes(schedule['timingType'] as GamesTimelineTimingType)
+      || !isRecord(india) || !Array.isArray(india['participants']) || !Array.isArray(india['sides'])
+      || !isRecord(session) || typeof session['id'] !== 'string'
+      || !VIEW_STATES.includes(unit['viewState'] as GamesTimelineViewState);
   });
   if (invalidUnit) throw new Error('Invalid competition unit in games timeline V2 response.');
 }

@@ -192,19 +192,27 @@
         </div>
 
         <div class="matrix-filter-bar">
-          <div class="view-toggle" role="tablist" aria-label="Choose schedule or results matrix">
-            <button type="button" role="tab" [class.active]="matrixMode() === 'schedule'"
-              [attr.aria-selected]="matrixMode() === 'schedule'" (click)="setMatrixMode('schedule')">
+          <div class="view-toggle" role="tablist" aria-label="Choose timeline, schedule matrix, or results">
+            <button type="button" role="tab" [class.active]="selectedView() === 'schedule'"
+              [attr.aria-selected]="selectedView() === 'schedule'" (click)="selectView('schedule')">
+              Timeline
+            </button>
+            <button type="button" role="tab"
+              [class.active]="selectedView() === 'matrix' && matrixMode() === 'schedule'"
+              [attr.aria-selected]="selectedView() === 'matrix' && matrixMode() === 'schedule'"
+              (click)="setMatrixMode('schedule')">
               Schedule
             </button>
-            <button type="button" role="tab" [class.active]="matrixMode() === 'results'"
-              [attr.aria-selected]="matrixMode() === 'results'" (click)="setMatrixMode('results')">
+            <button type="button" role="tab"
+              [class.active]="selectedView() === 'matrix' && matrixMode() === 'results'"
+              [attr.aria-selected]="selectedView() === 'matrix' && matrixMode() === 'results'"
+              (click)="setMatrixMode('results')">
               Results
             </button>
           </div>
         </div>
 
-        <div class="matrix-legend" role="group"
+        <div *ngIf="selectedView() === 'matrix'" class="matrix-legend" role="group"
           [attr.aria-label]="matrixMode() === 'schedule' ? 'Schedule legend' : 'Results legend'">
           <ng-container *ngIf="matrixMode() === 'schedule'">
             <span class="legend-count"><i class="legend-dot is-session" aria-hidden="true"></i>Programme</span>
@@ -253,146 +261,79 @@
             </div>
           </div>
 
-          <!-- Timeline Session List -->
-          <ng-container *ngIf="timelineGroups().length; else noTimelineSessions">
-            <div class="vertical-timeline-list">
-              @for (group of timelineGroups(); track group.id) {
-              @if (group.rows.length === 1) {
-              @for (row of group.rows; track row.id) {
-              <article class="timeline-item" [class.live-item]="isSessionLive(row)"
-                [class.completed-item]="isSessionCompleted(row)" [class.medal-item]="isMedalRow(row)">
+          <ng-container *ngIf="!timelineLoading(); else timelineLoadingState">
+            <ng-container *ngIf="filteredTimelineUnits().length; else noTimelineUnits">
+              <div class="vertical-timeline-list">
+                @for (unit of filteredTimelineUnits(); track unit.id) {
+                <article class="timeline-item timeline-unit" [class.live-item]="isTimelineUnitLive(unit)"
+                  [class.completed-item]="isTimelineUnitCompleted(unit)" [class.medal-item]="unit.event.medal"
+                  [class.quota-item]="isQuotaSport(unit.sport.slug)" [class.ceremony-item]="unit.event.kind === 'ceremony'">
 
-                <span class="timeline-clock">
-                  <span class="next-row-label" *ngIf="nextTimelineRow()?.id === row.id">{{ isSessionLive(row) ? 'Live
-                    now' : 'Next up' }}</span>
-                  <time>{{ getScheduleTiming(row) }}</time>
-                  <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
-                </span>
-
-                <span class="timeline-node">
-                  <span class="node-dot" [class.live-dot]="isSessionLive(row)"
-                    [class.medal-dot]="isMedalRow(row)"></span>
-                  <span class="connector-line"></span>
-                </span>
-
-                <span class="session-sport-icon" *ngIf="rowSport(row) as sport">
-                  <img *ngIf="pictogram(sport) as icon" [src]="icon" alt="">
-                </span>
-
-                <span class="session-details">
-                  <span class="session-header-line">
-                    <span class="sport-name">{{ rowSport(row)?.name || 'Asian Games' }}</span>
-
-                    <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
+                  <span class="timeline-clock">
+                    <span class="next-row-label" *ngIf="isNextTimelineUnit(unit)">{{ isTimelineUnitLive(unit) ? 'Live
+                      now' : 'Next up' }}</span>
+                    <time>{{ timelineUnitTime(unit) }}</time>
+                    <span>{{ timelineUnitDateLabel(unit) }}</span>
                   </span>
 
-                  <strong class="timeline-event-title" *ngIf="!row.sessionDetails?.length">{{ drawerSessionTitle(row)
-                    }}</strong>
-
-                  <span class="timeline-stage-line" *ngIf="!row.sessionDetails?.length">
-                    <span class="stage-tag">{{ getStageLabel(row) }}</span>
+                  <span class="timeline-node">
+                    <span class="node-dot" [class.live-dot]="isTimelineUnitLive(unit)"
+                      [class.medal-dot]="unit.event.medal"></span>
                   </span>
 
-                  <span class="result-summary-line" *ngIf="timelineResultSummary(row) as resultSummary">{{ resultSummary
-                    }}</span>
-                  <ng-container *ngTemplateOutlet="inlineProgramme; context: { $implicit: row }"></ng-container>
-                </span>
+                  <span class="session-sport-icon">
+                    <img *ngIf="timelineUnitPictogram(unit) as icon" [src]="icon" alt="">
+                  </span>
 
-                <button type="button" class="session-detail-link" (click)="openSessionDialog(row)">
-                  Venue & source <mat-icon aria-hidden="true">chevron_right</mat-icon>
-                </button>
-              </article>
-              }
-              } @else {
-              <article class="timeline-cluster" [class.live-item]="group.isLive">
-                <div class="timeline-clock cluster-clock">
-                  <span class="next-row-label" *ngIf="isNextTimelineGroup(group)">{{ group.isLive ? 'Live now' : 'Next
-                    up' }}</span>
-                  <time>{{ group.timeLabel }}</time>
-                  <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
-                </div>
+                  <span class="session-details">
+                    <span class="session-header-line">
+                      <span class="sport-name">{{ unit.sport.name }}</span>
+                      <span class="timeline-condition" *ngIf="unit.india.status === 'conditional'">If qualified</span>
+                      <span class="unit-state is-live" *ngIf="unit.viewState === 'live'">Live</span>
+                      <span class="unit-state is-official" *ngIf="unit.viewState === 'official-result'">Official</span>
+                      <span class="unit-state is-provisional"
+                        *ngIf="unit.viewState === 'provisional-result'">Provisional</span>
+                      <span class="unit-state is-awaiting" *ngIf="unit.viewState === 'awaiting-result'">Awaiting
+                        result</span>
+                      <span class="timeline-medal" *ngIf="unit.event.medal"><img class="ag-gold-medal event-medal"
+                          src="assets/images/ag-2026/gold-medal.svg" alt="">Medal event</span>
+                    </span>
 
-                <div class="timeline-node cluster-node">
-                  <span class="node-dot" [class.live-dot]="group.isLive" [class.medal-dot]="group.hasMedal"></span>
-                  <div class="connector-line"></div>
-                </div>
+                    <strong class="timeline-event-title">{{ unit.event.name }}</strong>
 
-                <div class="cluster-card">
-                  <div class="cluster-header">
-                    <div>
-                      <span class="cluster-kicker-line">
-                        <span class="cluster-kicker">At the same time</span>
-                      </span>
-                      <strong>{{ group.rows.length }} sessions starting at this time</strong>
-                    </div>
-                  </div>
+                    <span class="timeline-stage-line" *ngIf="timelineUnitStage(unit) || unit.schedule.venue">
+                      <span class="stage-tag" *ngIf="timelineUnitStage(unit)">{{ timelineUnitStage(unit) }}</span>
+                      <span class="venue-tag" *ngIf="unit.schedule.venue">{{ unit.schedule.venue }}</span>
+                    </span>
 
-                  <div class="cluster-events-list">
-                    <article class="cluster-event" *ngFor="let row of group.rows"
-                      [class.live-item]="isSessionLive(row)">
+                    <span class="timeline-unit-participants" *ngIf="timelineUnitParticipants(unit) as participants">{{
+                      participants }}</span>
+                    <span class="result-summary-line" *ngIf="unit.result?.summary">{{ unit.result?.summary }}</span>
+                  </span>
 
-                      <span class="session-sport-icon" *ngIf="rowSport(row) as sport">
-                        <img *ngIf="pictogram(sport) as icon" [src]="icon" alt="">
-                      </span>
-
-                      <span class="cluster-event-copy">
-                        <span class="session-header-line">
-                          <span class="sport-name">{{ rowSport(row)?.name }}</span>
-                          <ng-container *ngTemplateOutlet="sessionBadges; context: { $implicit: row }"></ng-container>
-                        </span>
-                        <strong class="cluster-event-title" *ngIf="!row.sessionDetails?.length">{{
-                          drawerSessionTitle(row) }}</strong>
-                        <ng-container *ngTemplateOutlet="inlineProgramme; context: { $implicit: row }"></ng-container>
-                      </span>
-
-                      <button type="button" class="session-detail-link" (click)="openSessionDialog(row)">
-                        Venue & source <mat-icon aria-hidden="true">chevron_right</mat-icon>
-                      </button>
-                    </article>
-                  </div>
-                </div>
-              </article>
-              }
-              }
-            </div>
+                  <a *ngIf="timelineUnitSourceUrl(unit) as sourceUrl" class="session-detail-link" [href]="sourceUrl"
+                    target="_blank" rel="noopener noreferrer">
+                    Official event <mat-icon aria-hidden="true">north_east</mat-icon>
+                  </a>
+                </article>
+                }
+              </div>
+            </ng-container>
           </ng-container>
 
-          <ng-template #noTimelineSessions>
-            <div class="empty-state">
-              <mat-icon>event_busy</mat-icon>
-              <div>
-                <h3>No sessions match these filters</h3>
-                <p>Try another date, turn off Medal events, or change the sports coverage above.</p>
-                <button type="button" (click)="resetTimelineFilters()">Reset timeline</button>
-              </div>
-            </div>
+          <ng-template #timelineLoadingState>
+            <div class="timeline-loading-state" aria-live="polite">Preparing the event timeline…</div>
           </ng-template>
 
-          <ng-template #inlineProgramme let-row>
-            <div class="timeline-programme" *ngIf="row.sessionDetails?.length">
-              <div class="timeline-programme-row" *ngFor="let detail of visibleTimelineDetails(row)"
-                [class.is-ceremony]="isCeremonyDetail(detail)">
-                <time>{{ detail.timeIST || 'Time TBC' }}</time>
-                <span class="timeline-programme-copy">
-                  <strong>{{ detail.event }}</strong>
-                  <small *ngIf="sessionDetailSubtitle(detail)">{{ sessionDetailSubtitle(detail) }}</small>
-                  <small *ngIf="detail.competitors?.length || detail.organisations?.length">{{
-                    (detail.competitors?.length ? detail.competitors! : detail.organisations!).join(' v ') }}</small>
-                </span>
-                <span class="timeline-programme-meta" *ngIf="detail.conditional || detail.medal">
-                  <span class="timeline-condition" *ngIf="detail.conditional">If qualified</span>
-                  <span class="timeline-medal" *ngIf="detail.medal"><img class="ag-gold-medal event-medal"
-                      src="assets/images/ag-2026/gold-medal.svg" alt="">Medal</span>
-                </span>
+          <ng-template #noTimelineUnits>
+            <div class="empty-state">
+              <mat-icon>{{ timelineFailed() ? 'sync_problem' : 'event_busy' }}</mat-icon>
+              <div>
+                <h3>{{ timelineFailed() ? 'The event timeline is unavailable' : 'No events match these filters' }}</h3>
+                <p>{{ timelineFailed() ? 'The V2 event feed could not be loaded. Schedule and Results remain available.'
+                  : 'Try another date, turn off Medal events, or change the sports coverage above.' }}</p>
+                <button *ngIf="!timelineFailed()" type="button" (click)="resetTimelineFilters()">Reset timeline</button>
               </div>
-              <button type="button" class="timeline-programme-toggle"
-                *ngIf="timelineDetails(row).length > inlineEventLimit"
-                [attr.aria-expanded]="isTimelineProgrammeExpanded(row)" (click)="toggleTimelineProgramme(row)">
-                {{ isTimelineProgrammeExpanded(row) ? 'Show fewer events' : 'Show ' + hiddenTimelineDetailCount(row) + '
-                more events' }}
-                <mat-icon aria-hidden="true">{{ isTimelineProgrammeExpanded(row) ? 'expand_less' : 'expand_more'
-                  }}</mat-icon>
-              </button>
             </div>
           </ng-template>
 
