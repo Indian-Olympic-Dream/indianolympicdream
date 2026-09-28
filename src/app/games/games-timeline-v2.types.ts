@@ -127,6 +127,7 @@ export interface GamesTimelineIntegrityV2 {
     derived: number;
   };
   duplicateUnitsDropped: number;
+  semanticDuplicatesDropped: number;
   unmatchedResultKeys: string[];
 }
 

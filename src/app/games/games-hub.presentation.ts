@@ -70,7 +70,7 @@ export function hasOfficialResultForDetail(detail: GamesSessionDetail, row: Game
 export function isOpenScheduleDetail(detail: GamesSessionDetail, row: GamesScheduleRow): boolean {
   const identity = `${detail.event || ''} ${detail.phase || ''} ${detail.unit || ''}`;
   if (/ceremony/i.test(identity)) return false;
-  if (/^(cancelled|canceled|postponed|eliminated|withdrawn|completed)$/i.test(detail.status || '')) return false;
+  if (/^(official|unofficial|cancelled|canceled|postponed|eliminated|withdrawn|completed)$/i.test(detail.status || '')) return false;
   return !hasPublishedResultForDetail(detail, row);
 }
 

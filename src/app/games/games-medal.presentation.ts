@@ -10,6 +10,34 @@ export interface GamesMedalView {
   records: GamesHubMedalRecord[];
 }
 
+export function medalSnapshotLabel(summary: GamesHubMedalSummary | null): string {
+  const latestDate = (summary?.records || [])
+    .map(record => record.dateKey || '')
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+
+  if (!latestDate) return 'Official results in IOD';
+
+  const throughDate = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(`${latestDate}T12:00:00+05:30`));
+
+  const verifiedAt = summary?.verifiedAt ? new Date(summary.verifiedAt) : null;
+  if (!verifiedAt || !Number.isFinite(verifiedAt.getTime())) return `Through ${throughDate}`;
+
+  const updateTime = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(verifiedAt);
+
+  return `Through ${throughDate} · Updated ${updateTime} IST`;
+}
+
 function normalizeIdentity(str: string): string {
   return str
     .toLowerCase()

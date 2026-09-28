@@ -14,6 +14,7 @@ describe('games timeline V2 contract', () => {
       ceremonyUnits: 0,
       identities: { stored: 0, official: 1, scheduleRow: 0, derived: 0 },
       duplicateUnitsDropped: 0,
+      semanticDuplicatesDropped: 0,
       unmatchedResultKeys: [],
     },
     units: [{

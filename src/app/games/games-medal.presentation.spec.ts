@@ -1,4 +1,4 @@
-import { deduplicateMedalRecords, medalView } from './games-medal.presentation';
+import { deduplicateMedalRecords, medalSnapshotLabel, medalView } from './games-medal.presentation';
 import type { GamesHubMedalRecord, GamesHubMedalSummary } from '../services/payload.service';
 
 const medal = (
@@ -32,6 +32,21 @@ const summaryFor = (records: GamesHubMedalRecord[]): GamesHubMedalSummary => ({
 });
 
 describe('games medal presentation', () => {
+  it('shows the medal coverage date and source verification time in IST', () => {
+    const summary = summaryFor([medal('shoot-rifle', '10m Air Rifle Men Individual', 'la28', 'silver')]);
+    summary.records[0].dateKey = '2026-09-27';
+    summary.verifiedAt = '2026-09-27T18:42:05.000Z';
+
+    expect(medalSnapshotLabel(summary)).toBe('Through 27 Sept · Updated 00:12 IST');
+  });
+
+  it('keeps the coverage date when a verification timestamp is unavailable', () => {
+    const summary = summaryFor([medal('shoot-rifle', '10m Air Rifle Men Individual', 'la28', 'silver')]);
+    summary.records[0].dateKey = '2026-09-27';
+
+    expect(medalSnapshotLabel(summary)).toBe('Through 27 Sept');
+  });
+
   it('separates LA28 programme medals from Asian Games-only medals', () => {
     const summary = summaryFor([
       medal('cricket', 'Women T20', 'new_in_la28', 'gold'),

@@ -231,91 +231,113 @@
 
         <section *ngIf="selectedView() === 'schedule'" aria-label="Games schedule timeline"
           class="schedule-timeline-section">
-          <!-- Date Filter Pills -->
-          <div class="date-pills-row" aria-label="Competition dates">
-            <button type="button" class="date-pill" [class.active]="effectiveDateKey() === 'all'"
-              [attr.aria-pressed]="effectiveDateKey() === 'all'" (click)="setSelectedDateKey('all')">
-              <span>All Dates</span>
-            </button>
-            <button type="button" class="date-pill medal-sessions-pill" [class.active]="medalOnly()"
-              [attr.aria-pressed]="medalOnly()" (click)="medalOnly.set(!medalOnly())">
-              <img class="ag-gold-medal filter-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">
-              <span>Medal events</span>
-              <small class="pill-count">({{ upcomingMedalEventsCount() }})</small>
-            </button>
-            <button *ngFor="let group of timelineDateGroups()" type="button" class="date-pill"
-              [class.active]="effectiveDateKey() === group.dateKey"
-              [attr.aria-pressed]="effectiveDateKey() === group.dateKey" (click)="setSelectedDateKey(group.dateKey)">
-              <span>{{ group.dayLabel }} {{ group.dateLabel }}</span>
-              <span *ngIf="group.medalEventCount > 0" class="pill-gold-badge"
-                [attr.title]="group.medalEventCount + (group.medalEventCount === 1 ? ' medal event' : ' medal events')">
-                <img class="ag-gold-medal count-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">
-                <small class="gold-count">{{ group.medalEventCount }}</small>
-              </span>
-            </button>
-          </div>
-
-          <div class="timeline-day-heading" aria-live="polite">
-            <div><span class="eyebrow">{{ dayContext() }}</span>
-              <h2>{{ dayHeading() }}</h2>
+          <header class="timeline-24h-header" aria-live="polite">
+            <div class="timeline-24h-copy">
+              <span class="eyebrow">{{ timelineContext() }}</span>
+              <h2>{{ timelineHeading() }}</h2>
+              <p>{{ timelineWindowLabel() }}</p>
             </div>
-          </div>
+            <div class="timeline-24h-summary">
+              <span class="timeline-live-count" *ngIf="timelineLiveCount()"><i aria-hidden="true"></i>{{
+                timelineLiveCount() }} live</span>
+              <span class="timeline-event-count">{{ filteredTimelineUnits().length }} events</span>
+              <button type="button" class="timeline-medal-filter" [class.active]="medalOnly()"
+                [attr.aria-pressed]="medalOnly()" (click)="medalOnly.set(!medalOnly())">
+                <img class="ag-gold-medal filter-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">
+                <span>Medal events</span>
+                <small>{{ timelineMedalEventCount() }}</small>
+              </button>
+            </div>
+          </header>
 
           <ng-container *ngIf="!timelineLoading(); else timelineLoadingState">
             <ng-container *ngIf="filteredTimelineUnits().length; else noTimelineUnits">
-              <div class="vertical-timeline-list">
-                @for (unit of filteredTimelineUnits(); track unit.id) {
-                <article class="timeline-item timeline-unit" [class.live-item]="isTimelineUnitLive(unit)"
-                  [class.completed-item]="isTimelineUnitCompleted(unit)" [class.medal-item]="unit.event.medal"
-                  [class.quota-item]="isQuotaSport(unit.sport.slug)" [class.ceremony-item]="unit.event.kind === 'ceremony'">
+              <ng-template #timelineNowMarker>
+                <div class="timeline-now-marker" role="separator"
+                  [attr.aria-label]="'Current time, ' + timelineNowLabel()">
+                  <time>{{ timelineNowLabel() }}</time>
+                  <span class="timeline-now-node" aria-hidden="true"></span>
+                  <span class="timeline-now-rule" aria-hidden="true"><strong>Now</strong><i></i></span>
+                </div>
+              </ng-template>
+              <div class="timeline-slot-list">
+                @for (slot of timelineSlots(); track slot.id; let slotIndex = $index) {
+                @if (isTimelineSlotDayStart(slot, slotIndex)) {
+                <div class="timeline-date-divider">
+                  <span>{{ timelineDayMarker(slot.units[0]) }}</span>
+                  <time>{{ timelineUnitDateLabel(slot.units[0]) }}</time>
+                </div>
+                }
+                @if (timelineNowMarkerIndex() === slotIndex) {
+                <ng-container *ngTemplateOutlet="timelineNowMarker"></ng-container>
+                }
+                <article class="timeline-slot" [class.is-concurrent]="slot.units.length > 1"
+                  [class.is-live]="isTimelineSlotLive(slot)">
+                  <header class="timeline-slot-time">
+                    <span class="next-row-label" *ngIf="timelineSlotStatusLabel(slot) as statusLabel">{{ statusLabel
+                      }}</span>
+                    <time>{{ timelineUnitTime(slot.units[0]) }}</time>
+                  </header>
 
-                  <span class="timeline-clock">
-                    <span class="next-row-label" *ngIf="isNextTimelineUnit(unit)">{{ isTimelineUnitLive(unit) ? 'Live
-                      now' : 'Next up' }}</span>
-                    <time>{{ timelineUnitTime(unit) }}</time>
-                    <span>{{ timelineUnitDateLabel(unit) }}</span>
-                  </span>
+                  <span class="timeline-slot-node" aria-hidden="true"
+                    [class.live-dot]="isTimelineSlotLive(slot)"></span>
 
-                  <span class="timeline-node">
-                    <span class="node-dot" [class.live-dot]="isTimelineUnitLive(unit)"
-                      [class.medal-dot]="unit.event.medal"></span>
-                  </span>
+                  <div class="timeline-slot-content">
+                    <div class="timeline-concurrency" *ngIf="timelineSlotConcurrencyLabel(slot) as label">
+                      <span>{{ label }}</span>
+                    </div>
 
-                  <span class="session-sport-icon">
-                    <img *ngIf="timelineUnitPictogram(unit) as icon" [src]="icon" alt="">
-                  </span>
+                    @for (unit of slot.units; track unit.id) {
+                    <article class="timeline-event-row" [class.is-medal]="unit.event.medal"
+                      [class.is-ceremony]="unit.event.kind === 'ceremony'">
+                      <span class="timeline-event-icon">
+                        <img *ngIf="timelineUnitPictogram(unit) as icon" [src]="icon" alt="">
+                      </span>
 
-                  <span class="session-details">
-                    <span class="session-header-line">
-                      <span class="sport-name">{{ unit.sport.name }}</span>
-                      <span class="timeline-condition" *ngIf="unit.india.status === 'conditional'">If qualified</span>
-                      <span class="unit-state is-live" *ngIf="unit.viewState === 'live'">Live</span>
-                      <span class="unit-state is-official" *ngIf="unit.viewState === 'official-result'">Official</span>
-                      <span class="unit-state is-provisional"
-                        *ngIf="unit.viewState === 'provisional-result'">Provisional</span>
-                      <span class="unit-state is-awaiting" *ngIf="unit.viewState === 'awaiting-result'">Awaiting
-                        result</span>
-                      <span class="timeline-medal" *ngIf="unit.event.medal"><img class="ag-gold-medal event-medal"
-                          src="assets/images/ag-2026/gold-medal.svg" alt="">Medal event</span>
-                    </span>
+                      <div class="timeline-event-copy">
+                        <div class="timeline-event-kicker">
+                          <span class="sport-name">{{ unit.sport.name }}</span>
+                          <span class="timeline-condition" *ngIf="unit.india.status === 'conditional'">If qualified</span>
+                          <span class="unit-state is-live" *ngIf="unit.viewState === 'live'">Live</span>
+                          <span class="unit-state is-postponed" *ngIf="unit.viewState === 'postponed'">Postponed</span>
+                          <span class="timeline-medal" *ngIf="unit.event.medal"><img class="ag-gold-medal event-medal"
+                              src="assets/images/ag-2026/gold-medal.svg" alt="">Medal event</span>
+                        </div>
 
-                    <strong class="timeline-event-title">{{ unit.event.name }}</strong>
+                        <div class="timeline-event-heading">
+                          <strong class="timeline-event-title">{{ unit.event.name }}</strong>
+                          <span class="timeline-event-stage" *ngIf="timelineUnitStage(unit)">{{ timelineUnitStage(unit)
+                            }}</span>
+                        </div>
 
-                    <span class="timeline-stage-line" *ngIf="timelineUnitStage(unit) || unit.schedule.venue">
-                      <span class="stage-tag" *ngIf="timelineUnitStage(unit)">{{ timelineUnitStage(unit) }}</span>
-                      <span class="venue-tag" *ngIf="unit.schedule.venue">{{ unit.schedule.venue }}</span>
-                    </span>
+                        <div class="timeline-matchup" *ngIf="unit.india.sides.length === 2; else participantList">
+                          <ng-container *ngFor="let side of unit.india.sides; let sideIndex = index">
+                            <span class="timeline-matchup-side" [class.is-india]="side.code === 'IND'">
+                              <app-country-flag [code]="side.code" [label]="side.label" size="small"
+                                aria-hidden="true"></app-country-flag>
+                              <span>{{ side.label }}</span>
+                            </span>
+                            <i *ngIf="sideIndex === 0">vs</i>
+                          </ng-container>
+                        </div>
+                        <ng-template #participantList>
+                          <span class="timeline-unit-participants"
+                            *ngIf="timelineUnitParticipants(unit) as participants">{{ participants }}</span>
+                        </ng-template>
+                      </div>
 
-                    <span class="timeline-unit-participants" *ngIf="timelineUnitParticipants(unit) as participants">{{
-                      participants }}</span>
-                    <span class="result-summary-line" *ngIf="unit.result?.summary">{{ unit.result?.summary }}</span>
-                  </span>
-
-                  <a *ngIf="timelineUnitSourceUrl(unit) as sourceUrl" class="session-detail-link" [href]="sourceUrl"
-                    target="_blank" rel="noopener noreferrer">
-                    Official event <mat-icon aria-hidden="true">north_east</mat-icon>
-                  </a>
+                      <a *ngIf="timelineUnitSourceUrl(unit) as sourceUrl" class="timeline-source-link"
+                        [href]="sourceUrl" target="_blank" rel="noopener noreferrer"
+                        [attr.aria-label]="'View official ' + unit.event.name + ' event'" title="Official event">
+                        <mat-icon aria-hidden="true">north_east</mat-icon>
+                      </a>
+                    </article>
+                    }
+                  </div>
                 </article>
+                }
+                @if (timelineNowMarkerIndex() === timelineSlots().length) {
+                <ng-container *ngTemplateOutlet="timelineNowMarker"></ng-container>
                 }
               </div>
             </ng-container>
@@ -331,7 +353,7 @@
               <div>
                 <h3>{{ timelineFailed() ? 'The event timeline is unavailable' : 'No events match these filters' }}</h3>
                 <p>{{ timelineFailed() ? 'The V2 event feed could not be loaded. Schedule and Results remain available.'
-                  : 'Try another date, turn off Medal events, or change the sports coverage above.' }}</p>
+                  : 'There are no live or upcoming events in this 24-hour window. Turn off Medal events or change the sports coverage above.' }}</p>
                 <button *ngIf="!timelineFailed()" type="button" (click)="resetTimelineFilters()">Reset timeline</button>
               </div>
             </div>

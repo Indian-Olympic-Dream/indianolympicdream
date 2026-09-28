@@ -138,6 +138,25 @@ describe('matrix schedule/results eligibility', () => {
     expect(isOpenScheduleRow(row({ status: 'postponed' }))).toBe(false);
   });
 
+  it('does not leave a settled non-India unit in Schedule when it has no India result', () => {
+    const settledGroup = {
+      event: "Men's Decathlon",
+      phase: 'Pole Vault',
+      unit: 'Group B',
+      status: 'Official',
+      organisations: ['JPN', 'UZB', 'CHN', 'TPE', 'KOR'],
+      competitors: [],
+    };
+    const completedSession = row({
+      status: 'completed',
+      sessionDetails: [settledGroup],
+      result: { official: true, summary: 'SHANKAR Tejaswin — Bronze · 7934 points' },
+    });
+
+    expect(isOpenScheduleDetail(settledGroup, completedSession)).toBe(false);
+    expect(isOpenScheduleRow(completedSession)).toBe(false);
+  });
+
   it('requires both an official flag and a non-empty summary for Results', () => {
     expect(hasOfficialResult(row({ status: 'completed', result: { official: true, summary: '' } }))).toBe(false);
     expect(hasOfficialResult(row({ status: 'completed', result: { summary: 'Final' } }))).toBe(false);
