@@ -79,6 +79,28 @@ describe('games timeline V2 24-hour view', () => {
     expect(view.units.map((entry) => entry.id)).toEqual(['competition']);
   });
 
+  it('keeps competition units nested in a mixed ceremony and final session', () => {
+    const final = unit('pole-vault-final', '2026-09-27T08:30:00.000Z', {
+      event: {
+        ...unit('base', '2026-09-27T08:30:00.000Z').event,
+        name: "Men's Pole Vault",
+        phase: 'Final',
+        unit: "Men's Pole Vault Final",
+        kind: 'competition',
+      },
+      programmeSession: {
+        id: 'athletics-evening',
+        label: 'Athletics · Victory Ceremony / Final',
+        startsAt: '2026-09-27T08:30:00.000Z',
+        endsAt: null,
+        sourceBasis: null,
+      },
+    });
+
+    expect(buildGamesTimeline24h([final], now).units.map((entry) => entry.id))
+      .toEqual(['pole-vault-final']);
+  });
+
   it('keeps a followed-by unit when its programme window is active without inventing a start', () => {
     const followedBy = unit('follows', null, {
       schedule: {

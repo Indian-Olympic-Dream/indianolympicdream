@@ -20,9 +20,11 @@ const isCeremonyUnit = (unit: GamesTimelineUnitV2): boolean => {
     unit.event.name,
     unit.event.phase,
     unit.event.unit,
-    unit.programmeSession.label,
   ].filter(Boolean).join(' ');
 
+  // A programme session can legitimately mix competition units and victory
+  // ceremonies. The event unit is the display contract; the parent session
+  // label must never turn its competition children into ceremonies.
   return unit.event.kind === 'ceremony' || /ceremony/i.test(identity);
 };
 
