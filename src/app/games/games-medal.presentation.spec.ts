@@ -1,5 +1,29 @@
-import { deduplicateMedalRecords, medalSnapshotLabel, medalView } from './games-medal.presentation';
+import { compareMedalTableRows, deduplicateMedalRecords, medalSnapshotLabel, medalView } from './games-medal.presentation';
 import type { GamesHubMedalRecord, GamesHubMedalSummary } from '../services/payload.service';
+
+describe('medals by sport order', () => {
+  it('ranks sports by gold, then silver, then bronze, with name as the final tie-breaker', () => {
+    const sports = [
+      { sport: 'Shooting', gold: 1, silver: 5, bronze: 4 },
+      { sport: 'Athletics', gold: 2, silver: 2, bronze: 3 },
+      { sport: 'Archery', gold: 2, silver: 3, bronze: 0 },
+      { sport: 'Wrestling', gold: 0, silver: 1, bronze: 4 },
+      { sport: 'Boxing', gold: 0, silver: 1, bronze: 5 },
+      { sport: 'Badminton', gold: 0, silver: 0, bronze: 1 },
+      { sport: 'Canoe', gold: 0, silver: 0, bronze: 1 },
+    ];
+
+    expect(sports.sort(compareMedalTableRows).map(row => row.sport)).toEqual([
+      'Archery',
+      'Athletics',
+      'Shooting',
+      'Boxing',
+      'Wrestling',
+      'Badminton',
+      'Canoe',
+    ]);
+  });
+});
 
 const medal = (
   key: string,

@@ -192,41 +192,15 @@
         </div>
 
         <div class="matrix-filter-bar">
-          <div class="view-toggle" role="tablist" aria-label="Choose timeline, schedule matrix, or results">
-            <button type="button" role="tab" [class.active]="selectedView() === 'schedule'"
-              [attr.aria-selected]="selectedView() === 'schedule'" (click)="selectView('schedule')">
-              Timeline
-            </button>
-            <button type="button" role="tab"
-              [class.active]="selectedView() === 'matrix' && matrixMode() === 'schedule'"
-              [attr.aria-selected]="selectedView() === 'matrix' && matrixMode() === 'schedule'"
-              (click)="setMatrixMode('schedule')">
-              Schedule
-            </button>
-            <button type="button" role="tab"
-              [class.active]="selectedView() === 'matrix' && matrixMode() === 'results'"
-              [attr.aria-selected]="selectedView() === 'matrix' && matrixMode() === 'results'"
-              (click)="setMatrixMode('results')">
-              Results
-            </button>
-          </div>
+          <h2 class="results-view-title">Results</h2>
         </div>
 
-        <div *ngIf="selectedView() === 'matrix'" class="matrix-legend" role="group"
-          [attr.aria-label]="matrixMode() === 'schedule' ? 'Schedule legend' : 'Results legend'">
-          <ng-container *ngIf="matrixMode() === 'schedule'">
-            <span class="legend-count"><i class="legend-dot is-session" aria-hidden="true"></i>Programme</span>
-            <span title="Distinct events awarding medals; Indian finalists may not yet be confirmed"><img
-                class="ag-gold-medal legend-medal" src="assets/images/ag-2026/gold-medal.svg" alt="">Medal events</span>
-            <span><i class="legend-dot is-india" aria-hidden="true">✓</i>India confirmed</span>
-          </ng-container>
-          <ng-container *ngIf="matrixMode() === 'results'">
-            <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
-            <span><i class="legend-result is-provisional" aria-hidden="true">P</i>Provisional result</span>
-            <span class="result-medal-legend" aria-label="Medal colours"><i class="gold"></i><i class="silver"></i><i
-                class="bronze"></i>Medal won</span>
-            <span>Tap a result to see every match, heat and ranking</span>
-          </ng-container>
+        <div class="matrix-legend" role="group" aria-label="Results legend">
+          <span><i class="legend-result" aria-hidden="true">FT</i>Official result</span>
+          <span><i class="legend-result is-provisional" aria-hidden="true">P</i>Provisional result</span>
+          <span class="result-medal-legend" aria-label="Medal colours"><i class="gold"></i><i class="silver"></i><i
+              class="bronze"></i>Medal won</span>
+          <span>Tap a result to see every match, heat and ranking</span>
         </div>
 
         <section *ngIf="selectedView() === 'schedule'" aria-label="Games schedule timeline"
@@ -362,7 +336,7 @@
           <app-hub-broadcast *ngIf="featuredVideo() as video" [video]="video"></app-hub-broadcast>
         </section>
 
-        <section *ngIf="selectedView() === 'matrix'" aria-label="Games schedule matrix" class="matrix-section">
+        <section *ngIf="selectedView() === 'matrix'" aria-label="Games results matrix" class="matrix-section">
           <div class="matrix-scroll">
             <table class="schedule-matrix">
               <thead>
@@ -759,13 +733,22 @@
               <h4>Results by event</h4><span>{{ groups.length }}</span>
             </div>
             @for (group of groups; track group.key) {
-            <section class="result-event-group">
-              <header class="result-event-heading">
-                <h5>{{ group.title }}</h5>
-                <span *ngIf="group.entries.length > 1">{{ group.entries.length }} results</span>
-              </header>
-              <ng-container *ngFor="let event of group.entries; trackBy: trackDrawerEvent"><ng-container
-                  *ngTemplateOutlet="eventDetail; context: { $implicit: event.detail, row: event.row, resultsOnly: true, groupedResult: true }"></ng-container></ng-container>
+            <section class="result-event-group" [class.expanded]="isResultGroupExpanded(group.key)">
+              <button type="button" class="result-event-heading"
+                [attr.aria-expanded]="isResultGroupExpanded(group.key)"
+                [attr.aria-controls]="'result-event-panel-' + group.key"
+                (click)="toggleResultGroup(group.key)">
+                <span class="result-event-heading-copy">
+                  <strong>{{ group.title }}</strong>
+                  <small>{{ group.entries.length }} {{ group.entries.length === 1 ? 'result' : 'results' }}</small>
+                </span>
+                <mat-icon aria-hidden="true">expand_more</mat-icon>
+              </button>
+              <div class="result-event-panel" [id]="'result-event-panel-' + group.key"
+                *ngIf="isResultGroupExpanded(group.key)">
+                <ng-container *ngFor="let event of group.entries; trackBy: trackDrawerEvent"><ng-container
+                    *ngTemplateOutlet="eventDetail; context: { $implicit: event.detail, row: event.row, resultsOnly: true, groupedResult: true }"></ng-container></ng-container>
+              </div>
             </section>
             }
           </section>

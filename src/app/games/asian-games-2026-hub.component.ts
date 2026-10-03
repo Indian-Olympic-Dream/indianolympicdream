@@ -16,7 +16,7 @@ import { compareMatrixSportStarts, hasIndiaAppearance, hasPublishedResult, india
 import { IOD_COVERAGE_SPORTS, LA28_SPORT_GROUPS, matchesGamesScope, isLa28QuotaSport, getLa28QuotaInfo, La28QuotaInfo, isLa28QuotaDetail, isLa28QuotaRow } from './asian-games-scope';
 import { CountryFlagComponent } from '../shared/country-flag/country-flag.component';
 import { indianEntriesForSessionDetail } from './asian-games-entry.presentation';
-import { GamesMedalFilter, medalSnapshotLabel, medalView } from './games-medal.presentation';
+import { compareMedalTableRows, GamesMedalFilter, medalSnapshotLabel, medalView } from './games-medal.presentation';
 import type { GamesTimelineIntegrityV2, GamesTimelineUnitV2 } from './games-timeline-v2.types';
 import { buildGamesTimeline24h, gamesTimelineNowMarkerIndex, groupGamesTimelineUnits, isGamesTimelineUnitAwaitingUpdate, type GamesTimelineSlot } from './games-timeline-v2.presentation';
 
@@ -84,8 +84,8 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly athleteSearch = signal('');
   readonly la28Only = signal(false);
   readonly iodCoverageOnly = signal(true);
-  readonly selectedView = signal<'schedule' | 'matrix'>('schedule');
-  readonly matrixMode = signal<'schedule' | 'results'>('schedule');
+  readonly selectedView = signal<'schedule' | 'matrix'>('matrix');
+  readonly matrixMode = signal<'schedule' | 'results'>('results');
   readonly coverage = signal<'iod' | 'la28' | 'all'>('iod');
   readonly medalOnly = signal(false);
   readonly filteredMedals = computed(() => medalView(this.medalSummary(), this.medalFilter()));
@@ -127,7 +127,7 @@ export class AsianGames2026HubComponent implements OnInit {
       if (record.medal === 'bronze') entry.bronze++;
     }
 
-    return [...map.values()].sort((a, b) => a.sport.localeCompare(b.sport));
+    return [...map.values()].sort(compareMedalTableRows);
   });
   readonly medalGroupedBySport = computed(() => {
     const records = this.filteredMedals().records;
@@ -151,6 +151,7 @@ export class AsianGames2026HubComponent implements OnInit {
   readonly inlineEventLimit = 3;
   readonly selectedSessionRow = signal<GamesScheduleRow | null>(null);
   readonly expandedLineups = signal<ReadonlySet<string>>(new Set<string>());
+  readonly expandedResultGroups = signal<ReadonlySet<string>>(new Set<string>());
   readonly matrixSelectedCell = signal<{
     sportSlug: string;
     sportName: string;
@@ -374,29 +375,12 @@ export class AsianGames2026HubComponent implements OnInit {
       else if (view === 'squad') this.openSquadDialog();
     });
     this.load();
-    this.startTimelinePolling();
     interval(60_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.now.set(new Date()));
   }
 
   load(): void {
     this.loading.set(true);
     this.failed.set([]);
-    this.timelineLoading.set(true);
-    this.timelineFailed.set(false);
-    this.payload.getGamesTimelineV2(this.games.gamesKey).pipe(
-      catchError(() => {
-        this.timelineFailed.set(true);
-        return of(null);
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((timeline) => {
-      if (timeline) {
-        this.timelineUnits.set(timeline.units || []);
-        this.timelineIntegrity.set(timeline.integrity || null);
-      }
-      this.timelineLoading.set(false);
-    });
-
     this.payload.getEventHubScheduleData(this.games.gamesKey).pipe(
       catchError(() => {
         this.failed.update(keys => [...keys, 'schedule']);
@@ -582,6 +566,14 @@ export class AsianGames2026HubComponent implements OnInit {
   trackDrawerEvent(_index: number, entry: DrawerEventEntry): string {
     return entry.detail.sourceUrl || `${entry.row.id}|${entry.detail.timeIST || ''}|${entry.detail.event}|${entry.detail.phase || ''}|${entry.detail.unit || ''}`;
   }
+  isResultGroupExpanded(key: string): boolean {
+    return this.expandedResultGroups().has(key);
+  }
+  toggleResultGroup(key: string): void {
+    this.expandedResultGroups.update(current => current.has(key)
+      ? new Set<string>()
+      : new Set<string>([key]));
+  }
   lineupKey(detail: GamesSessionDetail, row: GamesScheduleRow, side: DrawerCompetitorSide, sideIndex: number = 0): string {
     const event = detail.sourceUrl || `${detail.timeIST || ''}|${detail.event}|${detail.phase || ''}|${detail.unit || ''}`;
     return `${row.id}|${event}|${sideIndex}:${side.code || ''}:${side.label || ''}`;
@@ -622,6 +614,7 @@ export class AsianGames2026HubComponent implements OnInit {
     if (!sessions.length && !sport) return;
 
     this.returnFocus = this.document.activeElement as HTMLElement;
+    this.expandedResultGroups.set(new Set<string>());
     this.matrixSelectedCell.set({
       sportSlug,
       sportName: sport?.name || sportSlug,
@@ -635,6 +628,7 @@ export class AsianGames2026HubComponent implements OnInit {
   closeMatrixDayDialog(): void {
     this.matrixSelectedCell.set(null);
     this.expandedLineups.set(new Set<string>());
+    this.expandedResultGroups.set(new Set<string>());
     this.returnFocus?.focus();
   }
 

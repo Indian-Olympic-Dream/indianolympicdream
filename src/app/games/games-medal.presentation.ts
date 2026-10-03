@@ -10,6 +10,24 @@ export interface GamesMedalView {
   records: GamesHubMedalRecord[];
 }
 
+export interface MedalTableRow {
+  sport: string;
+  gold: number;
+  silver: number;
+  bronze: number;
+}
+
+/**
+ * Standard medal-table order: gold, then silver, then bronze.
+ * Sport name provides a stable display order only when medal counts are tied.
+ */
+export function compareMedalTableRows(a: MedalTableRow, b: MedalTableRow): number {
+  return b.gold - a.gold
+    || b.silver - a.silver
+    || b.bronze - a.bronze
+    || a.sport.localeCompare(b.sport);
+}
+
 export function medalSnapshotLabel(summary: GamesHubMedalSummary | null): string {
   const latestDate = (summary?.records || [])
     .map(record => record.dateKey || '')
