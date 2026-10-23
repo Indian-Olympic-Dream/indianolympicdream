@@ -1,180 +1,202 @@
 <section class="checkout">
-  <h1>Checkout</h1>
+  <app-shop-chrome />
 
-  @if (cart.items().length === 0) {
-    <p>Your cart is empty.</p>
-    <a routerLink="/shop" mat-flat-button color="primary">Browse the shop</a>
-  } @else {
-    <p class="checkout__guest">
-      No account needed. We will give you a private link to follow your order.
-    </p>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="checkout__form" novalidate>
-      <fieldset>
-        <legend>Your details</legend>
-
-        <label>
-          Full name
-          <input
-            type="text"
-            formControlName="name"
-            autocomplete="name"
-            [class.field--invalid]="errorFor('name')"
-            [attr.aria-invalid]="errorFor('name') ? 'true' : null"
-          />
-          @if (errorFor("name"); as message) {
-            <small class="field__error" role="alert">{{ message }}</small>
-          }
-        </label>
-
-        <label>
-          Email
-          <input
-            type="email"
-            formControlName="email"
-            autocomplete="email"
-            [class.field--invalid]="errorFor('email')"
-            [attr.aria-invalid]="errorFor('email') ? 'true' : null"
-          />
-          @if (errorFor("email"); as message) {
-            <small class="field__error" role="alert">{{ message }}</small>
-          } @else {
-            <small>Your order link is sent here.</small>
-          }
-        </label>
-
-        <label>
-          Phone
-          <input
-            type="tel"
-            formControlName="phone"
-            autocomplete="tel"
-            [class.field--invalid]="errorFor('phone')"
-            [attr.aria-invalid]="errorFor('phone') ? 'true' : null"
-          />
-          @if (errorFor("phone"); as message) {
-            <small class="field__error" role="alert">{{ message }}</small>
-          } @else {
-            <small>The courier needs this for delivery.</small>
-          }
-        </label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Delivery address</legend>
-
-        <label>
-          Address
-          <input
-            type="text"
-            formControlName="line1"
-            autocomplete="address-line1"
-            [class.field--invalid]="errorFor('line1')"
-            [attr.aria-invalid]="errorFor('line1') ? 'true' : null"
-          />
-          @if (errorFor("line1"); as message) {
-            <small class="field__error" role="alert">{{ message }}</small>
-          }
-        </label>
-
-        <label>
-          Address line 2 <span class="optional">(optional)</span>
-          <input type="text" formControlName="line2" autocomplete="address-line2" />
-        </label>
-
-        <div class="checkout__row">
-          <label>
-            City
-            <input
-              type="text"
-              formControlName="city"
-              autocomplete="address-level2"
-              [class.field--invalid]="errorFor('city')"
-              [attr.aria-invalid]="errorFor('city') ? 'true' : null"
-            />
-            @if (errorFor("city"); as message) {
-              <small class="field__error" role="alert">{{ message }}</small>
-            }
-          </label>
-
-          <label>
-            State
-            <input
-              type="text"
-              formControlName="state"
-              autocomplete="address-level1"
-              [class.field--invalid]="errorFor('state')"
-              [attr.aria-invalid]="errorFor('state') ? 'true' : null"
-            />
-            @if (errorFor("state"); as message) {
-              <small class="field__error" role="alert">{{ message }}</small>
-            }
-          </label>
-        </div>
-
-        <div class="checkout__row">
-          <label>
-            PIN code
-            <input
-              type="text"
-              formControlName="postalCode"
-              inputmode="numeric"
-              autocomplete="postal-code"
-              [class.field--invalid]="errorFor('postalCode')"
-              [attr.aria-invalid]="errorFor('postalCode') ? 'true' : null"
-            />
-            @if (errorFor("postalCode"); as message) {
-              <small class="field__error" role="alert">{{ message }}</small>
-            }
-          </label>
-
-          <label>
-            Country
-            <input type="text" formControlName="country" autocomplete="country-name" readonly />
-          </label>
-        </div>
-      </fieldset>
-
-      <div class="checkout__summary">
-        <p>
-          <span>Cart subtotal</span>
-          <strong>{{ formatPaise(cart.subtotalPaise()) }}</strong>
-        </p>
-        <!-- The final figure comes back from the server and is shown in the
-             Razorpay window; nothing here is what gets charged. -->
-        <small>Shipping and any tax are added on the payment screen.</small>
+  <div class="checkout__content">
+    @if (cart.items().length === 0) {
+      <div class="checkout__empty">
+        <mat-icon aria-hidden="true">shopping_bag</mat-icon>
+        <h1>Your cart is empty</h1>
+        <p>Add something from the collection before heading to checkout.</p>
+        <a routerLink="/shop" mat-flat-button>Browse the collection</a>
       </div>
+    } @else {
+      <header class="checkout__header">
+        <a routerLink="/shop/cart"><mat-icon aria-hidden="true">arrow_back</mat-icon> Cart</a>
+        <p>SECURE CHECKOUT</p>
+        <h1>Almost yours.</h1>
+        <div class="checkout__steps" aria-label="Checkout progress">
+          <span class="active"><b>1</b> Details</span>
+          <i></i>
+          <span><b>2</b> Payment</span>
+          <i></i>
+          <span><b>3</b> Confirmation</span>
+        </div>
+      </header>
 
-      <!--
-        Shown only after a failed submit. Before that the per-field messages are
-        enough, and a running tally of what is still wrong reads as nagging
-        while someone is halfway through typing.
-      -->
-      @if (showSummary() && invalidCount > 0) {
-        <p class="checkout__error" role="alert">
-          {{ invalidCount === 1 ? "One field needs" : invalidCount + " fields need" }} attention
-          before you can pay — see the messages above.
-        </p>
-      }
+      <form [formGroup]="form" (ngSubmit)="submit()" class="checkout__form" novalidate>
+        <div class="checkout__assist" aria-live="polite">
+          <mat-icon aria-hidden="true">bolt</mat-icon>
+          <div>
+            <strong>{{ requiredCompleted }} of {{ requiredTotal }} details complete</strong>
+            <span>
+              @if (draftRestored()) { Your checkout details were restored in this tab. }
+              @else { Browser autofill works here. Details stay in this tab if you go back. }
+            </span>
+          </div>
+          <span class="checkout__assist-progress" aria-hidden="true">
+            <i [style.width.%]="(requiredCompleted / requiredTotal) * 100"></i>
+          </span>
+        </div>
 
-      @if (error()) {
-        <p class="checkout__error" role="alert">{{ error() }}</p>
-      }
+        <div class="checkout__layout">
+          <div class="checkout__fields">
+            <section class="checkout__panel">
+              <div class="checkout__panel-head">
+                <span class="checkout__panel-index">01</span>
+                <div>
+                  <h2>Contact details</h2>
+                  <p>No account needed. Your private order link is sent by email.</p>
+                </div>
+                <span class="checkout__panel-state" [class.checkout__panel-state--complete]="contactComplete">
+                  <mat-icon aria-hidden="true">{{ contactComplete ? "check" : "more_horiz" }}</mat-icon>
+                  {{ contactComplete ? "Complete" : "3 details" }}
+                </span>
+              </div>
 
-      <!--
-        Deliberately NOT disabled while the form is invalid. A dead button with
-        no explanation leaves someone guessing; pressing it reveals every
-        message at once, which is the thing they actually need.
-      -->
-      <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
-        @if (submitting()) {
-          Opening payment…
-        } @else {
-          Pay now
-        }
-      </button>
+              <div class="checkout__field-grid">
+                <label class="checkout__field checkout__field--wide" for="shop-name">
+                  <span>Full name</span>
+                  <input id="shop-name" type="text" formControlName="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="Your full name" [class.field--invalid]="errorFor('name')" [attr.aria-invalid]="errorFor('name') ? 'true' : null" />
+                  @if (errorFor("name"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                </label>
 
-      <a routerLink="/shop/cart" mat-stroked-button>Back to cart</a>
-    </form>
-  }
+                <label class="checkout__field" for="shop-email">
+                  <span>Email</span>
+                  <input id="shop-email" type="email" formControlName="email" autocomplete="email" inputmode="email" enterkeyhint="next" autocapitalize="none" spellcheck="false" placeholder="you@example.com" [class.field--invalid]="errorFor('email')" [attr.aria-invalid]="errorFor('email') ? 'true' : null" />
+                  @if (errorFor("email"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                  @else { <small>Receipt and order link</small> }
+                </label>
+
+                <label class="checkout__field" for="shop-phone">
+                  <span>Phone</span>
+                  <span class="checkout__phone-input" [class.field--invalid]="errorFor('phone')">
+                    <b aria-hidden="true">+91</b>
+                    <input id="shop-phone" type="tel" formControlName="phone" autocomplete="tel-national" inputmode="numeric" enterkeyhint="next" maxlength="10" placeholder="10-digit mobile" (input)="onPhoneInput($event)" [attr.aria-invalid]="errorFor('phone') ? 'true' : null" />
+                  </span>
+                  @if (errorFor("phone"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                  @else { <small>For courier updates</small> }
+                </label>
+              </div>
+            </section>
+
+            <section class="checkout__panel">
+              <div class="checkout__panel-head">
+                <span class="checkout__panel-index">02</span>
+                <div>
+                  <h2>Delivery address</h2>
+                  <p>Where should we send your IOD originals?</p>
+                </div>
+                <span class="checkout__panel-state" [class.checkout__panel-state--complete]="deliveryComplete">
+                  <mat-icon aria-hidden="true">{{ deliveryComplete ? "check" : "more_horiz" }}</mat-icon>
+                  {{ deliveryComplete ? "Complete" : "4 details" }}
+                </span>
+              </div>
+
+              <div class="checkout__field-grid">
+                <label class="checkout__field" for="shop-pin">
+                  <span>PIN code</span>
+                  <input id="shop-pin" type="text" formControlName="postalCode" inputmode="numeric" autocomplete="postal-code" enterkeyhint="next" maxlength="6" placeholder="6-digit PIN" (input)="onPostalCodeInput($event)" [class.field--invalid]="errorFor('postalCode')" [attr.aria-invalid]="errorFor('postalCode') ? 'true' : null" />
+                  @if (errorFor("postalCode"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                  @else if (pincodeStatus() === "looking") { <small class="checkout__lookup"><i></i>Finding city and state…</small> }
+                  @else if (pincodeStatus() === "found") { <small class="checkout__lookup checkout__lookup--found"><mat-icon aria-hidden="true">check</mat-icon>{{ pincodeArea() }}</small> }
+                  @else if (pincodeStatus() === "not-found") { <small class="checkout__lookup checkout__lookup--warning">PIN not found. Enter city and state manually.</small> }
+                  @else if (pincodeStatus() === "unavailable") { <small class="checkout__lookup checkout__lookup--warning">Lookup is unavailable. You can still enter the address.</small> }
+                </label>
+
+                <label class="checkout__field" for="shop-city">
+                  <span>City / district</span>
+                  <input id="shop-city" type="text" formControlName="city" autocomplete="address-level2" autocapitalize="words" enterkeyhint="next" placeholder="Filled from PIN" [class.field--invalid]="errorFor('city')" [attr.aria-invalid]="errorFor('city') ? 'true' : null" />
+                  @if (errorFor("city"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                </label>
+
+                <label class="checkout__field" for="shop-state">
+                  <span>State / Union territory</span>
+                  <select id="shop-state" formControlName="state" autocomplete="address-level1" [class.field--invalid]="errorFor('state')" [attr.aria-invalid]="errorFor('state') ? 'true' : null">
+                    <option value="" disabled>Select state</option>
+                    @for (state of states; track state) { <option [value]="state">{{ state }}</option> }
+                  </select>
+                  @if (errorFor("state"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                </label>
+
+                <div class="checkout__country" aria-label="Delivery country India">
+                  <mat-icon aria-hidden="true">location_on</mat-icon>
+                  <span><small>Delivery country</small><strong>India</strong></span>
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                </div>
+
+                <label class="checkout__field checkout__field--wide" for="shop-address">
+                  <span>House, building and street</span>
+                  <input id="shop-address" type="text" formControlName="line1" autocomplete="address-line1" autocapitalize="words" enterkeyhint="next" placeholder="Flat or house number, building, street" [class.field--invalid]="errorFor('line1')" [attr.aria-invalid]="errorFor('line1') ? 'true' : null" />
+                  @if (errorFor("line1"); as message) { <small class="field__error" role="alert">{{ message }}</small> }
+                </label>
+
+                <label class="checkout__field checkout__field--wide" for="shop-address-2">
+                  <span>Area or landmark <em>Optional</em></span>
+                  <input id="shop-address-2" type="text" formControlName="line2" autocomplete="address-line2" autocapitalize="words" enterkeyhint="next" maxlength="200" placeholder="Area, floor or nearby landmark" />
+                </label>
+              </div>
+            </section>
+          </div>
+
+          <aside class="checkout__summary" aria-label="Your order">
+            <div class="checkout__summary-head">
+              <h2>Your order</h2>
+              <a routerLink="/shop/cart">Edit</a>
+            </div>
+
+            <ul class="checkout__lines">
+              @for (item of cart.items(); track item.productId + (item.variantId ?? "")) {
+                <li>
+                  <div class="checkout__thumb">
+                    @if (item.imageUrl) { <img [src]="item.imageUrl" [alt]="item.imageAlt || item.title" /> }
+                    @else { <span>IOD</span> }
+                    <b>{{ item.quantity }}</b>
+                  </div>
+                  <div>
+                    <strong>{{ item.title }}</strong>
+                    @if (item.variantName) { <small>{{ item.variantName }}</small> }
+                  </div>
+                  <span>{{ formatPaise(item.unitPricePaise * item.quantity) }}</span>
+                </li>
+              }
+            </ul>
+
+            <div class="checkout__subtotal">
+              <span>Cart subtotal</span>
+              <strong>{{ formatPaise(cart.subtotalPaise()) }}</strong>
+              @if (cart.discountPaise() > 0) {
+                <span class="checkout__discount">First Drop offer</span>
+                <strong class="checkout__discount">−{{ formatPaise(cart.discountPaise()) }}</strong>
+                <span class="checkout__offer-total">Both originals</span>
+                <strong class="checkout__offer-total">{{ formatPaise(cart.merchandiseTotalPaise()) }}</strong>
+              }
+              <span class="checkout__pending-charge">Delivery + GST</span>
+              <span class="checkout__pending-charge">Calculated securely</span>
+            </div>
+
+            <p class="checkout__summary-note">
+              The server checks current price, stock, delivery and GST before the Razorpay window opens.
+            </p>
+
+            @if (showSummary() && invalidCount > 0) {
+              <p class="checkout__error" role="alert">
+                {{ invalidCount === 1 ? "One field needs" : invalidCount + " fields need" }} attention. See the message above.
+              </p>
+            }
+            @if (error()) { <p class="checkout__error" role="alert">{{ error() }}</p> }
+
+            <button class="checkout__pay" mat-flat-button type="submit" [disabled]="submitting()">
+              @if (submitting()) { <span>Opening payment…</span> }
+              @else { <span>Continue to secure payment</span><mat-icon aria-hidden="true">arrow_forward</mat-icon> }
+            </button>
+
+            <div class="checkout__razorpay">
+              <mat-icon aria-hidden="true">lock</mat-icon>
+              <span><strong>Secure checkout by Razorpay</strong>Your payment details never pass through IOD.</span>
+            </div>
+          </aside>
+        </div>
+      </form>
+    }
+  </div>
 </section>

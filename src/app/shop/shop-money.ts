@@ -8,7 +8,7 @@
  * nobody reports and everybody notices.
  */
 export function formatPaise(paise: number): string {
-  if (!Number.isFinite(paise)) return "—";
+  if (!Number.isFinite(paise)) return "Price unavailable";
   const negative: boolean = paise < 0;
   const absolute: number = Math.abs(Math.round(paise));
   const whole: number = Math.trunc(absolute / 100);

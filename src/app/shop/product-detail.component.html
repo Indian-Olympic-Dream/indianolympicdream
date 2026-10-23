@@ -1,94 +1,228 @@
 <section class="detail">
+  <app-shop-chrome />
+
   @if (loading()) {
-    <p class="detail__status">Loading…</p>
+    <p class="detail__status" aria-live="polite">Loading the piece…</p>
   } @else if (error()) {
-    <p class="detail__status detail__status--error">{{ error() }}</p>
-    <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+    <div class="detail__status detail__status--error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <h1>We could not find that piece</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/shop" mat-stroked-button>Back to the collection</a>
+    </div>
   } @else {
     @if (product(); as item) {
-    <a class="detail__back" routerLink="/shop">
-      <mat-icon>arrow_back</mat-icon> Shop
-    </a>
-
-    <div class="detail__body">
-      <div class="detail__media">
-        @if (imageFor(item); as image) {
-          <img [src]="image" [alt]="item.title" />
-        } @else {
-          <div class="detail__placeholder" aria-hidden="true"></div>
-        }
+      <div class="detail__crumbs">
+        <a routerLink="/shop"><mat-icon aria-hidden="true">arrow_back</mat-icon> Collection</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ item.title }}</span>
       </div>
 
-      <div class="detail__info">
-        <h1>{{ item.title }}</h1>
-
-        @if (selectedUnit(); as unit) {
-          <p class="detail__price">{{ formatPaise(unit.unitPricePaise) }}</p>
-        }
-
-        @if (item.units.length > 1) {
-          <fieldset class="detail__variants">
-            <legend>Options</legend>
-            @for (unit of item.units; track unit.variantId; let i = $index) {
-              <button
-                type="button"
-                class="detail__variant"
-                [class.detail__variant--active]="selectedIndex() === i"
-                [disabled]="unit.availableQuantity < 1"
-                (click)="selectUnit(i)"
-              >
-                {{ unit.variantName }}
-                <span class="detail__variant-price">{{ formatPaise(unit.unitPricePaise) }}</span>
-                @if (unit.availableQuantity < 1) {
-                  <span class="detail__variant-note">sold out</span>
-                }
-              </button>
-            }
-          </fieldset>
-        }
-
-        @if (item.metadata?.dimensions || item.metadata?.resolution) {
-          <dl class="detail__meta">
-            @if (item.metadata?.dimensions) {
-              <dt>Size</dt>
-              <dd>{{ item.metadata?.dimensions }}</dd>
-            }
-            @if (item.metadata?.resolution) {
-              <dt>Print resolution</dt>
-              <dd>{{ item.metadata?.resolution }}</dd>
-            }
-          </dl>
-        }
-
-        <div class="detail__actions">
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="item.comingSoon || remaining() < 1"
-            (click)="addToCart()"
-          >
-            @if (item.comingSoon) {
-              Coming soon
-            } @else if (remaining() < 1) {
-              Sold out
+      <div class="detail__body">
+        <div class="detail__gallery">
+          <div class="detail__media">
+            @if (imageFor(item); as image) {
+              <img
+                [src]="image"
+                [alt]="imageAltFor(item)"
+                [class.detail__media-image--artwork]="selectedImageIndex() === 2"
+              />
             } @else {
-              Add to cart
+              <div class="detail__placeholder" aria-hidden="true"><span>IOD</span></div>
             }
-          </button>
 
-          @if (added()) {
-            <a routerLink="/shop/cart" mat-stroked-button>View cart ({{ cart.count() }})</a>
+            @if (item.comingSoon) {
+              <span class="detail__media-badge">Coming soon</span>
+            }
+          </div>
+
+          @if (availableImages(item).length > 1) {
+            <div class="detail__thumbnails" aria-label="Product images">
+              @for (image of availableImages(item); track image.url; let i = $index) {
+                <button
+                  type="button"
+                  [class.active]="selectedImageIndex() === i"
+                  [attr.aria-label]="'Show image ' + (i + 1)"
+                  (click)="selectImage(i)"
+                >
+                  <img [src]="image.url" [alt]="image.alt" />
+                </button>
+              }
+            </div>
           }
         </div>
 
-        @if (item.comingSoon) {
-          <p class="detail__low-stock">This one is not on sale yet — check back soon.</p>
-        } @else if (remaining() > 0 && remaining() <= 3) {
-          <p class="detail__low-stock">Only {{ remaining() }} left.</p>
-        }
+        <div class="detail__info">
+          <p class="detail__kicker">{{ productTypeLabel(item) }}</p>
+          <h1>{{ item.title }}</h1>
+
+          @if (!item.comingSoon) {
+            @if (selectedUnit(); as unit) {
+              <p class="detail__price">{{ formatPaise(unit.unitPricePaise) }}</p>
+              <p class="detail__tax-note">GST and delivery are calculated at checkout.</p>
+            }
+          }
+
+          @if (story(); as narrative) {
+            <p class="detail__moment">{{ narrative.intro }}</p>
+          }
+
+          @if (!item.comingSoon && item.units.length > 1) {
+            <fieldset class="detail__variants">
+              <legend>
+                {{ variantLegend(item) }}
+                @if (item.type === "merch") {
+                  <span>Choose before adding to cart</span>
+                }
+              </legend>
+              <div class="detail__variant-grid">
+                @for (unit of item.units; track unit.variantId; let i = $index) {
+                  <button
+                    type="button"
+                    class="detail__variant"
+                    [class.detail__variant--active]="selectedIndex() === i"
+                    [disabled]="unit.availableQuantity < 1"
+                    [attr.aria-pressed]="selectedIndex() === i"
+                    (click)="selectUnit(i)"
+                  >
+                    <span>{{ unit.variantName }}</span>
+                    @if (unit.availableQuantity < 1) {
+                      <small>Sold out</small>
+                    }
+                  </button>
+                }
+              </div>
+            </fieldset>
+          }
+
+          @if (!item.comingSoon && item.type === "merch") {
+            <section class="detail__fit" aria-labelledby="fit-heading">
+              <div class="detail__fit-tip">
+                <mat-icon aria-hidden="true">lightbulb</mat-icon>
+                <p><strong id="fit-heading">Pro tip</strong>Buy 1 size bigger than normal for a stress-free fit.</p>
+              </div>
+
+              <details class="detail__size-guide">
+                <summary>
+                  <span><mat-icon aria-hidden="true">straighten</mat-icon>View size chart</span>
+                  <small>All measurements in inches</small>
+                  <mat-icon class="detail__size-chevron" aria-hidden="true">expand_more</mat-icon>
+                </summary>
+
+                <div class="detail__size-table-wrap">
+                  <table>
+                    <caption>IOD T-shirt size measurements in inches</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Size</th>
+                        <th scope="col">Length</th>
+                        <th scope="col">Shoulder</th>
+                        <th scope="col">Chest</th>
+                        <th scope="col">Chest size</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (measurement of sizeGuide; track measurement.size) {
+                        <tr>
+                          <th scope="row">{{ measurement.size }}</th>
+                          <td>{{ measurement.length }}</td>
+                          <td>{{ measurement.shoulder }}</td>
+                          <td>{{ measurement.chest }}</td>
+                          <td>{{ measurement.bodyChest }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            </section>
+          }
+
+          @if (item.comingSoon) {
+            <div class="detail__coming-soon" role="status">
+              <p>Future IOD release</p>
+              <h2>Still earning its place.</h2>
+              <span>We are refining the artwork, production method and physical sample before this piece can be sold.</span>
+            </div>
+          } @else if (remaining() > 0) {
+            <div class="detail__purchase">
+              <div class="detail__quantity" aria-label="Quantity">
+                <button type="button" aria-label="Decrease quantity" [disabled]="quantity() <= 1" (click)="changeQuantity(-1)">
+                  <mat-icon aria-hidden="true">remove</mat-icon>
+                </button>
+                <span><small>Qty</small>{{ quantity() }}</span>
+                <button type="button" aria-label="Increase quantity" [disabled]="quantity() >= remaining()" (click)="changeQuantity(1)">
+                  <mat-icon aria-hidden="true">add</mat-icon>
+                </button>
+              </div>
+
+              <div class="detail__purchase-actions">
+                <button class="detail__add" mat-flat-button type="button" (click)="addToCart()">
+                  <span>Add to cart</span>
+                  @if (selectedUnit(); as unit) {
+                    <strong>{{ formatPaise(unit.unitPricePaise * quantity()) }}</strong>
+                  }
+                </button>
+                <button class="detail__buy-now" mat-stroked-button type="button" (click)="buyNow()">
+                  Buy now
+                  <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button class="detail__add detail__add--disabled" mat-flat-button type="button" disabled>
+              {{ inCart() > 0 ? "Maximum in cart" : "Sold out" }}
+            </button>
+          }
+
+          @if (added()) {
+            <div class="detail__added" role="status">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span>Added to your cart.</span>
+              <a routerLink="/shop/cart">View cart</a>
+            </div>
+          }
+
+          @if (!item.comingSoon && remaining() > 0 && remaining() <= 3) {
+            <p class="detail__stock-note"><span aria-hidden="true"></span>Only {{ remaining() }} left in this option.</p>
+          }
+
+          <div class="detail__assurances">
+            @if (item.comingSoon) {
+              <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">verified</mat-icon><span><strong>Release gated</strong>Artwork, sample and rights checked before sale</span></div>
+              <div><mat-icon aria-hidden="true">schedule</mat-icon><span><strong>Coming later</strong>No order or payment can be placed yet</span></div>
+            } @else {
+              <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">payments</mat-icon><span><strong>Secure payment</strong>Powered by Razorpay</span></div>
+              <div><mat-icon aria-hidden="true">local_shipping</mat-icon><span><strong>Tracked delivery</strong>Private order link by email</span></div>
+            }
+          </div>
+        </div>
       </div>
-    </div>
+
+      @if (story(); as narrative) {
+        <section class="detail__story" aria-labelledby="product-story-title">
+          <div class="detail__story-mark">
+            <p>{{ narrative.chapter }}</p>
+            <span>{{ narrative.stat }}</span>
+            <small>{{ narrative.statLabel }}</small>
+          </div>
+
+          <div class="detail__story-copy">
+            <p class="detail__story-date">{{ narrative.date }}</p>
+            <h2 id="product-story-title">{{ narrative.headline }}</h2>
+            <p>{{ narrative.detail }}</p>
+
+            <div class="detail__design-note">
+              <span>Inside the artwork</span>
+              <p>{{ narrative.design }}</p>
+            </div>
+
+            <footer><strong>IOD</strong> Original artwork by Indian Olympic Dream.</footer>
+          </div>
+        </section>
+      }
     }
   }
 </section>

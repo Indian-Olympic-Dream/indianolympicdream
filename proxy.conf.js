@@ -1,3 +1,6 @@
+const LOCAL_BACKEND = process.env.IOD_BACKEND_URL || "http://localhost:3000";
+const PINCODE_BACKEND = process.env.IOD_PINCODE_BACKEND_URL || LOCAL_BACKEND;
+
 const PROXY_CONFIG = {
   "/api/graphql": {
     target: "http://localhost:3000",
@@ -54,8 +57,13 @@ const PROXY_CONFIG = {
    * to the live site — which has no shop endpoints, and is not somewhere test
    * payments belong. Specific keys must stay above the catch-all.
    */
+  "/api/shop/pincode": {
+    target: PINCODE_BACKEND,
+    secure: false,
+    changeOrigin: true,
+  },
   "/api/shop": {
-    target: "http://localhost:3000",
+    target: LOCAL_BACKEND,
     secure: false,
     changeOrigin: true,
   },

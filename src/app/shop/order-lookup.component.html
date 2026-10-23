@@ -1,66 +1,115 @@
 <section class="order">
+  <app-shop-chrome />
+
   @if (loading()) {
-    <p class="order__status">Loading your order…</p>
+    <div class="order__loading" aria-label="Loading your order" aria-busy="true">
+      <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+      <p>Opening your private order page…</p>
+    </div>
   } @else if (error()) {
-    <p class="order__status order__status--error">{{ error() }}</p>
-    <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+    <div class="order__error" role="alert">
+      <mat-icon aria-hidden="true">link_off</mat-icon>
+      <h1>We could not open this order</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+    </div>
   } @else {
     @if (order(); as view) {
-    <h1>Order {{ view.orderNumber }}</h1>
-    <p class="order__state">{{ statusLabel(view.status) }}</p>
+      <div class="order__content">
+        <header class="order__hero" [class.order__hero--exception]="isTerminalException(view.status)">
+          <div class="order__hero-copy">
+            <p class="order__kicker">ORDER {{ view.orderNumber }}</p>
+            <h1>{{ statusLabel(view.status) }}</h1>
+            <p class="order__message">{{ statusMessage(view.status) }}</p>
 
-    @if (view.tracking.trackingUrl) {
-      <p class="order__tracking">
-        <a [href]="view.tracking.trackingUrl" target="_blank" rel="noopener noreferrer">
-          Track your parcel
-        </a>
-        @if (view.tracking.courier) {
-          <span class="order__courier">({{ view.tracking.courier }})</span>
-        }
-      </p>
-    }
-
-    <ul class="order__lines">
-      @for (line of view.lines; track line.title + (line.variantName ?? "")) {
-        <li>
-          <span class="order__line-title">
-            {{ line.title }}
-            @if (line.variantName) {
-              — {{ line.variantName }}
+            @if (view.tracking.trackingUrl) {
+              <a class="order__track" [href]="view.tracking.trackingUrl" target="_blank" rel="noopener noreferrer">
+                Track your parcel <mat-icon aria-hidden="true">arrow_outward</mat-icon>
+              </a>
+              @if (view.tracking.courier) { <small>Shipping with {{ view.tracking.courier }}</small> }
             }
-          </span>
-          <span class="order__line-qty">x{{ line.quantity }}</span>
-          <span class="order__line-total">{{ formatPaise(line.lineTotalPaise) }}</span>
-        </li>
-      }
-    </ul>
+          </div>
 
-    <dl class="order__totals">
-      <dt>Subtotal</dt>
-      <dd>{{ formatPaise(view.subtotalPaise) }}</dd>
-      <dt>Shipping</dt>
-      <dd>{{ formatPaise(view.shippingPaise) }}</dd>
-      @if (view.taxPaise > 0) {
-        <dt>Tax</dt>
-        <dd>{{ formatPaise(view.taxPaise) }}</dd>
-      }
-      <dt class="order__grand">Total</dt>
-      <dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
-    </dl>
+          <div class="order__seal" aria-hidden="true">
+            <span>IOD</span>
+            <mat-icon>{{ view.status === "delivered" ? "done_all" : "inventory_2" }}</mat-icon>
+          </div>
+        </header>
 
-    <address class="order__address">
-      {{ view.shippingAddress.line1 }}<br />
-      @if (view.shippingAddress.line2) {
-        {{ view.shippingAddress.line2 }}<br />
-      }
-      {{ view.shippingAddress.city }}, {{ view.shippingAddress.state }}
-      {{ view.shippingAddress.postalCode }}<br />
-      {{ view.shippingAddress.country }}
-    </address>
+        @if (!isTerminalException(view.status)) {
+          <ol class="order__timeline" aria-label="Order progress">
+            @for (step of [
+              { label: "Ordered", icon: "receipt_long" },
+              { label: "Paid", icon: "verified" },
+              { label: "Preparing", icon: "inventory_2" },
+              { label: "On the way", icon: "local_shipping" },
+              { label: "Delivered", icon: "home" }
+            ]; track step.label; let i = $index) {
+              <li [class.complete]="statusStep(view.status) >= i" [class.current]="statusStep(view.status) === i">
+                <span><mat-icon aria-hidden="true">{{ step.icon }}</mat-icon></span>
+                <b>{{ step.label }}</b>
+              </li>
+            }
+          </ol>
+        }
 
-    <p class="order__keep">
-      Keep this page bookmarked — it is the link to your order.
-    </p>
+        <div class="order__grid">
+          <section class="order__panel order__panel--items">
+            <div class="order__panel-head">
+              <h2>Order details</h2>
+              <span>{{ placedDate(view.placedAt) }}</span>
+            </div>
+
+            <ul class="order__lines">
+              @for (line of view.lines; track line.title + (line.variantName ?? "")) {
+                <li>
+                  <span class="order__line-mark" aria-hidden="true">IOD</span>
+                  <div>
+                    <strong>{{ line.title }}</strong>
+                    @if (line.variantName) { <small>{{ line.variantName }}</small> }
+                    <small>Qty {{ line.quantity }} · {{ formatPaise(line.unitPricePaise) }} each</small>
+                  </div>
+                  <b>{{ formatPaise(line.lineTotalPaise) }}</b>
+                </li>
+              }
+            </ul>
+
+            <dl class="order__totals">
+              <dt>Subtotal</dt><dd>{{ formatPaise(view.subtotalPaise) }}</dd>
+              @if (view.discountPaise > 0) {
+                <dt class="order__discount">{{ view.promotionLabel || "Offer" }}</dt>
+                <dd class="order__discount">−{{ formatPaise(view.discountPaise) }}</dd>
+              }
+              <dt>Delivery</dt><dd>{{ view.shippingPaise === 0 ? "Free" : formatPaise(view.shippingPaise) }}</dd>
+              @if (view.taxPaise > 0) { <dt>GST</dt><dd>{{ formatPaise(view.taxPaise) }}</dd> }
+              <dt class="order__grand">Total paid</dt><dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
+            </dl>
+          </section>
+
+          <aside class="order__side">
+            <section class="order__panel">
+              <div class="order__panel-icon"><mat-icon aria-hidden="true">location_on</mat-icon></div>
+              <h2>Delivering to</h2>
+              <address>
+                {{ view.shippingAddress.line1 }}<br />
+                @if (view.shippingAddress.line2) { {{ view.shippingAddress.line2 }}<br /> }
+                {{ view.shippingAddress.city }}, {{ view.shippingAddress.state }}<br />
+                {{ view.shippingAddress.postalCode }}, {{ view.shippingAddress.country }}
+              </address>
+            </section>
+
+            <section class="order__private">
+              <mat-icon aria-hidden="true">lock</mat-icon>
+              <div>
+                <strong>This page is private</strong>
+                <p>Keep this link or the email we sent you. It is the key to your order and should not be shared publicly.</p>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <a class="order__shop-link" routerLink="/shop"><mat-icon aria-hidden="true">arrow_back</mat-icon> Return to the collection</a>
+      </div>
     }
   }
 </section>

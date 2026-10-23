@@ -2,9 +2,12 @@ import { CommonModule } from "@angular/common";
 import { Component, inject, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
 import { ShopService } from "./shop.service";
 import { OrderView } from "./shop.models";
 import { formatPaise } from "./shop-money";
+import { ShopChromeComponent } from "./shop-chrome.component";
+import { CartService } from "./cart.service";
 
 /**
  * The customer's view of their own order.
@@ -16,13 +19,14 @@ import { formatPaise } from "./shop-money";
 @Component({
   selector: "app-order-lookup",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent],
   templateUrl: "./order-lookup.component.html",
   styleUrl: "./order-lookup.component.scss",
 })
 export class OrderLookupComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly shop = inject(ShopService);
+  private readonly cart = inject(CartService);
 
   readonly order = signal<OrderView | null>(null);
   readonly loading = signal<boolean>(true);
@@ -34,6 +38,9 @@ export class OrderLookupComponent {
     this.shop.getOrder(token).subscribe({
       next: (order) => {
         this.order.set(order);
+        if (["paid", "processing", "shipped", "delivered", "refunded"].includes(order.status)) {
+          this.cart.completeCheckout(token);
+        }
         this.loading.set(false);
       },
       error: () => {
@@ -49,9 +56,9 @@ export class OrderLookupComponent {
       case "created":
         return "Awaiting payment";
       case "paid":
-        return "Paid — preparing your order";
+        return "Paid. Preparing your order";
       case "processing":
-        return "Packed and handed to the courier";
+        return "Preparing for dispatch";
       case "shipped":
         return "On its way";
       case "delivered":
@@ -65,5 +72,47 @@ export class OrderLookupComponent {
       default:
         return status;
     }
+  }
+
+  statusMessage(status: string): string {
+    switch (status) {
+      case "created":
+        return "Your order is saved and waiting for payment confirmation.";
+      case "paid":
+        return "Payment is confirmed. We are getting your order ready.";
+      case "processing":
+        return "Your order is with our dispatch team and will be on its way soon.";
+      case "shipped":
+        return "Your parcel is moving. Use the tracking link for its latest scan.";
+      case "delivered":
+        return "Your parcel has been marked as delivered.";
+      case "refunded":
+        return "The payment for this order has been refunded.";
+      case "rto":
+        return "The courier is returning this parcel to us. We will contact you.";
+      case "failed":
+        return "Payment was not completed. No successful charge is recorded on this order.";
+      default:
+        return "The latest status for your order is shown here.";
+    }
+  }
+
+  statusStep(status: string): number {
+    const steps: Record<string, number> = { created: 0, paid: 1, processing: 2, shipped: 3, delivered: 4 };
+    return steps[status] ?? 0;
+  }
+
+  isTerminalException(status: string): boolean {
+    return ["failed", "refunded", "rto"].includes(status);
+  }
+
+  placedDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(date);
   }
 }

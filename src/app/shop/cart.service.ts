@@ -1,8 +1,10 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
 import { CartItem, CatalogueProduct, CatalogueUnit } from "./shop.models";
+import { firstDropDiscountFor } from "./shop-promotions";
 
 const STORAGE_KEY = "iod.shop.cart.v1";
+const PENDING_CHECKOUT_KEY = "iod.shop.pendingCheckout.v1";
 
 /**
  * The cart, held in the browser.
@@ -29,9 +31,16 @@ export class CartService {
     this.itemsSignal().reduce((total, item) => total + item.quantity, 0),
   );
 
-  /** Advisory only — the server decides what is actually charged. */
+  /** Advisory only. The server decides what is actually charged. */
   readonly subtotalPaise = computed(() =>
     this.itemsSignal().reduce((total, item) => total + item.unitPricePaise * item.quantity, 0),
+  );
+
+  /** Advisory preview. The server independently applies and snapshots the offer. */
+  readonly discountPaise = computed(() => firstDropDiscountFor(this.itemsSignal()));
+
+  readonly merchandiseTotalPaise = computed(() =>
+    this.subtotalPaise() - this.discountPaise(),
   );
 
   private keyOf(productId: string, variantId: string | null): string {
@@ -51,7 +60,7 @@ export class CartService {
 
     const alreadyHeld: number = existing?.quantity ?? 0;
     /* Clamp to what the catalogue says is available. The server checks again at
-     * checkout — this only avoids letting someone fill a cart that is certain to
+     * checkout. This only avoids letting someone fill a cart that is certain to
      * be rejected. */
     const room: number = Math.max(0, unit.availableQuantity - alreadyHeld);
     const toAdd: number = Math.min(quantity, room);
@@ -72,6 +81,9 @@ export class CartService {
         variantName: unit.variantName,
         unitPricePaise: unit.unitPricePaise,
         quantity: toAdd,
+        imageUrl: product.images.find((image) => image.url)?.url ?? null,
+        imageAlt: product.images.find((image) => image.url)?.alt ?? product.title,
+        availableQuantity: unit.availableQuantity,
       },
     ]);
   }
@@ -86,7 +98,15 @@ export class CartService {
     const key: string = this.keyOf(productId, variantId);
     this.commit(
       this.itemsSignal().map((item) =>
-        this.keyOf(item.productId, item.variantId) === key ? { ...item, quantity } : item,
+        this.keyOf(item.productId, item.variantId) === key
+          ? {
+              ...item,
+              quantity:
+                typeof item.availableQuantity === "number"
+                  ? Math.min(quantity, item.availableQuantity)
+                  : quantity,
+            }
+          : item,
       ),
     );
   }
@@ -100,6 +120,28 @@ export class CartService {
 
   clear(): void {
     this.commit([]);
+  }
+
+  /** Remember which order may clear this cart after Razorpay returns. */
+  markCheckoutStarted(lookupToken: string): void {
+    if (!this.isBrowser) return;
+    try {
+      sessionStorage.setItem(PENDING_CHECKOUT_KEY, lookupToken);
+    } catch {
+      /* A blocked session store should not prevent payment. */
+    }
+  }
+
+  /** Clear only the cart that created this order, never a later shopping session. */
+  completeCheckout(lookupToken: string): void {
+    if (!this.isBrowser) return;
+    try {
+      if (sessionStorage.getItem(PENDING_CHECKOUT_KEY) !== lookupToken) return;
+      sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+      this.clear();
+    } catch {
+      /* The order still succeeds if browser storage is unavailable. */
+    }
   }
 
   /** What checkout sends: identifiers and quantities, never prices. */
@@ -138,7 +180,7 @@ export class CartService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
-      /* Quota exceeded or storage blocked — the cart still works in memory. */
+      /* Quota exceeded or storage blocked. The cart still works in memory. */
     }
   }
 }

@@ -28,7 +28,7 @@ export interface CatalogueProduct {
  * A line in the browser's cart.
  *
  * Title and price are kept for display only. They are NOT sent to the server and
- * are not what anyone is charged — checkout sends identifiers and quantities,
+ * are not what anyone is charged. Checkout sends identifiers and quantities,
  * and the server prices the order itself.
  */
 export interface CartItem {
@@ -39,6 +39,11 @@ export interface CartItem {
   variantName: string | null;
   unitPricePaise: number;
   quantity: number;
+  /** Display-only catalogue snapshot. Neither field is sent to checkout. */
+  imageUrl?: string | null;
+  imageAlt?: string;
+  /** Advisory client-side cap. The server always re-checks live availability. */
+  availableQuantity?: number;
 }
 
 export interface CheckoutContact {
@@ -56,6 +61,15 @@ export interface CheckoutAddress {
   country: string;
 }
 
+export interface PincodeLookup {
+  found: boolean;
+  city?: string;
+  district?: string;
+  state?: string;
+  postOffices?: string[];
+  unavailable?: boolean;
+}
+
 export interface CheckoutResponse {
   orderNumber: string;
   lookupToken: string;
@@ -65,6 +79,9 @@ export interface CheckoutResponse {
   currency: string;
   summary: {
     subtotalPaise: number;
+    discountPaise: number;
+    promotionCode: string | null;
+    promotionLabel: string | null;
     shippingPaise: number;
     taxPaise: number;
     totalPaise: number;
@@ -90,6 +107,9 @@ export interface OrderView {
     lineTotalPaise: number;
   }>;
   subtotalPaise: number;
+  discountPaise: number;
+  promotionCode: string | null;
+  promotionLabel: string | null;
   shippingPaise: number;
   taxPaise: number;
   totalPaise: number;

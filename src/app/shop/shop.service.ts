@@ -9,7 +9,9 @@ import {
   CheckoutContact,
   CheckoutResponse,
   OrderView,
+  PincodeLookup,
 } from "./shop.models";
+import { isLaunchProduct, withLaunchMedia } from "./shop-product-media";
 
 @Injectable({ providedIn: "root" })
 export class ShopService {
@@ -26,13 +28,24 @@ export class ShopService {
   listProducts(): Observable<CatalogueProduct[]> {
     return this.http
       .get<{ products: CatalogueProduct[] }>(`${this.base}/catalogue`)
-      .pipe(map((response) => response.products));
+      .pipe(
+        map((response) =>
+          response.products.filter(isLaunchProduct).map(withLaunchMedia),
+        ),
+      );
   }
 
   getProduct(slug: string): Observable<CatalogueProduct> {
     return this.http
       .get<{ product: CatalogueProduct }>(`${this.base}/catalogue`, { params: { slug } })
-      .pipe(map((response) => response.product));
+      .pipe(
+        map((response) => {
+          if (!response.product || !isLaunchProduct(response.product)) {
+            throw new Error("Product is not part of the V3.1 launch catalogue.");
+          }
+          return withLaunchMedia(response.product);
+        }),
+      );
   }
 
   /**
@@ -53,11 +66,15 @@ export class ShopService {
     });
   }
 
+  lookupPincode(pincode: string): Observable<PincodeLookup> {
+    return this.http.get<PincodeLookup>(`${this.base}/pincode/${pincode}`);
+  }
+
   /**
    * Confirm payment after Razorpay hands control back.
    *
    * The server re-checks with Razorpay rather than trusting this call, so a
-   * failure here is a display problem, not a payment problem — the webhook and
+   * failure here is a display problem, not a payment problem. The webhook and
    * the sweep will still settle the order.
    */
   verifyPayment(
