@@ -42,6 +42,8 @@ const LAUNCH_TITLES: Record<string, string> = {
   "the-golden-throw-tee": "The Golden Throw",
 };
 
+const LAUNCH_ORDER = ["the-golden-shot-tee", "the-golden-throw-tee"] as const;
+
 export function isLaunchProduct(product: CatalogueProduct): boolean {
   return !product.comingSoon && Object.prototype.hasOwnProperty.call(LAUNCH_MEDIA, product.slug);
 }
@@ -49,4 +51,12 @@ export function isLaunchProduct(product: CatalogueProduct): boolean {
 export function withLaunchMedia(product: CatalogueProduct): CatalogueProduct {
   const images = LAUNCH_MEDIA[product.slug];
   return images ? { ...product, title: LAUNCH_TITLES[product.slug] ?? product.title, images } : product;
+}
+
+export function sortLaunchProducts(products: CatalogueProduct[]): CatalogueProduct[] {
+  const order = new Map<string, number>(LAUNCH_ORDER.map((slug, index) => [slug, index]));
+  return [...products].sort(
+    (left, right) => (order.get(left.slug) ?? Number.MAX_SAFE_INTEGER) -
+      (order.get(right.slug) ?? Number.MAX_SAFE_INTEGER),
+  );
 }

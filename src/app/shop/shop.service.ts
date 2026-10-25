@@ -11,7 +11,7 @@ import {
   OrderView,
   PincodeLookup,
 } from "./shop.models";
-import { isLaunchProduct, withLaunchMedia } from "./shop-product-media";
+import { isLaunchProduct, sortLaunchProducts, withLaunchMedia } from "./shop-product-media";
 
 @Injectable({ providedIn: "root" })
 export class ShopService {
@@ -30,7 +30,7 @@ export class ShopService {
       .get<{ products: CatalogueProduct[] }>(`${this.base}/catalogue`)
       .pipe(
         map((response) =>
-          response.products.filter(isLaunchProduct).map(withLaunchMedia),
+          sortLaunchProducts(response.products.filter(isLaunchProduct).map(withLaunchMedia)),
         ),
       );
   }
