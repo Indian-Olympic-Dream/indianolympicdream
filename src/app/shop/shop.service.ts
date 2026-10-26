@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpResponse } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
@@ -86,6 +86,18 @@ export class ShopService {
       `${this.base}/orders/${token}/verify`,
       { razorpayPaymentId, razorpaySignature },
     );
+  }
+
+  /**
+   * The invoice PDF for a paid order. Goes through the same /api/shop proxy as
+   * everything else; the token in the path is the only credential (ADR-009).
+   * Resolves with the response so the caller can read the file name the server chose.
+   */
+  downloadInvoice(token: string): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${this.base}/orders/${token}/invoice`, {
+      observe: "response",
+      responseType: "blob",
+    });
   }
 
   getOrder(token: string): Observable<OrderView> {

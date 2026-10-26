@@ -170,12 +170,12 @@
                 <span class="checkout__offer-total">Both originals</span>
                 <strong class="checkout__offer-total">{{ formatPaise(cart.merchandiseTotalPaise()) }}</strong>
               }
-              <span class="checkout__pending-charge">Delivery + GST</span>
+              <span class="checkout__pending-charge">Delivery</span>
               <span class="checkout__pending-charge">Calculated securely</span>
             </div>
 
             <p class="checkout__summary-note">
-              The server checks current price, stock, delivery and GST before the Razorpay window opens.
+              The server checks current price, stock and delivery before the Razorpay window opens.
             </p>
 
             @if (showSummary() && invalidCount > 0) {

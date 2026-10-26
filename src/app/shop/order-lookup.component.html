@@ -81,7 +81,7 @@
                 <dd class="order__discount">−{{ formatPaise(view.discountPaise) }}</dd>
               }
               <dt>Delivery</dt><dd>{{ view.shippingPaise === 0 ? "Free" : formatPaise(view.shippingPaise) }}</dd>
-              @if (view.taxPaise > 0) { <dt>GST</dt><dd>{{ formatPaise(view.taxPaise) }}</dd> }
+              @if (view.taxPaise > 0) { <dt>Tax</dt><dd>{{ formatPaise(view.taxPaise) }}</dd> }
               <dt class="order__grand">Total paid</dt><dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
             </dl>
           </section>
@@ -97,6 +97,24 @@
                 {{ view.shippingAddress.postalCode }}, {{ view.shippingAddress.country }}
               </address>
             </section>
+
+            @if (canDownloadInvoice(view.status)) {
+              <section class="order__panel">
+                <div class="order__panel-icon"><mat-icon aria-hidden="true">receipt_long</mat-icon></div>
+                <h2>Invoice</h2>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="order__invoice"
+                  [disabled]="invoiceBusy()"
+                  (click)="downloadInvoice(view.orderNumber)"
+                >
+                  <mat-icon aria-hidden="true">download</mat-icon>
+                  {{ invoiceBusy() ? "Preparing…" : "Download invoice" }}
+                </button>
+                @if (invoiceError()) { <p class="order__invoice-error" role="alert">{{ invoiceError() }}</p> }
+              </section>
+            }
 
             <section class="order__private">
               <mat-icon aria-hidden="true">lock</mat-icon>
