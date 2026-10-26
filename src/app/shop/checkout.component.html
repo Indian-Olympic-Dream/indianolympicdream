@@ -170,12 +170,36 @@
                 <span class="checkout__offer-total">Both originals</span>
                 <strong class="checkout__offer-total">{{ formatPaise(cart.merchandiseTotalPaise()) }}</strong>
               }
-              <span class="checkout__pending-charge">Delivery</span>
-              <span class="checkout__pending-charge">Calculated securely</span>
+              @switch (deliveryQuote().state) {
+                @case ("ready") {
+                  <span>Delivery{{ shippingEstimated ? " (estimate)" : "" }}</span>
+                  <strong>{{ formatPaise(readyShippingPaise) }}</strong>
+                }
+                @case ("loading") {
+                  <span class="checkout__pending-charge">Delivery</span>
+                  <span class="checkout__pending-charge">Checking…</span>
+                }
+                @case ("unserviceable") {
+                  <span class="checkout__pending-charge">Delivery</span>
+                  <span class="checkout__pending-charge">Not available</span>
+                }
+                @default {
+                  <span class="checkout__pending-charge">Delivery</span>
+                  <span class="checkout__pending-charge">{{ deliveryQuote().state === "unavailable" ? "Calculated at payment" : "Calculated from your PIN code" }}</span>
+                }
+              }
+              @if (payableTotalPaise !== null) {
+                <span class="checkout__total">Total</span>
+                <strong class="checkout__total">{{ formatPaise(payableTotalPaise) }}</strong>
+              }
             </div>
 
+            @if (deliveryQuote().state === "unserviceable") {
+              <p class="checkout__error" role="alert">We can't deliver to this PIN code yet.</p>
+            }
+
             <p class="checkout__summary-note">
-              The server checks current price, stock and delivery before the Razorpay window opens.
+              Delivery is the courier charge to your PIN code. The server confirms price, stock and delivery before the Razorpay window opens.
             </p>
 
             @if (showSummary() && invalidCount > 0) {
@@ -185,7 +209,7 @@
             }
             @if (error()) { <p class="checkout__error" role="alert">{{ error() }}</p> }
 
-            <button class="checkout__pay" mat-flat-button type="submit" [disabled]="submitting()">
+            <button class="checkout__pay" mat-flat-button type="submit" [disabled]="submitting() || deliveryQuote().state === 'unserviceable'">
               @if (submitting()) { <span>Opening payment…</span> }
               @else { <span>Continue to secure payment</span><mat-icon aria-hidden="true">arrow_forward</mat-icon> }
             </button>

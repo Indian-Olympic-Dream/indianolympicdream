@@ -9,7 +9,7 @@ import { of, timer } from "rxjs";
 import { catchError, distinctUntilChanged, switchMap, tap } from "rxjs/operators";
 import { CartService } from "./cart.service";
 import { ShopService } from "./shop.service";
-import { CheckoutResponse, PincodeLookup } from "./shop.models";
+import { CheckoutResponse, PincodeLookup, ShippingQuoteResponse } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
 
@@ -45,6 +45,14 @@ export class CheckoutComponent {
   readonly draftRestored = signal<boolean>(false);
   readonly pincodeStatus = signal<"idle" | "looking" | "found" | "not-found" | "unavailable">("idle");
   readonly pincodeArea = signal<string | null>(null);
+  /**
+   * Delivery for the PIN currently entered. "unavailable" means the quote call
+   * itself failed; checkout still works and the server prices delivery then.
+   */
+  readonly deliveryQuote = signal<
+    | { state: "idle" | "loading" | "unavailable" | "unserviceable" }
+    | { state: "ready"; shippingPaise: number; estimated: boolean }
+  >({ state: "idle" });
   private lastResolvedAddress: { city: string; state: string } | null = null;
   readonly formatPaise = formatPaise;
   readonly states: string[] = [
@@ -169,6 +177,25 @@ export class CheckoutComponent {
         if (lookup) this.applyPincodeLookup(lookup);
       });
 
+    this.form.controls.postalCode.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        switchMap((pincode) => {
+          if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+            this.deliveryQuote.set({ state: "idle" });
+            return of(null);
+          }
+          this.deliveryQuote.set({ state: "loading" });
+          return this.shop.quoteShipping(pincode).pipe(
+            catchError(() => of({ serviceable: true, unavailable: true } as const)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((quote) => {
+        if (quote) this.applyShippingQuote(quote);
+      });
+
     const restoredPincode = this.form.controls.postalCode.value;
     if (/^[1-9][0-9]{5}$/.test(restoredPincode)) {
       this.form.controls.postalCode.setValue(restoredPincode);
@@ -207,6 +234,36 @@ export class CheckoutComponent {
   onPostalCodeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.form.controls.postalCode.setValue(input.value.replace(/\D/g, "").slice(0, 6));
+  }
+
+  private applyShippingQuote(quote: ShippingQuoteResponse | { serviceable: true; unavailable: true }): void {
+    if (!quote.serviceable) {
+      this.deliveryQuote.set({ state: "unserviceable" });
+    } else if ("unavailable" in quote || quote.shippingPaise === undefined) {
+      this.deliveryQuote.set({ state: "unavailable" });
+    } else {
+      this.deliveryQuote.set({
+        state: "ready",
+        shippingPaise: quote.shippingPaise,
+        estimated: quote.source === "fallback",
+      });
+    }
+  }
+
+  get readyShippingPaise(): number {
+    const quote = this.deliveryQuote();
+    return quote.state === "ready" ? quote.shippingPaise : 0;
+  }
+
+  get shippingEstimated(): boolean {
+    const quote = this.deliveryQuote();
+    return quote.state === "ready" && quote.estimated;
+  }
+
+  /** Cart total plus delivery, once delivery is known; null before that. */
+  get payableTotalPaise(): number | null {
+    const quote = this.deliveryQuote();
+    return quote.state === "ready" ? this.cart.merchandiseTotalPaise() + quote.shippingPaise : null;
   }
 
   private applyPincodeLookup(lookup: PincodeLookup): void {
@@ -297,6 +354,7 @@ export class CheckoutComponent {
   }
 
   async submit(): Promise<void> {
+    if (this.deliveryQuote().state === "unserviceable") return;
     if (this.form.invalid || this.cart.items().length === 0) {
       /* Touch everything so every message appears at once, rather than making
        * someone discover the problems one submit at a time. */

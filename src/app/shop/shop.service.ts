@@ -10,6 +10,7 @@ import {
   CheckoutResponse,
   OrderView,
   PincodeLookup,
+  ShippingQuoteResponse,
 } from "./shop.models";
 import { isLaunchProduct, sortLaunchProducts, withLaunchMedia } from "./shop-product-media";
 
@@ -68,6 +69,13 @@ export class ShopService {
 
   lookupPincode(pincode: string): Observable<PincodeLookup> {
     return this.http.get<PincodeLookup>(`${this.base}/pincode/${pincode}`);
+  }
+
+  /** What delivery to a PIN costs. For display; the charge itself is decided at checkout. */
+  quoteShipping(pincode: string): Observable<ShippingQuoteResponse> {
+    return this.http.get<ShippingQuoteResponse>(`${this.base}/shipping-quote`, {
+      params: { pincode },
+    });
   }
 
   /**

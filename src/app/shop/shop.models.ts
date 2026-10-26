@@ -95,6 +95,16 @@ export interface CheckoutResponse {
   };
 }
 
+/** The server's delivery quote for a PIN code. Display only: checkout re-quotes. */
+export interface ShippingQuoteResponse {
+  serviceable: boolean;
+  shippingPaise?: number;
+  /** "fallback" means the flat charge, used when the live courier rate was unavailable. */
+  source?: "shiprocket" | "fallback";
+  courier?: string | null;
+  error?: string;
+}
+
 export interface OrderView {
   orderNumber: string;
   status: string;
