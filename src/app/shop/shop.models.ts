@@ -83,6 +83,7 @@ export interface CheckoutResponse {
     promotionCode: string | null;
     promotionLabel: string | null;
     shippingPaise: number;
+    shippingSource?: "shiprocket" | "fallback" | null;
     taxPaise: number;
     totalPaise: number;
     lines: Array<{

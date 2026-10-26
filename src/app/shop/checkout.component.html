@@ -207,6 +207,7 @@
                 {{ invalidCount === 1 ? "One field needs" : invalidCount + " fields need" }} attention. See the message above.
               </p>
             }
+            @if (priceNotice()) { <p class="checkout__summary-note" role="status">{{ priceNotice() }}</p> }
             @if (error()) { <p class="checkout__error" role="alert">{{ error() }}</p> }
 
             <button class="checkout__pay" mat-flat-button type="submit" [disabled]="submitting() || deliveryQuote().state === 'unserviceable'">

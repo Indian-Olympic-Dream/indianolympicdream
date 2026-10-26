@@ -53,6 +53,8 @@ export class CheckoutComponent {
     | { state: "idle" | "loading" | "unavailable" | "unserviceable" }
     | { state: "ready"; shippingPaise: number; estimated: boolean }
   >({ state: "idle" });
+  /** Shown when checkout re-quoted delivery and the price differs from what was displayed. */
+  readonly priceNotice = signal<string | null>(null);
   private lastResolvedAddress: { city: string; state: string } | null = null;
   readonly formatPaise = formatPaise;
   readonly states: string[] = [
@@ -260,6 +262,26 @@ export class CheckoutComponent {
     return quote.state === "ready" && quote.estimated;
   }
 
+  /**
+   * Checkout re-quotes delivery from scratch, so its figure is the one charged.
+   * Show it before the payment window opens, and say so if it moved.
+   */
+  private adoptServerDelivery(response: CheckoutResponse): void {
+    const charged = response.summary.shippingPaise;
+    const shown = this.deliveryQuote();
+    const before = shown.state === "ready" ? shown.shippingPaise : null;
+    this.deliveryQuote.set({
+      state: "ready",
+      shippingPaise: charged,
+      estimated: response.summary.shippingSource === "fallback",
+    });
+    this.priceNotice.set(
+      before !== null && before !== charged
+        ? `Delivery is now ${formatPaise(charged)}. The payment window shows the final amount.`
+        : null,
+    );
+  }
+
   /** Cart total plus delivery, once delivery is known; null before that. */
   get payableTotalPaise(): number | null {
     const quote = this.deliveryQuote();
@@ -373,6 +395,7 @@ export class CheckoutComponent {
       return;
     }
     this.showSummary.set(false);
+    this.priceNotice.set(null);
 
     this.submitting.set(true);
     this.error.set(null);
@@ -405,7 +428,10 @@ export class CheckoutComponent {
           },
         )
         .subscribe({
-          next: (response) => this.openPaymentWindow(response),
+          next: (response) => {
+            this.adoptServerDelivery(response);
+            this.openPaymentWindow(response);
+          },
           error: (response) => {
             /* The server's message is shown as-is when it is one of the
              * customer-facing cart codes. "Only 2 available" is far more useful
