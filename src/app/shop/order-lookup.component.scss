@@ -49,6 +49,8 @@
   &__totals { margin: 18px 0 0; display: grid; grid-template-columns: 1fr auto; gap: 9px 18px; color: rgba(255, 255, 255, 0.5); font-size: 10px; }
   &__totals dd { margin: 0; text-align: right; }
   &__totals .order__discount { color: #d4af37; }
+  &__totals .order__refund { color: #d4af37; }
+  &__hero .order__refund { margin-top: 0.5rem; font-weight: 600; }
   &__totals .order__grand { margin-top: 7px; padding-top: 13px; border-top: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); font-size: 13px; font-weight: 700; }
   &__side { display: grid; gap: 16px; }
   &__panel-icon { width: 34px; height: 34px; margin-bottom: 18px; display: grid; place-items: center; border: 1px solid rgba(212, 175, 55, 0.32); border-radius: 50%; color: #d4af37; }

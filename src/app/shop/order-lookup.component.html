@@ -21,6 +21,9 @@
             <p class="order__kicker">ORDER {{ view.orderNumber }}</p>
             <h1>{{ statusLabel(view.status) }}</h1>
             <p class="order__message">{{ statusMessage(view.status) }}</p>
+            @if (view.refundState === "partially_refunded" && view.refundedPaise) {
+              <p class="order__refund">Partly refunded: {{ formatPaise(view.refundedPaise) }} has been returned to your payment method.</p>
+            }
 
             @if (view.tracking.trackingUrl) {
               <a class="order__track" [href]="view.tracking.trackingUrl" target="_blank" rel="noopener noreferrer">
@@ -83,6 +86,10 @@
               <dt>Delivery</dt><dd>{{ view.shippingPaise === 0 ? "No charge" : formatPaise(view.shippingPaise) }}</dd>
               @if (view.taxPaise > 0) { <dt>Tax</dt><dd>{{ formatPaise(view.taxPaise) }}</dd> }
               <dt class="order__grand">Total paid</dt><dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
+              @if (view.refundedPaise) {
+                <dt class="order__refund">{{ view.refundState === "refunded" ? "Refunded" : "Partly refunded" }}</dt>
+                <dd class="order__refund">−{{ formatPaise(view.refundedPaise) }}</dd>
+              }
             </dl>
           </section>
 

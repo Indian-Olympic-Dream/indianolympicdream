@@ -109,6 +109,9 @@ export interface ShippingQuoteResponse {
 export interface OrderView {
   orderNumber: string;
   status: string;
+  /** Separate from status: a partly refunded order is still being fulfilled. */
+  refundState?: "none" | "partially_refunded" | "refunded";
+  refundedPaise?: number;
   placedAt: string;
   lines: Array<{
     title: string;
