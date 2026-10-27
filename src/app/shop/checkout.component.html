@@ -210,6 +210,19 @@
             @if (priceNotice()) { <p class="checkout__summary-note" role="status">{{ priceNotice() }}</p> }
             @if (error()) { <p class="checkout__error" role="alert">{{ error() }}</p> }
 
+            <div class="checkout__agreement" [class.checkout__agreement--invalid]="errorFor('acceptedTerms')">
+              <input id="shop-terms" type="checkbox" formControlName="acceptedTerms" />
+              <label for="shop-terms">
+                I agree to the <a routerLink="/shop/policies/terms" target="_blank" rel="noopener">Terms of Sale</a>
+                and have read the <a routerLink="/shop/policies/shipping" target="_blank" rel="noopener">Shipping</a>,
+                <a routerLink="/shop/policies/returns" target="_blank" rel="noopener">Returns</a> and
+                <a routerLink="/shop/policies/privacy" target="_blank" rel="noopener">Privacy</a> policies.
+              </label>
+              @if (errorFor("acceptedTerms"); as message) {
+                <small role="alert">{{ message }}</small>
+              }
+            </div>
+
             <button class="checkout__pay" mat-flat-button type="submit" [disabled]="submitting() || deliveryQuote().state === 'unserviceable'">
               @if (submitting()) { <span>Opening payment…</span> }
               @else { <span>Continue to secure payment</span><mat-icon aria-hidden="true">arrow_forward</mat-icon> }
@@ -224,4 +237,5 @@
       </form>
     }
   </div>
+  <app-shop-policy-footer />
 </section>

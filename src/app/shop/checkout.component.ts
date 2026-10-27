@@ -12,6 +12,7 @@ import { ShopService } from "./shop.service";
 import { CheckoutResponse, PincodeLookup, ShippingQuoteResponse } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
+import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 
 /** Razorpay's checkout widget, loaded on demand from their CDN. */
 declare const Razorpay: new (options: Record<string, unknown>) => { open: () => void };
@@ -29,6 +30,7 @@ const CHECKOUT_DRAFT_KEY = "iod.shop.checkout-draft.v1";
     MatButtonModule,
     MatIconModule,
     ShopChromeComponent,
+    ShopPolicyFooterComponent,
   ],
   templateUrl: "./checkout.component.html",
   styleUrl: "./checkout.component.scss",
@@ -107,6 +109,7 @@ export class CheckoutComponent {
     state: ["", [Validators.required]],
     postalCode: ["", [Validators.required, Validators.pattern(/^[1-9][0-9]{5}$/)]],
     country: ["India", [Validators.required]],
+    acceptedTerms: [false, [Validators.requiredTrue]],
   });
 
   private readonly requiredFields = [
@@ -127,7 +130,18 @@ export class CheckoutComponent {
       if (stored) {
         const draft = JSON.parse(stored) as Record<string, unknown>;
         const controls = this.form.controls;
-        for (const key of Object.keys(controls) as Array<keyof typeof controls>) {
+        const savedTextFields = [
+          "name",
+          "email",
+          "phone",
+          "line1",
+          "line2",
+          "city",
+          "state",
+          "postalCode",
+          "country",
+        ] as const;
+        for (const key of savedTextFields) {
           const value = draft[key];
           if (typeof value === "string") controls[key].setValue(value, { emitEvent: false });
         }
@@ -358,6 +372,7 @@ export class CheckoutComponent {
         pattern: "A PIN code is 6 digits and cannot start with 0.",
       },
       country: { required: "Please enter the country." },
+      acceptedTerms: { required: "Please accept the shop terms before continuing." },
     };
 
     const forField = messages[field] ?? {};

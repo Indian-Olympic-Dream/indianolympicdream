@@ -8,12 +8,13 @@ import { CartService } from "./cart.service";
 import { CatalogueProduct, CatalogueUnit } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
+import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 import { FIRST_DROP } from "./shop-promotions";
 
 @Component({
   selector: "app-shop-list",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./shop-list.component.html",
   styleUrl: "./shop-list.component.scss",
 })

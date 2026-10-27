@@ -7,6 +7,7 @@ import { ShopService } from "./shop.service";
 import { OrderView } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
+import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 import { CartService } from "./cart.service";
 
 /**
@@ -19,7 +20,7 @@ import { CartService } from "./cart.service";
 @Component({
   selector: "app-order-lookup",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./order-lookup.component.html",
   styleUrl: "./order-lookup.component.scss",
 })

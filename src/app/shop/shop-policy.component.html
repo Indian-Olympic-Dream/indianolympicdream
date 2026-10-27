@@ -1,0 +1,64 @@
+<section class="policy">
+  <app-shop-chrome />
+
+  <main class="policy__main">
+    <a class="policy__back" routerLink="/shop">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Shop
+    </a>
+
+    <div class="policy__layout">
+      <aside class="policy__nav">
+        <p>SHOP INFORMATION</p>
+        <nav aria-label="Shop information pages">
+          @for (link of links; track link.key) {
+            <a
+              [routerLink]="['/shop/policies', link.key]"
+              routerLinkActive="policy__nav-link--active"
+            >
+              {{ link.label }}
+            </a>
+          }
+        </nav>
+        <small>Last updated<br />27 October 2026</small>
+      </aside>
+
+      <article class="policy__article">
+        <header>
+          <p>{{ page.eyebrow }}</p>
+          <h1>{{ page.title }}</h1>
+          <span>{{ page.intro }}</span>
+        </header>
+
+        <div class="policy__sections">
+          @for (section of page.sections; track section.title; let index = $index) {
+            <section>
+              <span class="policy__index">{{ index + 1 < 10 ? "0" + (index + 1) : index + 1 }}</span>
+              <div>
+                <h2>{{ section.title }}</h2>
+                @for (paragraph of section.paragraphs; track paragraph) {
+                  <p>{{ paragraph }}</p>
+                }
+                @if (section.bullets) {
+                  <ul>
+                    @for (bullet of section.bullets; track bullet) {
+                      <li>{{ bullet }}</li>
+                    }
+                  </ul>
+                }
+                @if (section.note) {
+                  <p class="policy__note">
+                    <mat-icon aria-hidden="true">info</mat-icon>
+                    {{ section.note }}
+                  </p>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <app-shop-policy-footer />
+</section>

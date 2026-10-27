@@ -8,6 +8,7 @@ import { CartService } from "./cart.service";
 import { CatalogueProduct, CatalogueUnit } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
+import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 
 interface ProductStory {
   chapter: string;
@@ -50,7 +51,7 @@ const PRODUCT_STORIES: Record<string, ProductStory> = {
 @Component({
   selector: "app-product-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./product-detail.component.html",
   styleUrl: "./product-detail.component.scss",
 })

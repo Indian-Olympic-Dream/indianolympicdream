@@ -7,11 +7,12 @@ import { CartService } from "./cart.service";
 import { CartItem } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
+import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 
 @Component({
   selector: "app-cart",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./cart.component.html",
   styleUrl: "./cart.component.scss",
 })

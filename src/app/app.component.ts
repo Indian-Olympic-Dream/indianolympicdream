@@ -165,6 +165,11 @@ export class AppComponent {
     return this.router.url.startsWith("/stories");
   }
 
+  isShopRoute(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return path === "/shop" || path.startsWith("/shop/");
+  }
+
   loadThemePreference() {
     if (!isPlatformBrowser(this.platformId)) return;
     const savedTheme = localStorage.getItem("selectedTheme");

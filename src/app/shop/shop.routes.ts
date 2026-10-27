@@ -25,6 +25,14 @@ export const SHOP_ROUTES: Routes = [
     loadComponent: () =>
       import("./order-lookup.component").then((m) => m.OrderLookupComponent),
   },
+  ...(["terms", "shipping", "returns", "privacy", "contact"] as const).map(
+    (policy) => ({
+      path: `policies/${policy}`,
+      loadComponent: () =>
+        import("./shop-policy.component").then((m) => m.ShopPolicyComponent),
+      data: { policy },
+    }),
+  ),
   {
     path: ":slug",
     loadComponent: () =>
