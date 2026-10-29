@@ -226,10 +226,9 @@
             Delivery covers shipping to your doorstep. Please review the final total before paying.
           </p>
 
-          @if (showSummary() && invalidCount > 0) {
+          @if (showSummary() && invalidCount > 1) {
           <p class="checkout__error" role="alert">
-            {{ invalidCount === 1 ? "One field needs" : invalidCount + " fields need" }} attention. See the message
-            above.
+            {{ invalidCount }} fields need attention. Review the highlighted fields.
           </p>
           }
           @if (priceNotice()) { <p class="checkout__summary-note" role="status">{{ priceNotice() }}</p> }

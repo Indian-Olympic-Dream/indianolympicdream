@@ -151,18 +151,24 @@
                 <h3 class="card__title">{{ product.title }}</h3>
               </a>
               <p class="card__story">{{ storyFor(product) }}</p>
+              <a class="card__details-link" [routerLink]="['/shop', product.slug]">
+                View story &amp; details <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+              </a>
             </div>
 
             @if (product.comingSoon) {
               <p class="card__release"><span aria-hidden="true"></span>Next from IOD</p>
             } @else {
               @if (fromPricePaise(product); as price) {
-                <p class="card__price">
-                  @if (hasVariablePricing(product)) {
-                    <span class="card__from">from</span>
-                  }
-                  {{ formatPaise(price) }}
-                </p>
+                <div class="card__price-block">
+                  <p class="card__price">
+                    @if (hasVariablePricing(product)) {
+                      <span class="card__from">from</span>
+                    }
+                    {{ formatPaise(price) }}
+                  </p>
+                  <small>Delivery calculated on payment page.</small>
+                </div>
               }
             }
           </div>
@@ -170,7 +176,9 @@
           @if (!product.comingSoon && !isSoldOut(product)) {
             <div class="card__quick-buy">
               <fieldset class="card__variants">
-                <legend>{{ product.type === "merch" ? "Select size" : "Choose an option" }}</legend>
+                <legend>
+                  <span>{{ product.type === "merch" ? "Select size" : "Choose an option" }}</span>
+                </legend>
                 <div
                   class="card__variant-options"
                   role="radiogroup"
@@ -184,13 +192,21 @@
                       [class.card__variant--selected]="isUnitSelected(product, unitIndex)"
                       [disabled]="unit.availableQuantity < 1"
                       [attr.aria-checked]="isUnitSelected(product, unitIndex)"
+                      [attr.aria-label]="(unit.variantName || 'One size') + (unit.availableQuantity < 1 ? ', sold out' : '')"
                       (click)="selectUnit(product, unitIndex)"
                     >
-                      {{ unit.variantName || "One size" }}
+                      <span>{{ unit.variantName || "One size" }}</span>
+                      @if (unit.availableQuantity < 1) {
+                        <small>Sold out</small>
+                      }
                     </button>
                   }
                 </div>
               </fieldset>
+
+              @if (product.type === "merch") {
+                <app-shop-size-guide />
+              }
 
               <div class="card__tip" aria-live="polite">
                 @if (selectedUnit(product) && product.type === "merch") {
@@ -217,9 +233,16 @@
                   (click)="addToCart(product)"
                 >
                   <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
-                  <span>{{ addedProductId() === product.id ? "Added" : "Add to cart" }}</span>
+                  <span>{{ addedProductId() === product.id ? (canQuickBuy(product) ? "Add another" : "Added") : "Add to cart" }}</span>
                 </button>
               </div>
+
+              @if (addedProductId() === product.id) {
+                <div class="card__added" aria-live="polite">
+                  <span><mat-icon aria-hidden="true">check_circle</mat-icon>{{ addedMessage() }}</span>
+                  <a routerLink="/shop/cart">View cart <mat-icon aria-hidden="true">arrow_forward</mat-icon></a>
+                </div>
+              }
             </div>
           }
         </li>
@@ -240,10 +263,11 @@
             <span>{{ formatPaise(firstDropRegularPricePaise()) }}</span>
             <strong>{{ formatPaise(firstDrop.pairPricePaise) }}</strong>
           </div>
-          <small>Delivery calculated at checkout.</small>
+          <small>Delivery calculated on payment page.</small>
         </div>
 
         <div class="shop__bundle-builder">
+          <app-shop-size-guide />
           <div class="shop__bundle-products">
             @for (product of dropProducts; track product.id; let productIndex = $index) {
               <fieldset class="shop__bundle-product">
@@ -260,9 +284,13 @@
                       [class.shop__bundle-size--selected]="isUnitSelected(product, unitIndex)"
                       [disabled]="unit.availableQuantity < 1"
                       [attr.aria-checked]="isUnitSelected(product, unitIndex)"
+                      [attr.aria-label]="(unit.variantName || 'One size') + (unit.availableQuantity < 1 ? ', sold out' : '')"
                       (click)="selectUnit(product, unitIndex)"
                     >
-                      {{ unit.variantName || "One size" }}
+                      <span>{{ unit.variantName || "One size" }}</span>
+                      @if (unit.availableQuantity < 1) {
+                        <small>Sold out</small>
+                      }
                     </button>
                   }
                 </div>
@@ -271,7 +299,11 @@
           </div>
 
           <div class="shop__bundle-status" aria-live="polite">
-            @if (canBuyFirstDrop()) {
+            @if (firstDropAdded()) {
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span>Both originals were added to your cart.</span>
+              <a routerLink="/shop/cart">View cart <mat-icon aria-hidden="true">arrow_forward</mat-icon></a>
+            } @else if (canBuyFirstDrop()) {
               <mat-icon aria-hidden="true">verified</mat-icon>
               <span>Both sizes selected. You save {{ formatPaise(firstDropSavingsPaise()) }}.</span>
             } @else {
@@ -285,7 +317,7 @@
             </button>
             <button type="button" class="shop__bundle-add" [disabled]="!canBuyFirstDrop()" (click)="addFirstDropToCart()">
               <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
-              {{ firstDropAdded() ? "Both added" : "Add both to cart" }}
+              {{ firstDropAdded() ? (canBuyFirstDrop() ? "Add another pair" : "Both added") : "Add both to cart" }}
             </button>
           </div>
         </div>
@@ -293,10 +325,5 @@
     }
   }
 
-  <footer class="shop__manifesto">
-    <span class="shop__manifesto-line" aria-hidden="true"></span>
-    <p>For the moments we still talk about.</p>
-    <span class="shop__manifesto-line" aria-hidden="true"></span>
-  </footer>
-  <app-shop-policy-footer />
+  <app-shop-policy-footer tagline="For the moments we still talk about." />
 </section>

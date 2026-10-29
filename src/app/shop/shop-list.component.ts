@@ -10,11 +10,12 @@ import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
 import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 import { FIRST_DROP } from "./shop-promotions";
+import { ShopSizeGuideComponent } from "./shop-size-guide.component";
 
 @Component({
   selector: "app-shop-list",
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent, ShopSizeGuideComponent],
   templateUrl: "./shop-list.component.html",
   styleUrl: "./shop-list.component.scss",
 })
@@ -29,6 +30,7 @@ export class ShopListComponent {
   readonly selectedUnits = signal<Record<string, number>>({});
   readonly activeImageIndexes = signal<Record<string, number>>({});
   readonly addedProductId = signal<string | null>(null);
+  readonly addedMessage = signal<string>("");
   readonly firstDropAdded = signal<boolean>(false);
 
   private swipeStart: { productId: string; x: number } | null = null;
@@ -162,6 +164,7 @@ export class ShopListComponent {
     }
     this.firstDropAdded.set(true);
     this.addedProductId.set(null);
+    this.addedMessage.set("");
   }
 
   buyFirstDrop(): void {
@@ -180,6 +183,7 @@ export class ShopListComponent {
 
     this.selectedUnits.update((current) => ({ ...current, [product.id]: index }));
     this.addedProductId.set(null);
+    this.addedMessage.set("");
     this.firstDropAdded.set(false);
   }
 
@@ -206,8 +210,16 @@ export class ShopListComponent {
     const unit = this.selectedUnit(product);
     if (!unit || !this.canQuickBuy(product)) return;
 
+    const discountBefore = this.cart.discountPaise();
     this.cart.add(product, unit);
+    const newDiscount = Math.max(0, this.cart.discountPaise() - discountBefore);
     this.addedProductId.set(product.id);
+    this.addedMessage.set(
+      newDiscount > 0
+        ? `First Drop offer applied. You save ${formatPaise(newDiscount)}.`
+        : `${product.title}, size ${unit.variantName || "one size"} added to cart.`,
+    );
+    this.firstDropAdded.set(false);
   }
 
   buyNow(product: CatalogueProduct): void {
@@ -238,4 +250,5 @@ export class ShopListComponent {
       },
     });
   }
+
 }

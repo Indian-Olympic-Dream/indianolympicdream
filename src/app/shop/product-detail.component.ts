@@ -9,6 +9,7 @@ import { CatalogueProduct, CatalogueUnit } from "./shop.models";
 import { formatPaise } from "./shop-money";
 import { ShopChromeComponent } from "./shop-chrome.component";
 import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
+import { ShopSizeGuideComponent } from "./shop-size-guide.component";
 
 interface ProductStory {
   chapter: string;
@@ -51,7 +52,7 @@ const PRODUCT_STORIES: Record<string, ProductStory> = {
 @Component({
   selector: "app-product-detail",
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent, ShopSizeGuideComponent],
   templateUrl: "./product-detail.component.html",
   styleUrl: "./product-detail.component.scss",
 })
@@ -68,13 +69,6 @@ export class ProductDetailComponent {
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
   readonly added = signal<boolean>(false);
-
-  readonly sizeGuide = [
-    { size: "M", length: "27", shoulder: "18.5", chest: "20", bodyChest: "40" },
-    { size: "L", length: "28", shoulder: "19.5", chest: "21", bodyChest: "42" },
-    { size: "XL", length: "29", shoulder: "20.5", chest: "22", bodyChest: "44" },
-    { size: "XXL", length: "30", shoulder: "21.5", chest: "23", bodyChest: "46" },
-  ] as const;
 
   readonly formatPaise = formatPaise;
 

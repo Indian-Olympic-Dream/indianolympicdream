@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 @Component({
@@ -7,6 +7,13 @@ import { RouterLink } from "@angular/router";
   imports: [RouterLink],
   template: `
     <footer class="shop-footer" aria-label="IOD Shop information">
+      @if (tagline()) {
+        <div class="shop-footer__tagline">
+          <span aria-hidden="true"></span>
+          <p>{{ tagline() }}</p>
+          <span aria-hidden="true"></span>
+        </div>
+      }
       <div class="shop-footer__inner">
         <div class="shop-footer__identity">
           <a routerLink="/shop" aria-label="IOD Shop home">
@@ -41,4 +48,6 @@ import { RouterLink } from "@angular/router";
   `,
   styleUrl: "./shop-policy-footer.component.scss",
 })
-export class ShopPolicyFooterComponent {}
+export class ShopPolicyFooterComponent {
+  readonly tagline = input<string | null>(null);
+}
