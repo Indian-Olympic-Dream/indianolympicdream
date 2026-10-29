@@ -10,22 +10,25 @@
     </button>
   </div>
   <ul class="event-list">
-    <li class="event-list-item" *ngFor="let event of data.events">
-      <div class="event-list-title">
-        <span class="event-name">{{ event?.eventname }}</span>
-      </div>
-      <div class="event-list-content">
-        <div>Athletes Competing: {{event?.athletes }}</div>
-        <div>
-          Start Time(Estimated):
-          <span *ngIf="event.starttime; else notime;">
-            {{event.starttime * 1000 | date: "MMM d, y, h:mm:ss a" }}
-          </span>
-          <ng-template #notime>
-            No Time Available Yet!
-          </ng-template>
+    @for (event of data.events; track event) {
+      <li class="event-list-item">
+        <div class="event-list-title">
+          <span class="event-name">{{ event?.eventname }}</span>
         </div>
-      </div>
-    </li>
+        <div class="event-list-content">
+          <div>Athletes Competing: {{event?.athletes }}</div>
+          <div>
+            Start Time(Estimated):
+            @if (event.starttime) {
+              <span>
+                {{event.starttime * 1000 | date: "MMM d, y, h:mm:ss a" }}
+              </span>
+            } @else {
+              No Time Available Yet!
+            }
+          </div>
+        </div>
+      </li>
+    }
   </ul>
 </div>

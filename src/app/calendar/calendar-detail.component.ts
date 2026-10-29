@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -13,7 +13,7 @@ import {
 @Component({
   selector: 'app-calendar-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatProgressSpinnerModule],
+  imports: [RouterModule, MatProgressSpinnerModule],
   templateUrl: './calendar-detail.component.html',
   styleUrls: ['./calendar-detail.component.scss'],
 })

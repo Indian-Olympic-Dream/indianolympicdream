@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { forkJoin } from "rxjs";
@@ -41,12 +41,11 @@ interface TabVideoCache {
   selector: "app-originals",
   standalone: true,
   imports: [
-    CommonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     FormatDurationPipe,
-    SafeResourceUrlPipe,
-  ],
+    SafeResourceUrlPipe
+],
   templateUrl: "./originals.component.html",
   styleUrls: ["./originals.page.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,

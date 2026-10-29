@@ -1,3 +1,5 @@
-<blockquote *ngIf="block?.quote" class="pull-quote">
-  {{ block.quote }}
-</blockquote>
+@if (block?.quote) {
+  <blockquote class="pull-quote">
+    {{ block.quote }}
+  </blockquote>
+}

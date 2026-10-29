@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { Router, RouterModule } from "@angular/router";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatIconModule } from "@angular/material/icon";
@@ -8,11 +8,10 @@ import { MatIconModule } from "@angular/material/icon";
   selector: "app-bottom-nav",
   standalone: true,
   imports: [
-    CommonModule,
     RouterModule,
     MatToolbarModule,
-    MatIconModule,
-  ],
+    MatIconModule
+],
   templateUrl: "./bottom-nav.component.html",
   styleUrl: "./bottom-nav.component.scss",
 })

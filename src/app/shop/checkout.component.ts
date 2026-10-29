@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { Component, DestroyRef, PLATFORM_ID, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -24,14 +24,13 @@ const CHECKOUT_DRAFT_KEY = "iod.shop.checkout-draft.v1";
   selector: "app-checkout",
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
     MatIconModule,
     ShopChromeComponent,
-    ShopPolicyFooterComponent,
-  ],
+    ShopPolicyFooterComponent
+],
   templateUrl: "./checkout.component.html",
   styleUrl: "./checkout.component.scss",
 })

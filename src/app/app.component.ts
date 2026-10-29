@@ -15,7 +15,7 @@ import {
   RouterLinkActive,
 } from "@angular/router";
 import { slideInAnimation } from "./animations";
-import { CommonModule } from "@angular/common";
+
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
@@ -39,7 +39,6 @@ import { SportsDetailSheetComponent } from "./shared/sports-detail/sports-detail
   styleUrls: ["./app.component.scss"],
   animations: [slideInAnimation],
   imports: [
-    CommonModule,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -54,8 +53,8 @@ import { SportsDetailSheetComponent } from "./shared/sports-detail/sports-detail
     LayoutModule,
     BottomNavComponent,
     FooterComponent,
-    SportsDetailSheetComponent,
-  ],
+    SportsDetailSheetComponent
+],
 })
 export class AppComponent {
   public isOlympicsMenuOpen = false;

@@ -7,7 +7,9 @@
   <button mat-menu-item (click)="onDaySelected(null)">
     <span>All Days</span>
   </button>
-  <button mat-menu-item *ngFor="let date of availableDates" (click)="onDaySelected(date)">
-    <span>{{ date | date:'MMM d' }}</span>
-  </button>
+  @for (date of availableDates; track date) {
+    <button mat-menu-item (click)="onDaySelected(date)">
+      <span>{{ date | date:'MMM d' }}</span>
+    </button>
+  }
 </mat-menu>

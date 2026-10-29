@@ -4,97 +4,161 @@
     <a class="calendar-link" routerLink="/calendar">Full calendar <mat-icon>arrow_forward</mat-icon></a>
   </header>
 
-  <div class="loading-state" *ngIf="loading()" role="status"><mat-spinner diameter="30"></mat-spinner> Loading the latest schedule…</div>
-  <ng-container *ngIf="!loading()">
-    <div class="home-load-error" *ngIf="loadFailed()" role="alert"><span>The latest calendar couldn’t be loaded. Previous information is retained.</span><button type="button" (click)="retryLoad()">Try again</button></div>
-
-    <section class="home-section happening" aria-labelledby="happening-heading" *ngIf="home().ongoingEvents.length || home().rightNow.length">
-      <header class="section-heading"><h2 id="happening-heading">Happening now</h2><span class="section-meta">{{ home().ongoingEvents.length }} ongoing competitions</span></header>
-      <div class="live-list" *ngIf="home().rightNow.length">
-        <button class="live-result" type="button" *ngFor="let moment of visibleLive(); trackBy: trackMoment" (click)="onMomentClick(moment)">
-          <span class="live-label">Live scores</span><strong>{{ moment.headline }}</strong><span>{{ moment.resultLabel }}</span><mat-icon>arrow_forward</mat-icon>
-        </button>
-      </div>
-      <a class="more-link" routerLink="/calendar" *ngIf="home().rightNow.length > visibleLive().length">All {{ home().rightNow.length }} live scores</a>
-      <div class="ongoing-grid">
-        <article class="ongoing-event" *ngFor="let event of visibleOngoing()">
-          <div class="ongoing-copy">
-          <div class="ongoing-identity"><img *ngIf="event.sport.pictogramUrl" [src]="event.sport.pictogramUrl" alt=""><span>{{ event.sport.name }}</span><span class="ongoing-label">Ongoing</span></div>
-          <h3>{{ event.title }}</h3>
-          <p class="event-date">{{ event.dateLabel }}</p>
-          <p class="event-place" *ngIf="event.location">{{ event.location }}</p>
+  @if (loading()) {
+    <div class="loading-state" role="status"><mat-spinner diameter="30"></mat-spinner> Loading the latest schedule…</div>
+  }
+  @if (!loading()) {
+    @if (loadFailed()) {
+      <div class="home-load-error" role="alert"><span>The latest calendar couldn’t be loaded. Previous information is retained.</span><button type="button" (click)="retryLoad()">Try again</button></div>
+    }
+    @if (home().ongoingEvents.length || home().rightNow.length) {
+      <section class="home-section happening" aria-labelledby="happening-heading">
+        <header class="section-heading"><h2 id="happening-heading">Happening now</h2><span class="section-meta">{{ home().ongoingEvents.length }} ongoing competitions</span></header>
+        @if (home().rightNow.length) {
+          <div class="live-list">
+            @for (moment of visibleLive(); track trackMoment($index, moment)) {
+              <button class="live-result" type="button" (click)="onMomentClick(moment)">
+                <span class="live-label">Live scores</span><strong>{{ moment.headline }}</strong><span>{{ moment.resultLabel }}</span><mat-icon>arrow_forward</mat-icon>
+              </button>
+            }
           </div>
-          <a *ngIf="isInternal(event.action)" [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
-          <a *ngIf="isExternal(event.action)" [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
-          <span class="source-pending" *ngIf="!event.action">Details pending</span>
-        </article>
-      </div>
-      <a class="more-link" routerLink="/calendar" fragment="ongoing-events" *ngIf="home().ongoingEvents.length > visibleOngoing().length">All {{ home().ongoingEvents.length }} ongoing competitions <mat-icon>arrow_forward</mat-icon></a>
-    </section>
-
-    <section class="games-gateway home-section" *ngIf="home().horizon as campaign" aria-labelledby="gateway-heading">
-      <div class="games-emblem-tile" aria-hidden="true" *ngIf="campaign.hubKey === 'asian-games-2026'">
-        <img src="assets/images/ag-2026/logo.webp" alt="Aichi-Nagoya 2026 official logo">
-      </div>
-      <div class="gateway-copy">
-        <p class="eyebrow"><span class="tricolour" aria-hidden="true"></span>Follow with IOD · Asian Games</p>
-        <h2 id="gateway-heading">{{ campaign.title }}</h2>
-        <p class="gateway-description">{{ campaign.context }}<ng-container *ngIf="campaign.location"> · {{ campaign.location }}</ng-container></p>
-        <nav class="gateway-paths" aria-label="Explore the Asian Games" *ngIf="campaign.hubKey === 'asian-games-2026'">
-          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'squad'}" fragment="games-guide"><strong>{{ gateway()?.athletes || 501 }}</strong> athletes</a>
-          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'matrix'}" fragment="games-guide"><strong>{{ campaign.sportCount }}</strong> sports</a>
-          <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'events'}" fragment="games-guide"><strong>{{ gateway()?.programme || 405 }}</strong> events</a>
-        </nav>
-        <p class="gateway-note" *ngIf="campaign.hubKey === 'asian-games-2026'">{{ gatewayFailed() ? 'Counts unavailable · Open the hub for details.' : 'Verified contingent as of 11 Sep · Final entries and draws to follow.' }}</p>
-      </div>
-      <div class="gateway-action">
-        <span class="gateway-countdown"><span class="pulse-dot" aria-hidden="true"></span>{{ campaign.relativeLabel }}</span>
-        <span class="gateway-date">{{ campaign.dateLabel }}</span>
-        <a class="gateway-cta" [routerLink]="campaign.action.navigation.routerLink">{{ campaign.action.label }} <mat-icon>arrow_forward</mat-icon></a>
-      </div>
-    </section>
-
-    <section class="home-section next-section" *ngIf="home().nextIndia || home().comingUp.length" aria-labelledby="next-heading">
-      <header class="section-heading"><h2 id="next-heading">{{ home().nextIndia ? 'Next for India' : 'Coming up' }}</h2><span class="section-meta">{{ home().nextIndia ? 'Confirmed Indian participation' : 'Upcoming competitions' }}</span></header>
-      <button class="next-surface" *ngIf="home().nextIndia as moment" type="button" (click)="onMomentClick(moment)">
-        <span class="sport-icon"><img *ngIf="moment.sport.pictogramUrl" [src]="moment.sport.pictogramUrl" alt=""></span>
-        <span class="next-copy"><small>{{ moment.sport.name }}</small><strong>{{ moment.headline }}</strong><span>{{ moment.context || moment.competition }}</span></span>
-        <span class="next-time"><strong>{{ moment.timingLabel }}</strong><small>{{ nextDateLabel(moment) }}</small></span><mat-icon>arrow_forward</mat-icon>
-      </button>
-      <div class="upcoming-list">
-        <article class="upcoming-event" *ngFor="let event of home().comingUp">
-          <span class="sport-icon"><img *ngIf="event.sport.pictogramUrl" [src]="event.sport.pictogramUrl" alt=""></span>
-          <div class="upcoming-copy"><small>{{ event.sport.name }} · {{ event.relativeLabel }}</small><h3>{{ event.title }}</h3><p>{{ event.dateLabel }}<ng-container *ngIf="event.location"> · {{ event.location }}</ng-container></p></div>
-          <a *ngIf="isInternal(event.action)" [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
-          <a *ngIf="isExternal(event.action)" [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
-        </article>
-      </div>
-    </section>
-
+        }
+        @if (home().rightNow.length > visibleLive().length) {
+          <a class="more-link" routerLink="/calendar">All {{ home().rightNow.length }} live scores</a>
+        }
+        <div class="ongoing-grid">
+          @for (event of visibleOngoing(); track event) {
+            <article class="ongoing-event">
+              <div class="ongoing-copy">
+                <div class="ongoing-identity">@if (event.sport.pictogramUrl) {
+                  <img [src]="event.sport.pictogramUrl" alt="">
+                  }<span>{{ event.sport.name }}</span><span class="ongoing-label">Ongoing</span></div>
+                  <h3>{{ event.title }}</h3>
+                  <p class="event-date">{{ event.dateLabel }}</p>
+                  @if (event.location) {
+                    <p class="event-place">{{ event.location }}</p>
+                  }
+                </div>
+                @if (isInternal(event.action)) {
+                  <a [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
+                }
+                @if (isExternal(event.action)) {
+                  <a [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
+                }
+                @if (!event.action) {
+                  <span class="source-pending">Details pending</span>
+                }
+              </article>
+            }
+          </div>
+          @if (home().ongoingEvents.length > visibleOngoing().length) {
+            <a class="more-link" routerLink="/calendar" fragment="ongoing-events">All {{ home().ongoingEvents.length }} ongoing competitions <mat-icon>arrow_forward</mat-icon></a>
+          }
+        </section>
+      }
+      @if (home().horizon; as campaign) {
+        <section class="games-gateway home-section" aria-labelledby="gateway-heading">
+          @if (campaign.hubKey === 'asian-games-2026') {
+            <div class="games-emblem-tile" aria-hidden="true">
+              <img src="assets/images/ag-2026/logo.webp" alt="Aichi-Nagoya 2026 official logo">
+            </div>
+          }
+          <div class="gateway-copy">
+            <p class="eyebrow"><span class="tricolour" aria-hidden="true"></span>Follow with IOD · Asian Games</p>
+            <h2 id="gateway-heading">{{ campaign.title }}</h2>
+            <p class="gateway-description">{{ campaign.context }}@if (campaign.location) {
+              · {{ campaign.location }}
+            }</p>
+            @if (campaign.hubKey === 'asian-games-2026') {
+              <nav class="gateway-paths" aria-label="Explore the Asian Games">
+                <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'squad'}" fragment="games-guide"><strong>{{ gateway()?.athletes || 501 }}</strong> athletes</a>
+                <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'matrix'}" fragment="games-guide"><strong>{{ campaign.sportCount }}</strong> sports</a>
+                <a class="gateway-pill" [routerLink]="campaign.action.navigation.routerLink" [queryParams]="{view: 'events'}" fragment="games-guide"><strong>{{ gateway()?.programme || 405 }}</strong> events</a>
+              </nav>
+            }
+            @if (campaign.hubKey === 'asian-games-2026') {
+              <p class="gateway-note">{{ gatewayFailed() ? 'Counts unavailable · Open the hub for details.' : 'Verified contingent as of 11 Sep · Final entries and draws to follow.' }}</p>
+            }
+          </div>
+          <div class="gateway-action">
+            <span class="gateway-countdown"><span class="pulse-dot" aria-hidden="true"></span>{{ campaign.relativeLabel }}</span>
+            <span class="gateway-date">{{ campaign.dateLabel }}</span>
+            <a class="gateway-cta" [routerLink]="campaign.action.navigation.routerLink">{{ campaign.action.label }} <mat-icon>arrow_forward</mat-icon></a>
+          </div>
+        </section>
+      }
+      @if (home().nextIndia || home().comingUp.length) {
+        <section class="home-section next-section" aria-labelledby="next-heading">
+          <header class="section-heading"><h2 id="next-heading">{{ home().nextIndia ? 'Next for India' : 'Coming up' }}</h2><span class="section-meta">{{ home().nextIndia ? 'Confirmed Indian participation' : 'Upcoming competitions' }}</span></header>
+          @if (home().nextIndia; as moment) {
+            <button class="next-surface" type="button" (click)="onMomentClick(moment)">
+              <span class="sport-icon">@if (moment.sport.pictogramUrl) {
+                <img [src]="moment.sport.pictogramUrl" alt="">
+              }</span>
+              <span class="next-copy"><small>{{ moment.sport.name }}</small><strong>{{ moment.headline }}</strong><span>{{ moment.context || moment.competition }}</span></span>
+              <span class="next-time"><strong>{{ moment.timingLabel }}</strong><small>{{ nextDateLabel(moment) }}</small></span><mat-icon>arrow_forward</mat-icon>
+            </button>
+          }
+          <div class="upcoming-list">
+            @for (event of home().comingUp; track event) {
+              <article class="upcoming-event">
+                <span class="sport-icon">@if (event.sport.pictogramUrl) {
+                  <img [src]="event.sport.pictogramUrl" alt="">
+                }</span>
+                <div class="upcoming-copy"><small>{{ event.sport.name }} · {{ event.relativeLabel }}</small><h3>{{ event.title }}</h3><p>{{ event.dateLabel }}@if (event.location) {
+                · {{ event.location }}
+              }</p></div>
+              @if (isInternal(event.action)) {
+                <a [routerLink]="event.action!.navigation.routerLink">{{ event.action!.label }} <mat-icon>arrow_forward</mat-icon></a>
+              }
+              @if (isExternal(event.action)) {
+                <a [href]="event.action!.navigation.href" [attr.target]="event.action!.navigation.target" [attr.rel]="event.action!.navigation.rel">{{ event.action!.label }} <mat-icon>north_east</mat-icon></a>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
     <section class="home-section editorial-section" aria-labelledby="editorial-heading">
       <header class="section-heading"><h2 id="editorial-heading">From IOD</h2><a routerLink="/originals">All originals <mat-icon>arrow_forward</mat-icon></a></header>
-      <div class="editorial-loading" *ngIf="editorialLoading()" role="status">Loading IOD shows…</div>
-      <div class="editorial-grid" *ngIf="editorial().length">
-        <article class="editorial-card" *ngFor="let video of editorial()">
-          <a class="editorial-poster" [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Watch ' + video.title">
-            <img *ngIf="thumbnail(video) as image" [src]="image" alt="" loading="lazy">
-            <span class="play-icon"><mat-icon>play_arrow</mat-icon></span>
-          </a>
-          <div class="editorial-copy"><p>{{ editorialMeta(video) }}</p><h3><a [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer">{{ video.title }}</a></h3></div>
-        </article>
-      </div>
+      @if (editorialLoading()) {
+        <div class="editorial-loading" role="status">Loading IOD shows…</div>
+      }
+      @if (editorial().length) {
+        <div class="editorial-grid">
+          @for (video of editorial(); track video) {
+            <article class="editorial-card">
+              <a class="editorial-poster" [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer" [attr.aria-label]="'Watch ' + video.title">
+                @if (thumbnail(video); as image) {
+                  <img [src]="image" alt="" loading="lazy">
+                }
+                <span class="play-icon"><mat-icon>play_arrow</mat-icon></span>
+              </a>
+              <div class="editorial-copy"><p>{{ editorialMeta(video) }}</p><h3><a [href]="watchUrl(video)" target="_blank" rel="noopener noreferrer">{{ video.title }}</a></h3></div>
+            </article>
+          }
+        </div>
+      }
       <a class="channel-link" href="https://www.youtube.com/@IODSportsPod" target="_blank" rel="noopener noreferrer">Latest uploads on YouTube <mat-icon>north_east</mat-icon></a>
-      <div class="editorial-empty" *ngIf="!editorialLoading() && !editorial().length"><p>{{ editorialFailed() ? 'Shows couldn’t be loaded right now.' : 'Interviews, previews and analysis from Indian Olympic Dream.' }}</p><a routerLink="/originals">Explore IOD Originals <mat-icon>arrow_forward</mat-icon></a><button type="button" *ngIf="editorialFailed()" (click)="loadEditorial()">Try again</button></div>
-    </section>
-
-    <section class="home-section recent-section" *ngIf="latestResult() as result" aria-labelledby="results-heading">
+      @if (!editorialLoading() && !editorial().length) {
+        <div class="editorial-empty"><p>{{ editorialFailed() ? 'Shows couldn’t be loaded right now.' : 'Interviews, previews and analysis from Indian Olympic Dream.' }}</p><a routerLink="/originals">Explore IOD Originals <mat-icon>arrow_forward</mat-icon></a>@if (editorialFailed()) {
+        <button type="button" (click)="loadEditorial()">Try again</button>
+      }</div>
+    }
+  </section>
+  @if (latestResult(); as result) {
+    <section class="home-section recent-section" aria-labelledby="results-heading">
       <header class="section-heading"><h2 id="results-heading">Recent results</h2><button type="button" (click)="openRecentResults()">All {{ home().recentResults.length }} results <mat-icon>arrow_forward</mat-icon></button></header>
       <button class="result-surface" type="button" (click)="openRecentResult(result)">
-        <span class="sport-icon"><img *ngIf="result.sport.pictogramUrl" [src]="result.sport.pictogramUrl" alt=""></span><span><small>{{ result.sport.name }} · {{ outcomeLabel(result) }}</small><strong>{{ result.resultLabel }}</strong><span>{{ result.headline }}</span></span><mat-icon>arrow_forward</mat-icon>
-      </button>
-    </section>
-
+        <span class="sport-icon">@if (result.sport.pictogramUrl) {
+          <img [src]="result.sport.pictogramUrl" alt="">
+          }</span><span><small>{{ result.sport.name }} · {{ outcomeLabel(result) }}</small><strong>{{ result.resultLabel }}</strong><span>{{ result.headline }}</span></span><mat-icon>arrow_forward</mat-icon>
+        </button>
+      </section>
+    }
     <nav class="home-depth-links" aria-label="Explore more"><a routerLink="/calendar">Every event, date and official source <span>Open Calendar <mat-icon>arrow_forward</mat-icon></span></a><a routerLink="/sports">Disciplines, athletes and pathways <span>Explore Sports <mat-icon>arrow_forward</mat-icon></span></a></nav>
-  </ng-container>
+  }
 </main>
-<app-recent-results-sheet *ngIf="resultsOpen()" [results]="home().recentResults" [now]="home().now" [covered]="detailOpen()" (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)"></app-recent-results-sheet>
+@if (resultsOpen()) {
+  <app-recent-results-sheet [results]="home().recentResults" [now]="home().now" [covered]="detailOpen()" (closed)="closeRecentResults()" (resultSelected)="openRecentResult($event)"></app-recent-results-sheet>
+}

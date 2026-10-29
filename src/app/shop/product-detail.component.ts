@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { Component, computed, inject, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -51,7 +51,7 @@ const PRODUCT_STORIES: Record<string, ProductStory> = {
 @Component({
   selector: "app-product-detail",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./product-detail.component.html",
   styleUrl: "./product-detail.component.scss",
 })

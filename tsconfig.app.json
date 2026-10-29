@@ -7,15 +7,17 @@
     ]
   },
   "files": [
-    "src/main.ts",
-    "src/main.server.ts",
-    "server.ts"
+    "src/main.ts"
   ],
   "include": [
     "src/**/*.d.ts",
     "src/**/*.ts"
   ],
   "exclude": [
-    "src/**/*.spec.ts"
+    "src/**/*.spec.ts",
+    "src/main.server.ts",
+    "src/app/app.config.server.ts",
+    "src/app/app.routes.server.ts",
+    "server.ts"
   ]
 }

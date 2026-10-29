@@ -2,10 +2,10 @@
 
 @mixin slide-toggle-theme {
   .mdc-switch {
-    --mdc-switch-selected-handle-color: var(--primary-color);
-    --mdc-switch-selected-track-color: var(--primary-color);
-    --mdc-switch-unselected-handle-color: var(--mat-toolbar-container-text-color);
-    --mdc-switch-unselected-track-color: rgba(var(--mat-toolbar-container-text-color), 0.3);
+    --mat-slide-toggle-selected-handle-color: var(--primary-color);
+    --mat-slide-toggle-selected-track-color: var(--primary-color);
+    --mat-slide-toggle-unselected-handle-color: var(--mat-toolbar-container-text-color);
+    --mat-slide-toggle-unselected-track-color: rgba(var(--mat-toolbar-container-text-color), 0.3);
   }
 
   .mat-mdc-slide-toggle-ripple {

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { SafeResourceUrlPipe } from "../../shared/pipes/safe-resource-url.pipe";
 import { MatCardModule } from "@angular/material/card";
@@ -17,13 +17,12 @@ interface VideoState {
   selector: "app-embed-block",
   standalone: true,
   imports: [
-    CommonModule,
     SafeResourceUrlPipe,
     MatProgressSpinnerModule,
     MatCardModule,
     MatIconModule,
-    FormatDurationPipe,
-  ],
+    FormatDurationPipe
+],
   templateUrl: "./embed-block.component.html",
   styleUrls: ["./embed-block.component.scss"],
 })

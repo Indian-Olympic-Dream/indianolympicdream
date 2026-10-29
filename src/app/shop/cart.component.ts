@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { Component, inject } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
@@ -12,7 +12,7 @@ import { ShopPolicyFooterComponent } from "./shop-policy-footer.component";
 @Component({
   selector: "app-cart",
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, ShopChromeComponent, ShopPolicyFooterComponent],
   templateUrl: "./cart.component.html",
   styleUrl: "./cart.component.scss",
 })

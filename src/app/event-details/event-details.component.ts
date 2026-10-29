@@ -2,19 +2,17 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatMiniFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { NgFor, NgIf, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { PayloadService } from '../services/payload.service';
 @Component({
     selector: 'app-event-details',
     templateUrl: './event-details.component.html',
     styleUrls: ['./event-details.component.scss'],
     imports: [
-        MatMiniFabButton,
-        MatIcon,
-        NgFor,
-        NgIf,
-        DatePipe,
-    ],
+    MatMiniFabButton,
+    MatIcon,
+    DatePipe
+],
 })
 export class EventDetailsComponent implements OnInit {
   sportPictogramUrl = 'assets/images/placeholder.svg';

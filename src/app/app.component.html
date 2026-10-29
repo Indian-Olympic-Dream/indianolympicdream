@@ -48,7 +48,9 @@
   </div>
 
   <!-- Global Footer -->
-  <app-footer *ngIf="!isNavigating && !isShopRoute()"></app-footer>
+  @if (!isNavigating && !isShopRoute()) {
+    <app-footer></app-footer>
+  }
 </div>
 
 <!-- Mobile Bottom Nav -->

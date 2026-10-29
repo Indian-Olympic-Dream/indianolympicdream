@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
@@ -64,7 +64,7 @@ interface SportAthleteRow {
 @Component({
   selector: 'app-sports',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [RouterModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './sports.component.html',
   styleUrl: './sports.component.scss'
 })

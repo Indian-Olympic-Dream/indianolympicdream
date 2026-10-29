@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { MatIcon } from '@angular/material/icon';
 import { SportsMoment } from './sports-moment.model';
 
@@ -15,7 +15,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 @Component({
   selector: 'app-recent-results-sheet',
   standalone: true,
-  imports: [NgFor, NgIf, MatIcon],
+  imports: [MatIcon],
   templateUrl: './recent-results-sheet.component.html',
   styleUrls: ['./recent-results-sheet.component.scss'],
 })
