@@ -67,7 +67,7 @@ export class OrderLookupComponent {
       next: (response) => {
         const blob: Blob | null = response.body;
         if (!blob) {
-          this.invoiceError.set("The invoice came back empty. Please try again.");
+          this.invoiceError.set("We couldn’t download your invoice. Please try again.");
         } else {
           const disposition: string = response.headers.get("content-disposition") ?? "";
           const name: string =
@@ -114,7 +114,7 @@ export class OrderLookupComponent {
       case "failed":
         return "Payment did not go through";
       default:
-        return status;
+        return "Order update";
     }
   }
 
@@ -127,7 +127,7 @@ export class OrderLookupComponent {
       case "processing":
         return "Your order is with our dispatch team and will be on its way soon.";
       case "shipped":
-        return "Your parcel is moving. Use the tracking link for its latest scan.";
+        return "Your parcel is moving. Use the tracking link for the latest update.";
       case "delivered":
         return "Your parcel has been marked as delivered.";
       case "refunded":
@@ -135,7 +135,7 @@ export class OrderLookupComponent {
       case "rto":
         return "The courier is returning this parcel to us. We will contact you.";
       case "failed":
-        return "Payment was not completed. No successful charge is recorded on this order.";
+        return "We couldn’t confirm the payment. If money was debited, please contact us and we’ll check it.";
       default:
         return "The latest status for your order is shown here.";
     }

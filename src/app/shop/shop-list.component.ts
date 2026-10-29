@@ -114,7 +114,7 @@ export class ShopListComponent {
 
   typeLabel(product: CatalogueProduct): string {
     if (product.comingSoon) {
-      return product.type === "merch" ? "Apparel concept" : "Print concept";
+      return product.type === "merch" ? "IOD original apparel" : "IOD original print";
     }
     return product.type === "merch" ? "IOD original" : "Legends print";
   }
@@ -220,7 +220,7 @@ export class ShopListComponent {
 
   selectionLabel(product: CatalogueProduct): string {
     if (!this.selectedUnit(product)) return product.type === "merch" ? "Select a size" : "Choose an option";
-    if (!this.canQuickBuy(product)) return "Maximum in cart";
+    if (!this.canQuickBuy(product)) return "No more available";
     return `Buy now · ${formatPaise(this.selectedUnit(product)?.unitPricePaise ?? 0)}`;
   }
 

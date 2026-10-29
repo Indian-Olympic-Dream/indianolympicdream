@@ -140,9 +140,9 @@
 
           @if (item.comingSoon) {
             <div class="detail__coming-soon" role="status">
-              <p>Future IOD release</p>
-              <h2>Still earning its place.</h2>
-              <span>We are refining the artwork, production method and physical sample before this piece can be sold.</span>
+              <p>Coming soon</p>
+              <h2>A new IOD original is taking shape.</h2>
+              <span>We’ll reveal this piece when it is ready.</span>
             </div>
           } @else if (remaining() > 0) {
             <div class="detail__purchase">
@@ -171,7 +171,7 @@
             </div>
           } @else {
             <button class="detail__add detail__add--disabled" mat-flat-button type="button" disabled>
-              {{ inCart() > 0 ? "Maximum in cart" : "Sold out" }}
+              {{ inCart() > 0 ? "No more available in this size" : "Sold out" }}
             </button>
           }
 
@@ -190,12 +190,12 @@
           <div class="detail__assurances">
             @if (item.comingSoon) {
               <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
-              <div><mat-icon aria-hidden="true">verified</mat-icon><span><strong>Release gated</strong>Artwork, sample and rights checked before sale</span></div>
-              <div><mat-icon aria-hidden="true">schedule</mat-icon><span><strong>Coming later</strong>No order or payment can be placed yet</span></div>
+              <div><mat-icon aria-hidden="true">auto_awesome</mat-icon><span><strong>Next from IOD</strong>Another story from Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">schedule</mat-icon><span><strong>Coming soon</strong>Not available to purchase yet</span></div>
             } @else {
               <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
               <div><mat-icon aria-hidden="true">payments</mat-icon><span><strong>Secure payment</strong>Powered by Razorpay</span></div>
-              <div><mat-icon aria-hidden="true">local_shipping</mat-icon><span><strong>Tracked delivery</strong>Private order link by email</span></div>
+              <div><mat-icon aria-hidden="true">local_shipping</mat-icon><span><strong>Tracked delivery</strong>Order updates sent by email</span></div>
             }
           </div>
         </div>

@@ -290,7 +290,7 @@ export class CheckoutComponent {
     });
     this.priceNotice.set(
       before !== null && before !== charged
-        ? `Delivery is now ${formatPaise(charged)}. The payment window shows the final amount.`
+        ? `Delivery has been updated to ${formatPaise(charged)}. Please review your total before paying.`
         : null,
     );
   }
@@ -333,7 +333,7 @@ export class CheckoutComponent {
       const script = document.createElement("script");
       script.src = RAZORPAY_SCRIPT;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Could not load the payment window"));
+      script.onerror = () => reject(new Error("The secure payment page could not be opened. Please try again."));
       document.body.appendChild(script);
     });
   }
@@ -378,8 +378,48 @@ export class CheckoutComponent {
     for (const key of Object.keys(control.errors)) {
       if (forField[key]) return forField[key];
     }
-    if (control.errors["maxlength"]) return "That is longer than we can store.";
+    if (control.errors["maxlength"]) return "Please shorten this entry.";
     return "Please check this field.";
+  }
+
+  /** Turn stable API error codes into instructions a customer can act on. */
+  private checkoutErrorMessage(response: unknown): string {
+    const httpError = response as {
+      status?: unknown;
+      error?: { code?: unknown; error?: unknown };
+    };
+    const code = typeof httpError?.error?.code === "string" ? httpError.error.code : "";
+    const serverMessage =
+      typeof httpError?.error?.error === "string" ? httpError.error.error : "";
+
+    switch (code) {
+      case "EMPTY_CART":
+        return "Your cart is empty. Add an item before checking out.";
+      case "DUPLICATE_LINE":
+        return "Your cart changed unexpectedly. Please review it and try again.";
+      case "INVALID_QUANTITY":
+        return "One item has an invalid quantity. Please review your cart.";
+      case "UNKNOWN_UNIT":
+      case "INACTIVE_UNIT":
+        return "One item in your cart is no longer available.";
+      case "COMING_SOON":
+        return "One item in your cart is not available to buy yet.";
+      case "INSUFFICIENT_STOCK": {
+        const available = /only\s+(\d+)\s+available/i.exec(serverMessage)?.[1];
+        return available
+          ? `Only ${available} left for one selection. Please update the quantity.`
+          : "There is not enough stock for one selection. Please update the quantity.";
+      }
+      case "INVALID_PINCODE":
+        return "Please enter a valid 6-digit PIN code.";
+      case "UNSERVICEABLE_PINCODE":
+        return "We can’t deliver to this PIN code yet.";
+      default:
+        if (httpError?.status === 429) {
+          return "You’ve tried several times. Please wait a minute and try again.";
+        }
+        return "We couldn’t open secure payment. Please try again.";
+    }
   }
 
   /** True once the customer has pressed Pay and the form was not usable. */
@@ -447,12 +487,7 @@ export class CheckoutComponent {
             this.openPaymentWindow(response);
           },
           error: (response) => {
-            /* The server's message is shown as-is when it is one of the
-             * customer-facing cart codes. "Only 2 available" is far more useful
-             * than a generic failure. */
-            this.error.set(
-              response?.error?.error ?? "Checkout could not be started. Please try again.",
-            );
+            this.error.set(this.checkoutErrorMessage(response));
             this.submitting.set(false);
           },
         });
@@ -504,7 +539,7 @@ export class CheckoutComponent {
            * its stock is held for a few minutes; the sweep releases it if they
            * never come back. */
           this.submitting.set(false);
-          this.error.set("Payment was cancelled. Your order is saved if you want to try again.");
+          this.error.set("Payment was cancelled. You can try again when you’re ready.");
         },
       },
     });

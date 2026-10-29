@@ -154,7 +154,7 @@
             </div>
 
             @if (product.comingSoon) {
-              <p class="card__release"><span aria-hidden="true"></span>In development</p>
+              <p class="card__release"><span aria-hidden="true"></span>Next from IOD</p>
             } @else {
               @if (fromPricePaise(product); as price) {
                 <p class="card__price">
@@ -197,7 +197,7 @@
                   <mat-icon aria-hidden="true">lightbulb</mat-icon>
                   <span><strong>Pro tip:</strong> Buy one size bigger than normal for a stress-free fit.</span>
                 } @else {
-                  <span class="card__tip-prompt">Choose a size to unlock quick checkout.</span>
+                  <span class="card__tip-prompt">Choose your size to continue.</span>
                 }
               </div>
 

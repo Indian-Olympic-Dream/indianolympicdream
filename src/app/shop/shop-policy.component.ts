@@ -52,7 +52,7 @@ const POLICY_PAGES: Record<PolicyKey, PolicyPage> = {
         title: "Payment and order acceptance",
         paragraphs: [
           "Payments are processed securely by Razorpay. IOD does not receive or store your complete card, UPI or bank credentials.",
-          "Your order is accepted after payment is confirmed and stock is successfully allocated. We send the order confirmation and private order link to the email address supplied at checkout. If payment succeeds but we cannot fulfil the order, we will contact you and refund the affected amount to the original payment method.",
+          "Your order is confirmed after payment succeeds and the items remain available. We send the order confirmation and secure order link to the email address supplied at checkout. If payment succeeds but we cannot fulfil the order, we will contact you and refund the affected amount to the original payment method.",
         ],
       },
       {
@@ -78,21 +78,21 @@ const POLICY_PAGES: Record<PolicyKey, PolicyPage> = {
       {
         title: "Where we deliver",
         paragraphs: [
-          "We currently deliver only to serviceable PIN codes within India. A serviceability check at checkout does not guarantee a delivery date.",
+          "We currently deliver only to PIN codes we can serve within India. Delivery availability at checkout does not guarantee an arrival date.",
         ],
       },
       {
         title: "Delivery charge",
         paragraphs: [
           "IOD requests a delivery quote using your destination PIN code. The final delivery charge is shown before payment and is not increased afterwards.",
-          "If a live courier quote is temporarily unavailable, checkout may show a fallback delivery charge of ₹150. That amount is clearly identified before payment.",
+          "If a live courier rate is temporarily unavailable, checkout may show a standard delivery charge of ₹150. That amount is clearly identified before payment.",
         ],
       },
       {
         title: "Dispatch and tracking",
         paragraphs: [
           "We aim to dispatch paid orders within two business days. Business days exclude Sundays and public holidays at the dispatch location.",
-          "When tracking is available, it is sent to the email address supplied at checkout. Your private order link also shows the latest status recorded by IOD. Keep that link private because it provides access to your order information.",
+          "When tracking is available, it is sent to the email address supplied at checkout. Your secure order link also shows the latest update from IOD. Keep that link private because anyone with it can view your order information.",
         ],
       },
       {
@@ -214,9 +214,9 @@ const POLICY_PAGES: Record<PolicyKey, PolicyPage> = {
         ],
       },
       {
-        title: "Cookies and browser storage",
+        title: "Saved cart and order links",
         paragraphs: [
-          "IOD Shop uses browser storage to keep your cart and pending checkout available on your device. Clearing browser data may remove that cart. The private order link uses a random token to retrieve your order without requiring an account.",
+          "IOD Shop saves your cart and unfinished checkout on your device. Clearing browser data may remove them. Your order can be viewed through a secure, unique link without creating an account. Anyone with that link can view the order, so keep it private.",
         ],
       },
     ],
