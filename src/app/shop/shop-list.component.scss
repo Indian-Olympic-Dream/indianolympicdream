@@ -3,7 +3,10 @@
 .shop {
   min-height: 100vh;
   padding-bottom: 28px;
-  overflow: hidden;
+  /* `hidden` creates a scroll container and prevents the shop bar from
+   * sticking to the viewport. `clip` still contains decorative overflow
+   * without changing the sticky positioning context. */
+  overflow-x: clip;
   background: radial-gradient(circle at 82% 12%, rgba(212, 175, 55, 0.11), transparent 28%), #0a0a0f;
 
   &__hero {
