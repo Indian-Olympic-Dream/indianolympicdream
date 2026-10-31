@@ -1,356 +1,425 @@
-<div class="sports-detail-backdrop" *ngIf="detailService.isOpen()" (click)="onBackdropClick($event)"
-  role="presentation">
-  <article class="sports-detail-sheet" [class.is-wide]="detail()?.presentationSize === 'wide'"
-    [class.is-live-sheet]="detail()?.state === 'live'"
-    [class.is-focused-badminton]="detail()?.badmintonMatchDetail"
-    [attr.data-sport]="detail()?.sportSlug"
-    (click)="$event.stopPropagation()" role="dialog" aria-modal="true" *ngIf="detail() as data">
-
-    <!-- Top Header: Clean Masthead with Actions (No heavy card surface) -->
-    <header class="sheet-header">
-      <div class="sheet-header-top">
-        <div class="sport-badge">
-          <span>{{ data.sportName }}</span>
-        </div>
-
-        <div class="header-status-wrap">
-          <span class="state-badge" [class.is-live]="data.state === 'live'"
-            [class.is-completed]="data.state === 'completed'">
-            <span class="live-dot" *ngIf="data.state === 'live'"></span>
-            {{ data.stateLabel }}
-          </span>
-
-          <button class="sheet-close-btn" [class.is-back]="detailService.returnToResults()" type="button"
-            [attr.aria-label]="detailService.returnToResults() ? 'Back to latest results' : 'Close'" (click)="close()">
-            <mat-icon>{{ detailService.returnToResults() ? 'arrow_back' : 'close' }}</mat-icon>
-            <span *ngIf="detailService.returnToResults()">Back to results</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Hero Tournament Branding with Sport Pictogram -->
-      <div class="sheet-brand-row">
-        <div class="hero-sport-pictogram" *ngIf="data.sportPictogramUrl">
-          <img [src]="data.sportPictogramUrl" [alt]="data.sportName" />
-        </div>
-        <div class="brand-info">
-          <h1 class="tournament-name">{{ data.competitionTitle }}</h1>
-          <p class="tournament-sub" *ngIf="data.venue || data.dateLabel">
-            <span *ngIf="data.venue">{{ data.venue }}</span>
-            <span class="sub-sep" *ngIf="data.venue && data.dateLabel">·</span>
-            <span *ngIf="data.dateLabel">{{ data.dateLabel }}</span>
-          </p>
-
-          <div class="brand-actions-row" *ngIf="data.actions?.whereToWatchUrl || data.actions?.externalUrl">
-            <a class="action-pill watch-pill" *ngIf="data.actions?.whereToWatchUrl"
-              [href]="data.actions!.whereToWatchUrl" target="_blank" rel="noopener noreferrer">
-              <mat-icon>tv</mat-icon>
-              <span>{{ data.actions!.whereToWatchLabel || 'Watch Live' }}</span>
-              <mat-icon class="mini-ext">north_east</mat-icon>
-            </a>
-
-            <a class="action-pill site-pill" *ngIf="data.actions?.externalUrl" [href]="data.actions!.externalUrl"
-              target="_blank" rel="noopener noreferrer">
-              <mat-icon>language</mat-icon>
-              <span>Official</span>
-              <mat-icon class="mini-ext">north_east</mat-icon>
-            </a>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Scrollable Content Body -->
-    <div class="sheet-body">
-      <!-- 1. Primary Stage: Hockey Scorecard / Matchup Stage -->
-      <section class="stage-card matchup-stage" *ngIf="data.matchup && !data.badmintonMatchDetail">
-        <div class="matchup-kicker" *ngIf="data.contextLine">
-          <span>{{ data.contextLine }}</span>
-        </div>
-
-        <div class="matchup-board">
-          <!-- Team A -->
-          <div class="team-card team-a" [class.is-india]="data.matchup.teamA.isIndia">
-            <app-country-flag class="country-flag" [code]="data.matchup.teamA.code"
-              [label]="data.matchup.teamA.name"></app-country-flag>
-            <strong class="team-name">{{ data.matchup.teamA.name }}</strong>
-            <span class="country-code-pill">{{ data.matchup.teamA.code }}</span>
-            <span class="score-num" *ngIf="data.state === 'completed' || data.state === 'live'">
-              {{ data.matchup.teamA.score ?? '-' }}
-            </span>
-          </div>
-
-          <!-- Center Time & Versus -->
-          <div class="center-col">
-            <span class="match-time-pill">{{ data.timeLabel }}</span>
-            <span class="vs-badge">VS</span>
-          </div>
-
-          <!-- Team B -->
-          <div class="team-card team-b" [class.is-india]="data.matchup.teamB.isIndia">
-            <app-country-flag class="country-flag" [code]="data.matchup.teamB.code"
-              [label]="data.matchup.teamB.name"></app-country-flag>
-            <strong class="team-name">{{ data.matchup.teamB.name }}</strong>
-            <span class="country-code-pill">{{ data.matchup.teamB.code }}</span>
-            <span class="score-num" *ngIf="data.state === 'completed' || data.state === 'live'">
-              {{ data.matchup.teamB.score ?? '-' }}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <!-- B. BWF campaign browser for event anchors, or one focused scorecard for a Home match. -->
-      <section class="badminton-container" [class.is-single-match]="data.badmintonMatchDetail"
-        *ngIf="data.badmintonEntries?.length">
-        <nav class="discipline-nav" *ngIf="!data.badmintonMatchDetail">
-          <button type="button" *ngFor="let disc of disciplines()" class="discipline-pill"
-            [class.active]="effectiveDiscipline() === disc" (click)="selectDiscipline(disc)">
-            <span class="disc-full">{{ disc }}</span>
-            <span class="disc-short">{{ getDisciplineShort(disc) }}</span>
-          </button>
-        </nav>
-
-        <!-- 2 Match / Score Cards for Selected Discipline -->
-        <div class="badminton-matches-grid">
-          <article class="badminton-match-card" [class.is-live-match]="match.status === 'live'"
-            [class.is-focused-match]="data.badmintonMatchDetail"
-            [class.is-completed-match]="match.status === 'completed'"
-            *ngFor="let match of filteredBadmintonEntries()">
-            <!-- Focused match header: order is the primary operational identity. -->
-            <div class="focused-match-top" *ngIf="data.badmintonMatchDetail; else campaignMatchTop">
-              <span class="focused-match-meta">{{ match.disciplineCode }} · {{ compactRound(match.round) }}</span>
-              <strong class="match-order-tag" *ngIf="match.matchOrder; else focusedRoundLabel">
-                Match {{ match.matchOrder }}
-              </strong>
-              <ng-template #focusedRoundLabel>
-                <strong class="match-order-tag">{{ compactRound(match.round) }}</strong>
-              </ng-template>
-              <span class="match-time-tag" [class.is-live]="match.status === 'live'"
-                [class.is-pressure]="!!match.livePressure" [class.is-break]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
-                <span class="live-dot" *ngIf="match.status === 'live'"></span>
-                {{ match.status === 'completed'
-                  ? 'Result'
-                  : match.status === 'live'
-                    ? liveMatchState(match)
-                    : (match.timeLabel || 'Time TBC') }}
-              </span>
+@if (detailService.isOpen()) {
+  <div class="sports-detail-backdrop" (click)="onBackdropClick($event)"
+    role="presentation">
+    @if (detail(); as data) {
+      <article class="sports-detail-sheet" [class.is-wide]="detail()?.presentationSize === 'wide'"
+        [class.is-live-sheet]="detail()?.state === 'live'"
+        [class.is-focused-badminton]="detail()?.badmintonMatchDetail"
+        [attr.data-sport]="detail()?.sportSlug"
+        (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <!-- Top Header: Clean Masthead with Actions (No heavy card surface) -->
+        <header class="sheet-header">
+          <div class="sheet-header-top">
+            <div class="sport-badge">
+              <span>{{ data.sportName }}</span>
             </div>
-
-            <ng-template #campaignMatchTop>
-              <div class="match-card-top">
-              <div class="card-kicker">
-                <span class="match-round-tag">{{ match.round }}</span>
-                <span class="disc-code-tag">{{ match.disciplineCode }}</span>
-              </div>
-              <span class="match-time-tag" [class.is-bye]="match.bye" [class.is-live]="match.status === 'live'"
-                [class.is-pressure]="!!match.livePressure" [class.is-break]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
-                <span class="live-dot" *ngIf="match.status === 'live'"></span>
-                {{ match.bye ? 'SEEDED BYE' : (match.status === 'live' ? liveMatchState(match) : (match.timeLabel || 'TIME TBC')) }}
+            <div class="header-status-wrap">
+              <span class="state-badge" [class.is-live]="data.state === 'live'"
+                [class.is-completed]="data.state === 'completed'">
+                @if (data.state === 'live') {
+                  <span class="live-dot"></span>
+                }
+                {{ data.stateLabel }}
               </span>
+              <button class="sheet-close-btn" [class.is-back]="detailService.returnToResults()" type="button"
+                [attr.aria-label]="detailService.returnToResults() ? 'Back to latest results' : 'Close'" (click)="close()">
+                <mat-icon>{{ detailService.returnToResults() ? 'arrow_back' : 'close' }}</mat-icon>
+                @if (detailService.returnToResults()) {
+                  <span>Back to results</span>
+                }
+              </button>
             </div>
-            </ng-template>
-
-            <!-- Broadcast Scoreboard Box -->
-            <div class="badminton-scoreboard" [class.is-live-scoreboard]="match.status === 'live'"
-              [class.is-pressure-scoreboard]="!!match.livePressure" [class.is-break-scoreboard]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
-              <div class="scoreboard-game-head" aria-hidden="true">
-                <span>G1</span>
-                <span>G2</span>
-                <span>G3</span>
+          </div>
+          <!-- Hero Tournament Branding with Sport Pictogram -->
+          <div class="sheet-brand-row">
+            @if (data.sportPictogramUrl) {
+              <div class="hero-sport-pictogram">
+                <img [src]="data.sportPictogramUrl" [alt]="data.sportName" />
               </div>
-
-              <!-- Row 1: India -->
-              <div class="scoreboard-row is-india" [class.is-serving]="match.status === 'live' && match.servingSide === 'india'"
-                [class.is-winner]="match.status === 'completed' && match.outcome === 'win'"
-                [class.is-loser]="match.status === 'completed' && match.outcome === 'loss'">
-                <div class="player-profile">
-                  <app-country-flag class="score-country-flag" code="IND" label="India"></app-country-flag>
-                  <app-shuttle-icon class="serve-indicator" *ngIf="match.status === 'live' && match.servingSide === 'india'" aria-label="India serving"></app-shuttle-icon>
-                  <span class="winner-indicator" *ngIf="match.status === 'completed' && match.outcome === 'win'" aria-label="Winner"></span>
-                  <div class="player-names-wrap">
-                    <span class="player-name-line" *ngFor="let name of match.names; let first = first">
-                      <strong class="name-text">{{ name }}</strong>
-                      <span class="seed-badge" *ngIf="match.seed && first">[{{ match.seed }}]</span>
+            }
+            <div class="brand-info">
+              <h1 class="tournament-name">{{ data.competitionTitle }}</h1>
+              @if (data.venue || data.dateLabel) {
+                <p class="tournament-sub">
+                  @if (data.venue) {
+                    <span>{{ data.venue }}</span>
+                  }
+                  @if (data.venue && data.dateLabel) {
+                    <span class="sub-sep">·</span>
+                  }
+                  @if (data.dateLabel) {
+                    <span>{{ data.dateLabel }}</span>
+                  }
+                </p>
+              }
+              @if (data.actions?.whereToWatchUrl || data.actions?.externalUrl) {
+                <div class="brand-actions-row">
+                  @if (data.actions?.whereToWatchUrl) {
+                    <a class="action-pill watch-pill"
+                      [href]="data.actions!.whereToWatchUrl" target="_blank" rel="noopener noreferrer">
+                      <mat-icon>tv</mat-icon>
+                      <span>{{ data.actions!.whereToWatchLabel || 'Watch Live' }}</span>
+                      <mat-icon class="mini-ext">north_east</mat-icon>
+                    </a>
+                  }
+                  @if (data.actions?.externalUrl) {
+                    <a class="action-pill site-pill" [href]="data.actions!.externalUrl"
+                      target="_blank" rel="noopener noreferrer">
+                      <mat-icon>language</mat-icon>
+                      <span>Official</span>
+                      <mat-icon class="mini-ext">north_east</mat-icon>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </header>
+        <!-- Scrollable Content Body -->
+        <div class="sheet-body">
+          <!-- 1. Primary Stage: Hockey Scorecard / Matchup Stage -->
+          @if (data.matchup && !data.badmintonMatchDetail) {
+            <section class="stage-card matchup-stage">
+              @if (data.contextLine) {
+                <div class="matchup-kicker">
+                  <span>{{ data.contextLine }}</span>
+                </div>
+              }
+              <div class="matchup-board">
+                <!-- Team A -->
+                <div class="team-card team-a" [class.is-india]="data.matchup.teamA.isIndia">
+                  <app-country-flag class="country-flag" [code]="data.matchup.teamA.code"
+                  [label]="data.matchup.teamA.name"></app-country-flag>
+                  <strong class="team-name">{{ data.matchup.teamA.name }}</strong>
+                  <span class="country-code-pill">{{ data.matchup.teamA.code }}</span>
+                  @if (data.state === 'completed' || data.state === 'live') {
+                    <span class="score-num">
+                      {{ data.matchup.teamA.score ?? '-' }}
                     </span>
-                  </div>
+                  }
                 </div>
-                <div class="score-cells">
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 1"
-                    [class.game-winner]="isGameWinner(match, 0, 'india')">{{ scoreAt(match.score, 0) }}</span>
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 2"
-                    [class.game-winner]="isGameWinner(match, 1, 'india')">{{ scoreAt(match.score, 1) }}</span>
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 3"
-                    [class.game-winner]="isGameWinner(match, 2, 'india')">{{ scoreAt(match.score, 2) }}</span>
+                <!-- Center Time & Versus -->
+                <div class="center-col">
+                  <span class="match-time-pill">{{ data.timeLabel }}</span>
+                  <span class="vs-badge">VS</span>
                 </div>
-              </div>
-
-              <!-- Scoreboard Divider -->
-              <div class="scoreboard-divider"></div>
-
-              <!-- Row 2: Opponent -->
-              <div class="scoreboard-row is-opponent" [class.is-bye-opp]="match.bye"
-                [class.is-serving]="match.status === 'live' && match.servingSide === 'opponent'"
-                [class.is-winner]="match.status === 'completed' && match.outcome === 'loss'"
-                [class.is-loser]="match.status === 'completed' && match.outcome === 'win'">
-                <div class="player-profile">
-                  <app-country-flag class="score-country-flag" [code]="match.opponentCountryCode"
-                    [label]="match.opponentCountry || 'Opponent'"></app-country-flag>
-                  <app-shuttle-icon class="serve-indicator" *ngIf="match.status === 'live' && match.servingSide === 'opponent'" aria-label="Opponent serving"></app-shuttle-icon>
-                  <span class="winner-indicator" *ngIf="match.status === 'completed' && match.outcome === 'loss'" aria-label="Winner"></span>
-                  <div class="player-names-wrap">
-                    <span class="player-name-line"
-                      *ngFor="let opp of (match.opponentNames?.length ? match.opponentNames : ['Opponent to be confirmed']); let first = first">
-                      <strong class="name-text">{{ opp }}</strong>
-                      <span class="seed-badge" *ngIf="match.opponentSeed && first">[{{ match.opponentSeed }}]</span>
+                <!-- Team B -->
+                <div class="team-card team-b" [class.is-india]="data.matchup.teamB.isIndia">
+                  <app-country-flag class="country-flag" [code]="data.matchup.teamB.code"
+                  [label]="data.matchup.teamB.name"></app-country-flag>
+                  <strong class="team-name">{{ data.matchup.teamB.name }}</strong>
+                  <span class="country-code-pill">{{ data.matchup.teamB.code }}</span>
+                  @if (data.state === 'completed' || data.state === 'live') {
+                    <span class="score-num">
+                      {{ data.matchup.teamB.score ?? '-' }}
                     </span>
-                  </div>
-                  <span class="completion-badge" *ngIf="match.opponentStatusLabel">
-                    {{ match.opponentStatusLabel }}
-                  </span>
-                </div>
-                <div class="score-cells">
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 1"
-                    [class.game-winner]="isGameWinner(match, 0, 'opponent')">{{ scoreAt(match.opponentScore, 0) }}</span>
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 2"
-                    [class.game-winner]="isGameWinner(match, 1, 'opponent')">{{ scoreAt(match.opponentScore, 1) }}</span>
-                  <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 3"
-                    [class.game-winner]="isGameWinner(match, 2, 'opponent')">{{ scoreAt(match.opponentScore, 2) }}</span>
+                  }
                 </div>
               </div>
-            </div>
-
-            <div class="focused-match-footer" *ngIf="data.badmintonMatchDetail">
-              <span>{{ match.disciplineCode }} · {{ compactRound(match.round) }}<ng-container *ngIf="match.court"> · {{ match.court }}</ng-container></span>
-              <span *ngIf="match.durationLabel">
-                <mat-icon>timer</mat-icon>
-                {{ match.durationLabel }}
-              </span>
-            </div>
-
-            <p class="match-sequence-note" *ngIf="match.note && !data.badmintonMatchDetail">
-              <mat-icon>schedule</mat-icon>
-              {{ match.note }}
-            </p>
-            <p class="live-update-note" *ngIf="match.status === 'live' && match.liveUpdatedAt">
-              Live from court · updated {{ match.liveUpdatedAt | date:'HH:mm:ss':'Asia/Kolkata' }} IST · rev {{ match.liveRevision }}
-            </p>
-          </article>
+            </section>
+          }
+          <!-- B. BWF campaign browser for event anchors, or one focused scorecard for a Home match. -->
+          @if (data.badmintonEntries?.length) {
+            <section class="badminton-container" [class.is-single-match]="data.badmintonMatchDetail"
+              >
+              @if (!data.badmintonMatchDetail) {
+                <nav class="discipline-nav">
+                  @for (disc of disciplines(); track disc) {
+                    <button type="button" class="discipline-pill"
+                      [class.active]="effectiveDiscipline() === disc" (click)="selectDiscipline(disc)">
+                      <span class="disc-full">{{ disc }}</span>
+                      <span class="disc-short">{{ getDisciplineShort(disc) }}</span>
+                    </button>
+                  }
+                </nav>
+              }
+              <!-- 2 Match / Score Cards for Selected Discipline -->
+              <div class="badminton-matches-grid">
+                @for (match of filteredBadmintonEntries(); track match) {
+                  <article class="badminton-match-card" [class.is-live-match]="match.status === 'live'"
+                    [class.is-focused-match]="data.badmintonMatchDetail"
+                    [class.is-completed-match]="match.status === 'completed'"
+                    >
+                    <!-- Focused match header: order is the primary operational identity. -->
+                    @if (data.badmintonMatchDetail) {
+                      <div class="focused-match-top">
+                        <span class="focused-match-meta">{{ match.disciplineCode }} · {{ compactRound(match.round) }}</span>
+                        @if (match.matchOrder) {
+                          <strong class="match-order-tag">
+                            Match {{ match.matchOrder }}
+                          </strong>
+                        } @else {
+                          <strong class="match-order-tag">{{ compactRound(match.round) }}</strong>
+                        }
+                        <span class="match-time-tag" [class.is-live]="match.status === 'live'"
+                          [class.is-pressure]="!!match.livePressure" [class.is-break]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
+                          @if (match.status === 'live') {
+                            <span class="live-dot"></span>
+                          }
+                          {{ match.status === 'completed'
+                          ? 'Result'
+                          : match.status === 'live'
+                          ? liveMatchState(match)
+                          : (match.timeLabel || 'Time TBC') }}
+                        </span>
+                      </div>
+                    } @else {
+                      <div class="match-card-top">
+                        <div class="card-kicker">
+                          <span class="match-round-tag">{{ match.round }}</span>
+                          <span class="disc-code-tag">{{ match.disciplineCode }}</span>
+                        </div>
+                        <span class="match-time-tag" [class.is-bye]="match.bye" [class.is-live]="match.status === 'live'"
+                          [class.is-pressure]="!!match.livePressure" [class.is-break]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
+                          @if (match.status === 'live') {
+                            <span class="live-dot"></span>
+                          }
+                          {{ match.bye ? 'SEEDED BYE' : (match.status === 'live' ? liveMatchState(match) : (match.timeLabel || 'TIME TBC')) }}
+                        </span>
+                      </div>
+                    }
+                    <!-- Broadcast Scoreboard Box -->
+                    <div class="badminton-scoreboard" [class.is-live-scoreboard]="match.status === 'live'"
+                      [class.is-pressure-scoreboard]="!!match.livePressure" [class.is-break-scoreboard]="match.livePhase === 'interval' || match.livePhase === 'challenge'">
+                      <div class="scoreboard-game-head" aria-hidden="true">
+                        <span>G1</span>
+                        <span>G2</span>
+                        <span>G3</span>
+                      </div>
+                      <!-- Row 1: India -->
+                      <div class="scoreboard-row is-india" [class.is-serving]="match.status === 'live' && match.servingSide === 'india'"
+                        [class.is-winner]="match.status === 'completed' && match.outcome === 'win'"
+                        [class.is-loser]="match.status === 'completed' && match.outcome === 'loss'">
+                        <div class="player-profile">
+                          <app-country-flag class="score-country-flag" code="IND" label="India"></app-country-flag>
+                          @if (match.status === 'live' && match.servingSide === 'india') {
+                            <app-shuttle-icon class="serve-indicator" aria-label="India serving"></app-shuttle-icon>
+                          }
+                          @if (match.status === 'completed' && match.outcome === 'win') {
+                            <span class="winner-indicator" aria-label="Winner"></span>
+                          }
+                          <div class="player-names-wrap">
+                            @for (name of match.names; track name; let first = $first) {
+                              <span class="player-name-line">
+                                <strong class="name-text">{{ name }}</strong>
+                                @if (match.seed && first) {
+                                  <span class="seed-badge">[{{ match.seed }}]</span>
+                                }
+                              </span>
+                            }
+                          </div>
+                        </div>
+                        <div class="score-cells">
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 1"
+                          [class.game-winner]="isGameWinner(match, 0, 'india')">{{ scoreAt(match.score, 0) }}</span>
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 2"
+                          [class.game-winner]="isGameWinner(match, 1, 'india')">{{ scoreAt(match.score, 1) }}</span>
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 3"
+                          [class.game-winner]="isGameWinner(match, 2, 'india')">{{ scoreAt(match.score, 2) }}</span>
+                        </div>
+                      </div>
+                      <!-- Scoreboard Divider -->
+                      <div class="scoreboard-divider"></div>
+                      <!-- Row 2: Opponent -->
+                      <div class="scoreboard-row is-opponent" [class.is-bye-opp]="match.bye"
+                        [class.is-serving]="match.status === 'live' && match.servingSide === 'opponent'"
+                        [class.is-winner]="match.status === 'completed' && match.outcome === 'loss'"
+                        [class.is-loser]="match.status === 'completed' && match.outcome === 'win'">
+                        <div class="player-profile">
+                          <app-country-flag class="score-country-flag" [code]="match.opponentCountryCode"
+                          [label]="match.opponentCountry || 'Opponent'"></app-country-flag>
+                          @if (match.status === 'live' && match.servingSide === 'opponent') {
+                            <app-shuttle-icon class="serve-indicator" aria-label="Opponent serving"></app-shuttle-icon>
+                          }
+                          @if (match.status === 'completed' && match.outcome === 'loss') {
+                            <span class="winner-indicator" aria-label="Winner"></span>
+                          }
+                          <div class="player-names-wrap">
+                            @for (opp of (match.opponentNames?.length ? match.opponentNames : ['Opponent to be confirmed']); track opp; let first = $first) {
+                              <span class="player-name-line"
+                                >
+                                <strong class="name-text">{{ opp }}</strong>
+                                @if (match.opponentSeed && first) {
+                                  <span class="seed-badge">[{{ match.opponentSeed }}]</span>
+                                }
+                              </span>
+                            }
+                          </div>
+                          @if (match.opponentStatusLabel) {
+                            <span class="completion-badge">
+                              {{ match.opponentStatusLabel }}
+                            </span>
+                          }
+                        </div>
+                        <div class="score-cells">
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 1"
+                          [class.game-winner]="isGameWinner(match, 0, 'opponent')">{{ scoreAt(match.opponentScore, 0) }}</span>
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 2"
+                          [class.game-winner]="isGameWinner(match, 1, 'opponent')">{{ scoreAt(match.opponentScore, 1) }}</span>
+                          <span class="score-cell" [class.active-set]="match.status === 'live' && match.currentGame === 3"
+                          [class.game-winner]="isGameWinner(match, 2, 'opponent')">{{ scoreAt(match.opponentScore, 2) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    @if (data.badmintonMatchDetail) {
+                      <div class="focused-match-footer">
+                        <span>{{ match.disciplineCode }} · {{ compactRound(match.round) }}@if (match.court) {
+                          · {{ match.court }}
+                        }</span>
+                        @if (match.durationLabel) {
+                          <span>
+                            <mat-icon>timer</mat-icon>
+                            {{ match.durationLabel }}
+                          </span>
+                        }
+                      </div>
+                    }
+                    @if (match.note && !data.badmintonMatchDetail) {
+                      <p class="match-sequence-note">
+                        <mat-icon>schedule</mat-icon>
+                        {{ match.note }}
+                      </p>
+                    }
+                    @if (match.status === 'live' && match.liveUpdatedAt) {
+                      <p class="live-update-note">
+                        Live from court · updated {{ match.liveUpdatedAt | date:'HH:mm:ss':'Asia/Kolkata' }} IST · rev {{ match.liveRevision }}
+                      </p>
+                    }
+                  </article>
+                }
+              </div>
+              @if (data.badmintonMatchDetail && filteredBadmintonEntries()[0]?.liveStatus) {
+                @if (filteredBadmintonEntries()[0]; as liveMatch) {
+                  <section class="live-commentary">
+                    <header>
+                      <span>
+                        <i aria-hidden="true"></i>
+                        Live updates
+                      </span>
+                      <small>Point-by-point from court</small>
+                    </header>
+                    @if (liveMatch.liveUpdates?.length) {
+                      <ol>
+                        @for (update of latestLiveUpdates(liveMatch); track trackLiveUpdate($index, update)) {
+                          <li
+                            [class.is-key-update]="update.type === 'game-complete' || update.type === 'match-complete'">
+                            <span class="commentary-marker" aria-hidden="true"></span>
+                            <span class="commentary-copy">
+                              <strong>{{ liveUpdateTitle(update, liveMatch) }}</strong>
+                              @if (update.type !== 'match-start') {
+                                <small>
+                                  Game {{ update.currentGame }} · {{ update.india }}–{{ update.opponent }}
+                                </small>
+                              }
+                            </span>
+                            <time [attr.datetime]="update.occurredAt">{{ update.occurredAt | date:'HH:mm:ss':'Asia/Kolkata' }}</time>
+                          </li>
+                        }
+                      </ol>
+                    } @else {
+                      <p class="commentary-waiting">Coverage is live. The point-by-point feed will begin with the first score update.</p>
+                    }
+                  </section>
+                }
+              }
+              @if (!data.badmintonMatchDetail || data.state !== 'live') {
+                @if (data.badmintonMatchDetail && filteredBadmintonEntries()[0]?.resultNote) {
+                  <p class="section-footer-note is-result">
+                    {{ filteredBadmintonEntries()[0].resultNote }}
+                  </p>
+                } @else {
+                  @if (data.badmintonMatchDetail) {
+                    <p class="section-footer-note">
+                      {{ data.state === 'completed'
+                      ? 'Official result pending.'
+                      : 'Official game scores will appear here when available.' }}
+                    </p>
+                  } @else {
+                    <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
+                  }
+                }
+              }
+            </section>
+          }
+          <!-- 2. Official Result Card (if completed) -->
+          @if (data.resultSummary && !data.badmintonMatchDetail) {
+            <section class="domain-card result-card">
+              <span class="domain-card-title">OFFICIAL RESULT</span>
+              <strong class="result-text">{{ data.resultSummary }}</strong>
+            </section>
+          }
+          <!-- 6. Athletics Field Competitors (Lausanne Men's Javelin Scorecard) -->
+          @if (data.athleticsField?.length) {
+            <section class="domain-card javelin-field-card">
+              <div class="field-card-header">
+                <h3 class="domain-card-title">COMPETITOR FIELD · MEN'S JAVELIN</h3>
+                <span class="field-count">{{ data.athleticsField.length }} Athletes</span>
+              </div>
+              <div class="javelin-athletes-list">
+                @for (athlete of data.athleticsField; track athlete; let idx = $index) {
+                  <div class="javelin-athlete-row"
+                    [class.is-india]="athlete.isIndia">
+                    <div class="athlete-rank-col">
+                      <span class="rank-index">{{ idx + 1 }}</span>
+                    </div>
+                    <div class="athlete-nation-col">
+                      <app-country-flag class="country-flag" size="small" [code]="athlete.countryCode"
+                      [label]="athlete.country"></app-country-flag>
+                      <!-- <span class="country-code-badge">{{ athlete.countryCode }}</span> -->
+                    </div>
+                    <div class="athlete-main-col">
+                      <strong class="athlete-name">{{ athlete.name }}</strong>
+                      <!-- <span class="india-badge" *ngIf="athlete.isIndia">India</span> -->
+                    </div>
+                    <div class="athlete-stats-col">
+                      @if (athlete.pb) {
+                        <span class="stat-pill pb-pill">PB {{ athlete.pb }}</span>
+                      }
+                      <span class="mark-box">{{ athlete.bestMark || '-' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+          <!-- 7. Athletics 18-Event Programme (Bhubaneswar Continental Tour) -->
+          @if (data.athleticsProgramme) {
+            <section class="domain-card programme-card">
+              <h3 class="domain-card-title">MEET PROGRAMME · 18 EVENTS</h3>
+              <div class="programme-columns">
+                <!-- Men's Events -->
+                @if (data.athleticsProgramme.men.length) {
+                  <div class="prog-col">
+                    <h4 class="col-title">MEN · {{ data.athleticsProgramme.men.length }} EVENTS</h4>
+                    <ul class="prog-list">
+                      @for (item of data.athleticsProgramme.men; track item) {
+                        <li>
+                          <span class="prog-event-name">{{ item.name }}</span>
+                          <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+                <!-- Women's Events -->
+                @if (data.athleticsProgramme.women.length) {
+                  <div class="prog-col">
+                    <h4 class="col-title">WOMEN · {{ data.athleticsProgramme.women.length }} EVENTS</h4>
+                    <ul class="prog-list">
+                      @for (item of data.athleticsProgramme.women; track item) {
+                        <li>
+                          <span class="prog-event-name">{{ item.name }}</span>
+                          <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            </section>
+          }
         </div>
-
-        <ng-container *ngIf="data.badmintonMatchDetail && filteredBadmintonEntries()[0]?.liveStatus">
-          <section class="live-commentary" *ngIf="filteredBadmintonEntries()[0] as liveMatch">
-            <header>
-              <span>
-                <i aria-hidden="true"></i>
-                Live updates
-              </span>
-              <small>Point-by-point from court</small>
-            </header>
-
-            <ol *ngIf="liveMatch.liveUpdates?.length; else waitingForFirstPoint">
-              <li *ngFor="let update of latestLiveUpdates(liveMatch); trackBy: trackLiveUpdate"
-                [class.is-key-update]="update.type === 'game-complete' || update.type === 'match-complete'">
-                <span class="commentary-marker" aria-hidden="true"></span>
-                <span class="commentary-copy">
-                  <strong>{{ liveUpdateTitle(update, liveMatch) }}</strong>
-                  <small *ngIf="update.type !== 'match-start'">
-                    Game {{ update.currentGame }} · {{ update.india }}–{{ update.opponent }}
-                  </small>
-                </span>
-                <time [attr.datetime]="update.occurredAt">{{ update.occurredAt | date:'HH:mm:ss':'Asia/Kolkata' }}</time>
-              </li>
-            </ol>
-
-            <ng-template #waitingForFirstPoint>
-              <p class="commentary-waiting">Coverage is live. The point-by-point feed will begin with the first score update.</p>
-            </ng-template>
-          </section>
-        </ng-container>
-
-        <ng-container *ngIf="!data.badmintonMatchDetail || data.state !== 'live'">
-          <p class="section-footer-note is-result" *ngIf="data.badmintonMatchDetail && filteredBadmintonEntries()[0]?.resultNote; else pendingOrCampaignNote">
-            {{ filteredBadmintonEntries()[0].resultNote }}
-          </p>
-          <ng-template #pendingOrCampaignNote>
-            <p class="section-footer-note" *ngIf="data.badmintonMatchDetail; else orderOfPlayNote">
-              {{ data.state === 'completed'
-                  ? 'Official result pending.'
-                  : 'Official game scores will appear here when available.' }}
-            </p>
-          </ng-template>
-          <ng-template #orderOfPlayNote>
-            <p class="section-footer-note">Official order of play released 24h prior to matchday</p>
-          </ng-template>
-        </ng-container>
-      </section>
-
-      <!-- 2. Official Result Card (if completed) -->
-      <section class="domain-card result-card" *ngIf="data.resultSummary && !data.badmintonMatchDetail">
-        <span class="domain-card-title">OFFICIAL RESULT</span>
-        <strong class="result-text">{{ data.resultSummary }}</strong>
-      </section>
-
-      <!-- 6. Athletics Field Competitors (Lausanne Men's Javelin Scorecard) -->
-      <section class="domain-card javelin-field-card" *ngIf="data.athleticsField?.length">
-        <div class="field-card-header">
-          <h3 class="domain-card-title">COMPETITOR FIELD · MEN'S JAVELIN</h3>
-          <span class="field-count">{{ data.athleticsField.length }} Athletes</span>
-        </div>
-
-        <div class="javelin-athletes-list">
-          <div class="javelin-athlete-row" *ngFor="let athlete of data.athleticsField; let idx = index"
-            [class.is-india]="athlete.isIndia">
-
-            <div class="athlete-rank-col">
-              <span class="rank-index">{{ idx + 1 }}</span>
-            </div>
-
-            <div class="athlete-nation-col">
-              <app-country-flag class="country-flag" size="small" [code]="athlete.countryCode"
-                [label]="athlete.country"></app-country-flag>
-              <!-- <span class="country-code-badge">{{ athlete.countryCode }}</span> -->
-            </div>
-
-            <div class="athlete-main-col">
-              <strong class="athlete-name">{{ athlete.name }}</strong>
-              <!-- <span class="india-badge" *ngIf="athlete.isIndia">India</span> -->
-            </div>
-
-            <div class="athlete-stats-col">
-              <span class="stat-pill pb-pill" *ngIf="athlete.pb">PB {{ athlete.pb }}</span>
-              <span class="mark-box">{{ athlete.bestMark || '-' }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 7. Athletics 18-Event Programme (Bhubaneswar Continental Tour) -->
-      <section class="domain-card programme-card" *ngIf="data.athleticsProgramme">
-        <h3 class="domain-card-title">MEET PROGRAMME · 18 EVENTS</h3>
-        <div class="programme-columns">
-          <!-- Men's Events -->
-          <div class="prog-col" *ngIf="data.athleticsProgramme.men.length">
-            <h4 class="col-title">MEN · {{ data.athleticsProgramme.men.length }} EVENTS</h4>
-            <ul class="prog-list">
-              <li *ngFor="let item of data.athleticsProgramme.men">
-                <span class="prog-event-name">{{ item.name }}</span>
-                <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Women's Events -->
-          <div class="prog-col" *ngIf="data.athleticsProgramme.women.length">
-            <h4 class="col-title">WOMEN · {{ data.athleticsProgramme.women.length }} EVENTS</h4>
-            <ul class="prog-list">
-              <li *ngFor="let item of data.athleticsProgramme.women">
-                <span class="prog-event-name">{{ item.name }}</span>
-                <span class="prog-event-time">{{ item.timeLabel || 'Time TBC' }}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-    </div>
-  </article>
-</div>
+      </article>
+    }
+  </div>
+}

@@ -1,6 +1,6 @@
 import { A11yModule } from '@angular/cdk/a11y';
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal, DOCUMENT } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, RouterModule } from '@angular/router';

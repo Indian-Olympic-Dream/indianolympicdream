@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 
 // Payload and official sport feeds use a mixture of IOC/BWF codes and ISO
 // alpha-3 codes. FlagCDN uses ISO alpha-2 (plus the UK home-nation codes), so
@@ -25,15 +25,19 @@ const FLAG_CODES: Record<string, string> = {
 @Component({
   selector: 'app-country-flag',
   standalone: true,
-  imports: [NgIf],
+  imports: [],
   template: `
     <span class="flag-shell" [class.has-image]="url && !failed">
-      <img *ngIf="url && !failed" [src]="url" [alt]="alt" (error)="failed = true">
-      <span class="flag-fallback" *ngIf="!url || failed" [attr.aria-label]="alt">
-        {{ fallbackLabel }}
-      </span>
+      @if (url && !failed) {
+        <img [src]="url" [alt]="alt" (error)="failed = true">
+      }
+      @if (!url || failed) {
+        <span class="flag-fallback" [attr.aria-label]="alt">
+          {{ fallbackLabel }}
+        </span>
+      }
     </span>
-  `,
+    `,
   styleUrls: ['./country-flag.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

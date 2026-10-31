@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { PayloadMediaPipe } from "../../shared/payload-media.pipe";
@@ -7,7 +7,7 @@ import { PayloadMediaPipe } from "../../shared/payload-media.pipe";
 @Component({
   selector: "app-image-gallery-block",
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule, PayloadMediaPipe],
+  imports: [MatIconModule, MatButtonModule, PayloadMediaPipe],
   templateUrl: "./image-gallery-block.component.html",
   styleUrls: ["./image-gallery-block.component.scss"],
 })

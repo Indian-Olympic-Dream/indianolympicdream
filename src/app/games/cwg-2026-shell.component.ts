@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { Component, inject, signal } from "@angular/core";
 import { NavigationEnd, Router, RouterModule } from "@angular/router";
 import { filter } from "rxjs";
@@ -6,7 +6,7 @@ import { filter } from "rxjs";
 @Component({
   selector: "app-cwg-2026-shell",
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: "./cwg-2026-shell.component.html",
   styleUrl: "./cwg-2026-shell.component.scss",
 })

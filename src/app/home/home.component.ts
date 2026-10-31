@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MatSpinner } from '@angular/material/progress-spinner';
@@ -34,13 +34,11 @@ const EMPTY_HOME: SportsHomeViewModel = {
   selector: 'app-home',
   standalone: true,
   imports: [
-    NgFor,
-    NgIf,
     RouterModule,
     MatIcon,
     MatSpinner,
-    RecentResultsSheetComponent,
-  ],
+    RecentResultsSheetComponent
+],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })

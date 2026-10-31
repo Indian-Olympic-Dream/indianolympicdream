@@ -1,0 +1,128 @@
+<section class="cart">
+  <app-shop-chrome />
+
+  <div class="cart__content">
+    <header class="cart__header">
+      <div>
+        <p>YOUR SELECTION</p>
+        <h1>Cart <span>{{ cart.count() }}</span></h1>
+      </div>
+      @if (cart.items().length > 0) {
+        <div class="cart__header-note">
+          <span>IOD ORIGINALS</span>
+          <strong>{{ cart.items().length }} {{ cart.items().length === 1 ? "design" : "designs" }} selected</strong>
+          <small>Review your sizes before checkout</small>
+        </div>
+      }
+    </header>
+
+    @if (cart.items().length === 0) {
+      <div class="cart__empty">
+        <div class="cart__empty-mark" aria-hidden="true"><mat-icon>local_mall</mat-icon></div>
+        <h2>Your cart is waiting.</h2>
+        <p>Explore the collection and find a piece of the story to carry with you.</p>
+        <a routerLink="/shop" mat-flat-button>Explore the collection</a>
+      </div>
+    } @else {
+      @if (cart.discountPaise() > 0) {
+        <div class="cart__offer" aria-label="First Drop offer applied">
+          <span>FIRST DROP</span>
+          <strong>Both originals are in.</strong>
+          <small>Your offer has been applied automatically.</small>
+          <b>You save {{ formatPaise(cart.discountPaise()) }}</b>
+        </div>
+      }
+
+      <div class="cart__layout">
+        <div>
+          <ul class="cart__list">
+            @for (item of cart.items(); track item.productId + (item.variantId ?? "")) {
+              <li class="line">
+                <a class="line__image" [routerLink]="['/shop', item.slug]" tabindex="-1" aria-hidden="true">
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" [alt]="item.imageAlt || item.title" />
+                  } @else {
+                    <span>IOD</span>
+                  }
+                  <b>{{ momentFor(item) }}</b>
+                </a>
+
+                <div class="line__main">
+                  <p class="line__kind">IOD ORIGINAL · {{ chapterFor(item) }}</p>
+                  <a class="line__title" [routerLink]="['/shop', item.slug]">{{ item.title }}</a>
+                  @if (item.variantName) {
+                    <span class="line__variant"><small>Size</small> {{ item.variantName }}</span>
+                  }
+
+                  <div class="line__price">
+                    <strong>{{ formatPaise(item.unitPricePaise * item.quantity) }}</strong>
+                    @if (item.quantity > 1) {
+                      <small>{{ formatPaise(item.unitPricePaise) }} each</small>
+                    }
+                  </div>
+
+                  <div class="line__controls">
+                    <div class="line__quantity" aria-label="Quantity">
+                      <button type="button" aria-label="Decrease quantity" (click)="decrease(item)">
+                        <mat-icon aria-hidden="true">remove</mat-icon>
+                      </button>
+                      <span>{{ item.quantity }}</span>
+                      <button type="button" aria-label="Increase quantity" [disabled]="!canIncrease(item)" (click)="increase(item)">
+                        <mat-icon aria-hidden="true">add</mat-icon>
+                      </button>
+                    </div>
+
+                    <button class="line__remove" type="button" [attr.aria-label]="'Remove ' + item.title" (click)="remove(item)">
+                      <mat-icon aria-hidden="true">delete_outline</mat-icon><span>Remove</span>
+                    </button>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+
+          <a class="cart__continue" routerLink="/shop">
+            <mat-icon aria-hidden="true">arrow_back</mat-icon> Continue shopping
+          </a>
+        </div>
+
+        <aside class="cart__summary" aria-label="Order summary">
+          <p class="cart__summary-kicker">Order summary</p>
+          <div class="cart__subtotal">
+            <span>Subtotal · {{ cart.count() }} {{ cart.count() === 1 ? "item" : "items" }}</span>
+            <strong>{{ formatPaise(cart.subtotalPaise()) }}</strong>
+          </div>
+
+          @if (cart.discountPaise() > 0) {
+            <div class="cart__discount">
+              <span>First Drop offer</span>
+              <strong>−{{ formatPaise(cart.discountPaise()) }}</strong>
+            </div>
+            <div class="cart__offer-total">
+              <span>Both originals</span>
+              <strong>{{ formatPaise(cart.merchandiseTotalPaise()) }}</strong>
+            </div>
+          }
+
+          <div class="cart__pending">
+            <span>Delivery</span><span>Calculated at checkout</span>
+          </div>
+
+          <p class="cart__note">
+            Enter your PIN code at checkout to see delivery before you pay.
+          </p>
+
+          <a class="cart__checkout" routerLink="/shop/checkout" mat-flat-button>
+            Continue to checkout <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+          </a>
+
+          <div class="cart__secure">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            <span><strong>Secure checkout</strong>Payments are processed by Razorpay</span>
+          </div>
+        </aside>
+      </div>
+    }
+  </div>
+  <app-shop-policy-footer />
+</section>

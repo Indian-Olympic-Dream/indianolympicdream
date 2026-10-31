@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { Component, Input, inject } from "@angular/core";
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import {
@@ -12,7 +12,7 @@ import {
 @Component({
   selector: "app-cwg-2026-result-detail",
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: "./cwg-2026-result-detail.component.html",
   styleUrl: "./cwg-2026-result-detail.component.scss",
 })

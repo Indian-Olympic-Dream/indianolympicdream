@@ -1,0 +1,141 @@
+<section class="order">
+  <app-shop-chrome />
+
+  @if (loading()) {
+    <div class="order__loading" aria-label="Loading your order" aria-busy="true">
+      <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+      <p>Opening your private order page…</p>
+    </div>
+  } @else if (error()) {
+    <div class="order__error" role="alert">
+      <mat-icon aria-hidden="true">link_off</mat-icon>
+      <h1>We could not open this order</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/shop" mat-stroked-button>Back to the shop</a>
+    </div>
+  } @else {
+    @if (order(); as view) {
+      <div class="order__content">
+        <header class="order__hero" [class.order__hero--exception]="isTerminalException(view.status)">
+          <div class="order__hero-copy">
+            <p class="order__kicker">ORDER {{ view.orderNumber }}</p>
+            <h1>{{ statusLabel(view.status) }}</h1>
+            <p class="order__message">{{ statusMessage(view.status) }}</p>
+            @if (view.refundState === "partially_refunded" && view.refundedPaise) {
+              <p class="order__refund">Partly refunded: {{ formatPaise(view.refundedPaise) }} has been returned to your payment method.</p>
+            }
+
+            @if (view.tracking.trackingUrl) {
+              <a class="order__track" [href]="view.tracking.trackingUrl" target="_blank" rel="noopener noreferrer">
+                Track your parcel <mat-icon aria-hidden="true">arrow_outward</mat-icon>
+              </a>
+              @if (view.tracking.courier) { <small>Shipping with {{ view.tracking.courier }}</small> }
+            }
+          </div>
+
+          <div class="order__seal" aria-hidden="true">
+            <span>IOD</span>
+            <mat-icon>{{ view.status === "delivered" ? "done_all" : "inventory_2" }}</mat-icon>
+          </div>
+        </header>
+
+        @if (!isTerminalException(view.status)) {
+          <ol class="order__timeline" aria-label="Order progress">
+            @for (step of [
+              { label: "Ordered", icon: "receipt_long" },
+              { label: "Paid", icon: "verified" },
+              { label: "Preparing", icon: "inventory_2" },
+              { label: "On the way", icon: "local_shipping" },
+              { label: "Delivered", icon: "home" }
+            ]; track step.label; let i = $index) {
+              <li [class.complete]="statusStep(view.status) >= i" [class.current]="statusStep(view.status) === i">
+                <span><mat-icon aria-hidden="true">{{ step.icon }}</mat-icon></span>
+                <b>{{ step.label }}</b>
+              </li>
+            }
+          </ol>
+        }
+
+        <div class="order__grid">
+          <section class="order__panel order__panel--items">
+            <div class="order__panel-head">
+              <h2>Order details</h2>
+              <span>{{ placedDate(view.placedAt) }}</span>
+            </div>
+
+            <ul class="order__lines">
+              @for (line of view.lines; track line.title + (line.variantName ?? "")) {
+                <li>
+                  <span class="order__line-mark" aria-hidden="true">IOD</span>
+                  <div>
+                    <strong>{{ line.title }}</strong>
+                    @if (line.variantName) { <small>{{ line.variantName }}</small> }
+                    <small>Qty {{ line.quantity }} · {{ formatPaise(line.unitPricePaise) }} each</small>
+                  </div>
+                  <b>{{ formatPaise(line.lineTotalPaise) }}</b>
+                </li>
+              }
+            </ul>
+
+            <dl class="order__totals">
+              <dt>Subtotal</dt><dd>{{ formatPaise(view.subtotalPaise) }}</dd>
+              @if (view.discountPaise > 0) {
+                <dt class="order__discount">{{ view.promotionLabel || "Offer" }}</dt>
+                <dd class="order__discount">−{{ formatPaise(view.discountPaise) }}</dd>
+              }
+              <dt>Delivery</dt><dd>{{ view.shippingPaise === 0 ? "No charge" : formatPaise(view.shippingPaise) }}</dd>
+              @if (view.taxPaise > 0) { <dt>Tax</dt><dd>{{ formatPaise(view.taxPaise) }}</dd> }
+              <dt class="order__grand">Total paid</dt><dd class="order__grand">{{ formatPaise(view.totalPaise) }}</dd>
+              @if (view.refundedPaise) {
+                <dt class="order__refund">{{ view.refundState === "refunded" ? "Refunded" : "Partly refunded" }}</dt>
+                <dd class="order__refund">−{{ formatPaise(view.refundedPaise) }}</dd>
+              }
+            </dl>
+          </section>
+
+          <aside class="order__side">
+            <section class="order__panel">
+              <div class="order__panel-icon"><mat-icon aria-hidden="true">location_on</mat-icon></div>
+              <h2>Delivering to</h2>
+              <address>
+                {{ view.shippingAddress.line1 }}<br />
+                @if (view.shippingAddress.line2) { {{ view.shippingAddress.line2 }}<br /> }
+                {{ view.shippingAddress.city }}, {{ view.shippingAddress.state }}<br />
+                {{ view.shippingAddress.postalCode }}, {{ view.shippingAddress.country }}
+              </address>
+            </section>
+
+            @if (canDownloadInvoice(view.status)) {
+              <section class="order__panel">
+                <div class="order__panel-icon"><mat-icon aria-hidden="true">receipt_long</mat-icon></div>
+                <h2>Invoice</h2>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="order__invoice"
+                  [disabled]="invoiceBusy()"
+                  (click)="downloadInvoice(view.orderNumber)"
+                >
+                  <mat-icon aria-hidden="true">download</mat-icon>
+                  {{ invoiceBusy() ? "Preparing…" : "Download invoice" }}
+                </button>
+                @if (invoiceError()) { <p class="order__invoice-error" role="alert">{{ invoiceError() }}</p> }
+              </section>
+            }
+
+            <section class="order__private">
+              <mat-icon aria-hidden="true">lock</mat-icon>
+              <div>
+                <strong>This page is private</strong>
+                <p>Keep this order link private. Anyone with it can view your order details.</p>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <a class="order__shop-link" routerLink="/shop"><mat-icon aria-hidden="true">arrow_back</mat-icon> Return to the collection</a>
+      </div>
+    }
+  }
+  <app-shop-policy-footer />
+</section>

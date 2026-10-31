@@ -1,4 +1,8 @@
-<blockquote *ngIf="block?.quote" class="blockquote">
-  <p>{{ block.quote }}</p>
-  <cite *ngIf="block.citation">{{ block.citation }}</cite>
-</blockquote>
+@if (block?.quote) {
+  <blockquote class="blockquote">
+    <p>{{ block.quote }}</p>
+    @if (block.citation) {
+      <cite>{{ block.citation }}</cite>
+    }
+  </blockquote>
+}

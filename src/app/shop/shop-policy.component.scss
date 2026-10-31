@@ -1,0 +1,251 @@
+:host {
+  display: block;
+}
+
+.policy {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(212, 175, 55, 0.065), transparent 25%),
+    #0a0a0f;
+  color: rgba(255, 255, 255, 0.9);
+
+  &__main {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 42px 28px 0;
+    box-sizing: border-box;
+  }
+
+  &__back {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.46);
+    font-size: 10px;
+    text-decoration: none;
+  }
+
+  &__back mat-icon {
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
+  }
+
+  &__layout {
+    margin-top: 38px;
+    display: grid;
+    grid-template-columns: 170px minmax(0, 740px);
+    gap: clamp(50px, 8vw, 110px);
+    align-items: start;
+  }
+
+  &__nav {
+    position: sticky;
+    top: 108px;
+    padding-top: 8px;
+  }
+
+  &__nav > p {
+    margin: 0 0 17px;
+    color: #d4af37;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  &__nav nav {
+    display: grid;
+  }
+
+  &__nav a {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 10px;
+    text-decoration: none;
+    transition: color 150ms ease, padding-left 150ms ease;
+  }
+
+  &__nav a:hover,
+  &__nav a.policy__nav-link--active {
+    padding-left: 7px;
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  &__nav a.policy__nav-link--active {
+    border-bottom-color: rgba(212, 175, 55, 0.4);
+  }
+
+  &__nav small {
+    display: block;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 8px;
+    line-height: 1.6;
+  }
+
+  &__article > header {
+    padding-bottom: 38px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  &__article > header p {
+    margin: 0 0 13px;
+    color: #d4af37;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.19em;
+  }
+
+  &__article > header h1 {
+    margin: 0;
+    color: #f7f4ec;
+    font-size: clamp(42px, 7vw, 72px);
+    line-height: 0.96;
+    letter-spacing: -0.055em;
+  }
+
+  &__article > header span {
+    max-width: 560px;
+    margin-top: 19px;
+    display: block;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  &__sections > section {
+    padding: 30px 0;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  &__index {
+    padding-top: 4px;
+    color: rgba(212, 175, 55, 0.72);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+
+  &__sections h2 {
+    margin: 0 0 13px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 17px;
+    letter-spacing: -0.015em;
+  }
+
+  &__sections p,
+  &__sections li {
+    color: rgba(255, 255, 255, 0.57);
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  &__sections p {
+    margin: 0;
+  }
+
+  &__sections p + p {
+    margin-top: 12px;
+  }
+
+  &__sections ul {
+    margin: 13px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 7px;
+    list-style: none;
+  }
+
+  &__sections li {
+    position: relative;
+    padding-left: 15px;
+  }
+
+  &__sections li::before {
+    position: absolute;
+    top: 0.82em;
+    left: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    content: "";
+    background: #d4af37;
+  }
+
+  &__note {
+    margin-top: 17px !important;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    border-left: 2px solid rgba(212, 175, 55, 0.72);
+    background: rgba(212, 175, 55, 0.055);
+    color: rgba(255, 255, 255, 0.64) !important;
+  }
+
+  &__note mat-icon {
+    width: 15px;
+    height: 15px;
+    margin-top: 3px;
+    flex: 0 0 auto;
+    color: #d4af37;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 720px) {
+  .policy {
+    &__main {
+      padding: 32px 18px 0;
+    }
+
+    &__layout {
+      margin-top: 28px;
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+
+    &__nav {
+      position: static;
+      padding: 0;
+    }
+
+    &__nav > p,
+    &__nav small {
+      display: none;
+    }
+
+    &__nav nav {
+      padding-bottom: 5px;
+      grid-template-columns: repeat(5, max-content);
+      gap: 19px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    &__nav nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    &__nav a,
+    &__nav a:hover,
+    &__nav a.policy__nav-link--active {
+      padding: 0 0 9px;
+    }
+
+    &__article > header {
+      padding-bottom: 29px;
+    }
+
+    &__sections > section {
+      padding: 25px 0;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+    }
+  }
+}

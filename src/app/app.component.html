@@ -14,10 +14,6 @@
       <img class="nav-icon nav-icon-logo" src="assets/images/logo.png" alt="" aria-hidden="true">
       <span class="nav-label">Sports</span>
     </a>
-    <a class="nav-link nav-asian-games" routerLink="/games/asian-games-2026" routerLinkActive="active-link" ariaCurrentWhenActive="page">
-      <img class="nav-icon nav-icon-games" src="assets/images/ag-2026/logo.webp" alt="" aria-hidden="true">
-      <span class="nav-label">Asian Games</span>
-    </a>
     <a class="nav-link" [routerLink]="['/calendar']" [class.active-link]="isCalendarActive()" [attr.aria-current]="isCalendarActive() ? 'page' : null">
       <img class="nav-icon nav-icon-premium nav-icon-premium-calendar" src="assets/icons/calendar.svg" alt=""
         aria-hidden="true">
@@ -36,6 +32,10 @@
       <img class="nav-icon nav-icon-premium" src="assets/icons/originals.svg" alt="" aria-hidden="true">
       <span class="nav-label">Originals</span>
     </a>
+    <a class="nav-link" [routerLink]="['/shop']" routerLinkActive="active-link">
+      <img class="nav-icon nav-icon-premium" src="assets/icons/shop.svg" alt="" aria-hidden="true">
+      <span class="nav-label">Shop</span>
+    </a>
   </nav>
 </mat-toolbar>
 
@@ -48,7 +48,9 @@
   </div>
 
   <!-- Global Footer -->
-  <app-footer *ngIf="!isNavigating"></app-footer>
+  @if (!isNavigating && !isShopRoute()) {
+    <app-footer></app-footer>
+  }
 </div>
 
 <!-- Mobile Bottom Nav -->

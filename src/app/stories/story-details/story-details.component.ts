@@ -7,9 +7,10 @@ import {
   PLATFORM_ID,
   Renderer2,
   ViewChild,
+  DOCUMENT
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
-import { CommonModule, DatePipe, DOCUMENT, isPlatformBrowser } from "@angular/common";
+import { CommonModule, DatePipe, isPlatformBrowser } from "@angular/common";
 import { Title, Meta } from "@angular/platform-browser";
 import { StoriesService, Story } from "../stories.service";
 import { Observable, Subscription } from "rxjs";

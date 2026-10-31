@@ -7,10 +7,12 @@
 @use './components/slide-toggle-theme' as slide-toggle;
 
 @include theme.theme-exports() using ($light-theme, $dark-theme) {
-  @include mat.core();
+  @include mat.elevation-classes();
+  @include mat.app-background();
   
   // Apply the light theme by default
-  @include mat.core-theme($light-theme);
+  @include mat.elevation-classes();
+  @include mat.app-background();
   @include mat.all-component-themes($light-theme);
   @include tab.tab-theme();
   @include expansion.expansion-theme();

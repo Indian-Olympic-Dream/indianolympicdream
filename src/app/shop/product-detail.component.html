@@ -1,0 +1,197 @@
+<section class="detail">
+  <app-shop-chrome />
+
+  @if (loading()) {
+    <p class="detail__status" aria-live="polite">Loading the piece…</p>
+  } @else if (error()) {
+    <div class="detail__status detail__status--error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <h1>We could not find that piece</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/shop" mat-stroked-button>Back to the collection</a>
+    </div>
+  } @else {
+    @if (product(); as item) {
+      <div class="detail__crumbs">
+        <a routerLink="/shop"><mat-icon aria-hidden="true">arrow_back</mat-icon> Collection</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ item.title }}</span>
+      </div>
+
+      <div class="detail__body">
+        <div class="detail__gallery">
+          <div class="detail__media">
+            @if (imageFor(item); as image) {
+              <img
+                [src]="image"
+                [alt]="imageAltFor(item)"
+                [class.detail__media-image--artwork]="selectedImageIndex() === 2"
+              />
+            } @else {
+              <div class="detail__placeholder" aria-hidden="true"><span>IOD</span></div>
+            }
+
+            @if (item.comingSoon) {
+              <span class="detail__media-badge">Coming soon</span>
+            }
+          </div>
+
+          @if (availableImages(item).length > 1) {
+            <div class="detail__thumbnails" aria-label="Product images">
+              @for (image of availableImages(item); track image.url; let i = $index) {
+                <button
+                  type="button"
+                  [class.active]="selectedImageIndex() === i"
+                  [attr.aria-label]="'Show image ' + (i + 1)"
+                  (click)="selectImage(i)"
+                >
+                  <img [src]="image.url" [alt]="image.alt" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="detail__info">
+          <p class="detail__kicker">{{ productTypeLabel(item) }}</p>
+          <h1>{{ item.title }}</h1>
+
+          @if (!item.comingSoon) {
+            @if (selectedUnit(); as unit) {
+              <p class="detail__price">{{ formatPaise(unit.unitPricePaise) }}</p>
+              <p class="detail__tax-note">Delivery is calculated at checkout.</p>
+            }
+          }
+
+          @if (story(); as narrative) {
+            <p class="detail__moment">{{ narrative.intro }}</p>
+          }
+
+          @if (!item.comingSoon && item.units.length > 1) {
+            <fieldset class="detail__variants">
+              <legend>
+                {{ variantLegend(item) }}
+                @if (item.type === "merch") {
+                  <span>Choose before adding to cart</span>
+                }
+              </legend>
+              <div class="detail__variant-grid">
+                @for (unit of item.units; track unit.variantId; let i = $index) {
+                  <button
+                    type="button"
+                    class="detail__variant"
+                    [class.detail__variant--active]="selectedIndex() === i"
+                    [disabled]="unit.availableQuantity < 1"
+                    [attr.aria-pressed]="selectedIndex() === i"
+                    (click)="selectUnit(i)"
+                  >
+                    <span>{{ unit.variantName }}</span>
+                    @if (unit.availableQuantity < 1) {
+                      <small>Sold out</small>
+                    }
+                  </button>
+                }
+              </div>
+            </fieldset>
+          }
+
+          @if (!item.comingSoon && item.type === "merch") {
+            <section class="detail__fit" aria-labelledby="fit-heading">
+              <div class="detail__fit-tip">
+                <mat-icon aria-hidden="true">lightbulb</mat-icon>
+                <p><strong id="fit-heading">Pro tip</strong>Buy 1 size bigger than normal for a stress-free fit.</p>
+              </div>
+
+              <app-shop-size-guide [attached]="true" />
+            </section>
+          }
+
+          @if (item.comingSoon) {
+            <div class="detail__coming-soon" role="status">
+              <p>Coming soon</p>
+              <h2>A new IOD original is taking shape.</h2>
+              <span>We’ll reveal this piece when it is ready.</span>
+            </div>
+          } @else if (remaining() > 0) {
+            <div class="detail__purchase">
+              <div class="detail__quantity" aria-label="Quantity">
+                <button type="button" aria-label="Decrease quantity" [disabled]="quantity() <= 1" (click)="changeQuantity(-1)">
+                  <mat-icon aria-hidden="true">remove</mat-icon>
+                </button>
+                <span><small>Qty</small>{{ quantity() }}</span>
+                <button type="button" aria-label="Increase quantity" [disabled]="quantity() >= remaining()" (click)="changeQuantity(1)">
+                  <mat-icon aria-hidden="true">add</mat-icon>
+                </button>
+              </div>
+
+              <div class="detail__purchase-actions">
+                <button class="detail__add" mat-flat-button type="button" (click)="addToCart()">
+                  <span>Add to cart</span>
+                  @if (selectedUnit(); as unit) {
+                    <strong>{{ formatPaise(unit.unitPricePaise * quantity()) }}</strong>
+                  }
+                </button>
+                <button class="detail__buy-now" mat-stroked-button type="button" (click)="buyNow()">
+                  Buy now
+                  <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button class="detail__add detail__add--disabled" mat-flat-button type="button" disabled>
+              {{ inCart() > 0 ? "No more available in this size" : "Sold out" }}
+            </button>
+          }
+
+          @if (added()) {
+            <div class="detail__added" role="status">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span>Added to your cart.</span>
+              <a routerLink="/shop/cart">View cart</a>
+            </div>
+          }
+
+          @if (!item.comingSoon && remaining() > 0 && remaining() <= 3) {
+            <p class="detail__stock-note"><span aria-hidden="true"></span>Only {{ remaining() }} left in this option.</p>
+          }
+
+          <div class="detail__assurances">
+            @if (item.comingSoon) {
+              <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">auto_awesome</mat-icon><span><strong>Next from IOD</strong>Another story from Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">schedule</mat-icon><span><strong>Coming soon</strong>Not available to purchase yet</span></div>
+            } @else {
+              <div><mat-icon aria-hidden="true">draw</mat-icon><span><strong>Original by IOD</strong>Designed in-house for Indian sport</span></div>
+              <div><mat-icon aria-hidden="true">payments</mat-icon><span><strong>Secure payment</strong>Powered by Razorpay</span></div>
+              <div><mat-icon aria-hidden="true">local_shipping</mat-icon><span><strong>Tracked delivery</strong>Order updates sent by email</span></div>
+            }
+          </div>
+        </div>
+      </div>
+
+      @if (story(); as narrative) {
+        <section class="detail__story" aria-labelledby="product-story-title">
+          <div class="detail__story-mark">
+            <p>{{ narrative.chapter }}</p>
+            <span>{{ narrative.stat }}</span>
+            <small>{{ narrative.statLabel }}</small>
+          </div>
+
+          <div class="detail__story-copy">
+            <p class="detail__story-date">{{ narrative.date }}</p>
+            <h2 id="product-story-title">{{ narrative.headline }}</h2>
+            <p>{{ narrative.detail }}</p>
+
+            <div class="detail__design-note">
+              <span>Inside the artwork</span>
+              <p>{{ narrative.design }}</p>
+            </div>
+
+            <footer><strong>IOD</strong> Original artwork by Indian Olympic Dream.</footer>
+          </div>
+        </section>
+      }
+    }
+  }
+  <app-shop-policy-footer />
+</section>

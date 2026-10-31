@@ -347,7 +347,7 @@ export class StoriesService {
         query: GET_STORIES_LIST,
         fetchPolicy: "no-cache",
       })
-      .valueChanges.pipe(map((result) => result.data.Stories.docs));
+      .valueChanges.pipe(map((result) => result.data.Stories.docs as Story[]));
   }
 
   getStoryBySlug(slug: string, locale: string): Observable<Story> {
@@ -362,6 +362,6 @@ export class StoriesService {
         fetchPolicy: "no-cache",
         errorPolicy: "all",
       })
-      .valueChanges.pipe(map((result) => result.data?.Stories?.docs?.[0]));
+      .valueChanges.pipe(map((result) => result.data?.Stories?.docs?.[0] as Story));
   }
 }

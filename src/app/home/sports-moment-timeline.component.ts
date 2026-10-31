@@ -1,5 +1,5 @@
 import { Component, Input, inject } from '@angular/core';
-import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import {
@@ -15,7 +15,7 @@ import { SportsDetailService } from '../shared/sports-detail/sports-detail.servi
 @Component({
   selector: 'app-sports-moment-timeline',
   standalone: true,
-  imports: [NgFor, NgIf, NgTemplateOutlet, RouterModule, MatIcon],
+  imports: [NgTemplateOutlet, RouterModule, MatIcon],
   templateUrl: './sports-moment-timeline.component.html',
   styleUrls: ['./sports-moment-timeline.component.scss'],
 })

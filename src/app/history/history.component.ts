@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
@@ -61,12 +61,11 @@ interface MomentSection {
   selector: 'app-history',
   standalone: true,
   imports: [
-    CommonModule,
     RouterModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    MatIconModule,
-  ],
+    MatIconModule
+],
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.scss']
 })

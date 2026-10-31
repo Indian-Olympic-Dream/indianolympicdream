@@ -1,0 +1,329 @@
+<section class="shop">
+  <app-shop-chrome />
+
+  <header class="shop__hero">
+    <div class="shop__hero-copy">
+      <p class="shop__eyebrow">The IOD Collection · 01</p>
+      <h1>Wear the <span>story.</span></h1>
+      <p class="shop__lede">
+        Original pieces inspired by the moments, athletes and belief that move Indian sport forward.
+      </p>
+
+      <div class="shop__promises" aria-label="Shop benefits">
+        <span><mat-icon aria-hidden="true">verified</mat-icon>Designed by IOD</span>
+        <span><mat-icon aria-hidden="true">lock</mat-icon>Secure checkout</span>
+        <span><mat-icon aria-hidden="true">local_shipping</mat-icon>Delivery across India</span>
+      </div>
+    </div>
+
+    <div class="shop__moments" aria-label="The moments behind the collection">
+      <a [routerLink]="['/shop', 'the-golden-shot-tee']">
+        <span class="shop__moment-index">01</span>
+        <span class="shop__moment-copy">
+          <strong>10.8</strong>
+          <small>Beijing · 2008</small>
+          <span>The shot that made Abhinav Bindra India’s first individual Olympic champion.</span>
+        </span>
+        <mat-icon aria-hidden="true">arrow_outward</mat-icon>
+      </a>
+
+      <a [routerLink]="['/shop', 'the-golden-throw-tee']">
+        <span class="shop__moment-index">02</span>
+        <span class="shop__moment-copy">
+          <strong>87.58m</strong>
+          <small>Tokyo · 2021</small>
+          <span>The throw that made Neeraj Chopra India’s first Olympic champion in athletics.</span>
+        </span>
+        <mat-icon aria-hidden="true">arrow_outward</mat-icon>
+      </a>
+    </div>
+  </header>
+
+  <div class="shop__catalogue-head">
+    <div>
+      <p class="shop__section-label">Shop the collection</p>
+      <h2>Made for the ones who believe</h2>
+    </div>
+    <p class="shop__drop-note"><span aria-hidden="true"></span>Drawn and made by IOD</p>
+  </div>
+
+  @if (loading()) {
+    <div class="shop__grid" aria-label="Loading products" aria-busy="true">
+      @for (placeholder of [1, 2]; track placeholder) {
+        <div class="card card--loading">
+          <div class="card__image"></div>
+          <div class="card__skeleton card__skeleton--short"></div>
+          <div class="card__skeleton"></div>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="shop__empty shop__empty--error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <h2>We could not open the shop</h2>
+      <p>{{ error() }}</p>
+      <button type="button" mat-stroked-button (click)="shopListReload()">Try again</button>
+    </div>
+  } @else if (products().length === 0) {
+    <div class="shop__empty">
+      <span class="shop__empty-mark" aria-hidden="true">IOD</span>
+      <h2>The next drop is taking shape.</h2>
+      <p>Nothing is on sale just yet. Check back soon.</p>
+    </div>
+  } @else {
+    <ul class="shop__grid">
+      @for (product of products(); track product.id; let index = $index) {
+        <li class="card" [class.card--coming-soon]="product.comingSoon">
+          <div
+            class="card__media"
+            (touchstart)="onMediaTouchStart(product, $event)"
+            (touchend)="onMediaTouchEnd(product, $event)"
+          >
+            @if (activeImageFor(product); as image) {
+              <a
+                class="card__image-link"
+                [routerLink]="['/shop', product.slug]"
+                [attr.aria-label]="'View ' + product.title"
+              >
+                <img class="card__image" [src]="image.url" [alt]="image.alt || product.title" loading="lazy" />
+                <span class="card__view" aria-hidden="true"><mat-icon>arrow_outward</mat-icon></span>
+              </a>
+            } @else {
+              <a
+                class="card__image-link"
+                [routerLink]="['/shop', product.slug]"
+                [attr.aria-label]="'View ' + product.title"
+              >
+                <div class="card__image card__image--placeholder" aria-hidden="true">
+                  <span>IOD</span>
+                </div>
+              </a>
+            }
+
+            <span class="card__index" aria-hidden="true">0{{ index + 1 }}</span>
+            @if (product.comingSoon) {
+              <span class="card__badge">Coming soon</span>
+            } @else if (isSoldOut(product)) {
+              <span class="card__badge card__badge--muted">Sold out</span>
+            }
+
+            @if (imagesFor(product); as images) {
+              @if (images.length > 1) {
+                <button
+                  type="button"
+                  class="card__carousel-button card__carousel-button--previous"
+                  [attr.aria-label]="'Previous image of ' + product.title"
+                  (click)="moveImage(product, -1)"
+                >
+                  <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  class="card__carousel-button card__carousel-button--next"
+                  [attr.aria-label]="'Next image of ' + product.title"
+                  (click)="moveImage(product, 1)"
+                >
+                  <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                </button>
+
+                <div class="card__carousel-dots" role="group" [attr.aria-label]="product.title + ' images'">
+                  @for (carouselImage of images; track carouselImage.url; let imageIndex = $index) {
+                    <button
+                      type="button"
+                      [class.card__carousel-dot--active]="activeImageIndex(product) === imageIndex"
+                      [attr.aria-label]="'Show image ' + (imageIndex + 1) + ' of ' + product.title"
+                      [attr.aria-current]="activeImageIndex(product) === imageIndex ? 'true' : null"
+                      (click)="selectImage(product, imageIndex)"
+                    ></button>
+                  }
+                </div>
+                <span class="card__slide-count" aria-hidden="true">
+                  {{ activeImageIndex(product) + 1 }}/{{ images.length }}
+                </span>
+              }
+            }
+          </div>
+
+          <div class="card__meta">
+            <div>
+              <p class="card__kind">{{ typeLabel(product) }}</p>
+              <a class="card__title-link" [routerLink]="['/shop', product.slug]">
+                <h3 class="card__title">{{ product.title }}</h3>
+              </a>
+              <p class="card__story">{{ storyFor(product) }}</p>
+              <a class="card__details-link" [routerLink]="['/shop', product.slug]">
+                View story &amp; details <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+              </a>
+            </div>
+
+            @if (product.comingSoon) {
+              <p class="card__release"><span aria-hidden="true"></span>Next from IOD</p>
+            } @else {
+              @if (fromPricePaise(product); as price) {
+                <div class="card__price-block">
+                  <p class="card__price">
+                    @if (hasVariablePricing(product)) {
+                      <span class="card__from">from</span>
+                    }
+                    {{ formatPaise(price) }}
+                  </p>
+                  <small>Delivery calculated on payment page.</small>
+                </div>
+              }
+            }
+          </div>
+
+          @if (!product.comingSoon && !isSoldOut(product)) {
+            <div class="card__quick-buy">
+              <fieldset class="card__variants">
+                <legend>
+                  <span>{{ product.type === "merch" ? "Select size" : "Choose an option" }}</span>
+                </legend>
+                <div
+                  class="card__variant-options"
+                  role="radiogroup"
+                  [attr.aria-label]="product.type === 'merch' ? 'Select size' : 'Choose an option'"
+                >
+                  @for (unit of product.units; track $index; let unitIndex = $index) {
+                    <button
+                      type="button"
+                      class="card__variant"
+                      role="radio"
+                      [class.card__variant--selected]="isUnitSelected(product, unitIndex)"
+                      [disabled]="unit.availableQuantity < 1"
+                      [attr.aria-checked]="isUnitSelected(product, unitIndex)"
+                      [attr.aria-label]="(unit.variantName || 'One size') + (unit.availableQuantity < 1 ? ', sold out' : '')"
+                      (click)="selectUnit(product, unitIndex)"
+                    >
+                      <span>{{ unit.variantName || "One size" }}</span>
+                      @if (unit.availableQuantity < 1) {
+                        <small>Sold out</small>
+                      }
+                    </button>
+                  }
+                </div>
+              </fieldset>
+
+              @if (product.type === "merch") {
+                <app-shop-size-guide />
+              }
+
+              <div class="card__tip" aria-live="polite">
+                @if (selectedUnit(product) && product.type === "merch") {
+                  <mat-icon aria-hidden="true">lightbulb</mat-icon>
+                  <span><strong>Pro tip:</strong> Buy one size bigger than normal for a stress-free fit.</span>
+                } @else {
+                  <span class="card__tip-prompt">Choose your size to continue.</span>
+                }
+              </div>
+
+              <div class="card__actions">
+                <button
+                  type="button"
+                  class="card__buy-now"
+                  [disabled]="!canQuickBuy(product)"
+                  (click)="buyNow(product)"
+                >
+                  {{ selectionLabel(product) }}
+                </button>
+                <button
+                  type="button"
+                  class="card__add"
+                  [disabled]="!canQuickBuy(product)"
+                  (click)="addToCart(product)"
+                >
+                  <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+                  <span>{{ addedProductId() === product.id ? (canQuickBuy(product) ? "Add another" : "Added") : "Add to cart" }}</span>
+                </button>
+              </div>
+
+              @if (addedProductId() === product.id) {
+                <div class="card__added" aria-live="polite">
+                  <span><mat-icon aria-hidden="true">check_circle</mat-icon>{{ addedMessage() }}</span>
+                  <a routerLink="/shop/cart">View cart <mat-icon aria-hidden="true">arrow_forward</mat-icon></a>
+                </div>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (firstDropProducts(); as dropProducts) {
+    @if (dropProducts.length === 2) {
+      <section id="first-drop" class="shop__bundle" aria-labelledby="first-drop-title">
+        <div class="shop__bundle-copy">
+          <p class="shop__bundle-kicker">First Drop offer</p>
+          <h2 id="first-drop-title">The first two.<br /><span>Together.</span></h2>
+          <p class="shop__bundle-story">
+            The shot that ended a wait. The throw that opened a new chapter. Choose a size for each original and get both in one order.
+          </p>
+          <div class="shop__bundle-price" aria-label="First Drop price">
+            <span>{{ formatPaise(firstDropRegularPricePaise()) }}</span>
+            <strong>{{ formatPaise(firstDrop.pairPricePaise) }}</strong>
+          </div>
+          <small>Delivery calculated on payment page.</small>
+        </div>
+
+        <div class="shop__bundle-builder">
+          <app-shop-size-guide />
+          <div class="shop__bundle-products">
+            @for (product of dropProducts; track product.id; let productIndex = $index) {
+              <fieldset class="shop__bundle-product">
+                <legend>
+                  <span>0{{ productIndex + 1 }}</span>
+                  <strong>{{ product.title }}</strong>
+                  <small>{{ productIndex === 0 ? "10.8" : "87.58m" }}</small>
+                </legend>
+                <div class="shop__bundle-sizes" role="radiogroup" [attr.aria-label]="'Select size for ' + product.title">
+                  @for (unit of product.units; track $index; let unitIndex = $index) {
+                    <button
+                      type="button"
+                      role="radio"
+                      [class.shop__bundle-size--selected]="isUnitSelected(product, unitIndex)"
+                      [disabled]="unit.availableQuantity < 1"
+                      [attr.aria-checked]="isUnitSelected(product, unitIndex)"
+                      [attr.aria-label]="(unit.variantName || 'One size') + (unit.availableQuantity < 1 ? ', sold out' : '')"
+                      (click)="selectUnit(product, unitIndex)"
+                    >
+                      <span>{{ unit.variantName || "One size" }}</span>
+                      @if (unit.availableQuantity < 1) {
+                        <small>Sold out</small>
+                      }
+                    </button>
+                  }
+                </div>
+              </fieldset>
+            }
+          </div>
+
+          <div class="shop__bundle-status" aria-live="polite">
+            @if (firstDropAdded()) {
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span>Both originals were added to your cart.</span>
+              <a routerLink="/shop/cart">View cart <mat-icon aria-hidden="true">arrow_forward</mat-icon></a>
+            } @else if (canBuyFirstDrop()) {
+              <mat-icon aria-hidden="true">verified</mat-icon>
+              <span>Both sizes selected. You save {{ formatPaise(firstDropSavingsPaise()) }}.</span>
+            } @else {
+              <span>Select one size for each T-shirt.</span>
+            }
+          </div>
+
+          <div class="shop__bundle-actions">
+            <button type="button" class="shop__bundle-buy" [disabled]="!canBuyFirstDrop()" (click)="buyFirstDrop()">
+              Buy both · {{ formatPaise(firstDrop.pairPricePaise) }}
+            </button>
+            <button type="button" class="shop__bundle-add" [disabled]="!canBuyFirstDrop()" (click)="addFirstDropToCart()">
+              <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+              {{ firstDropAdded() ? (canBuyFirstDrop() ? "Add another pair" : "Both added") : "Add both to cart" }}
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+  }
+
+  <app-shop-policy-footer tagline="For the moments we still talk about." />
+</section>

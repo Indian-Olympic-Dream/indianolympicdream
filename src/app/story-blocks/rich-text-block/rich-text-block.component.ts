@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { SafePipe } from "../../safepipe";
 
 // Define basic interfaces for type safety
@@ -28,7 +28,7 @@ type EditorNode = TextNode | ElementNode;
 @Component({
   selector: "app-rich-text-block",
   standalone: true,
-  imports: [CommonModule, SafePipe],
+  imports: [SafePipe],
   template: `<div
     class="rich-text-content"
     [innerHTML]="serializedContent | safe"

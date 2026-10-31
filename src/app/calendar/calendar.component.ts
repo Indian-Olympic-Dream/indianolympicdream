@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+
 import { MatSpinner } from '@angular/material/progress-spinner';
 import { MatIcon } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
@@ -41,7 +41,7 @@ interface SportFilter {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [NgIf, NgFor, MatSpinner, MatIcon],
+  imports: [MatSpinner, MatIcon],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })

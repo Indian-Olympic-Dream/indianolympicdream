@@ -12,29 +12,34 @@
     </header>
 
     <div class="results-scroll">
-      <section class="result-group" *ngFor="let group of groups; trackBy: trackGroup">
-        <h3>{{ group.label }}</h3>
-
-        <button type="button" class="result-row" *ngFor="let result of group.results; trackBy: trackResult"
-          [attr.data-sport]="result.sport.slug" [attr.data-outcome]="result.result?.outcome || 'result'"
-          (click)="select(result)">
-          <span class="result-pictogram" *ngIf="result.sport.pictogramUrl">
-            <img [src]="result.sport.pictogramUrl" [alt]="result.sport.name">
-          </span>
-
-          <span class="result-copy">
-            <small>
-              {{ result.sport.name }}
-              <ng-container *ngIf="result.context"> · {{ result.context }}</ng-container>
-            </small>
-            <strong>{{ result.headline }}</strong>
-            <span>{{ result.resultLabel }}</span>
-          </span>
-
-          <span class="outcome-badge">{{ outcomeLabel(result) }}</span>
-          <mat-icon class="row-arrow">chevron_right</mat-icon>
-        </button>
-      </section>
+      @for (group of groups; track trackGroup($index, group)) {
+        <section class="result-group">
+          <h3>{{ group.label }}</h3>
+          @for (result of group.results; track trackResult($index, result)) {
+            <button type="button" class="result-row"
+              [attr.data-sport]="result.sport.slug" [attr.data-outcome]="result.result?.outcome || 'result'"
+              (click)="select(result)">
+              @if (result.sport.pictogramUrl) {
+                <span class="result-pictogram">
+                  <img [src]="result.sport.pictogramUrl" [alt]="result.sport.name">
+                </span>
+              }
+              <span class="result-copy">
+                <small>
+                  {{ result.sport.name }}
+                  @if (result.context) {
+                    · {{ result.context }}
+                  }
+                </small>
+                <strong>{{ result.headline }}</strong>
+                <span>{{ result.resultLabel }}</span>
+              </span>
+              <span class="outcome-badge">{{ outcomeLabel(result) }}</span>
+              <mat-icon class="row-arrow">chevron_right</mat-icon>
+            </button>
+          }
+        </section>
+      }
     </div>
 
     <footer class="results-footer">

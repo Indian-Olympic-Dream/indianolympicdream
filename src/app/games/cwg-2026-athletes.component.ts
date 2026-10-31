@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { Component, HostListener, OnInit, computed, inject, signal } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { RouterLink, RouterLinkActive } from "@angular/router";
@@ -60,7 +60,7 @@ interface AthleteResultOverview {
 @Component({
   selector: "app-cwg-2026-athletes",
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, MatIconModule, Cwg2026ResultDetailComponent],
+  imports: [RouterLink, RouterLinkActive, MatIconModule, Cwg2026ResultDetailComponent],
   templateUrl: "./cwg-2026-athletes.component.html",
   styleUrl: "./cwg-2026-athletes.component.scss",
 })
